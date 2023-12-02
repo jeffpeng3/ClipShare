@@ -1,10 +1,11 @@
 ﻿#include "clip_listener_window.h"
 
+#include <codecvt>
 #include <sstream>
 #include <flutter/encodable_value.h>
 #include "flutter/standard_method_codec.h"
 
-
+#pragma warning(disable : 4996)  // 禁用废弃警告
 ClipListenerWindow::ClipListenerWindow(flutter::MethodChannel<flutter::EncodableValue>* channel): channel_(channel)
 {
 }
@@ -37,19 +38,27 @@ void ClipListenerWindow::OnDestroy()
 	ChangeClipboardChain(GetHandle(), hWndNextViewer_);
 }
 
-void ClipListenerWindow::SendClip(std::string& content)
+void ClipListenerWindow::SendClip(std::wstring& content)
 {
+	// 定义一个 locale，用于字符集转换
+	std::locale loc("en_US.UTF-8");
+
+	// 创建一个 codecvt 对象
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+
+	// 将宽字符字符串转换为窄字符字符串
+	std::string str = converter.to_bytes(content);
 	// 构建要传递的参数
 	flutter::EncodableMap args;
-	args[flutter::EncodableValue("text")] = flutter::EncodableValue(content.c_str());
+	args[flutter::EncodableValue("text")] = flutter::EncodableValue(str.c_str());
 
 	// 调用Flutter方法
 	channel_->InvokeMethod("setClipText", std::make_unique<flutter::EncodableValue>(args));
 }
 
-std::string ClipListenerWindow::GetClipboardText()
+std::wstring ClipListenerWindow::GetClipboardText()
 {
-	std::string empty = "";
+	std::wstring empty = L"";
 	// 尝试打开剪贴板
 	if (!OpenClipboard(nullptr))
 	{
@@ -57,7 +66,7 @@ std::string ClipListenerWindow::GetClipboardText()
 	}
 
 	// 尝试获取剪贴板中的数据
-	HANDLE hData = GetClipboardData(CF_TEXT);
+	HANDLE hData = GetClipboardData(CF_UNICODETEXT);
 	if (hData == nullptr)
 	{
 		CloseClipboard();
@@ -65,7 +74,7 @@ std::string ClipListenerWindow::GetClipboardText()
 	}
 
 	// 锁定内存并获取数据
-	char* pszText = static_cast<char*>(GlobalLock(hData));
+	wchar_t* pszText = static_cast<wchar_t*>(GlobalLock(hData));
 	if (pszText == nullptr)
 	{
 		CloseClipboard();
@@ -73,7 +82,7 @@ std::string ClipListenerWindow::GetClipboardText()
 	}
 
 	// 复制数据到字符串
-	std::string clipboardText(pszText);
+	std::wstring clipboardText(pszText);
 
 	// 释放内存和关闭剪贴板
 	GlobalUnlock(hData);
@@ -103,7 +112,7 @@ LRESULT ClipListenerWindow::MessageHandler(HWND hwnd, UINT const uMsg, WPARAM co
 		{
 			// 剪贴板内容发生变化
 			// 处理剪贴板变化的代码可以放在这里
-			std::string text = GetClipboardText();
+			std::wstring text = GetClipboardText();
 			if (!text.empty() && text != lastText)
 				SendClip(text);
 			lastText = text;

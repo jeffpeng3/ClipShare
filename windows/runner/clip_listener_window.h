@@ -26,7 +26,7 @@ protected:
 private:
     flutter::MethodChannel<flutter::EncodableValue>* channel_;
     HWND hWndNextViewer_;
-    std::string lastText="";
-    void SendClip(std::string& content);
-    std::string GetClipboardText();
+    std::wstring lastText = L"";
+    void SendClip(std::wstring& content);
+    std::wstring GetClipboardText();
 };

@@ -16,15 +16,6 @@ FlutterWindow::FlutterWindow(const flutter::DartProject& project)
 FlutterWindow::~FlutterWindow()
 {
 }
-void SendClipData(flutter::MethodChannel<flutter::EncodableValue>* channel,std::string& content)
-{
-	// 构建要传递的参数
-	flutter::EncodableMap args;
-	args[flutter::EncodableValue("text")] = flutter::EncodableValue(content.c_str());
-	
-	// 调用Flutter方法
-	channel->InvokeMethod("setClipText", std::make_unique<flutter::EncodableValue>(args));
-}
 bool FlutterWindow::OnCreate()
 {
 	if (!Win32Window::OnCreate())
@@ -59,7 +50,6 @@ bool FlutterWindow::OnCreate()
 			std::thread t([&]()
 			{
 					ClipListenerWindow clipListenerWindow(channel_.get());
-
 					Win32Window::Point origin(10, 10);
 					Win32Window::Size size(1280, 720);
 					if (clipListenerWindow.Create(L"clip", origin, size)) {
