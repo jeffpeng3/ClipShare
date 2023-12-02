@@ -24,7 +24,10 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: pages[_index],
+      body: IndexedStack(
+        index: _index,
+        children: pages,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
         onTap: (i) => {_index = i, setState(() {})},

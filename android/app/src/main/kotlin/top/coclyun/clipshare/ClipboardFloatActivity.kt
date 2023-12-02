@@ -39,7 +39,6 @@ class ClipboardFloatActivity : AppCompatActivity() {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
             ClipboardListener.instance(this)!!.onClipboardChanged();
-            Toast.makeText(this, "剪贴板变化", Toast.LENGTH_SHORT).show()
             finish()
         }
     }

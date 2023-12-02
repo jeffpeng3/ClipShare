@@ -22,7 +22,7 @@ class ClipListener {
     return this;
   }
 
-  void setClip(String content) {
+  void update(String content) {
     for (var observer in _list) {
       try {
         observer.onChanged(content);

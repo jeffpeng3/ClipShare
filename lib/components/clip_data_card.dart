@@ -15,10 +15,11 @@ class ClipDataCard extends StatefulWidget {
 class ClipDataCardState extends State<ClipDataCard> {
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 50, maxHeight: 150),
-      child: Card(
-        elevation: 0,
+    return Card(
+      elevation: 0,
+      child: InkWell(
+        onTap: () {},
+        borderRadius: BorderRadius.circular(12.0),
         child: Padding(
             padding: const EdgeInsets.all(8),
             child: Column(
@@ -27,11 +28,13 @@ class ClipDataCardState extends State<ClipDataCard> {
                   children: [
                     Container(
                       child: InkWell(
-                        onTap: (){},
+                        onTap: () {},
                         child: Row(
                           children: [
-                            Icon(Icons.home,size: 15),
-                            SizedBox(width: 2,),
+                            Icon(Icons.home, size: 15),
+                            SizedBox(
+                              width: 2,
+                            ),
                             Text("data")
                           ],
                         ),
@@ -39,19 +42,20 @@ class ClipDataCardState extends State<ClipDataCard> {
                     )
                   ],
                 ),
-
                 Expanded(
                     child: Column(
-                  children: [
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        widget.clip.data.content,
-                        textAlign: TextAlign.left,
-                      ),
-                    )
-                  ],
-                )),
+                      children: [
+                        Container(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            widget.clip.data.content,
+                            textAlign: TextAlign.left,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
+                      ],
+                    )),
                 Row(
                   children: [
                     !widget.clip.data.top
@@ -59,10 +63,10 @@ class ClipDataCardState extends State<ClipDataCard> {
                         : const SizedBox(width: 0),
                     !widget.clip.data.sync
                         ? const Icon(
-                            Icons.sync,
-                            size: 16,
-                            color: Colors.red,
-                          )
+                      Icons.sync,
+                      size: 16,
+                      color: Colors.red,
+                    )
                         : const SizedBox(width: 0),
                     Text(widget.clip.timeStr)
                   ],

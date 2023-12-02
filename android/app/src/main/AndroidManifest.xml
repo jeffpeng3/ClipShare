@@ -11,6 +11,11 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:label="clipshare">
+        <service
+            android:name=".service.BackgroundService"
+            android:enabled="true"
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -37,7 +42,8 @@
         <activity
             android:name=".ClipboardFloatActivity"
             android:excludeFromRecents="true"
-            android:theme="@style/Theme.Transparent"/>
+            android:taskAffinity="top.coclyun.task1"
+            android:theme="@style/Theme.Transparent" />
         <!--
  Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java

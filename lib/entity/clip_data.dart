@@ -1,6 +1,6 @@
 import 'package:clipshare/entity/tables/history.dart';
 
-class ClipData {
+class ClipData{
   ClipData(this._data);
 
   final History _data;

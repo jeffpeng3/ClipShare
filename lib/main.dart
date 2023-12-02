@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
         case "setClipText":
           {
             String text = call.arguments['text'];
-            ClipListener.instance().setClip(text);
+            ClipListener.instance().update(text);
             print("clipboard changed: " + text);
             break;
           }

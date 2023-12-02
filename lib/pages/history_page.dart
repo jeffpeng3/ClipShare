@@ -14,7 +14,9 @@ class HistoryPage extends StatefulWidget {
   State<HistoryPage> createState() => _HistoryPageState();
 }
 
-class _HistoryPageState extends State<HistoryPage> implements ClipObserver {
+class _HistoryPageState extends State<HistoryPage>
+    with WidgetsBindingObserver
+    implements ClipObserver {
   final List<ClipData> _list = List.empty(growable: true);
   List<Map<String, dynamic>> types = const [
     {'icon': Icons.home, 'text': 'home'},
@@ -22,17 +24,31 @@ class _HistoryPageState extends State<HistoryPage> implements ClipObserver {
     {'icon': Icons.home, 'text': 'home'},
     {'icon': Icons.home, 'text': 'home'},
   ];
-  String log = "";
+
+  @override
+  void initState() {
+    super.initState();
+    ClipListener.instance().register(this);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.resumed) {
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    ClipListener.instance().register(this);
-    // return Column(
-    //   children: [
-    //     TextField(),
-    //     Text(log)
-    //   ],
-    // );
     return ListView.builder(
         itemCount: _list.length,
         itemBuilder: (context, i) {
@@ -53,8 +69,7 @@ class _HistoryPageState extends State<HistoryPage> implements ClipObserver {
         type: 'Text',
         size: content.length));
     _list.add(clip);
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(content)));
+    _list.sort((a, b) => b.data.compareTo(a.data));
     setState(() {});
   }
 }

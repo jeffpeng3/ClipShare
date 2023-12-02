@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-class History {
+class History implements Comparable {
   int? id;
   int? uuid;
   late int userId;
@@ -22,4 +22,17 @@ class History {
     this.sync = false,
     required this.size,
   });
+
+  @override
+  int compareTo(other) {
+    // 首先按照 top 属性排序
+    if (top && !other.top) {
+      return 1;
+    } else if (!top && other.top) {
+      return -1;
+    } else {
+      // 如果 top 属性相同，则按照 time 属性排序（时间较小的在前面）
+      return time.compareTo(other.time);
+    }
+  }
 }
