@@ -58,7 +58,7 @@ class ClipDataCardState extends State<ClipDataCard> {
                     )),
                 Row(
                   children: [
-                    !widget.clip.data.top
+                    widget.clip.data.top
                         ? const Icon(Icons.push_pin, size: 16)
                         : const SizedBox(width: 0),
                     !widget.clip.data.sync

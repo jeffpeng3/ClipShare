@@ -1,45 +1,44 @@
-import 'package:clipshare/listener/ClipListener.dart';
+import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/pages/base_page.dart';
+import 'package:clipshare/pages/splash.dart';
+import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'db/db_util.dart';
+
 void main() {
-  runApp(const MyApp());
+  runApp(const App());
 }
 
-class MyApp extends StatelessWidget {
-  //定义channel
-  static const channel = MethodChannel('clip');
+class App extends StatelessWidget {
+  //通用通道
+  static const commonChannel = MethodChannel('common');
 
-  const MyApp({super.key});
+  //剪贴板通道
+  static const clipChannel = MethodChannel('clip');
 
-  void initClipHandler(BuildContext context) {
-    MyApp.channel.setMethodCallHandler((call) {
-      switch (call.method) {
-        case "setClipText":
-          {
-            String text = call.arguments['text'];
-            ClipListener.instance().update(text);
-            print("clipboard changed: " + text);
-            break;
-          }
-      }
-      return Future(() => "接受成功");
-    });
-  }
+  //Android平台通道
+  static const androidChannel = MethodChannel('android');
+
+  //当前设备id
+  static late final CurrentDevInfo devInfo;
+  static String userId = "0";
+  static late Snowflake snowflake;
+
+  const App({super.key});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    initClipHandler(context);
-    print("main created");
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
         useMaterial3: true,
       ),
-      home: const HomePage(title: 'Flutter Demo'),
+      home: const SplashScreen(),
+      routes: {'/home': (context) => const HomePage(title: 'Flutter Demo')},
     );
   }
 }

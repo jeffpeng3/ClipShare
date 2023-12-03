@@ -7,7 +7,27 @@
 
 #include "flutter/standard_method_codec.h"
 #include "flutter/generated_plugin_registrant.h"
-
+std::wstring GetGuid()
+{
+	std::wstring empty;
+	HKEY hKey;
+	if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\IDConfigDB\\Hardware Profiles\\0001", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+		wchar_t guid[40];
+		DWORD dataSize = sizeof(guid);
+		if (RegQueryValueExW(hKey, L"HwProfileGuid", nullptr, nullptr, reinterpret_cast<LPBYTE>(guid), &dataSize) == ERROR_SUCCESS) {
+			std::wstring g(guid);
+			std::wcout << L"Device GUID: " << std::wstring(guid) << std::endl;
+			return g;
+		}
+		else {
+			std::cerr << "Failed to query device GUID." << std::endl;
+		}
+		RegCloseKey(hKey);
+		return empty;
+	}
+	std::cerr << "Failed to open registry key." << std::endl;
+	return empty;
+}
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
 	: project_(project)
 {

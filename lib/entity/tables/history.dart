@@ -1,23 +1,42 @@
-import 'dart:ffi';
+import 'package:floor/floor.dart';
 
+@entity
 class History implements Comparable {
-  int? id;
-  int? uuid;
-  late int userId;
-  late DateTime time;
+  @PrimaryKey(autoGenerate: true)
+  ///本地id
+  late int id;
+
+  ///用户id（uuid）
+  late String uid;
+
+  ///时间
+  late String time;
+
+  ///剪贴板内容
   late String content;
+
+  ///内容类型
   late String type;
+
+  ///设备id
+  String devId;
+
+  ///是否置顶
   bool top = false;
+
+  ///是否同步
   bool sync = false;
+
+  ///内容大小、长度
   late int size;
 
   History({
-    this.id,
-    this.uuid,
-    required this.userId,
+    required this.id,
+    required this.uid,
     required this.time,
     required this.content,
     required this.type,
+    required this.devId,
     this.top = false,
     this.sync = false,
     required this.size,

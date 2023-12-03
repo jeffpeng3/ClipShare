@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.core.content.ContextCompat
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -59,6 +60,7 @@ class ClipboardListener(context: Context) {
 
     fun onClipboardChanged() {
         try {
+            Log.d("clipboardChanged", "listener")
             val item = cm!!.primaryClip!!.getItemAt(0)
             val content = item.coerceToText(context).toString()
             val isSame = content == lastContent;
@@ -87,8 +89,8 @@ class ClipboardListener(context: Context) {
         var line: String?
         while (bufferedReader.readLine().also { line = it } != null) {
             if (line!!.contains(BuildConfig.APPLICATION_ID)) {
+//                Log.d("read clipboard update", line!!)
                 (context as Activity).runOnUiThread {
-//                    channel.invokeMethod("writeLog", mapOf("log" to line))
                     context.startActivity(ClipboardFloatActivity.getIntent(context))
                 }
             }

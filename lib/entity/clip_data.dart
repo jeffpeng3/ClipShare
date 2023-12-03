@@ -1,6 +1,6 @@
 import 'package:clipshare/entity/tables/history.dart';
 
-class ClipData{
+class ClipData {
   ClipData(this._data);
 
   final History _data;
@@ -23,7 +23,7 @@ class ClipData{
     String time = "";
     DateTime now = DateTime.now();
 
-    Duration difference = now.difference(data.time);
+    Duration difference = now.difference(DateTime.parse(data.time));
 
     if (difference.inMinutes < 1) {
       time = "刚刚";
@@ -57,5 +57,13 @@ class ClipData{
     } else {
       return '$size B';
     }
+  }
+
+  static List<ClipData> fromList(List<History> list) {
+    List<ClipData> res = List.empty(growable: true);
+    for (int i = 0; i < list.length; i++) {
+      res.add(ClipData(list[i]));
+    }
+    return res;
   }
 }
