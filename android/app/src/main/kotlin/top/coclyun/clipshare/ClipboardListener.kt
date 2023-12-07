@@ -9,7 +9,10 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import androidx.core.content.ContextCompat
+import rikka.shizuku.Shizuku
+import rikka.shizuku.ShizukuRemoteProcess
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.text.SimpleDateFormat
@@ -30,8 +33,9 @@ class ClipboardListener(context: Context) {
         return this
     }
 
-    fun removeObserver(observer: ClipboardObserver) {
+    fun removeObserver(observer: ClipboardObserver): ClipboardListener {
         observers.remove(observer)
+        return this
     }
 
     private var context: Context;
@@ -51,29 +55,16 @@ class ClipboardListener(context: Context) {
             context,
             READ_LOGS
         ) == PackageManager.PERMISSION_GRANTED;
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P && hasPerm) {
-            Thread {
-                readLog()
-            }.start()
-        }
+//        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P && hasPerm) {
+//            Thread {
+//                readLog()
+//            }.start()
+//        }
     }
 
-    fun onClipboardChanged() {
-        try {
-            Log.d("clipboardChanged", "listener")
-            val item = cm!!.primaryClip!!.getItemAt(0)
-            val content = item.coerceToText(context).toString()
-            val isSame = content == lastContent;
-            lastContent = content
-            for (observer in observers) {
-                observer.clipboardChanged(content, isSame)
-            }
-        } catch (e: Exception) {
-            //Probably clipboard was not text
-        }
+    private fun readLogByShizuku(){
+//        p = ShizukuRemoteProcess()
     }
-
-
     private fun readLog() {
         val timeStamp: String =
             SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).format(Date())
@@ -88,12 +79,27 @@ class ClipboardListener(context: Context) {
         val bufferedReader = BufferedReader(InputStreamReader(process.inputStream))
         var line: String?
         while (bufferedReader.readLine().also { line = it } != null) {
+            line?.let { Log.d("read logs", it) }
             if (line!!.contains(BuildConfig.APPLICATION_ID)) {
-//                Log.d("read clipboard update", line!!)
-                (context as Activity).runOnUiThread {
-                    context.startActivity(ClipboardFloatActivity.getIntent(context))
-                }
+                context.startActivity(ClipboardFloatActivity.getIntent(context))
             }
+        }
+        Log.d("read logs", "finished")
+    }
+
+    fun onClipboardChanged() {
+        try {
+            Log.d("clipboardChanged", "listener")
+            val item = cm!!.primaryClip!!.getItemAt(0)
+            val content = item.coerceToText(context).toString()
+            val isSame = content == lastContent;
+            lastContent = content
+            for (observer in observers) {
+                observer.clipboardChanged(content, isSame)
+            }
+        } catch (e: Exception) {
+            Toast.makeText(context, "剪贴板异常", Toast.LENGTH_LONG).show()
+            //Probably clipboard was not text
         }
     }
 

@@ -81,12 +81,12 @@ class Snowflake {
     }
 
     if (timestamp == _lastTimestamp) {
-      int sequence = (this._sequence + 1) & _sequenceMask;
+      int sequence = (_sequence + 1) & _sequenceMask;
       if (sequence == 0) {
         timestamp = _tilNextMillis(_lastTimestamp);
       }
 
-      this._sequence = sequence;
+      _sequence = sequence;
     } else if (_randomSequenceLimit > 1) {
       _sequence = Random().nextInt(_randomSequenceLimit);
     } else {

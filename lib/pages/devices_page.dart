@@ -10,6 +10,6 @@ class DevicesPage extends StatefulWidget {
 class _DevicesPageState extends State<DevicesPage> {
   @override
   Widget build(BuildContext context) {
-    return const Text("devices page");
+    return const TextField();
   }
 }

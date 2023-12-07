@@ -29,7 +29,7 @@ class ClipDataCardState extends State<ClipDataCard> {
                     Container(
                       child: InkWell(
                         onTap: () {},
-                        child: Row(
+                        child: const Row(
                           children: [
                             Icon(Icons.home, size: 15),
                             SizedBox(

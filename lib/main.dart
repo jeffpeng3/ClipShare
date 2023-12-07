@@ -5,7 +5,6 @@ import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'db/db_util.dart';
 
 void main() {
   runApp(const App());
