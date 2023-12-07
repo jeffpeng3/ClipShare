@@ -5,48 +5,103 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
-import android.os.PowerManager
+import android.os.Message
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import io.flutter.plugin.common.MethodChannel
-import rikka.shizuku.SystemServiceHelper
+import rikka.shizuku.Shizuku
+import top.coclyun.clipshare.BuildConfig
+import top.coclyun.clipshare.ClipboardFloatActivity
 import top.coclyun.clipshare.ClipboardListener
 import top.coclyun.clipshare.MainActivity
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.lang.ref.WeakReference
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
-class BackgroundService : Service(), ClipboardListener.ClipboardObserver {
+class BackgroundService : Service(),
+    ClipboardListener.ClipboardObserver {
 
     private val notificationId = 1
     private val notifyChannelId = "BackgroundService"
-    private lateinit var clipChannel: MethodChannel
 
+    class MyHandler(context: Context) : Handler() {
+        private val mOuter: WeakReference<Context> = WeakReference<Context>(context)
+
+        override fun handleMessage(msg: Message) {
+
+            Log.d("read_logs", "on Msg")
+            mOuter.get().let {
+                Log.d("read_logs", it.toString())
+                it?.startActivity(ClipboardFloatActivity.getIntent(it))
+            }
+        }
+    }
+
+    //mHandler用于弱引用和主线程更新UI，为什么一定要这样搞呢，简单地说就是不这样就会报错、会内存泄漏。
+    private var mHandler = MyHandler(this)
+    private lateinit var clipChannel: MethodChannel
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("backgroundService","onStartCommand")
-        clipChannel = MethodChannel(MainActivity.engine.dartExecutor.binaryMessenger, "clip")
+        Log.d("backgroundService", "onStartCommand")
         // 在这里执行服务的逻辑
         ClipboardListener.instance(this)!!.registerObserver(this)
+        clipChannel = MethodChannel(MainActivity.engine.dartExecutor.binaryMessenger, "clip")
         // 在 Android 8.0 及以上版本，需要创建通知渠道
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
         }
         // 创建并显示通知
         val notification = buildNotification()
+
         val manger = getSystemService(
             NOTIFICATION_SERVICE
         ) as NotificationManager
-//        manger.notify(notificationId, notification)
-//        startForeground(notificationId, notification)
+        manger.notify(notificationId, notification)
+        startForeground(notificationId, notification)
         Log.d("notify", "startForeground")
+        readLogByShizuku()
         return START_STICKY
     }
 
-
-    override fun clipboardChanged(content: String, same: Boolean) {
-        Log.d("clipboardChanged", "is same $same")
-        if (same) return
-        clipChannel.invokeMethod("setClipText", mapOf("text" to content))
+    private fun readLogByShizuku() {
+        val timeStamp: String =
+            SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).format(Date())
+        val cmdStrArr = arrayOf(
+            "logcat",
+            "-T",
+            timeStamp,
+            "ClipboardService:E",
+            "*:S"
+        )
+        val process = Shizuku.newProcess(cmdStrArr, null, null)
+        val t = Thread {
+            try {
+                Log.d("read_logs", "start")
+                val bufferedReader = BufferedReader(InputStreamReader(process.inputStream))
+                var line: String?
+                while (bufferedReader.readLine().also { line = it } != null) {
+                    line?.let { Log.d("read_logs", it) }
+                    if (line!!.contains(BuildConfig.APPLICATION_ID)) {
+                        line?.let { Log.d("read_logs", "self log") }
+                        mHandler.sendMessage(Message())
+                    }
+                }
+                Log.d("read_logs", "finished")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                e.message?.let { Log.e("read_logs", it) }
+            }
+        }
+        t.isDaemon = true
+        t.start()
     }
 
     private fun createNotificationChannel() {
@@ -83,6 +138,25 @@ class BackgroundService : Service(), ClipboardListener.ClipboardObserver {
     override fun onDestroy() {
         super.onDestroy()
         ClipboardListener.instance(this)!!.removeObserver(this)
+    }
+
+    override fun clipboardChanged(content: String, same: Boolean) {
+        Log.d("clipboardChanged", "is same $same")
+        if (same) return
+        clipChannel.invokeMethod("setClipText", mapOf("text" to content))
+        // 假设你已经构建了一个新的 NotificationCompat.Builder 对象
+        // 假设你已经构建了一个新的 NotificationCompat.Builder 对象
+        val updatedBuilder: NotificationCompat.Builder =
+            NotificationCompat.Builder(this, notifyChannelId)
+                .setSmallIcon(R.drawable.btn_star_big_on)
+                .setContentTitle("剪贴板更新")
+                .setContentText(content)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        val manger = getSystemService(
+            NOTIFICATION_SERVICE
+        ) as NotificationManager
+        // 更新通知
+        manger.notify(notificationId, updatedBuilder.build())
     }
 
     override fun onBind(intent: Intent): IBinder? {

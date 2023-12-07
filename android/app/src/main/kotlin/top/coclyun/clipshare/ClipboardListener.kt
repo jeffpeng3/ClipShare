@@ -1,31 +1,30 @@
 package top.coclyun.clipshare
 
-import android.app.Activity
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.Message
 import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import rikka.shizuku.Shizuku
-import rikka.shizuku.ShizukuRemoteProcess
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 
-class ClipboardListener(context: Context) {
+open class ClipboardListener(context: Context) {
+    private val TAG: String = "ClipboardListener";
+
     interface ClipboardObserver {
         fun clipboardChanged(content: String, same: Boolean)
     }
 
-    private val READ_LOGS = "android.permission.READ_LOGS"
     private val observers = HashSet<ClipboardObserver>()
 
     fun registerObserver(observer: ClipboardObserver): ClipboardListener {
@@ -51,10 +50,10 @@ class ClipboardListener(context: Context) {
             )
             cm!!.addPrimaryClipChangedListener(this::onClipboardChanged)
         }
-        val hasPerm = ContextCompat.checkSelfPermission(
-            context,
-            READ_LOGS
-        ) == PackageManager.PERMISSION_GRANTED;
+//        val hasPerm = ContextCompat.checkSelfPermission(
+//            context,
+//            READ_LOGS
+//        ) == PackageManager.PERMISSION_GRANTED;
 //        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P && hasPerm) {
 //            Thread {
 //                readLog()
@@ -62,9 +61,7 @@ class ClipboardListener(context: Context) {
 //        }
     }
 
-    private fun readLogByShizuku(){
-//        p = ShizukuRemoteProcess()
-    }
+
     private fun readLog() {
         val timeStamp: String =
             SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).format(Date())
@@ -79,12 +76,12 @@ class ClipboardListener(context: Context) {
         val bufferedReader = BufferedReader(InputStreamReader(process.inputStream))
         var line: String?
         while (bufferedReader.readLine().also { line = it } != null) {
-            line?.let { Log.d("read logs", it) }
+            line?.let { Log.d("read_logs", it) }
             if (line!!.contains(BuildConfig.APPLICATION_ID)) {
                 context.startActivity(ClipboardFloatActivity.getIntent(context))
             }
         }
-        Log.d("read logs", "finished")
+        Log.d("read_logs", "finished")
     }
 
     fun onClipboardChanged() {
@@ -98,6 +95,7 @@ class ClipboardListener(context: Context) {
                 observer.clipboardChanged(content, isSame)
             }
         } catch (e: Exception) {
+
             Toast.makeText(context, "剪贴板异常", Toast.LENGTH_LONG).show()
             //Probably clipboard was not text
         }

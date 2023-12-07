@@ -10,10 +10,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.DeadObjectException
-import android.os.IBinder
 import android.os.PowerManager
-import android.os.RemoteException
 import android.provider.Settings
 import android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION
 import android.util.Log
@@ -24,18 +21,10 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.GeneratedPluginRegistrant
 import rikka.shizuku.Shizuku
-import rikka.shizuku.Shizuku.UserServiceArgs
 import top.coclyun.clipshare.service.BackgroundService
-import top.coclyun.clipshare.service.ClipboardService
-import top.coclyun.clipshare.INoArgsCallBack
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 
-class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListener {
+class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListener{
     private lateinit var commonChannel: MethodChannel;
     private lateinit var androidChannel: MethodChannel;
     private val requestShizukuCode = 5001
@@ -52,10 +41,6 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Shizuku.addRequestPermissionResultListener(this);
-        if (checkPermission(requestShizukuCode)) {
-            doSzkWork()
-        }
-//        if(wakeLock==null)acquireWakeLock()
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -68,53 +53,21 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         initAndroidChannel()
         // 创建 Intent 对象
         val serviceIntent = Intent(this, BackgroundService::class.java)
-        // 判断 Android 版本并启动服务
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            startForegroundService(serviceIntent);
-//        } else {
-//            startService(serviceIntent);
-//        }
 
-        startService(serviceIntent);
-    }
-
-    private fun doSzkWork() {
-
-        val componentName = ComponentName(this, ClipboardService::class.java.name)
-        val args = UserServiceArgs(componentName)
-            .daemon(true)
-            .processNameSuffix("service")
-//            .debuggable(BuildConfig.DEBUG)
-            .version(BuildConfig.VERSION_CODE)
-        val context: Context =this;
-        val myCallback = object : INoArgsCallBack.Stub() {
-            override fun call() {
-                // 处理从服务端返回的结果
-                println("Callback result")
-                Log.d("Callback", "Callback result")
-//                Toast.makeText(context, "Callback result", Toast.LENGTH_LONG).show()
+//        startService(serviceIntent);
+        if (checkPermission(requestShizukuCode)) {
+//            ClipboardListener.instance(this)!!.registerObserver(this)
+            // 判断 Android 版本并启动服务
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent);
+            } else {
+                startService(serviceIntent);
             }
         }
-        val connection: ServiceConnection = object : ServiceConnection {
-            override fun onServiceConnected(name: ComponentName, service: IBinder) {
-                try {
-                    Log.d("MainActivity", "onServiceConnected: ")
-                    Log.d("MainActivity", service.toString())
-                    IClipboardService.Stub.asInterface(service).readLogs(myCallback);
-                    Log.d("MainActivity", "enable readLogs")
-                } catch (e: RemoteException) {
-                    Log.e("MainActivity", "DeadObjectException: ")
-                    if (e !is DeadObjectException) {
-                    }
-                }
-            }
-
-            override fun onServiceDisconnected(name: ComponentName) {
-                Log.e("MainActivity", "onServiceDisconnected: ")
-            }
-        }
-        Shizuku.bindUserService(args, connection)
     }
+
+
+
     override fun onRequestPermissionResult(requestCode: Int, grantResult: Int) {
         val granted = grantResult == PackageManager.PERMISSION_GRANTED
         // Do stuff based on the result and the request code
