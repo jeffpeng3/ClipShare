@@ -106,8 +106,8 @@ class BackgroundService : Service(),
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name: CharSequence = "MyServiceChannel"
-            val description = "Channel for MyService"
+            val name: CharSequence = "ClipShareMain"
+            val description = "ClipShareMainService"
             val importance = NotificationManager.IMPORTANCE_DEFAULT
             val channel = NotificationChannel(notifyChannelId, name, importance)
             channel.description = description
@@ -129,8 +129,9 @@ class BackgroundService : Service(),
 
         // 设置通知的标题、内容等
         builder.setContentTitle("剪贴板同步")
-        builder.setContentText("剪贴板监听服务正在运行")
-        builder.setSmallIcon(R.drawable.btn_star_big_on)
+            .setOngoing(true)
+            .setContentText("剪贴板监听服务正在运行")
+            .setSmallIcon(R.drawable.btn_star_big_on)
         Log.d("notify", "buildNotification")
         return builder.build()
     }
@@ -144,12 +145,11 @@ class BackgroundService : Service(),
         Log.d("clipboardChanged", "is same $same")
         if (same) return
         clipChannel.invokeMethod("setClipText", mapOf("text" to content))
-        // 假设你已经构建了一个新的 NotificationCompat.Builder 对象
-        // 假设你已经构建了一个新的 NotificationCompat.Builder 对象
         val updatedBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, notifyChannelId)
                 .setSmallIcon(R.drawable.btn_star_big_on)
                 .setContentTitle("剪贴板更新")
+                .setOngoing(true)
                 .setContentText(content)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         val manger = getSystemService(

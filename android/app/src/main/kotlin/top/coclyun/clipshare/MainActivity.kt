@@ -2,10 +2,9 @@ package top.coclyun.clipshare
 
 import android.Manifest
 import android.app.Activity
-import android.content.ComponentName
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -24,7 +23,7 @@ import rikka.shizuku.Shizuku
 import top.coclyun.clipshare.service.BackgroundService
 
 
-class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListener{
+class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListener {
     private lateinit var commonChannel: MethodChannel;
     private lateinit var androidChannel: MethodChannel;
     private val requestShizukuCode = 5001
@@ -51,12 +50,11 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         androidChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "android")
         initCommonChannel()
         initAndroidChannel()
-        // 创建 Intent 对象
-        val serviceIntent = Intent(this, BackgroundService::class.java)
 
-//        startService(serviceIntent);
-        if (checkPermission(requestShizukuCode)) {
-//            ClipboardListener.instance(this)!!.registerObserver(this)
+        val serviceRunning = isServiceRunning(this, BackgroundService::class.java)
+        if (checkPermission(requestShizukuCode) && !serviceRunning) {
+            // 创建 Intent 对象
+            val serviceIntent = Intent(this, BackgroundService::class.java)
             // 判断 Android 版本并启动服务
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(serviceIntent);
@@ -65,7 +63,6 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
             }
         }
     }
-
 
 
     override fun onRequestPermissionResult(requestCode: Int, grantResult: Int) {
@@ -96,6 +93,20 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
             Shizuku.requestPermission(code)
             false
         }
+    }
+
+    private fun isServiceRunning(context: Context, serviceClass: Class<*>): Boolean {
+        val activityManager = context.getSystemService(ACTIVITY_SERVICE) as ActivityManager
+
+        // 获取运行中的服务列表
+        for (service in activityManager.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                // 如果找到匹配的服务类名，表示服务在运行
+                return true
+            }
+        }
+        // 未找到匹配的服务类名，表示服务未在运行
+        return false
     }
 
     private fun initAndroidChannel() {
