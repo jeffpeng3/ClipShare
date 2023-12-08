@@ -104,7 +104,40 @@ class _HistoryPageState extends State<HistoryPage>
                     padding: const EdgeInsets.only(left: 2, right: 2),
                     constraints:
                         const BoxConstraints(maxHeight: 150, minHeight: 80),
-                    child: ClipDataCard(_list[i]),
+                    child: GestureDetector(
+                      child: ClipDataCard(_list[i]),
+                      onLongPress: () {
+                        showBottomSheet(
+                            clipBehavior: Clip.antiAlias,
+                            context: context,
+                            elevation: 100,
+                            constraints:
+                                BoxConstraints(maxHeight: 200, minHeight: 100),
+                            builder: (BuildContext context) {
+                              return Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Chip(
+                                        label: Text("null"),
+                                      ),
+                                      Chip(
+                                        label: Text("null"),
+                                      ),
+                                      Chip(
+                                        label: Text("null"),
+                                      ),
+                                      Chip(
+                                        label: Text("null"),
+                                      ),
+                                    ],
+                                  ),
+                                  Expanded(child: Text("123")),
+                                ],
+                              );
+                            });
+                      },
+                    ),
                   );
                 }))
       ],

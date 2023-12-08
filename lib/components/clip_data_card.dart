@@ -68,7 +68,9 @@ class ClipDataCardState extends State<ClipDataCard> {
                       color: Colors.red,
                     )
                         : const SizedBox(width: 0),
-                    Text(widget.clip.timeStr)
+                    Text(widget.clip.timeStr),
+                    ConstrainedBox(constraints: const BoxConstraints(minWidth: 10)),
+                    Text(widget.clip.sizeText)
                   ],
                 ),
               ],
