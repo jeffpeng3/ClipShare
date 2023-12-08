@@ -9,7 +9,6 @@ import 'package:clipshare/pages/profile_page.dart';
 import 'package:clipshare/util/print_util.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../db/db_util.dart';
 import '../listener/ClipListener.dart';

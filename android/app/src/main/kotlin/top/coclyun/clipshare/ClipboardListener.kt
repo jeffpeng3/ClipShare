@@ -96,7 +96,7 @@ open class ClipboardListener(context: Context) {
             }
         } catch (e: Exception) {
 
-            Toast.makeText(context, "剪贴板异常", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "剪贴板异常: ${e.message}", Toast.LENGTH_LONG).show()
             //Probably clipboard was not text
         }
     }

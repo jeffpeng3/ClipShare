@@ -34,7 +34,6 @@ class App extends StatelessWidget {
       title: 'ClipShare',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
-        useMaterial3: true,
       ),
       home: const SplashScreen(),
       routes: {'/home': (context) => const HomePage(title: 'Flutter Demo')},
