@@ -1,4 +1,7 @@
 ﻿#include "flutter_window.h"
+
+#include <codecvt>
+
 #include "clip_listener_window.h"
 
 #include <optional>
@@ -7,6 +10,8 @@
 
 #include "flutter/standard_method_codec.h"
 #include "flutter/generated_plugin_registrant.h"
+#pragma warning(disable : 4996)  // 禁用废弃警告
+#pragma warning(disable : 4244)  // 禁用wstring转string数据丢失警告
 std::wstring GetGuid()
 {
 	std::wstring empty;
@@ -16,18 +21,30 @@ std::wstring GetGuid()
 		DWORD dataSize = sizeof(guid);
 		if (RegQueryValueExW(hKey, L"HwProfileGuid", nullptr, nullptr, reinterpret_cast<LPBYTE>(guid), &dataSize) == ERROR_SUCCESS) {
 			std::wstring g(guid);
-			std::wcout << L"Device GUID: " << std::wstring(guid) << std::endl;
 			return g;
-		}
-		else {
-			std::cerr << "Failed to query device GUID." << std::endl;
 		}
 		RegCloseKey(hKey);
 		return empty;
 	}
-	std::cerr << "Failed to open registry key." << std::endl;
 	return empty;
 }
+std::wstring GetDeviceName() {
+	// 获取计算机名称的缓冲区大小
+	DWORD bufferSize = MAX_COMPUTERNAME_LENGTH +1;
+	// unsigned long bufferSize = 255;
+	wchar_t computerName[MAX_COMPUTERNAME_LENGTH + 1];
+
+	// 获取计算机名称
+	if (GetComputerName(computerName, &bufferSize)) {
+		// 返回设备名称
+		return std::wstring(computerName);
+	}
+	else {
+		// 获取失败时返回空字符串或者你认为合适的默认值
+		return L"";
+	}
+}
+
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
 	: project_(project)
 {
@@ -35,6 +52,34 @@ FlutterWindow::FlutterWindow(const flutter::DartProject& project)
 
 FlutterWindow::~FlutterWindow()
 {
+}
+void FlutterWindow::InitCommonChannel()
+{
+
+	// 定义一个 locale，用于字符集转换
+	std::locale loc("en_US.UTF-8");
+
+	// 创建一个 codecvt 对象
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+	common_channel_->SetMethodCallHandler([&](const flutter::MethodCall<>& call, std::unique_ptr<flutter::MethodResult<>> result) {
+			if (call.method_name().compare("getBaseInfo") == 0) {
+				std::wstring guid = GetGuid();
+				std::wstring dev = GetDeviceName();
+				// 将宽字符字符串转换为窄字符字符串
+				// std::string guid = converter.to_bytes();
+				// std::string dev = converter.to_bytes(GetDeviceName());
+				// 构建要传递的参数
+				flutter::EncodableMap args;
+				args[flutter::EncodableValue("guid")] = flutter::EncodableValue(std::string(guid.begin(), guid.end()).c_str());
+				args[flutter::EncodableValue("dev")] = flutter::EncodableValue(std::string(dev.begin(), dev.end()).c_str());
+				args[flutter::EncodableValue("type")] = flutter::EncodableValue("Windows");
+				result->Success(args);
+			}
+			else {
+				result->NotImplemented();
+			}
+		}
+	);
 }
 bool FlutterWindow::OnCreate()
 {
@@ -57,19 +102,21 @@ bool FlutterWindow::OnCreate()
 	RegisterPlugins(flutter_controller_->engine());
 	SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
+	//获得一个解码器的实例
+	const flutter::StandardMethodCodec& codec = flutter::StandardMethodCodec::GetInstance();
+
+	chip_channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+		flutter_controller_->engine()->messenger(), "clip", &codec);
+	common_channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+		flutter_controller_->engine()->messenger(), "common", &codec);
+	InitCommonChannel();
 
 	flutter_controller_->engine()->SetNextFrameCallback([&]()
 		{
 			this->Show();
-
-			//获得一个解码器的实例
-			const flutter::StandardMethodCodec& codec = flutter::StandardMethodCodec::GetInstance();
-
-			channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-				flutter_controller_->engine()->messenger(), "clip", &codec);
 			std::thread t([&]()
 			{
-					ClipListenerWindow clipListenerWindow(channel_.get());
+					ClipListenerWindow clipListenerWindow(chip_channel_.get());
 					Win32Window::Point origin(10, 10);
 					Win32Window::Size size(1280, 720);
 					if (clipListenerWindow.Create(L"clip", origin, size)) {

@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 
 class ClipDataCard extends StatefulWidget {
   final ClipData clip;
+  final GestureTapCallback? onTap;
 
-  const ClipDataCard(this.clip, {super.key});
+  const ClipDataCard(this.clip, {super.key, this.onTap});
 
   @override
   State<StatefulWidget> createState() {
@@ -18,7 +19,9 @@ class ClipDataCardState extends State<ClipDataCard> {
     return Card(
       elevation: 0,
       child: InkWell(
-        onTap: () {},
+        onTap: (){
+          widget.onTap?.call();
+        },
         borderRadius: BorderRadius.circular(12.0),
         child: Padding(
             padding: const EdgeInsets.all(8),
@@ -27,18 +30,7 @@ class ClipDataCardState extends State<ClipDataCard> {
                 Row(
                   children: [
                     Container(
-                      child: InkWell(
-                        onTap: () {},
-                        child: const Row(
-                          children: [
-                            Icon(Icons.home, size: 15),
-                            SizedBox(
-                              width: 2,
-                            ),
-                            Text("data")
-                          ],
-                        ),
-                      ),
+                      child: Text("data"),
                     )
                   ],
                 ),

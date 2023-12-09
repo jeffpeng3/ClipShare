@@ -114,45 +114,26 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
             when (call.method) {
                 //检查悬浮窗权限
                 "checkAlertWindowPermission" -> {
-                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
-                        result.success(Settings.canDrawOverlays(this))
-                    } else {
-                        result.success(true)
-                    }
+                    result.success(Settings.canDrawOverlays(this))
                 }
                 //授权悬浮窗权限
                 "grantAlertWindowPermission" -> {
-                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
-                        val intent = Intent(
-                            ACTION_MANAGE_OVERLAY_PERMISSION,
-                            Uri.parse("package:$packageName")
-                        );
-                        startActivityForResult(intent, requestOverlayResultCode);
-                    }
-                }
-                //检查日志读取权限
-                "checkReadLogsPermission" -> {
-                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
-                        val res =
-                            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_LOGS);
-                        Log.d("checkReadLogsPermission", res.toString());
-                        result.success(res == PackageManager.PERMISSION_GRANTED)
-                    } else {
-                        result.success(true)
-                    }
+                    val intent = Intent(
+                        ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:$packageName")
+                    );
+                    startActivityForResult(intent, requestOverlayResultCode);
                 }
                 //返回设备信息
                 "getBaseInfo" -> {
                     val androId = Settings.System.getString(
                         contentResolver, Settings.System.ANDROID_ID
                     )
-
-                    Log.d("getGuid", androId.toString());
-                    Log.d("Build.MODEL", Build.MODEL);
                     result.success(
                         mapOf(
                             "guid" to androId,
-                            "dev" to Build.MODEL
+                            "dev" to Build.MODEL,
+                            "type" to "Android"
                         )
                     );
                 }

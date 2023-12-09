@@ -50,15 +50,6 @@ open class ClipboardListener(context: Context) {
             )
             cm!!.addPrimaryClipChangedListener(this::onClipboardChanged)
         }
-//        val hasPerm = ContextCompat.checkSelfPermission(
-//            context,
-//            READ_LOGS
-//        ) == PackageManager.PERMISSION_GRANTED;
-//        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P && hasPerm) {
-//            Thread {
-//                readLog()
-//            }.start()
-//        }
     }
 
 

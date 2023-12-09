@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/components/clip_data_card.dart';
@@ -11,8 +12,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
+import '../components/clip_detail_dialog.dart';
 import '../db/db_util.dart';
 import '../main.dart';
+import '../util/platform_util.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -80,16 +83,42 @@ class _HistoryPageState extends State<HistoryPage>
     // 判断是否滑动到底部
     if (_scrollController.position.extentAfter <= 200) {
       // 滑动到底部的处理逻辑
-      PrintUtil.print('快滑动到底部了！');
       if (minId == null) return;
       historyDao.getHistoriesPage(App.userId, minId!).then((list) {
-        PrintUtil.debug("list page", list);
+        if (list.isEmpty) return;
         minId = list[list.length - 1].id;
         _list.addAll(ClipData.fromList(list));
         _list.sort((a, b) => b.data.compareTo(a.data));
         setState(() {});
       });
     }
+  }
+
+  void showDetail(ClipData chip) {
+    if (PlatformUtil.isPC()) {
+      showDetailDialog(chip);
+      return;
+    }
+    showBottomDetailSheet(chip);
+  }
+
+  void showDetailDialog(ClipData chip) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return ClipDetailDialog(clip: chip);
+        });
+  }
+
+  void showBottomDetailSheet(ClipData chip) {
+    showModalBottomSheet(
+        isScrollControlled: true,
+        clipBehavior: Clip.antiAlias,
+        context: context,
+        elevation: 100,
+        builder: (BuildContext context) {
+          return ClipDetailDialog(clip: chip);
+        });
   }
 
   @override
@@ -109,122 +138,39 @@ class _HistoryPageState extends State<HistoryPage>
                     constraints:
                         const BoxConstraints(maxHeight: 150, minHeight: 80),
                     child: GestureDetector(
-                      child: ClipDataCard(_list[i]),
+                      onTapUp: (TapUpDetails details) {
+                        PrintUtil.print("onTapUp");
+                      },
+                      onTapDown: (TapDownDetails details) {
+                        PrintUtil.print("onTapDown");
+                      },
+                      behavior: HitTestBehavior.translucent,
+                      child: ClipDataCard(
+                        _list[i],
+                        onTap: () {
+                          if (!PlatformUtil.isPC()) {
+                            return;
+                          }
+                          showDialog(context: context, builder: (BuildContext context){
+                            return AlertDialog(
+                                title: null,
+                                contentPadding:EdgeInsets.all(0),
+                                content: ClipDetailDialog(clip: _list[i]));
+                          });
+                        },
+                      ),
                       onLongPress: () {
+                        if (!PlatformUtil.isMobile()) {
+                          return;
+                        }
+
                         showModalBottomSheet(
                             isScrollControlled: true,
                             clipBehavior: Clip.antiAlias,
                             context: context,
                             elevation: 100,
                             builder: (BuildContext context) {
-                              return Container(
-                                constraints:
-                                    const BoxConstraints(maxHeight: 400),
-                                padding: const EdgeInsets.only(bottom: 30),
-                                child: Padding(
-                                    padding: const EdgeInsets.only(
-                                        top: 8, left: 8, right: 8),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Container(
-                                              alignment: Alignment.topLeft,
-                                              padding: const EdgeInsets.only(
-                                                  left: 7, top: 7, bottom: 7),
-                                              child: const Text(
-                                                "剪贴板",
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight:
-                                                        FontWeight.w700),
-                                              ),
-                                            ),
-                                            IconButton(
-                                              icon: Icon(
-                                                Icons.copy,
-                                                color: Colors.blueGrey,
-                                              ),
-                                              onPressed: () {
-                                                Clipboard.setData(ClipboardData(
-                                                    text:
-                                                        _list[i].data.content));
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                        Container(
-                                            child: SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
-                                          child: Row(
-                                            children: [
-                                              RoundedClip(
-                                                label: Text(
-                                                  "#标签1",
-                                                  style: TextStyle(
-                                                      color: Color.fromRGBO(
-                                                          49, 49, 49, 1.0)),
-                                                ),
-                                              ),
-                                              SizedBox(
-                                                width: 5,
-                                              ),
-                                              RoundedClip(
-                                                label: Text("#标签2"),
-                                              ),
-                                              SizedBox(
-                                                width: 5,
-                                              ),
-                                              RoundedClip(
-                                                label: Text("#标签3"),
-                                              ),
-                                              SizedBox(
-                                                width: 5,
-                                              ),
-                                              RoundedClip(
-                                                label: Text("#标签4"),
-                                              ),
-                                              SizedBox(
-                                                width: 5,
-                                              ),
-                                              RoundedClip(
-                                                label: Text("#标签5"),
-                                              ),
-                                              SizedBox(
-                                                width: 5,
-                                              ),
-                                              RoundedClip(
-                                                label: Text("#标签6"),
-                                              ),
-                                              SizedBox(
-                                                width: 5,
-                                              ),
-                                              RoundedClip(
-                                                label: Text("#标签7"),
-                                              ),
-                                            ],
-                                          ),
-                                        )),
-                                        Container(
-                                            margin: EdgeInsets.only(top: 10),
-                                            constraints: const BoxConstraints(
-                                                maxHeight: 271),
-                                            child: SingleChildScrollView(
-                                              clipBehavior: Clip.antiAlias,
-                                              child: Container(
-                                                alignment: Alignment.topLeft,
-                                                child: Text(
-                                                  _list[i].data.content,
-                                                  textAlign: TextAlign.left,
-                                                ),
-                                              ),
-                                            ))
-                                      ],
-                                    )),
-                              );
+                              return ClipDetailDialog(clip: _list[i]);
                             });
                       },
                     ),

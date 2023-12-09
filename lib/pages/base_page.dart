@@ -49,48 +49,6 @@ class _HomePageState extends State<HomePage> {
 
   ///初始化 initAndroid 平台
   void initAndroid() {
-    //检查log权限
-    // App.androidChannel
-    //     .invokeMethod("checkReadLogsPermission")
-    //     .then((hasPermission) {
-    //   PrintUtil.debug("checkReadLogs", hasPermission);
-    //   if (hasPermission == false) {
-    //     showDialog(
-    //       context: context,
-    //       builder: (BuildContext context) {
-    //         return AlertDialog(
-    //           title: const Text('日志读取权限申请'),
-    //           content: const Text(
-    //               '由于 Android 10 及以上版本的系统不允许后台读取剪贴板，当剪贴板发生变化时应用需要通过读取系统日志以及悬浮窗权限间接进行剪贴板读取。\n\n'
-    //               '通过执行adb命令授权日志读取权限（重启手机后需重新授权）：\n\n'
-    //               'adb -d shell pm grant top.coclyun.clipshare android.permission.READ_LOGS\n\n'
-    //               '注意：在应用启动时的系统弹窗中点击 "允许访问"'),
-    //           actions: [
-    //             TextButton(
-    //               onPressed: () {
-    //                 // 关闭弹窗
-    //                 Navigator.of(context).pop();
-    //               },
-    //               child: const Text('我知道了'),
-    //             ),
-    //             TextButton(
-    //               onPressed: () {
-    //                 Clipboard.setData(const ClipboardData(
-    //                     text:
-    //                         "adb -d shell pm grant top.coclyun.clipshare android.permission.READ_LOGS"));
-    //                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-    //                   content: Text('复制成功，请通过adb授权'),
-    //                   backgroundColor: Colors.lightBlue,
-    //                 ));
-    //               },
-    //               child: const Text('复制命令'),
-    //             ),
-    //           ],
-    //         );
-    //       },
-    //     );
-    //   }
-    // });
     //检查悬浮窗权限
     App.androidChannel
         .invokeMethod("checkAlertWindowPermission")
@@ -145,10 +103,10 @@ class _HomePageState extends State<HomePage> {
             String text = call.arguments['text'];
             ClipListener.instance().update(text);
             debugPrint("clipboard changed: $text");
-            break;
+            return Future(() => true);
           }
       }
-      return Future(() => "ok");
+      return Future(() => false);
     });
 
     //调用平台方法，获取设备信息
@@ -156,6 +114,7 @@ class _HomePageState extends State<HomePage> {
       String guid = data['guid'];
       String name = data['dev'];
       String type = data['type'];
+      PrintUtil.debug("baseInfo", "$guid $name $type");
       App.devInfo = CurrentDevInfo(guid, name);
       App.snowflake = Snowflake(guid.hashCode);
       deviceDao.getById(guid, App.userId).then((dev) {
