@@ -21,7 +21,7 @@ class App extends StatelessWidget {
   static const androidChannel = MethodChannel('android');
 
   //当前设备id
-  static late final CurrentDevInfo devInfo;
+  static late final DevInfo devInfo;
   static String userId = "0";
   static late Snowflake snowflake;
 

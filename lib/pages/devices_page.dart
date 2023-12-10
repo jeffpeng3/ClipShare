@@ -1,4 +1,7 @@
+import 'package:clipshare/entity/dev_info.dart';
 import 'package:flutter/material.dart';
+
+import '../components/device_card.dart';
 
 class DevicesPage extends StatefulWidget {
   const DevicesPage({super.key});
@@ -10,6 +13,6 @@ class DevicesPage extends StatefulWidget {
 class _DevicesPageState extends State<DevicesPage> {
   @override
   Widget build(BuildContext context) {
-    return const TextField();
+    return DeviceCard(devInfo: DevInfo("", "", ""));
   }
 }

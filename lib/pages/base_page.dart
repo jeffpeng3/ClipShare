@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> {
       String name = data['dev'];
       String type = data['type'];
       PrintUtil.debug("baseInfo", "$guid $name $type");
-      App.devInfo = CurrentDevInfo(guid, name);
+      App.devInfo = DevInfo(guid, name,type);
       App.snowflake = Snowflake(guid.hashCode);
       deviceDao.getById(guid, App.userId).then((dev) {
         if (dev == null) {

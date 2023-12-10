@@ -69,7 +69,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    RoundedClip(
+                    RoundedChip(
                       label: Text(
                         "#标签1",
                         style:
@@ -79,37 +79,37 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                     SizedBox(
                       width: 5,
                     ),
-                    RoundedClip(
+                    RoundedChip(
                       label: Text("#标签2"),
                     ),
                     SizedBox(
                       width: 5,
                     ),
-                    RoundedClip(
+                    RoundedChip(
                       label: Text("#标签3"),
                     ),
                     SizedBox(
                       width: 5,
                     ),
-                    RoundedClip(
+                    RoundedChip(
                       label: Text("#标签4"),
                     ),
                     SizedBox(
                       width: 5,
                     ),
-                    RoundedClip(
+                    RoundedChip(
                       label: Text("#标签5"),
                     ),
                     SizedBox(
                       width: 5,
                     ),
-                    RoundedClip(
+                    RoundedChip(
                       label: Text("#标签6"),
                     ),
                     SizedBox(
                       width: 5,
                     ),
-                    RoundedClip(
+                    RoundedChip(
                       label: Text("#标签7"),
                     ),
                   ],

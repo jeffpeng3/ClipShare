@@ -1,6 +1,7 @@
-class CurrentDevInfo {
+class DevInfo {
   String guid;
   String name;
+  String type;
 
-  CurrentDevInfo(this.guid, this.name);
+  DevInfo(this.guid, this.name, this.type);
 }

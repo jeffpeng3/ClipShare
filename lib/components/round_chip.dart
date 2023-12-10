@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class RoundedClip extends Chip {
-  const RoundedClip(
+class RoundedChip extends Chip {
+  const RoundedChip(
       {super.key,
       this.avatar,
       required this.label,
