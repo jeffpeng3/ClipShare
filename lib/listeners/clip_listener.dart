@@ -1,8 +1,12 @@
+import 'package:clipshare/util/print_util.dart';
+
 abstract class ClipObserver {
   void onChanged(String content);
 }
 
 class ClipListener {
+  static const String tag = "ClipListener";
+
   static final List<ClipObserver> _list = List.empty(growable: true);
   static final ClipListener _instance = ClipListener._private();
 
@@ -27,8 +31,8 @@ class ClipListener {
       try {
         observer.onChanged(content);
       } catch (e, stacktrace) {
-        print(e);
-        print(stacktrace);
+        PrintUtil.debug(tag, e);
+        PrintUtil.debug(tag, stacktrace);
       }
     }
   }

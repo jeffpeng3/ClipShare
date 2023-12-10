@@ -3,6 +3,7 @@ import 'package:floor/floor.dart';
 @entity
 class History implements Comparable {
   @PrimaryKey(autoGenerate: true)
+
   ///本地id
   late int id;
 
@@ -53,5 +54,41 @@ class History implements Comparable {
       // 如果 top 属性相同，则按照 time 属性排序（时间较小的在前面）
       return time.compareTo(other.time);
     }
+  }
+
+  static History fromJson(map) {
+    var id = map["id"];
+    var uid = map["uid"];
+    var time = map["time"];
+    var content = map["content"];
+    var type = map["type"];
+    var devId = map["devId"];
+    var top = map["top"];
+    var sync = map["sync"];
+    var size = map["size"];
+    return History(
+        id: id,
+        uid: uid,
+        time: time,
+        content: content,
+        type: type,
+        devId: devId,
+        size: size,
+        top: top,
+        sync: sync);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id":id,
+      "uid":uid,
+      "time":time,
+      "content":content,
+      "type":type,
+      "devId":devId,
+      "top":top,
+      "sync":sync,
+      "size":size,
+    };
   }
 }

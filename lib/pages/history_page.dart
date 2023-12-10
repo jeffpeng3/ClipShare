@@ -5,8 +5,9 @@ import 'package:clipshare/components/clip_data_card.dart';
 import 'package:clipshare/components/round_chip.dart';
 import 'package:clipshare/dao/history_dao.dart';
 import 'package:clipshare/entity/clip_data.dart';
+import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
-import 'package:clipshare/listener/ClipListener.dart';
+import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/util/print_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -14,6 +15,7 @@ import 'package:flutter/services.dart';
 
 import '../components/clip_detail_dialog.dart';
 import '../db/db_util.dart';
+import '../listeners/socket_listener.dart';
 import '../main.dart';
 import '../util/platform_util.dart';
 
@@ -26,10 +28,10 @@ class HistoryPage extends StatefulWidget {
 
 class _HistoryPageState extends State<HistoryPage>
     with WidgetsBindingObserver
-    implements ClipObserver {
+    implements ClipObserver, SocketObserver {
   final List<ClipData> _list = List.empty(growable: true);
   late HistoryDao historyDao;
-  bool _copyInThisCopy = true;
+  bool _copyInThisCopy = false;
   int? minId;
   List<Map<String, dynamic>> types = const [
     {'icon': Icons.home, 'text': 'home'},
@@ -43,6 +45,7 @@ class _HistoryPageState extends State<HistoryPage>
   void initState() {
     super.initState();
     historyDao = DBUtil.inst.historyDao;
+    SocketListener.inst.then((inst) => {inst.addListener(this)});
     historyDao.getHistoriesTop20(App.userId).then((list) {
       _list.addAll(ClipData.fromList(list));
       for (int i = 0; i < _list.length; i++) {
@@ -67,6 +70,7 @@ class _HistoryPageState extends State<HistoryPage>
     WidgetsBinding.instance.removeObserver(this);
     // 释放资源
     _scrollController.dispose();
+    SocketListener.inst.then((inst) => {inst.removeListener(this)});
     super.dispose();
   }
 
@@ -151,12 +155,14 @@ class _HistoryPageState extends State<HistoryPage>
                           if (!PlatformUtil.isPC()) {
                             return;
                           }
-                          showDialog(context: context, builder: (BuildContext context){
-                            return AlertDialog(
-                                title: null,
-                                contentPadding:EdgeInsets.all(0),
-                                content: ClipDetailDialog(clip: _list[i]));
-                          });
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                    title: null,
+                                    contentPadding: EdgeInsets.all(0),
+                                    content: ClipDetailDialog(clip: _list[i]));
+                              });
                         },
                       ),
                       onLongPress: () {
@@ -182,19 +188,32 @@ class _HistoryPageState extends State<HistoryPage>
 
   @override
   void onChanged(String content) {
-    if (!_copyInThisCopy) {
-      _copyInThisCopy = true;
+    if (_copyInThisCopy) {
+      _copyInThisCopy = false;
       return;
     }
     PrintUtil.debug("ClipData onChanged", content);
-    var clip = ClipData(History(
+    var history = History(
         id: App.snowflake.nextId(),
         uid: App.userId,
         devId: App.devInfo.guid,
         time: DateTime.now().toString(),
         content: content,
         type: 'Text',
-        size: content.length));
+        size: content.length);
+    addData(history);
+    SocketListener.inst.then((inst) {
+      var suc = inst.sendMsg(history);
+      if (!suc) {
+        historyDao
+            .setSync(history.id.toString(), true)
+            .then((cnt) => {setState(() {})});
+      }
+    });
+  }
+
+  void addData(History history) {
+    var clip = ClipData(history);
     historyDao.add(clip.data);
     if (minId == null) {
       minId = clip.data.id;
@@ -204,5 +223,13 @@ class _HistoryPageState extends State<HistoryPage>
     _list.add(clip);
     _list.sort((a, b) => b.data.compareTo(a.data));
     setState(() {});
+  }
+
+  @override
+  void onReceived(MessageData data) {
+    data.history.sync = true;
+    addData(data.history);
+    _copyInThisCopy = true;
+    Clipboard.setData(ClipboardData(text: data.history.content));
   }
 }

@@ -9,12 +9,12 @@ import 'package:clipshare/pages/history_page.dart';
 import 'package:clipshare/pages/profile_page.dart';
 import 'package:clipshare/util/print_util.dart';
 import 'package:clipshare/util/snowflake.dart';
-import 'package:flutter/material.dart' hide MenuItem;
+import 'package:flutter/material.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../db/db_util.dart';
-import '../listener/ClipListener.dart';
+import '../listeners/clip_listener.dart';
 import '../main.dart';
 
 class HomePage extends StatefulWidget {
@@ -35,8 +35,6 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   // final TrayManager _trayManager = TrayManager.instance;
   @override
   void initState() {
-    init();
-    initTrayManager();
     // 在构建完成后初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
       debugPrint("main created");
@@ -72,13 +70,6 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
       ),
     ];
     await trayManager.setContextMenu(Menu(items: items));
-  }
-
-  void init() async {
-    windowManager.addListener(this);
-    // 添加此行以覆盖默认关闭处理程序
-    await windowManager.setPreventClose(true);
-    setState(() {});
   }
 
   @override
@@ -138,7 +129,13 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   }
 
   ///初始化 Windows 平台
-  void initWindows() {}
+  void initWindows() async {
+    initTrayManager();
+    windowManager.addListener(this);
+    // 添加此行以覆盖默认关闭处理程序
+    await windowManager.setPreventClose(true);
+    setState(() {});
+  }
 
   ///初始化 initAndroid 平台
   void initAndroid() {

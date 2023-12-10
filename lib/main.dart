@@ -1,13 +1,20 @@
+import 'dart:io';
+
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/pages/base_page.dart';
 import 'package:clipshare/pages/splash.dart';
+import 'package:clipshare/util/print_util.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 
 void main() async {
-  await initWindowsManager();
+  if(Platform.isWindows){
+    await initWindowsManager();
+  }
+  var list =await NetworkInterface.list();
+  PrintUtil.debug("ip list",list);
   runApp(const App());
 }
 
