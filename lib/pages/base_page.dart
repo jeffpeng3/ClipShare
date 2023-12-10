@@ -8,7 +8,9 @@ import 'package:clipshare/pages/history_page.dart';
 import 'package:clipshare/pages/profile_page.dart';
 import 'package:clipshare/util/print_util.dart';
 import 'package:clipshare/util/snowflake.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide MenuItem;
+import 'package:tray_manager/tray_manager.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../db/db_util.dart';
 import '../listener/ClipListener.dart';
@@ -23,14 +25,16 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   int _index = 0;
   List<Widget> pages = const [HistoryPage(), DevicesPage(), ProfilePage()];
   late DeviceDao deviceDao;
 
+  // final TrayManager _trayManager = TrayManager.instance;
   @override
   void initState() {
-    super.initState();
+    init();
+    initTrayManager();
     // 在构建完成后初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
       debugPrint("main created");
@@ -42,6 +46,67 @@ class _HomePageState extends State<HomePage> {
         initWindows();
       }
     });
+    super.initState();
+  }
+
+  ///初始化托盘
+  void initTrayManager() async {
+    trayManager.addListener(this);
+    trayManager.setToolTip("ClipShare");
+    await trayManager.setIcon(
+      Platform.isWindows
+          ? 'assets/images/logo/logo.ico'
+          : 'assets/images/logo/logo.jpg',
+    );
+    List<MenuItem> items = [
+      MenuItem(
+        key: 'show_window',
+        label: '显示主窗口',
+      ),
+      MenuItem.separator(),
+      MenuItem(
+        key: 'exit_app',
+        label: '退出程序',
+      ),
+    ];
+    await trayManager.setContextMenu(Menu(items: items));
+  }
+
+  void init() async {
+    windowManager.addListener(this);
+    // 添加此行以覆盖默认关闭处理程序
+    await windowManager.setPreventClose(true);
+    setState(() {});
+  }
+
+  @override
+  void onWindowClose() {
+    // do something
+    windowManager.hide();
+    PrintUtil.print("onClose");
+  }
+
+  @override
+  void onTrayIconRightMouseDown() async {
+    await trayManager.popUpContextMenu();
+  }
+
+  @override
+  void onTrayMenuItemClick(MenuItem menuItem) {
+    PrintUtil.print('你选择了${menuItem.label}');
+    switch (menuItem.key) {
+      case 'show_window':
+        windowManager.setPreventClose(true).then((value) {
+          setState(() {});
+          windowManager.show();
+        });
+        break;
+      case 'exit_app':
+        windowManager.setPreventClose(false).then((value) {
+          windowManager.close();
+        });
+        break;
+    }
   }
 
   ///初始化 Windows 平台
@@ -115,7 +180,7 @@ class _HomePageState extends State<HomePage> {
       String name = data['dev'];
       String type = data['type'];
       PrintUtil.debug("baseInfo", "$guid $name $type");
-      App.devInfo = DevInfo(guid, name,type);
+      App.devInfo = DevInfo(guid, name, type);
       App.snowflake = Snowflake(guid.hashCode);
       deviceDao.getById(guid, App.userId).then((dev) {
         if (dev == null) {
@@ -125,6 +190,13 @@ class _HomePageState extends State<HomePage> {
         }
       });
     });
+  }
+
+  @override
+  void dispose() {
+    trayManager.removeListener(this);
+    windowManager.removeListener(this);
+    super.dispose();
   }
 
   @override

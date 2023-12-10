@@ -4,10 +4,30 @@ import 'package:clipshare/pages/splash.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:window_manager/window_manager.dart';
 
-
-void main() {
+void main() async {
+  await initWindowsManager();
   runApp(const App());
+}
+
+Future<void> initWindowsManager() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // 必须加上这一行。
+  await windowManager.ensureInitialized();
+
+  WindowOptions windowOptions = const WindowOptions(
+    size: Size(800, 600),
+    center: true,
+    backgroundColor: Colors.transparent,
+    skipTaskbar: false,
+    titleBarStyle: TitleBarStyle.normal,
+  );
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
+  return Future<void>.value();
 }
 
 class App extends StatelessWidget {
