@@ -30,23 +30,24 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # 数据库框架
   floor: ^1.4.2
+  sqflite: any
+  # 托盘插件
   tray_manager: ^0.2.0
+  # 窗体管理
   window_manager: ^0.3.7
-
-
+  web_socket_channel: ^2.4.0
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-
-  sqflite: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
   floor_generator: ^1.4.2
   build_runner: ^2.1.2
   uuid: ^3.0.0
-#  fluttertoast: ^8.2.4
+  #  fluttertoast: ^8.2.4
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

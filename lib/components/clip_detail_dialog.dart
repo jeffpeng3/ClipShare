@@ -52,7 +52,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                     onPressed: () {
                       _copy = true;
                       setState(() {});
-                      // 创建一个延迟五秒执行一次的定时器
+                      // 创建一个延迟0.5秒执行一次的定时器
                       Timer(const Duration(milliseconds: 500), () {
                         _copy = false;
                         setState(() {});

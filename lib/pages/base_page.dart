@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:clipshare/dao/device_dao.dart';
@@ -29,6 +30,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   int _index = 0;
   List<Widget> pages = const [HistoryPage(), DevicesPage(), ProfilePage()];
   late DeviceDao deviceDao;
+  bool trayClick = false;
 
   // final TrayManager _trayManager = TrayManager.instance;
   @override
@@ -92,19 +94,45 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   }
 
   @override
+  void onTrayIconMouseDown() async {
+    //记录是否双击，如果点击了一次，设置trayClick为true，再次点击时验证
+    if (trayClick) {
+      trayClick = false;
+      setState(() {});
+      showApp();
+      return;
+    }
+    trayClick = true;
+    setState(() {});
+    // 创建一个延迟0.2秒执行一次的定时器重置点击为false
+    Timer(const Duration(milliseconds: 200), () {
+      trayClick = false;
+      setState(() {});
+    });
+  }
+
+  void showApp() {
+    windowManager.setPreventClose(true).then((value) {
+      setState(() {});
+      windowManager.show();
+    });
+  }
+
+  void exitApp() {
+    windowManager.setPreventClose(false).then((value) {
+      windowManager.close();
+    });
+  }
+
+  @override
   void onTrayMenuItemClick(MenuItem menuItem) {
     PrintUtil.print('你选择了${menuItem.label}');
     switch (menuItem.key) {
       case 'show_window':
-        windowManager.setPreventClose(true).then((value) {
-          setState(() {});
-          windowManager.show();
-        });
+        showApp();
         break;
       case 'exit_app':
-        windowManager.setPreventClose(false).then((value) {
-          windowManager.close();
-        });
+        exitApp();
         break;
     }
   }
