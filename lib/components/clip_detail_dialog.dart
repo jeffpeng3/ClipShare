@@ -53,7 +53,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                       _copy = true;
                       setState(() {});
                       // 创建一个延迟0.5秒执行一次的定时器
-                      Timer(const Duration(milliseconds: 500), () {
+                      Future.delayed(const Duration(milliseconds: 500), () {
                         _copy = false;
                         setState(() {});
                       });
@@ -116,7 +116,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                 ),
               )),
               Container(
-                  margin: EdgeInsets.only(top: 10),
+                  margin: const EdgeInsets.only(top: 10),
                   constraints: const BoxConstraints(maxHeight: 271),
                   child: SingleChildScrollView(
                     clipBehavior: Clip.antiAlias,

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:clipshare/dao/device_dao.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/tables/device.dart';
+import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/pages/devices_page.dart';
 import 'package:clipshare/pages/history_page.dart';
 import 'package:clipshare/pages/profile_page.dart';
@@ -28,7 +29,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   int _index = 0;
-  List<Widget> pages = const [HistoryPage(), DevicesPage(), ProfilePage()];
+  List<Widget> pages=[];
   late DeviceDao deviceDao;
   bool trayClick = false;
 
@@ -207,6 +208,11 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
       PrintUtil.debug("baseInfo", "$guid $name $type");
       App.devInfo = DevInfo(guid, name, type);
       App.snowflake = Snowflake(guid.hashCode);
+      SocketListener.inst;
+      pages=const [HistoryPage(), DevicesPage(), ProfilePage()];
+      setState(() {
+
+      });
       deviceDao.getById(guid, App.userId).then((dev) {
         if (dev == null) {
           Device device =

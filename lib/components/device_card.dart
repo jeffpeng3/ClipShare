@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 
 class DeviceCard extends StatefulWidget {
-  DevInfo devInfo;
-  DeviceCard({super.key,required this.devInfo});
+  final DevInfo devInfo;
+  const DeviceCard({super.key,required this.devInfo});
 
   @override
   State<StatefulWidget> createState() {

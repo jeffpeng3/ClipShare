@@ -8,6 +8,7 @@ import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
+import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/print_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -45,7 +46,7 @@ class _HistoryPageState extends State<HistoryPage>
   void initState() {
     super.initState();
     historyDao = DBUtil.inst.historyDao;
-    SocketListener.inst.then((inst) => {inst.addListener(this)});
+    SocketListener.inst.then((inst) => {inst.addSocketListener(this)});
     historyDao.getHistoriesTop20(App.userId).then((list) {
       _list.addAll(ClipData.fromList(list));
       for (int i = 0; i < _list.length; i++) {
@@ -70,7 +71,7 @@ class _HistoryPageState extends State<HistoryPage>
     WidgetsBinding.instance.removeObserver(this);
     // 释放资源
     _scrollController.dispose();
-    SocketListener.inst.then((inst) => {inst.removeListener(this)});
+    SocketListener.inst.then((inst) => {inst.removeSocketListener(this)});
     super.dispose();
   }
 
@@ -203,12 +204,7 @@ class _HistoryPageState extends State<HistoryPage>
         size: content.length);
     addData(history);
     SocketListener.inst.then((inst) {
-      var suc = inst.sendMsg(history);
-      if (!suc) {
-        historyDao
-            .setSync(history.id.toString(), true)
-            .then((cnt) => {setState(() {})});
-      }
+      inst.sendMulticastMsg(MsgKey.history, history.toJson());
     });
   }
 
@@ -227,9 +223,13 @@ class _HistoryPageState extends State<HistoryPage>
 
   @override
   void onReceived(MessageData data) {
-    data.history.sync = true;
-    addData(data.history);
+    if (data.key != MsgKey.history) {
+      return;
+    }
+    History history = History.fromJson(data.data);
+    history.sync = true;
+    addData(history);
     _copyInThisCopy = true;
-    Clipboard.setData(ClipboardData(text: data.history.content));
+    Clipboard.setData(ClipboardData(text: history.content));
   }
 }
