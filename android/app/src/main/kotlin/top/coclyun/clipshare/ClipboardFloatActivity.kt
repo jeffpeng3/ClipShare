@@ -40,4 +40,7 @@ class ClipboardFloatActivity : AppCompatActivity() {
             finish()
         }
     }
+    override fun onBackPressed() {
+        moveTaskToBack(true)
+    }
 }

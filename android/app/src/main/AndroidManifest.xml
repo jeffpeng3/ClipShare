@@ -21,7 +21,15 @@
             android:name=".service.BackgroundService"
             android:enabled="true"
             android:exported="false" />
-
+        <receiver
+            android:name=".broadcast.ScreenReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.SCREEN_ON" />
+                <action android:name="android.intent.action.SCREEN_OFF" />
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".MainActivity"
             android:exported="true"

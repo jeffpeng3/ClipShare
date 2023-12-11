@@ -29,7 +29,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   int _index = 0;
-  List<Widget> pages=[];
+  List<Widget> pages = [];
   late DeviceDao deviceDao;
   bool trayClick = false;
 
@@ -180,6 +180,14 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
         );
       }
     });
+    App.androidChannel.setMethodCallHandler((call) {
+      switch (call.method) {
+        case "onScreenOpened":
+          //此处应该同步剪贴板到本机
+          break;
+      }
+      return Future(() => false);
+    });
   }
 
   /// 初始化通用行为
@@ -209,10 +217,8 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
       App.devInfo = DevInfo(guid, name, type);
       App.snowflake = Snowflake(guid.hashCode);
       SocketListener.inst;
-      pages=const [HistoryPage(), DevicesPage(), ProfilePage()];
-      setState(() {
-
-      });
+      pages = const [HistoryPage(), DevicesPage(), ProfilePage()];
+      setState(() {});
       deviceDao.getById(guid, App.userId).then((dev) {
         if (dev == null) {
           Device device =

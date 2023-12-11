@@ -1,10 +1,12 @@
 package top.coclyun.clipshare
 
-import android.Manifest
+import android.R
 import android.app.Activity
 import android.app.ActivityManager
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -14,12 +16,13 @@ import android.provider.Settings
 import android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION
 import android.util.Log
 import android.widget.Toast
-import androidx.core.content.ContextCompat
+import androidx.core.app.NotificationCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.GeneratedPluginRegistrant
 import rikka.shizuku.Shizuku
+import top.coclyun.clipshare.broadcast.ScreenReceiver
 import top.coclyun.clipshare.service.BackgroundService
 
 
@@ -29,7 +32,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
     private val requestShizukuCode = 5001
     private val requestOverlayResultCode = 5002
 
-
+    private lateinit var screenReceiver: ScreenReceiver;
     private var wakeLock: PowerManager.WakeLock? = null
 
     companion object {
@@ -40,10 +43,16 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Shizuku.addRequestPermissionResultListener(this);
+        notify("onCreate")
+        // 注册广播接收器
+
+//        acquireWakeLock()
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        notify("configureFlutterEngine")
         engine = flutterEngine
         GeneratedPluginRegistrant.registerWith(flutterEngine)
         commonChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "common")
@@ -64,6 +73,20 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         }
     }
 
+    private fun notify(content: String) {
+        val updatedBuilder: NotificationCompat.Builder =
+            NotificationCompat.Builder(this, BackgroundService.notifyChannelId)
+                .setSmallIcon(R.drawable.btn_star_big_on)
+                .setContentTitle("剪贴板更新")
+                .setOngoing(true)
+                .setContentText(content)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        val manger = getSystemService(
+            NOTIFICATION_SERVICE
+        ) as NotificationManager
+        // 更新通知
+        manger.notify(BackgroundService.notificationId, updatedBuilder.build())
+    }
 
     override fun onRequestPermissionResult(requestCode: Int, grantResult: Int) {
         val granted = grantResult == PackageManager.PERMISSION_GRANTED
@@ -110,6 +133,12 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
     }
 
     private fun initAndroidChannel() {
+        // 注册广播接收器
+        screenReceiver = ScreenReceiver(androidChannel)
+        val filter = IntentFilter()
+        filter.addAction(Intent.ACTION_SCREEN_ON)
+        filter.addAction(Intent.ACTION_SCREEN_OFF)
+        registerReceiver(screenReceiver, filter)
         androidChannel.setMethodCallHandler { call, result ->
             when (call.method) {
                 //检查悬浮窗权限
@@ -137,6 +166,12 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
                         )
                     );
                 }
+                //发送通知
+//                "sendNotify" -> {
+//                    var content = call.arguments['content'].toString();
+//                    notify(content);
+//                    result.success(true);
+//                }
             }
         }
     }
@@ -193,17 +228,26 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
     override fun onRestart() {
         super.onRestart()
         Log.d("MainActivity", "onRestart")
+        notify("onRestart")
     }
 
     override fun onStop() {
         super.onStop()
         Log.d("MainActivity", "onRestart")
+        notify("onStop")
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Shizuku.removeRequestPermissionResultListener(this);
         Log.d("MainActivity", "onDestroy")
+        notify("onDestroy")
+        // 取消注册广播接收器
+        unregisterReceiver(screenReceiver)
 //        releaseWakeLock()
+    }
+
+    override fun onBackPressed() {
+        moveTaskToBack(true)
     }
 }

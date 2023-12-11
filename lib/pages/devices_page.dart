@@ -32,16 +32,51 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-        itemCount: _devList.length,
-        itemBuilder: (context, i) {
-          return DeviceCard(devInfo: _devList[i]);
-        });
+    return Column(
+      children: [
+        _devList.isEmpty
+            ? const DeviceCard(devInfo: null)
+            : Expanded(
+                child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12),
+                    child: Row(
+                      children: [
+                        const Text(
+                          "已连接的设备",
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: "宋体"),
+                        ),
+                        IconButton(
+                            onPressed: () {},
+                            icon: const Icon(
+                              Icons.sync,
+                              size: 20,
+                            ))
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                      child: ListView.builder(
+                          itemCount: _devList.length,
+                          itemBuilder: (context, i) {
+                            return DeviceCard(devInfo: _devList[i]);
+                          }))
+                ],
+              ))
+      ],
+    );
   }
 
   @override
   void onConnected(DevInfo info) {
-    _devList.add(info);
+    _devList.firstWhere((dev) => dev.guid == info.guid, orElse: () {
+      _devList.add(info);
+      return info;
+    });
     setState(() {});
   }
 

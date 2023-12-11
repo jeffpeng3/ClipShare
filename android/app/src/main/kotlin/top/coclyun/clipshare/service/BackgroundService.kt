@@ -29,9 +29,13 @@ import java.util.Locale
 
 class BackgroundService : Service(),
     ClipboardListener.ClipboardObserver {
+    companion object {
+        @JvmStatic
+        val notificationId = 1
 
-    private val notificationId = 1
-    private val notifyChannelId = "BackgroundService"
+        @JvmStatic
+        val notifyChannelId = "BackgroundService"
+    }
 
     class MyHandler(context: Context) : Handler() {
         private val mOuter: WeakReference<Context> = WeakReference<Context>(context)
@@ -145,6 +149,10 @@ class BackgroundService : Service(),
         Log.d("clipboardChanged", "is same $same")
         if (same) return
         clipChannel.invokeMethod("setClipText", mapOf("text" to content))
+        notify(content);
+    }
+
+    private fun notify(content: String) {
         val updatedBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, notifyChannelId)
                 .setSmallIcon(R.drawable.btn_star_big_on)

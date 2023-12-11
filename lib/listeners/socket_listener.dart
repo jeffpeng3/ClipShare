@@ -61,12 +61,13 @@ class SocketListener {
         //心跳
         case MsgKey.heartbeats:
           PrintUtil.debug(tag, dev.name);
-          if(!_devList.keys.contains(dev.guid)){
+          if (!_devList.keys.contains(dev.guid)) {
             onDevConnected(dev);
           }
           _devList[dev.guid] = DateTime.now();
           break;
         case MsgKey.history:
+          PrintUtil.debug(tag, "recv history");
           for (var ob in _socketObservers) {
             try {
               ob.onReceived(msg);
@@ -100,7 +101,6 @@ class SocketListener {
       }
     });
     sendHeartbeats();
-    testDevAlive();
     return this;
   }
 
@@ -109,12 +109,7 @@ class SocketListener {
         (timer) {
       PrintUtil.debug(tag, "sendHeartbeats");
       sendMulticastMsg(MsgKey.heartbeats, {});
-    });
-  }
 
-  void testDevAlive() {
-    Timer.periodic(const Duration(seconds: Constants.heartbeatsSeconds * 2),
-        (timer) {
       PrintUtil.debug(tag, "testDevAlive");
       //当前毫秒值
       var now = DateTime.now().millisecondsSinceEpoch;
@@ -136,7 +131,8 @@ class SocketListener {
       }
     });
   }
-  void onDevConnected(DevInfo dev){
+
+  void onDevConnected(DevInfo dev) {
     PrintUtil.debug(tag, "${dev.name} connected");
     for (var ob in _devAliveObservers) {
       try {
@@ -146,9 +142,11 @@ class SocketListener {
       }
     }
   }
+
   /// 发送组播消息
   void sendMulticastMsg(MsgKey key, Map<String, dynamic> data,
       [DevInfo? recv]) {
+    PrintUtil.debug(tag, "send msg");
     MessageData msg = MessageData(
         userId: App.userId,
         send: App.devInfo,
