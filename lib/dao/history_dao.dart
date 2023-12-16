@@ -8,6 +8,13 @@ abstract class HistoryDao {
   @Query("select * from history where uid = :uid order by id desc limit 1")
   Future<History?> getLatestLocalClip(String uid);
 
+  /// 获取某设备未同步的记录
+  /// SELECT *
+  /// FROM history h
+  /// WHERE NOT EXISTS (SELECT 1 FROM sync_history sh WHERE sh.hisId = h.id AND sh.devId = 'abc');
+  ///
+
+
   ///获取前20条历史记录
   @Query(
       "select * from history where uid = :uid order by top,id desc limit 20")

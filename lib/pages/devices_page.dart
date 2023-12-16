@@ -53,7 +53,7 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
                         IconButton(
                             onPressed: () {},
                             icon: const Icon(
-                              Icons.sync,
+                              Icons.add,
                               size: 20,
                             ))
                       ],

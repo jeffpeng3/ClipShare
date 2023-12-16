@@ -23,7 +23,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(maxHeight: 400),
+      constraints: const BoxConstraints(minWidth: 500),
       padding: const EdgeInsets.only(bottom: 30),
       child: Padding(
           padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
@@ -42,92 +42,108 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                           TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                     ),
                   ),
-                  IconButton(
-                    icon: _copy
-                        ? const Icon(
-                            Icons.check,
-                            color: Colors.blueGrey,
-                          )
-                        : const Icon(Icons.copy, color: Colors.blueGrey),
-                    onPressed: () {
-                      _copy = true;
-                      setState(() {});
-                      // 创建一个延迟0.5秒执行一次的定时器
-                      Future.delayed(const Duration(milliseconds: 500), () {
-                        _copy = false;
-                        setState(() {});
-                      });
-                      Clipboard.setData(
-                          ClipboardData(text: widget.clip.data.content));
-                    },
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete,
+                          color: Colors.blueGrey,
+                        ),
+                        onPressed: () {},
+                        tooltip: "删除记录",
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          widget.clip.data.top
+                              ? Icons.push_pin_outlined
+                              : Icons.push_pin,
+                          color: Colors.blueGrey,
+                        ),
+                        onPressed: () {},
+                        tooltip: widget.clip.data.top ? "取消置顶" : "置顶",
+                      ),
+                      IconButton(
+                        icon: _copy
+                            ? const Icon(
+                                Icons.check,
+                                color: Colors.blueGrey,
+                              )
+                            : const Icon(Icons.copy, color: Colors.blueGrey),
+                        onPressed: () {
+                          _copy = true;
+                          setState(() {});
+                          // 创建一个延迟0.5秒执行一次的定时器
+                          Future.delayed(const Duration(milliseconds: 500), () {
+                            _copy = false;
+                            setState(() {});
+                          });
+                          Clipboard.setData(
+                              ClipboardData(text: widget.clip.data.content));
+                        },
+                        tooltip: "复制内容",
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.sync,
+                          color: widget.clip.data.sync
+                              ? Colors.grey
+                              : Colors.blueGrey,
+                        ),
+                        onPressed: widget.clip.data.sync ? null : () {},
+                        tooltip: "同步该记录",
+                      ),
+                    ],
                   ),
                 ],
               ),
-              Container(
-                  child: const SingleChildScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    RoundedChip(
-                      label: Text(
-                        "#标签1",
-                        style:
-                            TextStyle(color: Color.fromRGBO(49, 49, 49, 1.0)),
-                      ),
+              Row(
+                children: [
+                  SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        const RoundedChip(
+                          label: Text(
+                            "#标签1",
+                            style: TextStyle(
+                                color: Color.fromRGBO(49, 49, 49, 1.0)),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        const RoundedChip(
+                          label: Text("#标签2"),
+                        ),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        IconButton(
+                            onPressed: () {}, icon: const Icon(Icons.add)),
+                      ],
                     ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    RoundedChip(
-                      label: Text("#标签2"),
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    RoundedChip(
-                      label: Text("#标签3"),
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    RoundedChip(
-                      label: Text("#标签4"),
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    RoundedChip(
-                      label: Text("#标签5"),
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    RoundedChip(
-                      label: Text("#标签6"),
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    RoundedChip(
-                      label: Text("#标签7"),
-                    ),
-                  ],
-                ),
-              )),
-              Container(
-                  margin: const EdgeInsets.only(top: 10),
-                  constraints: const BoxConstraints(maxHeight: 271),
-                  child: SingleChildScrollView(
-                    clipBehavior: Clip.antiAlias,
-                    child: Container(
-                      alignment: Alignment.topLeft,
-                      child: SelectableText(
-                        widget.clip.data.content,
-                        textAlign: TextAlign.left,
-                      ),
-                    ),
-                  ))
+                  )
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                      child: Container(
+                          constraints: const BoxConstraints(maxHeight: 500),
+                          margin: const EdgeInsets.only(top: 10),
+                          child: SingleChildScrollView(
+                            clipBehavior: Clip.antiAlias,
+                            child: Container(
+                              alignment: Alignment.topLeft,
+                              child: SelectableText(
+                                widget.clip.data.content,
+                                textAlign: TextAlign.left,
+                              ),
+                            ),
+                          )))
+                ],
+              )
             ],
           )),
     );

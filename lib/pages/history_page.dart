@@ -176,6 +176,7 @@ class _HistoryPageState extends State<HistoryPage>
                             isScrollControlled: true,
                             clipBehavior: Clip.antiAlias,
                             context: context,
+                            showDragHandle: true,
                             elevation: 100,
                             builder: (BuildContext context) {
                               return ClipDetailDialog(clip: _list[i]);
