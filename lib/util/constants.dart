@@ -6,9 +6,8 @@ class Constants {
 
 enum MsgKey {
   history,
-  heartbeats,
   ackSync,
-  discover;
+  sendSocketInfo;
 
   static MsgKey getValue(String name) =>
       MsgKey.values.firstWhere((e) => e.name == name);

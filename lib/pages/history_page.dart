@@ -34,6 +34,7 @@ class _HistoryPageState extends State<HistoryPage>
   late HistoryDao historyDao;
   bool _copyInThisCopy = false;
   int? minId;
+  String tag = "HistoryPage";
   List<Map<String, dynamic>> types = const [
     {'icon': Icons.home, 'text': 'home'},
     {'icon': Icons.home, 'text': 'home'},
@@ -204,7 +205,7 @@ class _HistoryPageState extends State<HistoryPage>
         size: content.length);
     addData(history);
     SocketListener.inst.then((inst) {
-      inst.sendMulticastMsg(MsgKey.history, history.toJson());
+      inst.sendSyncData(history);
     });
   }
 
@@ -222,14 +223,31 @@ class _HistoryPageState extends State<HistoryPage>
   }
 
   @override
-  void onReceived(MessageData data) {
-    if (data.key != MsgKey.history) {
-      return;
+  void onReceived(MessageData msg) {
+    //接收剪贴板
+    if (msg.key == MsgKey.history) {
+      History history = History.fromJson(msg.data);
+      history.sync = true;
+      addData(history);
+      _copyInThisCopy = true;
+      Clipboard.setData(ClipboardData(text: history.content));
+      //发送同步确认
+      SocketListener.inst.then((inst) {
+        inst.sendSyncAck(msg.send.guid, history.id);
+      });
     }
-    History history = History.fromJson(data.data);
-    history.sync = true;
-    addData(history);
-    _copyInThisCopy = true;
-    Clipboard.setData(ClipboardData(text: history.content));
+    //确认已同步
+    if (msg.key == MsgKey.ackSync) {
+      var hisId = msg.data["id"];
+      PrintUtil.debug(tag, hisId);
+      for (var clip in _list) {
+        if (clip.data.id.toString() == hisId.toString()) {
+          PrintUtil.debug(tag, hisId);
+          clip.data.sync = true;
+          setState(() {});
+          return;
+        }
+      }
+    }
   }
 }
