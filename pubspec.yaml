@@ -46,6 +46,8 @@ dependencies:
   # 加密
   crypto: ^3.0.3
   uuid: ^3.0.0
+  # 验证码
+  pinput: ^3.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

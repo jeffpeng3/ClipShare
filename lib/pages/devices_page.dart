@@ -1,5 +1,6 @@
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:flutter/material.dart';
+import 'package:pinput/pinput.dart';
 
 import '../components/device_card.dart';
 import '../listeners/socket_listener.dart';
@@ -63,7 +64,106 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
                       child: ListView.builder(
                           itemCount: _devList.length,
                           itemBuilder: (context, i) {
-                            return DeviceCard(devInfo: _devList[i]);
+                            return DeviceCard(
+                              devInfo: _devList[i],
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    const focusedBorderColor =
+                                        Color.fromRGBO(23, 171, 144, 1);
+                                    const submittedColor =
+                                        Color.fromRGBO(114, 178, 238, 1);
+                                    final defaultPinTheme = PinTheme(
+                                      width: 40,
+                                      height: 40,
+                                      textStyle: const TextStyle(
+                                          fontSize: 20,
+                                          color: submittedColor,
+                                          fontWeight: FontWeight.w600),
+                                      decoration: BoxDecoration(
+                                        border:
+                                            Border.all(color: submittedColor),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    );
+                                    return AlertDialog(
+                                      title: const Text("请输入配对码"),
+                                      contentPadding: const EdgeInsets.all(8),
+                                      content: Container(
+                                        height: 90,
+                                        constraints:
+                                            const BoxConstraints(minWidth: 500),
+                                        child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const SizedBox(
+                                                height: 30,
+                                              ),
+                                              Pinput(
+                                                autofocus: true,
+                                                defaultPinTheme:
+                                                    defaultPinTheme,
+                                                focusedPinTheme:
+                                                    defaultPinTheme.copyWith(
+                                                  decoration: defaultPinTheme
+                                                      .decoration!
+                                                      .copyWith(
+                                                    border: Border.all(
+                                                        color:
+                                                            focusedBorderColor),
+                                                  ),
+                                                ),
+                                                submittedPinTheme:
+                                                    defaultPinTheme.copyWith(
+                                                  decoration: defaultPinTheme
+                                                      .decoration!
+                                                      .copyWith(
+                                                    border: Border.all(
+                                                        color: submittedColor),
+                                                  ),
+                                                ),
+                                                errorPinTheme:
+                                                    defaultPinTheme.copyWith(
+                                                        decoration:
+                                                            defaultPinTheme
+                                                                .decoration!
+                                                                .copyWith(
+                                                          border: Border.all(
+                                                              color: Colors
+                                                                  .redAccent),
+                                                        ),
+                                                        textStyle: defaultPinTheme
+                                                            .textStyle!
+                                                            .copyWith(
+                                                                color: Colors
+                                                                    .redAccent)),
+                                                pinputAutovalidateMode:
+                                                    PinputAutovalidateMode
+                                                        .onSubmit,
+                                                showCursor: true,
+                                                onCompleted: (pin) =>
+                                                    print(pin),
+                                              ),
+                                            ]),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: const Text("取消")),
+                                        TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: const Text("配对!")),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                            );
                           }))
                 ],
               ))

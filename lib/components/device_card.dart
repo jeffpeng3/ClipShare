@@ -9,8 +9,9 @@ import '../main.dart';
 
 class DeviceCard extends StatefulWidget {
   final DevInfo? devInfo;
+  final GestureTapCallback? onTap;
 
-  const DeviceCard({super.key, required this.devInfo});
+  const DeviceCard({super.key, required this.devInfo, this.onTap});
 
   @override
   State<StatefulWidget> createState() {
@@ -71,18 +72,25 @@ class DeviceCardState extends State<DeviceCard> {
     setTimer();
     setState(() {});
   }
+
   @override
   void dispose() {
     timer?.cancel();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 1,
       margin: const EdgeInsets.all(8),
       child: InkWell(
-        onTap: () {},
+        onTap: () {
+          if(_empty) {
+            return;
+          }
+          widget.onTap?.call();
+        },
         borderRadius: BorderRadius.circular(12.0),
         child: Padding(
             padding: const EdgeInsets.all(16),
