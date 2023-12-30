@@ -4,6 +4,7 @@ import 'package:pinput/pinput.dart';
 
 import '../components/device_card.dart';
 import '../listeners/socket_listener.dart';
+import 'package:collection/collection.dart';
 
 class DevicesPage extends StatefulWidget {
   const DevicesPage({super.key});
@@ -14,6 +15,7 @@ class DevicesPage extends StatefulWidget {
 
 class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
   final List<DevInfo> _devList = List.empty(growable: true);
+  final List<DevInfo> _pairedList = List.empty(growable: true);
 
   @override
   void initState() {
@@ -35,8 +37,8 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _devList.isEmpty
-            ? const DeviceCard(devInfo: null)
+        _pairedList.isEmpty
+            ? const SizedBox.shrink()
             : Expanded(
                 child: Column(
                 children: [
@@ -44,9 +46,9 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
                     padding: const EdgeInsets.only(left: 12),
                     child: Row(
                       children: [
-                        const Text(
-                          "已连接的设备",
-                          style: TextStyle(
+                        Text(
+                          "我的设备(${_pairedList.length})",
+                          style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                               fontFamily: "宋体"),
@@ -57,6 +59,35 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
                               Icons.add,
                               size: 20,
                             ))
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                      child: ListView.builder(
+                          itemCount: _devList.length,
+                          itemBuilder: (context, i) {
+                            return DeviceCard(
+                              devInfo: _devList[i],
+                            );
+                          }))
+                ],
+              )),
+        _devList.isEmpty
+            ? const DeviceCard(devInfo: null)
+            : Expanded(
+                child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12),
+                    child: Row(
+                      children: [
+                        Text(
+                          "发现设备(${_devList.length})",
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: "宋体"),
+                        ),
                       ],
                     ),
                   ),
@@ -183,6 +214,16 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
   @override
   void onDisConnected(String devId) {
     _devList.removeWhere((dev) => dev.guid == devId);
+    setState(() {});
+  }
+
+  @override
+  void onPaired(String devId) {
+    //配对成功，从链接列表中移除
+    var pairedDev = _devList.firstWhere((dev) => dev.guid == devId);
+    _devList.remove(pairedDev);
+    //添加到配对列表
+    _pairedList.add(pairedDev);
     setState(() {});
   }
 }

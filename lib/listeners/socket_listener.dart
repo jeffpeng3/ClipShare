@@ -19,9 +19,14 @@ abstract class SocketObserver {
 }
 
 abstract class DevAliveObserver {
+  //连接成功
   void onConnected(DevInfo info);
 
+  //断开连接
   void onDisConnected(String devId);
+
+  //配对成功
+  void onPaired(String devId);
 }
 
 class SocketListener {
