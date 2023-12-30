@@ -52,6 +52,7 @@ class App extends StatelessWidget {
   static String userId = "0";
   static late Snowflake snowflake;
 
+  static late BuildContext context;
   const App({super.key});
 
   // This widget is the root of your application.

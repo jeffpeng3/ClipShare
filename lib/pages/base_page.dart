@@ -238,6 +238,8 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
 
   @override
   Widget build(BuildContext context) {
+    App.context = context;
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 238, 238, 238),
       appBar: AppBar(

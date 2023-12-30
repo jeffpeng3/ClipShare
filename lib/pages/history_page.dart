@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/components/clip_data_card.dart';
-import 'package:clipshare/components/round_chip.dart';
 import 'package:clipshare/dao/history_dao.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/message_data.dart';
@@ -11,7 +9,6 @@ import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/print_util.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import '../components/clip_detail_dialog.dart';
@@ -206,7 +203,7 @@ class _HistoryPageState extends State<HistoryPage>
         size: content.length);
     addData(history);
     SocketListener.inst.then((inst) {
-      inst.sendSyncData(history);
+      inst.sendData(null, MsgKey.history, history.toJson());
     });
   }
 
@@ -234,7 +231,7 @@ class _HistoryPageState extends State<HistoryPage>
       Clipboard.setData(ClipboardData(text: history.content));
       //发送同步确认
       SocketListener.inst.then((inst) {
-        inst.sendSyncAck(msg.send.guid, history.id);
+        inst.sendData(msg.send.guid, MsgKey.ackSync, {"id": history.id});
       });
     }
     //确认已同步

@@ -2,10 +2,7 @@ import 'dart:async';
 
 import 'package:clipshare/components/round_chip.dart';
 import 'package:clipshare/entity/dev_info.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import '../main.dart';
 
 class DeviceCard extends StatefulWidget {
   final DevInfo? devInfo;

@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:clipshare/entity/tables/history.dart';
-
 import '../util/constants.dart';
 import 'dev_info.dart';
 
@@ -37,5 +35,9 @@ class MessageData {
       "key": key.name,
       "data": data,
     };
+  }
+
+  String toJsonStr() {
+    return jsonEncode(toJson());
   }
 }

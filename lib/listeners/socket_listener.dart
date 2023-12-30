@@ -1,18 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:clipshare/dao/device_dao.dart';
 import 'package:clipshare/dao/history_dao.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/message_data.dart';
-import 'package:clipshare/entity/tables/device.dart';
-import 'package:clipshare/entity/tables/history.dart';
+import 'package:clipshare/handler/dev_pairing_handler.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/print_util.dart';
+import 'package:flutter/material.dart';
 
 import '../db/db_util.dart';
+import '../util/crypto.dart';
 
 abstract class SocketObserver {
   void onReceived(MessageData data);
@@ -26,7 +28,14 @@ abstract class DevAliveObserver {
   void onDisConnected(String devId);
 
   //配对成功
-  void onPaired(String devId);
+  void onPaired(DevInfo dev, String uid, bool result);
+}
+
+class DevSocket {
+  DevInfo dev;
+  Socket socket;
+
+  DevSocket({required this.dev, required this.socket});
 }
 
 class SocketListener {
@@ -36,7 +45,7 @@ class SocketListener {
   final List<SocketObserver> _socketObservers = List.empty(growable: true);
   final List<DevAliveObserver> _devAliveObservers = List.empty(growable: true);
   late RawDatagramSocket _multicastSocket;
-  final Map<String, Socket> _devSockets = {};
+  final Map<String, DevSocket> _devSockets = {};
   late ServerSocket _server;
 
   SocketListener._private();
@@ -67,47 +76,42 @@ class SocketListener {
       if (dev.guid == App.devInfo.guid) {
         return;
       }
-      if (msg.key == MsgKey.sendSocketInfo) {
-        PrintUtil.debug(tag, dev.name);
-        //设备已连接，跳过
-        if (_devSockets.keys.contains(dev.guid)) {
-          return;
-        }
-        //数据库无设备则加入数据库
-        Device? dbDev = await _deviceDao.getById(dev.guid, msg.userId);
-        if (dbDev == null) {
-          //新设备
-          bool res = await _deviceDao.add(Device(
-                  guid: dev.guid,
-                  devName: dev.name,
-                  uid: msg.userId,
-                  type: dev.type)) >
-              0;
-          if (!res) {
-            PrintUtil.debug(tag, "Device information addition failed");
-            return;
-          }
-        }
-        //建立连接
-        String ip = datagram.address.address;
-        _linkSocket(dev, ip, msg.data["port"]);
+      switch (msg.key) {
+        case MsgKey.broadcastInfo:
+          _onReceivedBroadcastInfo(msg, datagram);
+          break;
+        default:
       }
     });
     return this;
   }
 
+  ///接收广播设备信息
+  Future<void> _onReceivedBroadcastInfo(
+      MessageData msg, Datagram datagram) async {
+    DevInfo dev = msg.send;
+    PrintUtil.debug(tag, dev.name);
+    //设备已连接，跳过
+    if (_devSockets.keys.contains(dev.guid)) {
+      return;
+    }
+    //建立连接
+    String ip = datagram.address.address;
+    _linkSocket(dev, ip, msg.data["port"]);
+  }
+
   ///socket建立链接
-  _linkSocket(DevInfo dev, String ip, int port) async {
+  void _linkSocket(DevInfo dev, String ip, int port) async {
     final socket = await Socket.connect(ip, port);
     PrintUtil.debug(tag, '已连接到服务器');
-    _devSockets[dev.guid] = socket;
+    _devSockets[dev.guid] = DevSocket(dev: dev, socket: socket);
     _onDevConnected(dev);
     // 监听从服务器接收的消息
     socket.listen(
       (List<int> data) {
         Map<String, dynamic> json = jsonDecode(utf8.decode(data));
         var msg = MessageData.fromJson(json);
-        _onSocketListen(msg);
+        _onSocketListened(socket, msg);
       },
       onDone: () {
         _onDevDisConnected(dev.guid);
@@ -123,6 +127,7 @@ class SocketListener {
     );
   }
 
+  ///同步历史
   void _onReceivedMsg(MessageData msg) {
     for (var ob in _socketObservers) {
       try {
@@ -148,7 +153,7 @@ class SocketListener {
           Map<String, dynamic> json = jsonDecode(utf8.decode(data));
           var msg = MessageData.fromJson(json);
           // 在这里处理接收到的消息，你可以根据需要进行逻辑处理
-          _onSocketListen(msg);
+          _onSocketListened(client, msg);
         },
         onDone: () {
           PrintUtil.debug(tag, '服务端连接关闭');
@@ -168,21 +173,65 @@ class SocketListener {
   }
 
   ///socket 监听消息处理
-  void _onSocketListen(MessageData msg) {
-    PrintUtil.debug(tag, '收到服务器消息: $msg');
-    //同步确认
-    if (msg.key == MsgKey.ackSync) {
-      var hisId = msg.data["id"];
-      _historyDao.setSync(hisId.toString(), true).then((value) {
-        PrintUtil.debug(tag, "update sync $value");
-        if (value == null || value == 0) return;
+  void _onSocketListened(Socket socket, MessageData msg) {
+    PrintUtil.debug(tag, msg.key);
+    DevInfo dev = msg.send;
+    switch (msg.key) {
+      case MsgKey.history:
         _onReceivedMsg(msg);
-      });
-    }
-    //剪贴板消息
-    if (msg.key == MsgKey.history) {
-      PrintUtil.debug(tag, "recv history");
-      _onReceivedMsg(msg);
+        break;
+      case MsgKey.ackSync:
+        var hisId = msg.data["id"];
+        _historyDao.setSync(hisId.toString(), true).then((value) {
+          PrintUtil.debug(tag, "update sync $value");
+          if (value == null || value == 0) return;
+          _onReceivedMsg(msg);
+        });
+        break;
+      case MsgKey.requestPairing:
+        //请求配对我方，生成四位配对码
+        final random = Random();
+        int code = 1000 + random.nextInt(9000);
+        DevPairingHandler.addCode(dev.guid, CryptoUtil.toMD5(code));
+        showDialog(
+            context: App.context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("配对请求"),
+                content: Text("来自 ${dev.name} 的配对请求\n配对码：$code"),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      DevPairingHandler.removeCode(dev.guid);
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('取消该次配对'),
+                  ),
+                ],
+              );
+            });
+        break;
+      case MsgKey.pairing:
+        //请求配对我方，验证配对码
+        String code = msg.data["code"];
+        //验证配对码
+        var verify = DevPairingHandler.verify(dev.guid, code);
+        _onDevPaired(dev, msg.userId, verify);
+        //返回配对结果
+        MessageData result = MessageData(
+            userId: App.userId,
+            send: App.devInfo,
+            key: MsgKey.paired,
+            data: {"result": verify},
+            recv: null);
+        socket.write(result.toJsonStr());
+        break;
+      case MsgKey.paired:
+        //获取配对结果
+        bool result = msg.data["result"];
+        _onDevPaired(dev, msg.userId, result);
+        break;
+      default:
     }
   }
 
@@ -192,7 +241,7 @@ class SocketListener {
         (timer) {
       // 广播本机socket信息
       Map<String, dynamic> map = {"port": _server.port};
-      sendMulticastMsg(MsgKey.sendSocketInfo, map);
+      sendMulticastMsg(MsgKey.broadcastInfo, map);
     });
   }
 
@@ -202,6 +251,18 @@ class SocketListener {
     for (var ob in _devAliveObservers) {
       try {
         ob.onConnected(dev);
+      } catch (e, t) {
+        PrintUtil.debug(tag, "$e $t");
+      }
+    }
+  }
+
+  ///设备配对成功
+  void _onDevPaired(DevInfo dev, String uid, bool result) {
+    PrintUtil.debug(tag, "${dev.name} paired");
+    for (var ob in _devAliveObservers) {
+      try {
+        ob.onPaired(dev, uid, result);
       } catch (e, t) {
         PrintUtil.debug(tag, "$e $t");
       }
@@ -221,34 +282,30 @@ class SocketListener {
     }
   }
 
-  ///发送确认同步
-  void sendSyncAck(String guid, int id) {
-    Socket? skt = _devSockets[guid];
-    if (skt == null) {
-      return;
-    }
+  ///向指定设备发送消息
+  bool sendData(String? devId, MsgKey key, Map<String, dynamic> data) {
     MessageData msg = MessageData(
         userId: App.userId,
         send: App.devInfo,
-        key: MsgKey.ackSync,
-        data: {"id": id},
+        key: key,
+        data: data,
         recv: null);
-    String json = jsonEncode(msg.toJson());
-    skt.write(json);
-  }
-
-  ///向其他设备同步剪贴板
-  void sendSyncData(History history) {
-    MessageData msg = MessageData(
-        userId: App.userId,
-        send: App.devInfo,
-        key: MsgKey.history,
-        data: history.toJson(),
-        recv: null);
-    String json = jsonEncode(msg.toJson());
-    for (var skt in _devSockets.values) {
-      skt.write(json);
+    if (devId == null) {
+      //发送全部设备
+      for (var skt in _devSockets.values) {
+        skt.socket.write(msg.toJsonStr());
+      }
+    } else {
+      //向指定设备发送消息
+      DevSocket? skt = _devSockets[devId];
+      if (skt == null) {
+        //发送的设备未连接
+        PrintUtil.debug(tag, "$devId 设备未连接，发送失败");
+        return false;
+      }
+      skt.socket.write(msg.toJsonStr());
     }
+    return true;
   }
 
   /// 发送组播消息
@@ -260,9 +317,8 @@ class SocketListener {
         key: key,
         data: data,
         recv: recv);
-    String json = jsonEncode(msg.toJson());
     try {
-      _multicastSocket.send(utf8.encode(json),
+      _multicastSocket.send(utf8.encode(msg.toJsonStr()),
           InternetAddress(Constants.multicastGroup), Constants.port);
     } catch (e, stacktrace) {
       PrintUtil.debug(tag, "$e $stacktrace");
