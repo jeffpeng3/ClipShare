@@ -21,6 +21,7 @@ class DevicesPage extends StatefulWidget {
 class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
   final List<DevInfo> _devList = List.empty(growable: true);
   final List<DevInfo> _pairedList = List.empty(growable: true);
+  late StateSetter _pairingState;
   bool _pairingFailed = false;
   bool _pairing = false;
   late DeviceDao _deviceDao;
@@ -118,7 +119,7 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
 
   void requestPairing(DevInfo dev) {
     SocketListener.inst.then((inst) {
-      inst.sendData(dev.guid, MsgKey.requestPairing, {});
+      inst.sendData(dev, MsgKey.requestPairing, {});
     });
     _pairing = false;
     _pairingFailed = false;
@@ -142,6 +143,7 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
           ),
         );
         return StatefulBuilder(builder: (context, state) {
+          _pairingState = state;
           return AlertDialog(
             title: const Text("请输入配对码"),
             contentPadding: const EdgeInsets.all(8),
@@ -209,11 +211,12 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
                           ? () {
                               String pin = pinCtr.text;
                               SocketListener.inst.then((inst) {
-                                inst.sendData(dev.guid, MsgKey.pairing,
+                                inst.sendData(dev, MsgKey.pairing,
                                     {"code": CryptoUtil.toMD5(pin)});
                               });
                               _pairing = true;
                               showTimeoutText = false;
+                              _pairingFailed = false;
                               Future.delayed(const Duration(seconds: 5), () {
                                 if (_pairing) {
                                   _pairing = false;
@@ -254,9 +257,11 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
   @override
   void onPaired(DevInfo dev, String uid, bool result) {
     if (!result) {
+      PrintUtil.debug(tag, "_pairingFailed $_pairingFailed");
       _pairingFailed = true;
       _pairing = false;
       setState(() {});
+      _pairingState(() {});
       return;
     }
     //关闭配对弹窗

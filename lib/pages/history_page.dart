@@ -231,7 +231,7 @@ class _HistoryPageState extends State<HistoryPage>
       Clipboard.setData(ClipboardData(text: history.content));
       //发送同步确认
       SocketListener.inst.then((inst) {
-        inst.sendData(msg.send.guid, MsgKey.ackSync, {"id": history.id});
+        inst.sendData(msg.send, MsgKey.ackSync, {"id": history.id});
       });
     }
     //确认已同步

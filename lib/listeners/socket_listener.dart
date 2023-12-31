@@ -283,24 +283,24 @@ class SocketListener {
   }
 
   ///向指定设备发送消息
-  bool sendData(String? devId, MsgKey key, Map<String, dynamic> data) {
+  bool sendData(DevInfo? dev, MsgKey key, Map<String, dynamic> data) {
     MessageData msg = MessageData(
         userId: App.userId,
         send: App.devInfo,
         key: key,
         data: data,
         recv: null);
-    if (devId == null) {
+    if (dev == null) {
       //发送全部设备
       for (var skt in _devSockets.values) {
         skt.socket.write(msg.toJsonStr());
       }
     } else {
       //向指定设备发送消息
-      DevSocket? skt = _devSockets[devId];
+      DevSocket? skt = _devSockets[dev.guid];
       if (skt == null) {
         //发送的设备未连接
-        PrintUtil.debug(tag, "$devId 设备未连接，发送失败");
+        PrintUtil.debug(tag, "${dev.name} 设备未连接，发送失败");
         return false;
       }
       skt.socket.write(msg.toJsonStr());
