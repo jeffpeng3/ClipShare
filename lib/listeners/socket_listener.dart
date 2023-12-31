@@ -128,18 +128,6 @@ class SocketListener {
     );
   }
 
-  ///同步历史
-  void _onReceivedMsg(MessageData msg) {
-    for (var ob in _socketObservers) {
-      try {
-        ob.onReceived(msg);
-      } catch (e, stack) {
-        PrintUtil.debug(tag, e);
-        PrintUtil.debug(tag, stack);
-      }
-    }
-  }
-
   ///运行服务端 socket 监听
   void _runSocketServer() async {
     _server = await ServerSocket.bind('0.0.0.0', 0);
@@ -150,7 +138,7 @@ class SocketListener {
           tag, '新连接来自 ${client.remoteAddress.address}:${client.remotePort}');
 
       client.listen(
-        (List<int> data) {
+        (data) {
           Map<String, dynamic> json = jsonDecode(utf8.decode(data));
           var msg = MessageData.fromJson(json);
           // 在这里处理接收到的消息，你可以根据需要进行逻辑处理
@@ -171,6 +159,18 @@ class SocketListener {
         // cancelOnError: true,
       );
     });
+  }
+
+  ///socket消息处理
+  void _onReceivedMsg(MessageData msg) {
+    for (var ob in _socketObservers) {
+      try {
+        ob.onReceived(msg);
+      } catch (e, stack) {
+        PrintUtil.debug(tag, e);
+        PrintUtil.debug(tag, stack);
+      }
+    }
   }
 
   ///socket 监听消息处理
