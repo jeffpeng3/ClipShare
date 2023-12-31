@@ -219,13 +219,6 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
       SocketListener.inst;
       pages = const [HistoryPage(), DevicesPage(), ProfilePage()];
       setState(() {});
-      deviceDao.getById(guid, App.userId).then((dev) {
-        if (dev == null) {
-          Device device =
-              Device(guid: guid, devName: name, uid: App.userId, type: type);
-          deviceDao.add(device);
-        }
-      });
     });
   }
 

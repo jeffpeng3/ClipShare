@@ -9,6 +9,7 @@ import '../dao/device_dao.dart';
 import '../db/db_util.dart';
 import '../entity/tables/device.dart';
 import '../listeners/socket_listener.dart';
+import '../main.dart';
 import '../util/print_util.dart';
 
 class DevicesPage extends StatefulWidget {
@@ -19,8 +20,8 @@ class DevicesPage extends StatefulWidget {
 }
 
 class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
-  final List<DevInfo> _devList = List.empty(growable: true);
-  final List<DevInfo> _pairedList = List.empty(growable: true);
+  final List<DeviceCard> _discoverList = List.empty(growable: true);
+  final List<DeviceCard> _pairedList = List.empty(growable: true);
   late StateSetter _pairingState;
   bool _pairingFailed = false;
   bool _pairing = false;
@@ -33,6 +34,17 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
       inst.addDevAliveListener(this);
     });
     _deviceDao = DBUtil.inst.deviceDao;
+    _deviceDao.getAllDevices(App.userId).then((list) {
+      _pairedList.clear();
+      for (var dev in list) {
+        var info = DevInfo.fromDevice(dev);
+        _pairedList.add(DeviceCard(
+          devInfo: info,
+          isPaired: true,
+        ));
+      }
+      setState(() {});
+    });
     super.initState();
   }
 
@@ -46,75 +58,60 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> discoverList = [];
-    for (var element in _devList) {
-      discoverList.add(DeviceCard(
-        devInfo: element,
-        onTap: () {
-          requestPairing(element);
-        },
-      ));
-    }
-    List<Widget> pList = [];
-    for (var element in _pairedList) {
-      pList.add(DeviceCard(
-        devInfo: element,
-      ));
-    }
-    return Column(
-      children: <Widget>[
-        _pairedList.isEmpty
-            ? const SizedBox.shrink()
-            : Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12),
-                    child: Row(
-                      children: [
-                        Text(
-                          "我的设备(${_pairedList.length})",
-                          style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              fontFamily: "宋体"),
-                        )
-                      ],
-                    ),
+    return ListView(
+      children: [
+        Column(
+          children: <Widget>[
+            _pairedList.isEmpty
+                ? const SizedBox.shrink()
+                : Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 12),
+                        child: Row(
+                          children: [
+                            Text(
+                              "我的设备(${_pairedList.length})",
+                              style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  fontFamily: "宋体"),
+                            )
+                          ],
+                        ),
+                      ),
+                      ..._pairedList
+                    ],
                   ),
-                  ...pList
+            Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Row(
+                children: [
+                  Text(
+                    "发现设备(${_discoverList.length})",
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: "宋体"),
+                  ),
+                  IconButton(
+                      onPressed: () {},
+                      icon: const Icon(
+                        Icons.add,
+                        size: 20,
+                      ))
                 ],
               ),
-        Padding(
-          padding: const EdgeInsets.only(left: 12),
-          child: Row(
-            children: [
-              Text(
-                "发现设备(${_devList.length})",
-                style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    fontFamily: "宋体"),
-              ),
-              IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.add,
-                    size: 20,
-                  ))
-            ],
-          ),
-        ),
-        _devList.isEmpty
-            ? const DeviceCard(devInfo: null)
-            : Column(
-                children: discoverList,
-              ),
+            ),
+            _discoverList.isEmpty
+                ? DeviceCard(devInfo: null)
+                : Column(
+                    children: _discoverList,
+                  ),
+          ],
+        )
       ],
     );
-  }
-
-  void onStateChanged() {
-    setState(() {});
   }
 
   void requestPairing(DevInfo dev) {
@@ -241,16 +238,29 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
 
   @override
   void onConnected(DevInfo info) {
-    _devList.firstWhere((dev) => dev.guid == info.guid, orElse: () {
-      _devList.add(info);
-      return info;
-    });
+    for (var paired in _pairedList) {
+      if (paired.devInfo == info) {
+        //修改widget状态
+        paired.isConnected = true;
+        setState(() {});
+        return;
+      }
+    }
+    _discoverList.add(DeviceCard(
+      devInfo: info,
+      onTap: () => {requestPairing(info)},
+    ));
     setState(() {});
   }
 
   @override
   void onDisConnected(String devId) {
-    _devList.removeWhere((dev) => dev.guid == devId);
+    _discoverList.removeWhere((dev) => dev.devInfo?.guid == devId);
+    for (var dev in _pairedList) {
+      if (dev.devInfo?.guid == devId) {
+        dev.isConnected = false;
+      }
+    }
     setState(() {});
   }
 
@@ -275,10 +285,15 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
         return;
       }
       //保存成功，从连接列表中移除
-      var pairedDev = _devList.firstWhere((dev) => dev.guid == dev.guid);
-      _devList.remove(pairedDev);
+      var pairedDev = _discoverList
+          .firstWhere((dev) => dev.devInfo?.guid == dev.devInfo?.guid);
+      _discoverList.remove(pairedDev);
       //添加到已配对列表
-      _pairedList.add(pairedDev);
+      _pairedList.add(DeviceCard(
+        devInfo: pairedDev.devInfo,
+        isPaired: true,
+        isConnected: true,
+      ));
       setState(() {});
     });
   }

@@ -34,13 +34,13 @@ abstract class DevAliveObserver {
 class DevSocket {
   DevInfo dev;
   Socket socket;
+  bool isPaired;
 
-  DevSocket({required this.dev, required this.socket});
+  DevSocket({required this.dev, required this.socket, this.isPaired = false});
 }
 
 class SocketListener {
   static const String tag = "SocketListener";
-  late DeviceDao _deviceDao;
   late HistoryDao _historyDao;
   final List<SocketObserver> _socketObservers = List.empty(growable: true);
   final List<DevAliveObserver> _devAliveObservers = List.empty(growable: true);
@@ -57,7 +57,6 @@ class SocketListener {
       _singleton ??= await SocketListener._private()._init();
 
   Future<SocketListener> _init() async {
-    _deviceDao = DBUtil.inst.deviceDao;
     _historyDao = DBUtil.inst.historyDao;
     _multicastSocket =
         await _getSocket(Constants.multicastGroup, Constants.port);
@@ -260,6 +259,7 @@ class SocketListener {
   ///设备配对成功
   void _onDevPaired(DevInfo dev, String uid, bool result) {
     PrintUtil.debug(tag, "${dev.name} paired");
+    _devSockets[dev.guid]?.isPaired = true;
     for (var ob in _devAliveObservers) {
       try {
         ob.onPaired(dev, uid, result);
@@ -283,7 +283,8 @@ class SocketListener {
   }
 
   ///向指定设备发送消息
-  bool sendData(DevInfo? dev, MsgKey key, Map<String, dynamic> data) {
+  bool sendData(DevInfo? dev, MsgKey key, Map<String, dynamic> data,
+      [bool onlyPaired = false]) {
     MessageData msg = MessageData(
         userId: App.userId,
         send: App.devInfo,
@@ -291,8 +292,11 @@ class SocketListener {
         data: data,
         recv: null);
     if (dev == null) {
-      //发送全部设备
-      for (var skt in _devSockets.values) {
+      var list = onlyPaired
+          ? _devSockets.values.where((dev) => dev.isPaired)
+          : _devSockets.values;
+      //批量发送
+      for (var skt in list) {
         skt.socket.write(msg.toJsonStr());
       }
     } else {

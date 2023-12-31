@@ -7,8 +7,17 @@ import 'package:flutter/material.dart';
 class DeviceCard extends StatefulWidget {
   final DevInfo? devInfo;
   final GestureTapCallback? onTap;
+  bool isPaired;
+  bool isSelf;
+  bool isConnected;
 
-  const DeviceCard({super.key, required this.devInfo, this.onTap});
+  DeviceCard(
+      {super.key,
+      required this.devInfo,
+      this.onTap,
+      this.isPaired = false,
+      this.isConnected = false,
+      this.isSelf = false});
 
   @override
   State<StatefulWidget> createState() {
@@ -78,12 +87,13 @@ class DeviceCardState extends State<DeviceCard> {
 
   @override
   Widget build(BuildContext context) {
+    const chipColor = Color.fromARGB(255, 213, 222, 232);
     return Card(
       elevation: 1,
       margin: const EdgeInsets.all(8),
       child: InkWell(
         onTap: () {
-          if(_empty) {
+          if (_empty) {
             return;
           }
           widget.onTap?.call();
@@ -104,8 +114,7 @@ class DeviceCardState extends State<DeviceCard> {
                         _empty
                             ? const RoundedChip(
                                 label: Text("                  "),
-                                backgroundColor:
-                                    Color.fromARGB(255, 213, 222, 232),
+                                backgroundColor: chipColor,
                               )
                             : Text(
                                 widget.devInfo!.name,
@@ -115,10 +124,33 @@ class DeviceCardState extends State<DeviceCard> {
                         const SizedBox(
                           height: 8,
                         ),
-                        RoundedChip(
-                          label: Text(_empty ? "    " : widget.devInfo!.type),
-                          backgroundColor:
-                              const Color.fromARGB(255, 213, 222, 232),
+                        Row(
+                          children: [
+                            RoundedChip(
+                              label:
+                                  Text(_empty ? "    " : widget.devInfo!.type),
+                              backgroundColor: chipColor,
+                            ),
+                            const SizedBox(width: 5,),
+                            widget.isSelf
+                                ? const RoundedChip(
+                                    label: Text("本机"),
+                                    backgroundColor: chipColor,
+                                  )
+                                : const SizedBox.shrink(),
+                            widget.isPaired
+                                ? RoundedChip(
+                                    label: Text(
+                                        widget.isConnected ? "已连接" : "未连接"),
+                                    backgroundColor: chipColor,
+                                  )
+                                : _empty
+                                    ? const SizedBox.shrink()
+                                    : const RoundedChip(
+                                        label: Text("未配对"),
+                                        backgroundColor: chipColor,
+                                      )
+                          ],
                         )
                       ],
                     ),

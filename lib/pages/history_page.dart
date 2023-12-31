@@ -159,7 +159,7 @@ class _HistoryPageState extends State<HistoryPage>
                               builder: (BuildContext context) {
                                 return AlertDialog(
                                     title: null,
-                                    contentPadding: EdgeInsets.all(0),
+                                    contentPadding: const EdgeInsets.all(0),
                                     content: ClipDetailDialog(clip: _list[i]));
                               });
                         },
@@ -203,7 +203,7 @@ class _HistoryPageState extends State<HistoryPage>
         size: content.length);
     addData(history);
     SocketListener.inst.then((inst) {
-      inst.sendData(null, MsgKey.history, history.toJson());
+      inst.sendData(null, MsgKey.history, history.toJson(), true);
     });
   }
 
