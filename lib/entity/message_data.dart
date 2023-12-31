@@ -37,6 +37,11 @@ class MessageData {
     };
   }
 
+  @override
+  String toString() {
+    return toJsonStr();
+  }
+
   String toJsonStr() {
     return jsonEncode(toJson());
   }

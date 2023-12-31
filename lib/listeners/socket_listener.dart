@@ -106,6 +106,14 @@ class SocketListener {
     final socket = await Socket.connect(ip, port);
     PrintUtil.debug(tag, '已连接到服务器');
     _devSockets[dev.guid] = DevSocket(dev: dev, socket: socket);
+    //发送本机信息给对方
+    MessageData msg = MessageData(
+        userId: App.userId,
+        send: App.devInfo,
+        key: MsgType.devInfo,
+        data: {},
+        recv: null);
+    socket.write(msg.toJsonStr());
     _onDevConnected(dev);
     // 监听从服务器接收的消息
     socket.listen(
@@ -178,6 +186,11 @@ class SocketListener {
     PrintUtil.debug(tag, msg.key);
     DevInfo dev = msg.send;
     switch (msg.key) {
+      case MsgType.devInfo:
+        //刚建立连接，保存设备信息
+        _devSockets[dev.guid] = DevSocket(dev: dev, socket: socket);
+        _onDevConnected(dev);
+        break;
       case MsgType.history:
       case MsgType.requestSyncMissingData:
       case MsgType.missingData:

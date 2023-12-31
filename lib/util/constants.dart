@@ -10,6 +10,8 @@ class Constants {
 }
 
 enum MsgType {
+  //设备信息
+  devInfo,
   //历史记录
   history,
   //历史记录同步确认
