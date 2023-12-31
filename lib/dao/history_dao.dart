@@ -9,20 +9,18 @@ abstract class HistoryDao {
   Future<History?> getLatestLocalClip(String uid);
 
   /// 获取某设备未同步的记录
-  /// SELECT *
-  /// FROM history h
-  /// WHERE NOT EXISTS (SELECT 1 FROM sync_history sh WHERE sh.hisId = h.id AND sh.devId = 'abc');
-  ///
-
+  @Query(
+      "SELECT * FROM history h WHERE NOT EXISTS (SELECT 1 FROM SyncHistory sh WHERE sh.hisId = h.id AND sh.devId = :devId)")
+  Future<List<History>> getMissingHistory(String devId);
 
   ///获取前20条历史记录
-  @Query(
-      "select * from history where uid = :uid order by top,id desc limit 20")
+  @Query("select * from history where uid = :uid order by top,id desc limit 20")
   Future<List<History>> getHistoriesTop20(String uid);
+
   ///获取前20条历史记录
   @Query(
       "select * from history where uid = :uid and id < :fromId order by top,id desc limit 20")
-  Future<List<History>> getHistoriesPage(String uid,int fromId);
+  Future<List<History>> getHistoriesPage(String uid, int fromId);
 
   ///置顶/取消置顶某记录
   @Query("update history set top = :top where id = :id ")

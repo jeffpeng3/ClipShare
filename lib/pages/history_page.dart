@@ -2,9 +2,11 @@ import 'dart:math';
 
 import 'package:clipshare/components/clip_data_card.dart';
 import 'package:clipshare/dao/history_dao.dart';
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
+import 'package:clipshare/entity/tables/sync_history.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/print_util.dart';
@@ -222,6 +224,7 @@ class _HistoryPageState extends State<HistoryPage>
 
   @override
   void onReceived(MessageData msg) {
+    String devId = msg.send.guid;
     //接收剪贴板
     if (msg.key == MsgType.history) {
       History history = History.fromJson(msg.data);
@@ -242,8 +245,9 @@ class _HistoryPageState extends State<HistoryPage>
         if (clip.data.id.toString() == hisId.toString()) {
           PrintUtil.debug(tag, hisId);
           clip.data.sync = true;
+          DBUtil.inst.syncHistoryDao.add(SyncHistory(devId: devId, hisId: hisId));
           setState(() {});
-          return;
+          break;
         }
       }
     }

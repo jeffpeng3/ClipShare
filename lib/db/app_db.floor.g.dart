@@ -2,7 +2,6 @@
 // FloorGenerator
 // **************************************************************************
 part of 'app_db.dart';
-
 // ignore: avoid_classes_with_only_static_members
 class $FloorAppDb {
   /// Creates a database builder for a persistent database.
@@ -64,6 +63,8 @@ class _$AppDb extends AppDb {
 
   DeviceDao? _deviceDaoInstance;
 
+  SyncHistoryDao? _syncHistoryDaoInstance;
+
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
@@ -93,6 +94,14 @@ class _$AppDb extends AppDb {
             'CREATE TABLE IF NOT EXISTS `History` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` TEXT NOT NULL, `time` TEXT NOT NULL, `content` TEXT NOT NULL, `type` TEXT NOT NULL, `devId` TEXT NOT NULL, `top` INTEGER NOT NULL, `sync` INTEGER NOT NULL, `size` INTEGER NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `User` (`id` TEXT, `account` TEXT NOT NULL, `password` TEXT NOT NULL, `type` TEXT NOT NULL, PRIMARY KEY (`id`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `SyncHistory` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `devId` TEXT NOT NULL, `hisId` INTEGER NOT NULL)');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `HistoryTag` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `tagName` TEXT NOT NULL, `hisId` INTEGER NOT NULL)');
+        await database.execute(
+            'CREATE INDEX `index_SyncHistory_devId_hisId` ON `SyncHistory` (`devId`, `hisId`)');
+        await database.execute(
+            'CREATE UNIQUE INDEX `index_HistoryTag_tagName_hisId` ON `HistoryTag` (`tagName`, `hisId`)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -118,6 +127,12 @@ class _$AppDb extends AppDb {
   @override
   DeviceDao get deviceDao {
     return _deviceDaoInstance ??= _$DeviceDao(database, changeListener);
+  }
+
+  @override
+  SyncHistoryDao get syncHistoryDao {
+    return _syncHistoryDaoInstance ??=
+        _$SyncHistoryDao(database, changeListener);
   }
 }
 
@@ -330,6 +345,14 @@ class _$HistoryDao extends HistoryDao {
   }
 
   @override
+  Future<List<History>> getMissingHistory(String devId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM history h WHERE NOT EXISTS (SELECT 1 FROM SyncHistory sh WHERE sh.hisId = h.id AND sh.devId = ?1)',
+        mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as String, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
+        arguments: [devId]);
+  }
+
+  @override
   Future<List<History>> getHistoriesTop20(String uid) async {
     return _queryAdapter.queryList(
         'select * from history where uid = ?1 order by top,id desc limit 20',
@@ -494,5 +517,31 @@ class _$DeviceDao extends DeviceDao {
   Future<int> updateDevice(Device dev) {
     return _deviceUpdateAdapter.updateAndReturnChangedRows(
         dev, OnConflictStrategy.abort);
+  }
+}
+
+class _$SyncHistoryDao extends SyncHistoryDao {
+  _$SyncHistoryDao(
+    this.database,
+    this.changeListener,
+  ) : _syncHistoryInsertionAdapter = InsertionAdapter(
+            database,
+            'SyncHistory',
+            (SyncHistory item) => <String, Object?>{
+                  'id': item.id,
+                  'devId': item.devId,
+                  'hisId': item.hisId
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final InsertionAdapter<SyncHistory> _syncHistoryInsertionAdapter;
+
+  @override
+  Future<int> add(SyncHistory syncHistory) {
+    return _syncHistoryInsertionAdapter.insertAndReturnId(
+        syncHistory, OnConflictStrategy.abort);
   }
 }

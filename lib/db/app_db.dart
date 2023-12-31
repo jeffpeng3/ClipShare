@@ -1,6 +1,9 @@
 // 必须的包
 import 'dart:async';
 
+import 'package:clipshare/dao/sync_history_dao.dart';
+import 'package:clipshare/entity/tables/history_tag.dart';
+import 'package:clipshare/entity/tables/sync_history.dart';
 import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 
@@ -16,10 +19,10 @@ import '../entity/tables/user.dart';
 part 'app_db.floor.g.dart';
 
 /// 执行命令 flutter pub run build_runner build --delete-conflicting-outputs
-///
-/// 下面这行放在app_db.g.dart文件里，使其变成app_database.dart文件的一部分
+/// 生成的文件位于 .dart_tool/build/generated/项目名称/lib/db
+/// 下面这行放在 app_db.floor.g.dart 文件里，使其变成 app_database.dart 文件的一部分
 /// part of 'app_db.dart';
-@Database(version: 1, entities: [Config, Device, History, User])
+@Database(version: 1, entities: [Config, Device, History, User,SyncHistory,HistoryTag])
 abstract class AppDb extends FloorDatabase {
   UserDao get userDao;
 
@@ -28,4 +31,6 @@ abstract class AppDb extends FloorDatabase {
   HistoryDao get historyDao;
 
   DeviceDao get deviceDao;
+
+  SyncHistoryDao get syncHistoryDao;
 }
