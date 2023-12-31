@@ -76,7 +76,7 @@ class SocketListener {
         return;
       }
       switch (msg.key) {
-        case MsgKey.broadcastInfo:
+        case MsgType.broadcastInfo:
           _onReceivedBroadcastInfo(msg, datagram);
           break;
         default:
@@ -176,10 +176,10 @@ class SocketListener {
     PrintUtil.debug(tag, msg.key);
     DevInfo dev = msg.send;
     switch (msg.key) {
-      case MsgKey.history:
+      case MsgType.history:
         _onReceivedMsg(msg);
         break;
-      case MsgKey.ackSync:
+      case MsgType.ackSync:
         var hisId = msg.data["id"];
         _historyDao.setSync(hisId.toString(), true).then((value) {
           PrintUtil.debug(tag, "update sync $value");
@@ -187,7 +187,7 @@ class SocketListener {
           _onReceivedMsg(msg);
         });
         break;
-      case MsgKey.requestPairing:
+      case MsgType.requestPairing:
         //请求配对我方，生成四位配对码
         final random = Random();
         int code = 1000 + random.nextInt(9000);
@@ -210,7 +210,7 @@ class SocketListener {
               );
             });
         break;
-      case MsgKey.pairing:
+      case MsgType.pairing:
         //请求配对我方，验证配对码
         String code = msg.data["code"];
         //验证配对码
@@ -220,12 +220,12 @@ class SocketListener {
         MessageData result = MessageData(
             userId: App.userId,
             send: App.devInfo,
-            key: MsgKey.paired,
+            key: MsgType.paired,
             data: {"result": verify},
             recv: null);
         socket.write(result.toJsonStr());
         break;
-      case MsgKey.paired:
+      case MsgType.paired:
         //获取配对结果
         bool result = msg.data["result"];
         _onDevPaired(dev, msg.userId, result);
@@ -240,7 +240,7 @@ class SocketListener {
         (timer) {
       // 广播本机socket信息
       Map<String, dynamic> map = {"port": _server.port};
-      sendMulticastMsg(MsgKey.broadcastInfo, map);
+      sendMulticastMsg(MsgType.broadcastInfo, map);
     });
   }
 
@@ -283,7 +283,7 @@ class SocketListener {
   }
 
   ///向指定设备发送消息
-  bool sendData(DevInfo? dev, MsgKey key, Map<String, dynamic> data,
+  bool sendData(DevInfo? dev, MsgType key, Map<String, dynamic> data,
       [bool onlyPaired = false]) {
     MessageData msg = MessageData(
         userId: App.userId,
@@ -313,7 +313,7 @@ class SocketListener {
   }
 
   /// 发送组播消息
-  void sendMulticastMsg(MsgKey key, Map<String, dynamic> data,
+  void sendMulticastMsg(MsgType key, Map<String, dynamic> data,
       [DevInfo? recv]) {
     MessageData msg = MessageData(
         userId: App.userId,

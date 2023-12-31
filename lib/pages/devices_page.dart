@@ -116,7 +116,7 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
 
   void requestPairing(DevInfo dev) {
     SocketListener.inst.then((inst) {
-      inst.sendData(dev, MsgKey.requestPairing, {});
+      inst.sendData(dev, MsgType.requestPairing, {});
     });
     _pairing = false;
     _pairingFailed = false;
@@ -208,7 +208,7 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
                           ? () {
                               String pin = pinCtr.text;
                               SocketListener.inst.then((inst) {
-                                inst.sendData(dev, MsgKey.pairing,
+                                inst.sendData(dev, MsgType.pairing,
                                     {"code": CryptoUtil.toMD5(pin)});
                               });
                               _pairing = true;

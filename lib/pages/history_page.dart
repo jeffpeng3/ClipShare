@@ -203,7 +203,7 @@ class _HistoryPageState extends State<HistoryPage>
         size: content.length);
     addData(history);
     SocketListener.inst.then((inst) {
-      inst.sendData(null, MsgKey.history, history.toJson(), true);
+      inst.sendData(null, MsgType.history, history.toJson(), true);
     });
   }
 
@@ -223,7 +223,7 @@ class _HistoryPageState extends State<HistoryPage>
   @override
   void onReceived(MessageData msg) {
     //接收剪贴板
-    if (msg.key == MsgKey.history) {
+    if (msg.key == MsgType.history) {
       History history = History.fromJson(msg.data);
       history.sync = true;
       addData(history);
@@ -231,11 +231,11 @@ class _HistoryPageState extends State<HistoryPage>
       Clipboard.setData(ClipboardData(text: history.content));
       //发送同步确认
       SocketListener.inst.then((inst) {
-        inst.sendData(msg.send, MsgKey.ackSync, {"id": history.id});
+        inst.sendData(msg.send, MsgType.ackSync, {"id": history.id});
       });
     }
     //确认已同步
-    if (msg.key == MsgKey.ackSync) {
+    if (msg.key == MsgType.ackSync) {
       var hisId = msg.data["id"];
       PrintUtil.debug(tag, hisId);
       for (var clip in _list) {

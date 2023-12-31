@@ -7,7 +7,7 @@ class MessageData {
   String userId;
   DevInfo send;
   DevInfo? recv;
-  MsgKey key;
+  MsgType key;
   Map<String, dynamic> data;
 
   MessageData(
@@ -21,7 +21,7 @@ class MessageData {
     String userId = map["userId"];
     DevInfo devInfo = DevInfo.fromJson(map["send"]);
     DevInfo? recv = map["recv"] != null ? DevInfo.fromJson(map["recv"]) : null;
-    MsgKey key = MsgKey.getValue(map["key"]);
+    MsgType key = MsgType.getValue(map["key"]);
     Map<String, dynamic> data = map["data"];
     return MessageData(
         userId: userId, send: devInfo, key: key, data: data, recv: recv);

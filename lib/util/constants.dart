@@ -9,7 +9,7 @@ class Constants {
   static const pairingLimit = 60;
 }
 
-enum MsgKey {
+enum MsgType {
   //历史记录
   history,
   //历史记录同步确认
@@ -22,11 +22,18 @@ enum MsgKey {
   pairing,
   //设备配对成功
   paired,
+  //设置置顶（或非置顶）
+  setTop,
+  //同步缺失数据
+  syncMissingData,
+  //删除记录
+  rmHistory,
+  //未知key
   unknown;
 
-  static MsgKey getValue(String name) =>
-      MsgKey.values.firstWhere((e) => e.name == name, orElse: () {
+  static MsgType getValue(String name) =>
+      MsgType.values.firstWhere((e) => e.name == name, orElse: () {
         PrintUtil.debug("MsgKey", "key '$name' unknown");
-        return MsgKey.unknown;
+        return MsgType.unknown;
       });
 }
