@@ -347,7 +347,7 @@ class _$HistoryDao extends HistoryDao {
   @override
   Future<List<History>> getMissingHistory(String devId) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM history h WHERE NOT EXISTS (SELECT 1 FROM SyncHistory sh WHERE sh.hisId = h.id AND sh.devId = ?1)',
+        'SELECT * FROM history h WHERE NOT EXISTS (SELECT 1 FROM SyncHistory sh WHERE sh.hisId = h.id AND sh.devId = ?1) and h.devId != ?1',
         mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as String, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
         arguments: [devId]);
   }

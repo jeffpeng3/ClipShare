@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:floor/floor.dart';
 
 @entity
@@ -80,15 +82,20 @@ class History implements Comparable {
 
   Map<String, dynamic> toJson() {
     return {
-      "id":id,
-      "uid":uid,
-      "time":time,
-      "content":content,
-      "type":type,
-      "devId":devId,
-      "top":top,
-      "sync":sync,
-      "size":size,
+      "id": id,
+      "uid": uid,
+      "time": time,
+      "content": content,
+      "type": type,
+      "devId": devId,
+      "top": top,
+      "sync": sync,
+      "size": size,
     };
+  }
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
   }
 }

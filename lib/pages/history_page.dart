@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../components/clip_detail_dialog.dart';
+import '../dao/sync_history_dao.dart';
 import '../db/db_util.dart';
 import '../listeners/socket_listener.dart';
 import '../main.dart';
@@ -31,34 +32,19 @@ class _HistoryPageState extends State<HistoryPage>
     implements ClipObserver, SocketObserver {
   final List<ClipData> _list = List.empty(growable: true);
   late HistoryDao historyDao;
+  late SyncHistoryDao syncHistoryDao;
   bool _copyInThisCopy = false;
-  int? minId;
+  int? _minId;
   String tag = "HistoryPage";
-  List<Map<String, dynamic>> types = const [
-    {'icon': Icons.home, 'text': 'home'},
-    {'icon': Icons.home, 'text': 'home'},
-    {'icon': Icons.home, 'text': 'home'},
-    {'icon': Icons.home, 'text': 'home'},
-  ];
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     historyDao = DBUtil.inst.historyDao;
+    syncHistoryDao = DBUtil.inst.syncHistoryDao;
     SocketListener.inst.then((inst) => {inst.addSocketListener(this)});
-    historyDao.getHistoriesTop20(App.userId).then((list) {
-      _list.addAll(ClipData.fromList(list));
-      for (int i = 0; i < _list.length; i++) {
-        ClipData item = _list[i];
-        if (minId == null) {
-          minId = item.data.id;
-        } else {
-          minId = min(minId!, item.data.id);
-        }
-      }
-      setState(() {});
-    });
+    refreshData();
     ClipListener.instance().register(this);
     //监听生命周期
     WidgetsBinding.instance.addObserver(this);
@@ -88,10 +74,10 @@ class _HistoryPageState extends State<HistoryPage>
     // 判断是否滑动到底部
     if (_scrollController.position.extentAfter <= 200) {
       // 滑动到底部的处理逻辑
-      if (minId == null) return;
-      historyDao.getHistoriesPage(App.userId, minId!).then((list) {
+      if (_minId == null) return;
+      historyDao.getHistoriesPage(App.userId, _minId!).then((list) {
         if (list.isEmpty) return;
-        minId = list[list.length - 1].id;
+        _minId = list[list.length - 1].id;
         _list.addAll(ClipData.fromList(list));
         _list.sort((a, b) => b.data.compareTo(a.data));
         setState(() {});
@@ -105,6 +91,24 @@ class _HistoryPageState extends State<HistoryPage>
       return;
     }
     showBottomDetailSheet(chip);
+  }
+
+  ///重新加载列表
+  void refreshData() {
+    _minId = null;
+    _list.clear();
+    historyDao.getHistoriesTop20(App.userId).then((list) {
+      _list.addAll(ClipData.fromList(list));
+      for (int i = 0; i < _list.length; i++) {
+        ClipData item = _list[i];
+        if (_minId == null) {
+          _minId = item.data.id;
+        } else {
+          _minId = min(_minId!, item.data.id);
+        }
+      }
+      setState(() {});
+    });
   }
 
   void showDetailDialog(ClipData chip) {
@@ -205,17 +209,17 @@ class _HistoryPageState extends State<HistoryPage>
         size: content.length);
     addData(history);
     SocketListener.inst.then((inst) {
-      inst.sendData(null, MsgType.history, history.toJson(), true);
+      inst.sendData(null, MsgType.history, history.toJson());
     });
   }
 
   void addData(History history) {
     var clip = ClipData(history);
     historyDao.add(clip.data);
-    if (minId == null) {
-      minId = clip.data.id;
+    if (_minId == null) {
+      _minId = clip.data.id;
     } else {
-      minId = min(minId!, clip.data.id);
+      _minId = min(_minId!, clip.data.id);
     }
     _list.add(clip);
     _list.sort((a, b) => b.data.compareTo(a.data));
@@ -223,33 +227,72 @@ class _HistoryPageState extends State<HistoryPage>
   }
 
   @override
-  void onReceived(MessageData msg) {
+  Future<void> onReceived(MessageData msg) async {
     String devId = msg.send.guid;
-    //接收剪贴板
-    if (msg.key == MsgType.history) {
-      History history = History.fromJson(msg.data);
-      history.sync = true;
-      addData(history);
-      _copyInThisCopy = true;
-      Clipboard.setData(ClipboardData(text: history.content));
-      //发送同步确认
-      SocketListener.inst.then((inst) {
-        inst.sendData(msg.send, MsgType.ackSync, {"id": history.id});
-      });
-    }
-    //确认已同步
-    if (msg.key == MsgType.ackSync) {
-      var hisId = msg.data["id"];
-      PrintUtil.debug(tag, hisId);
-      for (var clip in _list) {
-        if (clip.data.id.toString() == hisId.toString()) {
-          PrintUtil.debug(tag, hisId);
-          clip.data.sync = true;
-          DBUtil.inst.syncHistoryDao.add(SyncHistory(devId: devId, hisId: hisId));
-          setState(() {});
-          break;
+    switch (msg.key) {
+      //接收剪贴板
+      case MsgType.history:
+        History history = History.fromJson(msg.data);
+        history.sync = true;
+        addData(history);
+        _copyInThisCopy = true;
+        Clipboard.setData(ClipboardData(text: history.content));
+        //发送同步确认
+        SocketListener.inst.then((inst) {
+          inst.sendData(msg.send, MsgType.ackSync, {"id": history.id});
+        });
+        break;
+      //确认已同步
+      case MsgType.ackSync:
+        var hisId = msg.data["id"];
+        DBUtil.inst.historyDao.setSync(hisId.toString(), true);
+        DBUtil.inst.syncHistoryDao.add(SyncHistory(devId: devId, hisId: hisId));
+        PrintUtil.debug(tag, hisId);
+        for (var clip in _list) {
+          if (clip.data.id.toString() == hisId.toString()) {
+            PrintUtil.debug(tag, hisId);
+            clip.data.sync = true;
+            setState(() {});
+            break;
+          }
         }
-      }
+        break;
+      //请求未同步数据
+      case MsgType.requestSyncMissingData:
+        //查找请求方未同步的数据
+        historyDao.getMissingHistory(devId).then((lst) {
+          SocketListener.inst.then((inst) {
+            inst.sendData(msg.send, MsgType.missingData, {"data": lst});
+          });
+        });
+        break;
+      //同步缺失数据
+      case MsgType.missingData:
+        try {
+          var data = msg.data["data"] as List;
+          for (var item in data) {
+            var h = History.fromJson(item);
+            h.sync = true;
+            await historyDao.add(h).then((v) {
+              if (v == 0) {
+                PrintUtil.debug(tag, "${h.id} 保存失败");
+                return;
+              }
+              //发送同步确认
+              SocketListener.inst.then((inst) {
+                inst.sendData(msg.send, MsgType.ackSync, {"id": h.id});
+              });
+            });
+          }
+        } catch (e, t) {
+          PrintUtil.debug(tag, e);
+          PrintUtil.debug(tag, t);
+        } finally {
+          //同步完成，刷新数据
+          refreshData();
+        }
+        break;
+      default:
     }
   }
 }

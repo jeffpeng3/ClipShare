@@ -24,8 +24,10 @@ enum MsgType {
   paired,
   //设置置顶（或非置顶）
   setTop,
+  //请求同步缺失数据
+  requestSyncMissingData,
   //同步缺失数据
-  syncMissingData,
+  missingData,
   //删除记录
   rmHistory,
   //未知key

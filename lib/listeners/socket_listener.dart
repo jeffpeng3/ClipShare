@@ -42,6 +42,7 @@ class DevSocket {
 class SocketListener {
   static const String tag = "SocketListener";
   late HistoryDao _historyDao;
+  late DeviceDao _deviceDao;
   final List<SocketObserver> _socketObservers = List.empty(growable: true);
   final List<DevAliveObserver> _devAliveObservers = List.empty(growable: true);
   late RawDatagramSocket _multicastSocket;
@@ -58,6 +59,7 @@ class SocketListener {
 
   Future<SocketListener> _init() async {
     _historyDao = DBUtil.inst.historyDao;
+    _deviceDao = DBUtil.inst.deviceDao;
     _multicastSocket =
         await _getSocket(Constants.multicastGroup, Constants.port);
     // 初始化，创建socket监听
@@ -89,11 +91,11 @@ class SocketListener {
   Future<void> _onReceivedBroadcastInfo(
       MessageData msg, Datagram datagram) async {
     DevInfo dev = msg.send;
-    PrintUtil.debug(tag, dev.name);
     //设备已连接，跳过
     if (_devSockets.keys.contains(dev.guid)) {
       return;
     }
+    PrintUtil.debug(tag, dev.name);
     //建立连接
     String ip = datagram.address.address;
     _linkSocket(dev, ip, msg.data["port"]);
@@ -177,15 +179,10 @@ class SocketListener {
     DevInfo dev = msg.send;
     switch (msg.key) {
       case MsgType.history:
-        _onReceivedMsg(msg);
-        break;
+      case MsgType.requestSyncMissingData:
+      case MsgType.missingData:
       case MsgType.ackSync:
-        var hisId = msg.data["id"];
-        _historyDao.setSync(hisId.toString(), true).then((value) {
-          PrintUtil.debug(tag, "update sync $value");
-          if (value == null || value == 0) return;
-          _onReceivedMsg(msg);
-        });
+        _onReceivedMsg(msg);
         break;
       case MsgType.requestPairing:
         //请求配对我方，生成四位配对码
@@ -247,6 +244,13 @@ class SocketListener {
   ///设备连接成功
   void _onDevConnected(DevInfo dev) {
     PrintUtil.debug(tag, "${dev.name} connected");
+    //判断是否已经配对过
+    _deviceDao.getById(dev.guid, App.userId).then((v) {
+      if (v == null) return;
+      _devSockets[dev.guid]?.isPaired = true;
+      //连接成功且已配对，获取该设备未同步记录
+      sendData(dev, MsgType.requestSyncMissingData, {});
+    });
     for (var ob in _devAliveObservers) {
       try {
         ob.onConnected(dev);
@@ -284,7 +288,8 @@ class SocketListener {
 
   ///向指定设备发送消息
   bool sendData(DevInfo? dev, MsgType key, Map<String, dynamic> data,
-      [bool onlyPaired = false]) {
+      [bool onlyPaired = true]) {
+    PrintUtil.debug(tag, data);
     MessageData msg = MessageData(
         userId: App.userId,
         send: App.devInfo,

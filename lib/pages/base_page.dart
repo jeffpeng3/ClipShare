@@ -8,6 +8,7 @@ import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/pages/devices_page.dart';
 import 'package:clipshare/pages/history_page.dart';
 import 'package:clipshare/pages/profile_page.dart';
+import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/print_util.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
@@ -181,9 +182,13 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
       }
     });
     App.androidChannel.setMethodCallHandler((call) {
+      PrintUtil.debug("androidChannel", call.method);
       switch (call.method) {
         case "onScreenOpened":
-          //此处应该同步剪贴板到本机
+          //此处应该发送socket通知同步剪贴板到本机
+          SocketListener.inst.then((inst){
+            inst.sendData(null, MsgType.requestSyncMissingData, {});
+          });
           break;
       }
       return Future(() => false);
