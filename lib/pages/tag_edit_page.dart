@@ -47,11 +47,10 @@ class _TagEditPageState extends State<TagEditPage> {
         title: const Text("编辑标签"),
         actions: [
           TextButton(
-              onPressed: () async {
+              onPressed: () {
                 setState(() {
                   saving = true;
                 });
-                bool suc = false;
                 try {
                   var originSet = _origin.toSet();
                   var selectedSet = _selected.toSet();
@@ -59,32 +58,34 @@ class _TagEditPageState extends State<TagEditPage> {
                   var willRmList = originSet.difference(selectedSet);
                   //选择的值 - 原始值，找出应增加的tag
                   var willAddList = selectedSet.difference(originSet);
-                  //todo 改链式 考虑事务
+                  //todo 考虑事务
                   //增加
+                  Future<int?> link = Future.value(0);
                   for (var v in willAddList) {
                     var id = App.snowflake.nextId();
                     var t = HistoryTag(id, v.tagName, widget.hisId);
-                    await DBUtil.inst.historyTagDao.add(t);
+                    link =
+                        link.then((value) => DBUtil.inst.historyTagDao.add(t));
                   }
 
                   //删除
                   for (var v in willRmList) {
                     var id = widget.hisId.toString();
-                    await DBUtil.inst.historyTagDao.remove(id, v.tagName);
+                    link = link.then((value) =>
+                        DBUtil.inst.historyTagDao.remove(id, v.tagName));
                   }
-                  suc = true;
+                  link.then((value) {
+                    setState(() {
+                      saving = false;
+                    });
+                    Navigator.pop(context);
+                  });
                 } catch (e, t) {
+                  setState(() {
+                    saving = false;
+                  });
                   PrintUtil.debug(tag, e);
                   PrintUtil.debug(tag, t);
-                }
-                setState(() {
-                  saving = false;
-                });
-                if (suc) {
-                  AppUtil.snackBarSuc("保存成功");
-                  Navigator.pop(context);
-                } else {
-                  AppUtil.snackBarErr("保存失败");
                 }
               },
               child: saving
