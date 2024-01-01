@@ -28,6 +28,10 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
   @override
   void initState() {
     super.initState();
+    initTags();
+  }
+
+  void initTags() {
     DBUtil.inst.historyTagDao.list(widget.clip.data.id.toString()).then((lst) {
       _tags = lst;
       setState(() {});
@@ -124,7 +128,9 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                                   builder: (context) =>
                                       TagEditPage(widget.clip.data.id),
                                 ),
-                              );
+                              ).then((value) {
+                                initTags();
+                              });
                             },
                             icon: const Icon(Icons.add)),
                       ],

@@ -2,6 +2,7 @@
 // FloorGenerator
 // **************************************************************************
 part of 'app_db.dart';
+
 // ignore: avoid_classes_with_only_static_members
 class $FloorAppDb {
   /// Creates a database builder for a persistent database.
@@ -68,10 +69,10 @@ class _$AppDb extends AppDb {
   HistoryTagDao? _historyTagDaoInstance;
 
   Future<sqflite.Database> open(
-      String path,
-      List<Migration> migrations, [
-        Callback? callback,
-      ]) async {
+    String path,
+    List<Migration> migrations, [
+    Callback? callback,
+  ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
       version: 1,
       onConfigure: (database) async {
@@ -105,7 +106,7 @@ class _$AppDb extends AppDb {
         await database.execute(
             'CREATE UNIQUE INDEX `index_HistoryTag_tagName_hisId` ON `HistoryTag` (`tagName`, `hisId`)');
         await database.execute(
-            'CREATE VIEW IF NOT EXISTS `VHistoryTagHold` AS SELECT DISTINCT\n\tht.hisId,\n\tht.tagName,\n\t(t.hisId is not null) as hasTag \nFROM\n\tHistoryTag ht\n\tLEFT JOIN ( SELECT * FROM HistoryTag ) t ON t.hisId = ht.hisId \n');
+            'CREATE VIEW IF NOT EXISTS `VHistoryTagHold` AS select t1.* ,(t2.hisId is not null) as hasTag from ( SELECT distinct h.id as hisId,tag.tagName FROM history as h,historyTag as tag) t1 LEFT JOIN ( SELECT * FROM HistoryTag ) t2 ON t2.hisId = t1.hisId and t2.tagName = t1.tagName');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -147,28 +148,28 @@ class _$AppDb extends AppDb {
 
 class _$UserDao extends UserDao {
   _$UserDao(
-      this.database,
-      this.changeListener,
-      )   : _queryAdapter = QueryAdapter(database),
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
         _userInsertionAdapter = InsertionAdapter(
             database,
             'User',
-                (User item) => <String, Object?>{
-              'id': item.id,
-              'account': item.account,
-              'password': item.password,
-              'type': item.type
-            }),
+            (User item) => <String, Object?>{
+                  'id': item.id,
+                  'account': item.account,
+                  'password': item.password,
+                  'type': item.type
+                }),
         _userUpdateAdapter = UpdateAdapter(
             database,
             'User',
             ['id'],
-                (User item) => <String, Object?>{
-              'id': item.id,
-              'account': item.account,
-              'password': item.password,
-              'type': item.type
-            });
+            (User item) => <String, Object?>{
+                  'id': item.id,
+                  'account': item.account,
+                  'password': item.password,
+                  'type': item.type
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -206,35 +207,35 @@ class _$UserDao extends UserDao {
 
 class _$ConfigDao extends ConfigDao {
   _$ConfigDao(
-      this.database,
-      this.changeListener,
-      )   : _queryAdapter = QueryAdapter(database),
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
         _configInsertionAdapter = InsertionAdapter(
             database,
             'Config',
-                (Config item) => <String, Object?>{
-              'key': item.key,
-              'value': item.value,
-              'uid': item.uid
-            }),
+            (Config item) => <String, Object?>{
+                  'key': item.key,
+                  'value': item.value,
+                  'uid': item.uid
+                }),
         _configUpdateAdapter = UpdateAdapter(
             database,
             'Config',
             ['key'],
-                (Config item) => <String, Object?>{
-              'key': item.key,
-              'value': item.value,
-              'uid': item.uid
-            }),
+            (Config item) => <String, Object?>{
+                  'key': item.key,
+                  'value': item.value,
+                  'uid': item.uid
+                }),
         _configDeletionAdapter = DeletionAdapter(
             database,
             'Config',
             ['key'],
-                (Config item) => <String, Object?>{
-              'key': item.key,
-              'value': item.value,
-              'uid': item.uid
-            });
+            (Config item) => <String, Object?>{
+                  'key': item.key,
+                  'value': item.value,
+                  'uid': item.uid
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -259,9 +260,9 @@ class _$ConfigDao extends ConfigDao {
 
   @override
   Future<String?> getConfig(
-      String key,
-      String uid,
-      ) async {
+    String key,
+    String uid,
+  ) async {
     return _queryAdapter.query(
         'select value from config where key = ?1 and uid = ?2',
         mapper: (Map<String, Object?> row) => row.values.first as String,
@@ -270,10 +271,10 @@ class _$ConfigDao extends ConfigDao {
 
   @override
   Future<String?> getConfigByDefault(
-      String key,
-      String uid,
-      String def,
-      ) async {
+    String key,
+    String uid,
+    String def,
+  ) async {
     return _queryAdapter.query(
         'select coalesce(value,?3) as value from config where key = ?1 and uid = ?2',
         mapper: (Map<String, Object?> row) => row.values.first as String,
@@ -282,9 +283,9 @@ class _$ConfigDao extends ConfigDao {
 
   @override
   Future<void> removeByKey(
-      String key,
-      String uid,
-      ) async {
+    String key,
+    String uid,
+  ) async {
     await _queryAdapter.queryNoReturn(
         'delete from config where key = ?1 and uid = ?2',
         arguments: [key, uid]);
@@ -310,23 +311,23 @@ class _$ConfigDao extends ConfigDao {
 
 class _$HistoryDao extends HistoryDao {
   _$HistoryDao(
-      this.database,
-      this.changeListener,
-      )   : _queryAdapter = QueryAdapter(database),
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
         _historyInsertionAdapter = InsertionAdapter(
             database,
             'History',
-                (History item) => <String, Object?>{
-              'id': item.id,
-              'uid': item.uid,
-              'time': item.time,
-              'content': item.content,
-              'type': item.type,
-              'devId': item.devId,
-              'top': item.top ? 1 : 0,
-              'sync': item.sync ? 1 : 0,
-              'size': item.size
-            });
+            (History item) => <String, Object?>{
+                  'id': item.id,
+                  'uid': item.uid,
+                  'time': item.time,
+                  'content': item.content,
+                  'type': item.type,
+                  'devId': item.devId,
+                  'top': item.top ? 1 : 0,
+                  'sync': item.sync ? 1 : 0,
+                  'size': item.size
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -380,9 +381,9 @@ class _$HistoryDao extends HistoryDao {
 
   @override
   Future<List<History>> getHistoriesPage(
-      String uid,
-      int fromId,
-      ) async {
+    String uid,
+    int fromId,
+  ) async {
     return _queryAdapter.queryList(
         'select * from history where uid = ?1 and id < ?2 order by top,id desc limit 20',
         mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as String, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
@@ -391,9 +392,9 @@ class _$HistoryDao extends HistoryDao {
 
   @override
   Future<int?> setTop(
-      String id,
-      bool top,
-      ) async {
+    String id,
+    bool top,
+  ) async {
     return _queryAdapter.query('update history set top = ?2 where id = ?1',
         mapper: (Map<String, Object?> row) => row.values.first as int,
         arguments: [id, top ? 1 : 0]);
@@ -401,9 +402,9 @@ class _$HistoryDao extends HistoryDao {
 
   @override
   Future<int?> setSync(
-      String id,
-      bool sync,
-      ) async {
+    String id,
+    bool sync,
+  ) async {
     return _queryAdapter.query('update history set sync = ?2 where id = ?1',
         mapper: (Map<String, Object?> row) => row.values.first as int,
         arguments: [id, sync ? 1 : 0]);
@@ -438,34 +439,34 @@ class _$HistoryDao extends HistoryDao {
 
 class _$DeviceDao extends DeviceDao {
   _$DeviceDao(
-      this.database,
-      this.changeListener,
-      )   : _queryAdapter = QueryAdapter(database),
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
         _deviceInsertionAdapter = InsertionAdapter(
             database,
             'Device',
-                (Device item) => <String, Object?>{
-              'id': item.id,
-              'devName': item.devName,
-              'guid': item.guid,
-              'uid': item.uid,
-              'type': item.type,
-              'lastConnTime': item.lastConnTime,
-              'lastAddr': item.lastAddr
-            }),
+            (Device item) => <String, Object?>{
+                  'id': item.id,
+                  'devName': item.devName,
+                  'guid': item.guid,
+                  'uid': item.uid,
+                  'type': item.type,
+                  'lastConnTime': item.lastConnTime,
+                  'lastAddr': item.lastAddr
+                }),
         _deviceUpdateAdapter = UpdateAdapter(
             database,
             'Device',
             ['id'],
-                (Device item) => <String, Object?>{
-              'id': item.id,
-              'devName': item.devName,
-              'guid': item.guid,
-              'uid': item.uid,
-              'type': item.type,
-              'lastConnTime': item.lastConnTime,
-              'lastAddr': item.lastAddr
-            });
+            (Device item) => <String, Object?>{
+                  'id': item.id,
+                  'devName': item.devName,
+                  'guid': item.guid,
+                  'uid': item.uid,
+                  'type': item.type,
+                  'lastConnTime': item.lastConnTime,
+                  'lastAddr': item.lastAddr
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -491,9 +492,9 @@ class _$DeviceDao extends DeviceDao {
 
   @override
   Future<Device?> getById(
-      String guid,
-      String uid,
-      ) async {
+    String guid,
+    String uid,
+  ) async {
     return _queryAdapter.query(
         'select * from device where guid = ?1 and uid = ?2',
         mapper: (Map<String, Object?> row) => Device(
@@ -507,9 +508,9 @@ class _$DeviceDao extends DeviceDao {
 
   @override
   Future<int?> remove(
-      String guid,
-      String uid,
-      ) async {
+    String guid,
+    String uid,
+  ) async {
     return _queryAdapter.query(
         'delete from device where guid = ?1 and uid = ?2',
         mapper: (Map<String, Object?> row) => row.values.first as int,
@@ -531,16 +532,16 @@ class _$DeviceDao extends DeviceDao {
 
 class _$SyncHistoryDao extends SyncHistoryDao {
   _$SyncHistoryDao(
-      this.database,
-      this.changeListener,
-      ) : _syncHistoryInsertionAdapter = InsertionAdapter(
-      database,
-      'SyncHistory',
-          (SyncHistory item) => <String, Object?>{
-        'id': item.id,
-        'devId': item.devId,
-        'hisId': item.hisId
-      });
+    this.database,
+    this.changeListener,
+  ) : _syncHistoryInsertionAdapter = InsertionAdapter(
+            database,
+            'SyncHistory',
+            (SyncHistory item) => <String, Object?>{
+                  'id': item.id,
+                  'devId': item.devId,
+                  'hisId': item.hisId
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -557,17 +558,17 @@ class _$SyncHistoryDao extends SyncHistoryDao {
 
 class _$HistoryTagDao extends HistoryTagDao {
   _$HistoryTagDao(
-      this.database,
-      this.changeListener,
-      )   : _queryAdapter = QueryAdapter(database),
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
         _historyTagInsertionAdapter = InsertionAdapter(
             database,
             'HistoryTag',
-                (HistoryTag item) => <String, Object?>{
-              'id': item.id,
-              'tagName': item.tagName,
-              'hisId': item.hisId
-            });
+            (HistoryTag item) => <String, Object?>{
+                  'id': item.id,
+                  'tagName': item.tagName,
+                  'hisId': item.hisId
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -588,9 +589,9 @@ class _$HistoryTagDao extends HistoryTagDao {
   @override
   Future<List<VHistoryTagHold>> listWithHold(String hId) async {
     return _queryAdapter.queryList(
-        'select * from VHistoryTagHold where hisId = ?1',
+        'SELECT * FROM VHistoryTagHold where hisId = ?1',
         mapper: (Map<String, Object?> row) => VHistoryTagHold(
-            row['hisId'] as String,
+            row['hisId'] as int,
             row['tagName'] as String,
             (row['hasTag'] as int) != 0),
         arguments: [hId]);
@@ -598,9 +599,9 @@ class _$HistoryTagDao extends HistoryTagDao {
 
   @override
   Future<int?> remove(
-      String hId,
-      String tagName,
-      ) async {
+    String hId,
+    String tagName,
+  ) async {
     return _queryAdapter.query(
         'delete from HistoryTag where hisId = ?1 and tagName = ?2',
         mapper: (Map<String, Object?> row) => row.values.first as int,
