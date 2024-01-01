@@ -5,9 +5,8 @@ import 'package:floor/floor.dart';
 ])
 class HistoryTag {
   @PrimaryKey(autoGenerate: true)
-
   ///主键 id
-  int? id;
+  int id;
 
   ///标签名称
   late String tagName;

@@ -581,7 +581,7 @@ class _$HistoryTagDao extends HistoryTagDao {
   Future<List<HistoryTag>> list(String hId) async {
     return _queryAdapter.queryList('select * from HistoryTag where hisId = ?1',
         mapper: (Map<String, Object?> row) => HistoryTag(
-            row['id'] as int?, row['tagName'] as String, row['hisId'] as int),
+            row['id'] as int, row['tagName'] as String, row['hisId'] as int),
         arguments: [hId]);
   }
 
