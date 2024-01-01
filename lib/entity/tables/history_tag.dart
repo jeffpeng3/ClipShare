@@ -5,6 +5,7 @@ import 'package:floor/floor.dart';
 ])
 class HistoryTag {
   @PrimaryKey(autoGenerate: true)
+
   ///主键 id
   int? id;
 
@@ -14,9 +15,9 @@ class HistoryTag {
   /// 历史 id
   late int hisId;
 
-  HistoryTag({
+  HistoryTag(
     this.id,
-    required this.tagName,
-    required this.hisId,
-  });
+    this.tagName,
+    this.hisId,
+  );
 }

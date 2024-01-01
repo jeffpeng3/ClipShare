@@ -4,12 +4,14 @@ import 'dart:async';
 import 'package:clipshare/dao/sync_history_dao.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/tables/sync_history.dart';
+import 'package:clipshare/entity/views/v_history_tag_hold.dart';
 import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 
 import '../dao/config_dao.dart';
 import '../dao/device_dao.dart';
 import '../dao/history_dao.dart';
+import '../dao/history_tag_dao.dart';
 import '../dao/user_dao.dart';
 import '../entity/tables/config.dart';
 import '../entity/tables/device.dart';
@@ -22,7 +24,10 @@ part 'app_db.floor.g.dart';
 /// 生成的文件位于 .dart_tool/build/generated/项目名称/lib/db
 /// 下面这行放在 app_db.floor.g.dart 文件里，使其变成 app_database.dart 文件的一部分
 /// part of 'app_db.dart';
-@Database(version: 1, entities: [Config, Device, History, User,SyncHistory,HistoryTag])
+@Database(
+    version: 1,
+    entities: [Config, Device, History, User, SyncHistory, HistoryTag],
+    views: [VHistoryTagHold])
 abstract class AppDb extends FloorDatabase {
   UserDao get userDao;
 
@@ -33,4 +38,6 @@ abstract class AppDb extends FloorDatabase {
   DeviceDao get deviceDao;
 
   SyncHistoryDao get syncHistoryDao;
+
+  HistoryTagDao get historyTagDao;
 }

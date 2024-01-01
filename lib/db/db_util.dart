@@ -4,6 +4,7 @@ import 'package:clipshare/dao/history_dao.dart';
 import 'package:clipshare/dao/user_dao.dart';
 import 'package:floor/floor.dart';
 
+import '../dao/history_tag_dao.dart';
 import '../dao/sync_history_dao.dart';
 import 'app_db.dart';
 
@@ -46,6 +47,8 @@ class DBUtil {
   UserDao get userDao => _db.userDao;
 
   SyncHistoryDao get syncHistoryDao => _db.syncHistoryDao;
+
+  HistoryTagDao get historyTagDao => _db.historyTagDao;
 
   //迁移策略,数据库版本1->2
   final migration1to2 = Migration(1, 2, (database) async {

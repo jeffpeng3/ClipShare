@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:clipshare/db/db_util.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
+import '../main.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,6 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    App.toast = FToast();
     // 在这里执行初始化操作，比如加载数据或设置计时器
     _loadData();
   }

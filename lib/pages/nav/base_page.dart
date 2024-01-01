@@ -12,6 +12,7 @@ import 'package:clipshare/util/platform_util.dart';
 import 'package:clipshare/util/print_util.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -237,7 +238,6 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   @override
   Widget build(BuildContext context) {
     App.context = context;
-
     return PopScope(
         canPop: false,
         onPopInvoked: (bool didPop) {

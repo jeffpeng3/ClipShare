@@ -1,14 +1,18 @@
 import 'package:clipshare/util/print_util.dart';
 
 class Constants {
+  //组播默认端口
   static const int port = 42317;
+  //组播地址
   static const String multicastGroup = '224.0.0.128';
+  //组播心跳时长
   static const heartbeatsSeconds = 10;
-
   //配对时限（秒）
   static const pairingLimit = 60;
+  static const channelCommon = "common";
+  static const channelClip = "clip";
+  static const channelAndroid = "android";
 }
-
 enum MsgType {
   //设备信息
   devInfo,

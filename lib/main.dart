@@ -4,12 +4,13 @@ import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/pages/nav/base_page.dart';
 import 'package:clipshare/pages/splash.dart';
 import 'package:clipshare/pages/tag_edit_page.dart';
+import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/print_util.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
-
+import 'package:fluttertoast/fluttertoast.dart';
 void main() async {
   if (Platform.isWindows) {
     await initWindowsManager();
@@ -40,19 +41,19 @@ Future<void> initWindowsManager() async {
 
 class App extends StatelessWidget {
   //通用通道
-  static const commonChannel = MethodChannel('common');
+  static const commonChannel = MethodChannel(Constants.channelCommon);
 
   //剪贴板通道
-  static const clipChannel = MethodChannel('clip');
+  static const clipChannel = MethodChannel(Constants.channelClip);
 
   //Android平台通道
-  static const androidChannel = MethodChannel('android');
+  static const androidChannel = MethodChannel(Constants.channelAndroid);
 
   //当前设备id
   static late final DevInfo devInfo;
   static String userId = "0";
-  static late Snowflake snowflake;
-
+  static late final Snowflake snowflake;
+  static late final FToast toast;
   static late BuildContext context;
 
   const App({super.key});
@@ -61,6 +62,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      builder: FToastBuilder(),
       title: 'ClipShare',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
