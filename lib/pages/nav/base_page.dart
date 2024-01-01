@@ -3,21 +3,21 @@ import 'dart:io';
 
 import 'package:clipshare/dao/device_dao.dart';
 import 'package:clipshare/entity/dev_info.dart';
-import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
-import 'package:clipshare/pages/devices_page.dart';
-import 'package:clipshare/pages/history_page.dart';
-import 'package:clipshare/pages/profile_page.dart';
+import 'package:clipshare/pages/nav/devices_page.dart';
+import 'package:clipshare/pages/nav/history_page.dart';
+import 'package:clipshare/pages/nav/profile_page.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/platform_util.dart';
 import 'package:clipshare/util/print_util.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../db/db_util.dart';
-import '../listeners/clip_listener.dart';
-import '../main.dart';
+import '../../db/db_util.dart';
+import '../../listeners/clip_listener.dart';
+import '../../main.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -186,7 +186,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
       switch (call.method) {
         case "onScreenOpened":
           //此处应该发送socket通知同步剪贴板到本机
-          SocketListener.inst.then((inst){
+          SocketListener.inst.then((inst) {
             inst.sendData(null, MsgType.requestSyncMissingData, {});
           });
           break;
@@ -238,34 +238,41 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   Widget build(BuildContext context) {
     App.context = context;
 
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 238, 238, 238),
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: IndexedStack(
-        index: _index,
-        children: pages,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _index,
-        onTap: (i) => {_index = i, setState(() {})},
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Home',
+    return PopScope(
+        canPop: false,
+        onPopInvoked: (bool didPop) {
+          if (PlatformUtil.isAndroid()) {
+            App.androidChannel.invokeMethod("moveToBg");
+          }
+        },
+        child: Scaffold(
+          backgroundColor: const Color.fromARGB(255, 238, 238, 238),
+          appBar: AppBar(
+            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+            title: Text(widget.title),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.devices_rounded),
-            label: 'Devices',
+          body: IndexedStack(
+            index: _index,
+            children: pages,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: _index,
+            onTap: (i) => {_index = i, setState(() {})},
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.history),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.devices_rounded),
+                label: 'Devices',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        ));
   }
 }

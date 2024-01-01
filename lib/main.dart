@@ -1,8 +1,9 @@
 import 'dart:io';
 
 import 'package:clipshare/entity/dev_info.dart';
-import 'package:clipshare/pages/base_page.dart';
+import 'package:clipshare/pages/nav/base_page.dart';
 import 'package:clipshare/pages/splash.dart';
+import 'package:clipshare/pages/tag_edit_page.dart';
 import 'package:clipshare/util/print_util.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
@@ -10,11 +11,11 @@ import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 
 void main() async {
-  if(Platform.isWindows){
+  if (Platform.isWindows) {
     await initWindowsManager();
   }
-  var list =await NetworkInterface.list();
-  PrintUtil.debug("ip list",list);
+  var list = await NetworkInterface.list();
+  PrintUtil.debug("ip list", list);
   runApp(const App());
 }
 
@@ -53,6 +54,7 @@ class App extends StatelessWidget {
   static late Snowflake snowflake;
 
   static late BuildContext context;
+
   const App({super.key});
 
   // This widget is the root of your application.
@@ -64,7 +66,10 @@ class App extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
       ),
       home: const SplashScreen(),
-      routes: {'/home': (context) => const HomePage(title: 'Flutter Demo')},
+      routes: {
+        '/home': (context) => const HomePage(title: 'Flutter Demo'),
+        '/tagEdit': (context) => const TagEditPage()
+      },
     );
   }
 }

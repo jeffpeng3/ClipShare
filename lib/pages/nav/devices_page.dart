@@ -4,13 +4,13 @@ import 'package:clipshare/util/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 
-import '../components/device_card.dart';
-import '../dao/device_dao.dart';
-import '../db/db_util.dart';
-import '../entity/tables/device.dart';
-import '../listeners/socket_listener.dart';
-import '../main.dart';
-import '../util/print_util.dart';
+import '../../components/device_card.dart';
+import '../../dao/device_dao.dart';
+import '../../db/db_util.dart';
+import '../../entity/tables/device.dart';
+import '../../listeners/socket_listener.dart';
+import '../../main.dart';
+import '../../util/print_util.dart';
 
 class DevicesPage extends StatefulWidget {
   const DevicesPage({super.key});

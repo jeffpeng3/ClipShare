@@ -30,7 +30,7 @@ class ClipDataCardState extends State<ClipDataCard> {
                 Row(
                   children: [
                     Container(
-                      child: Text("data"),
+                      child: const Text("data"),
                     )
                   ],
                 ),

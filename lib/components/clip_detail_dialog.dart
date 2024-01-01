@@ -82,16 +82,16 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                         },
                         tooltip: "复制内容",
                       ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.sync,
-                          color: widget.clip.data.sync
-                              ? Colors.grey
-                              : Colors.blueGrey,
-                        ),
-                        onPressed: widget.clip.data.sync ? null : () {},
-                        tooltip: "同步该记录",
-                      ),
+                      // IconButton(
+                      //   icon: Icon(
+                      //     Icons.sync,
+                      //     color: widget.clip.data.sync
+                      //         ? Colors.grey
+                      //         : Colors.blueGrey,
+                      //   ),
+                      //   onPressed: widget.clip.data.sync ? null : () {},
+                      //   tooltip: "同步该记录",
+                      // ),
                     ],
                   ),
                 ],
@@ -120,7 +120,9 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                           width: 5,
                         ),
                         IconButton(
-                            onPressed: () {}, icon: const Icon(Icons.add)),
+                            onPressed: () {
+                              Navigator.pushReplacementNamed(context, '/tagEdit');
+                            }, icon: const Icon(Icons.add)),
                       ],
                     ),
                   )

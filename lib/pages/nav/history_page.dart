@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:clipshare/components/clip_data_card.dart';
 import 'package:clipshare/dao/history_dao.dart';
-import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
@@ -13,12 +12,12 @@ import 'package:clipshare/util/print_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../components/clip_detail_dialog.dart';
-import '../dao/sync_history_dao.dart';
-import '../db/db_util.dart';
-import '../listeners/socket_listener.dart';
-import '../main.dart';
-import '../util/platform_util.dart';
+import '../../components/clip_detail_dialog.dart';
+import '../../dao/sync_history_dao.dart';
+import '../../db/db_util.dart';
+import '../../listeners/socket_listener.dart';
+import '../../main.dart';
+import '../../util/platform_util.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});

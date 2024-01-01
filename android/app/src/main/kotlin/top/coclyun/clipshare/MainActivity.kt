@@ -166,6 +166,10 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
                         )
                     );
                 }
+                //将应用置于后台
+                "moveToBg" -> {
+                    moveTaskToBack(true)
+                }
                 //发送通知
 //                "sendNotify" -> {
 //                    var content = call.arguments['content'].toString();
@@ -245,9 +249,5 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         // 取消注册广播接收器
         unregisterReceiver(screenReceiver)
 //        releaseWakeLock()
-    }
-
-    override fun onBackPressed() {
-        moveTaskToBack(true)
     }
 }
