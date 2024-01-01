@@ -14,12 +14,14 @@ class ClipDataCard extends StatefulWidget {
 }
 
 class ClipDataCardState extends State<ClipDataCard> {
+  bool showSimpleTime = true;
+
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
       child: InkWell(
-        onTap: (){
+        onTap: () {
           widget.onTap?.call();
         },
         borderRadius: BorderRadius.circular(12.0),
@@ -36,18 +38,18 @@ class ClipDataCardState extends State<ClipDataCard> {
                 ),
                 Expanded(
                     child: Column(
-                      children: [
-                        Container(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            widget.clip.data.content,
-                            textAlign: TextAlign.left,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        )
-                      ],
-                    )),
+                  children: [
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        widget.clip.data.content,
+                        textAlign: TextAlign.left,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    )
+                  ],
+                )),
                 Row(
                   children: [
                     widget.clip.data.top
@@ -55,13 +57,23 @@ class ClipDataCardState extends State<ClipDataCard> {
                         : const SizedBox(width: 0),
                     !widget.clip.data.sync
                         ? const Icon(
-                      Icons.sync,
-                      size: 16,
-                      color: Colors.red,
-                    )
+                            Icons.sync,
+                            size: 16,
+                            color: Colors.red,
+                          )
                         : const SizedBox(width: 0),
-                    Text(widget.clip.timeStr),
-                    ConstrainedBox(constraints: const BoxConstraints(minWidth: 10)),
+                    GestureDetector(
+                      child: Text(showSimpleTime
+                          ? widget.clip.timeStr
+                          : widget.clip.data.time),
+                      onTap: () {
+                        setState(() {
+                          showSimpleTime = !showSimpleTime;
+                        });
+                      },
+                    ),
+                    ConstrainedBox(
+                        constraints: const BoxConstraints(minWidth: 10)),
                     Text(widget.clip.sizeText)
                   ],
                 ),

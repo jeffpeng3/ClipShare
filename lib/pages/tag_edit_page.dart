@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 class TagEditPage extends StatefulWidget {
   final int hisId;
 
-  const TagEditPage(this.hisId,{super.key});
+  const TagEditPage(this.hisId, {super.key});
 
   @override
   State<TagEditPage> createState() => _TagEditPageState();
@@ -47,48 +47,46 @@ class _TagEditPageState extends State<TagEditPage> {
         title: const Text("编辑标签"),
         actions: [
           TextButton(
-              onPressed: _selected.isEmpty
-                  ? null
-                  : () async {
-                      setState(() {
-                        saving = true;
-                      });
-                      bool suc=false;
-                      try {
-                        var originSet = _origin.toSet();
-                        var selectedSet = _selected.toSet();
-                        //原始值 - 选择的值，找出被删除的tag
-                        var willRmList = originSet.difference(selectedSet);
-                        //选择的值 - 原始值，找出应增加的tag
-                        var willAddList = selectedSet.difference(originSet);
-                        //todo 改链式 考虑事务
-                        //增加
-                        for (var v in willAddList) {
-                          var id = App.snowflake.nextId();
-                          var t = HistoryTag(id, v.tagName, widget.hisId);
-                          await DBUtil.inst.historyTagDao.add(t);
-                        }
+              onPressed: () async {
+                setState(() {
+                  saving = true;
+                });
+                bool suc = false;
+                try {
+                  var originSet = _origin.toSet();
+                  var selectedSet = _selected.toSet();
+                  //原始值 - 选择的值，找出被删除的tag
+                  var willRmList = originSet.difference(selectedSet);
+                  //选择的值 - 原始值，找出应增加的tag
+                  var willAddList = selectedSet.difference(originSet);
+                  //todo 改链式 考虑事务
+                  //增加
+                  for (var v in willAddList) {
+                    var id = App.snowflake.nextId();
+                    var t = HistoryTag(id, v.tagName, widget.hisId);
+                    await DBUtil.inst.historyTagDao.add(t);
+                  }
 
-                        //删除
-                        for (var v in willRmList) {
-                          var id = widget.hisId.toString();
-                          await DBUtil.inst.historyTagDao.remove(id, v.tagName);
-                        }
-                        suc=true;
-                      } catch (e, t) {
-                        PrintUtil.debug(tag, e);
-                        PrintUtil.debug(tag, t);
-                      }
-                      setState(() {
-                        saving = false;
-                      });
-                      if(suc){
-                        AppUtil.snackBarSuc("保存成功");
-                        Navigator.pop(context);
-                      }else{
-                        AppUtil.snackBarErr("保存失败");
-                      }
-                    },
+                  //删除
+                  for (var v in willRmList) {
+                    var id = widget.hisId.toString();
+                    await DBUtil.inst.historyTagDao.remove(id, v.tagName);
+                  }
+                  suc = true;
+                } catch (e, t) {
+                  PrintUtil.debug(tag, e);
+                  PrintUtil.debug(tag, t);
+                }
+                setState(() {
+                  saving = false;
+                });
+                if (suc) {
+                  AppUtil.snackBarSuc("保存成功");
+                  Navigator.pop(context);
+                } else {
+                  AppUtil.snackBarErr("保存失败");
+                }
+              },
               child: saving
                   ? const SizedBox(
                       width: 20,
@@ -101,7 +99,7 @@ class _TagEditPageState extends State<TagEditPage> {
         ],
       ),
       body: Container(
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 20),
+        padding: const EdgeInsets.only(left: 10, right: 10, top: 0),
         child: ListView(
           children: [
             TextField(

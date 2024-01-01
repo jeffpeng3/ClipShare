@@ -250,6 +250,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
           appBar: AppBar(
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
             title: Text(widget.title),
+            automaticallyImplyLeading: false,
           ),
           body: IndexedStack(
             index: _index,
