@@ -1,8 +1,12 @@
+import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/entity/views/v_history_tag_hold.dart';
 import 'package:clipshare/util/print_util.dart';
 import 'package:flutter/material.dart';
 
 class TagEditPage extends StatefulWidget {
-  const TagEditPage({super.key});
+  final int hisId;
+
+  const TagEditPage(this.hisId, {super.key});
 
   @override
   State<TagEditPage> createState() => _TagEditPageState();
@@ -12,13 +16,19 @@ class _TagEditPageState extends State<TagEditPage> {
   static const tag = "TagEditPage";
 
   final TextEditingController _textController = TextEditingController();
-  final List<String> _tags = List.empty(growable: true);
-  final List<String> _selected = List.empty(growable: true);
+  List<VHistoryTagHold> _tags = List.empty(growable: true);
+  final List<VHistoryTagHold> _selected = List.empty(growable: true);
   bool testVar = false;
 
   @override
   void initState() {
     super.initState();
+    DBUtil.inst.historyTagDao.listWithHold(widget.hisId.toString()).then((lst) {
+      _tags = lst;
+      _selected.clear();
+      _selected.addAll(lst.where((v) => v.hasTag));
+      setState(() {});
+    });
   }
 
   @override
@@ -59,35 +69,40 @@ class _TagEditPageState extends State<TagEditPage> {
             ),
             _textController.text.isNotEmpty
                 ? TextButton(
-                    onPressed: () {
-                    },
+                    onPressed: () {},
                     child: Text("创建 \"${_textController.text}\" 标签"))
                 : const SizedBox.shrink(),
             Column(
               children: [
-                InkWell(
-                  onTap: () {},
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 10, right: 5),
-                    child: Row(
-                      children: [
-                        Text("test"),
-                        Expanded(child: SizedBox.shrink()),
-                        Checkbox(
-                            value: testVar,
-                            onChanged: (checked) {
-                              testVar = checked ?? false;
-                              setState(() {});
-                              PrintUtil.debug(tag, checked);
-                            })
-                      ],
-                    ),
-                  ),
-                ),
-                const Divider(
-                  height: 1,
-                  color: Colors.black12,
-                )
+                for (var item in _tags)
+                  Column(
+                    children: [
+                      InkWell(
+                        onTap: () {},
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 10, right: 5),
+                          child: Row(
+                            children: [
+                              Text(item.tagName),
+                              const Expanded(child: SizedBox.shrink()),
+                              Checkbox(
+                                  value: item.hasTag,
+                                  onChanged: (checked) {
+                                    testVar = checked ?? false;
+                                    setState(() {});
+                                    PrintUtil.debug(
+                                        tag, "${item.tagName} $checked");
+                                  })
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Divider(
+                        height: 1,
+                        color: Colors.black12,
+                      )
+                    ],
+                  )
               ],
             ),
           ],

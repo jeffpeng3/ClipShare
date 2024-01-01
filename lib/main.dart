@@ -68,10 +68,6 @@ class App extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
       ),
       home: const SplashScreen(),
-      routes: {
-        '/home': (context) => const HomePage(title: 'Flutter Demo'),
-        '/tagEdit': (context) => const TagEditPage()
-      },
     );
   }
 }

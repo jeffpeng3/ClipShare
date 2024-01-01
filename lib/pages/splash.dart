@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import '../main.dart';
+import 'nav/base_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -25,8 +26,13 @@ class _SplashScreenState extends State<SplashScreen> {
   // 例子：模拟加载数据的方法
   Future<void> _loadData() async {
     DBUtil.inst.init().then((value) =>
-      // 数据加载完成后，导航到下一个页面
-      Navigator.pushReplacementNamed(context, '/home')
+        // 数据加载完成后，导航到下一个页面
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomePage(title: 'Flutter Demo'),
+            )
+        )
     ); // 替换成你的目标页面
   }
 

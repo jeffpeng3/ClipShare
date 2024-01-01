@@ -1,10 +1,14 @@
 import 'dart:async';
 
 import 'package:clipshare/components/round_chip.dart';
+import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/main.dart';
+import 'package:clipshare/pages/tag_edit_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../entity/clip_data.dart';
+import '../entity/tables/history_tag.dart';
 
 class ClipDetailDialog extends StatefulWidget {
   final ClipData clip;
@@ -19,6 +23,16 @@ class ClipDetailDialog extends StatefulWidget {
 
 class ClipDetailDialogState extends State<ClipDetailDialog> {
   bool _copy = false;
+  List<HistoryTag> _tags = List.empty(growable: true);
+
+  @override
+  void initState() {
+    super.initState();
+    DBUtil.inst.historyTagDao.list(widget.clip.data.id.toString()).then((lst) {
+      _tags = lst;
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,16 +96,6 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                         },
                         tooltip: "复制内容",
                       ),
-                      // IconButton(
-                      //   icon: Icon(
-                      //     Icons.sync,
-                      //     color: widget.clip.data.sync
-                      //         ? Colors.grey
-                      //         : Colors.blueGrey,
-                      //   ),
-                      //   onPressed: widget.clip.data.sync ? null : () {},
-                      //   tooltip: "同步该记录",
-                      // ),
                     ],
                   ),
                 ],
@@ -103,26 +107,26 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        const RoundedChip(
-                          label: Text(
-                            "#标签1",
-                            style: TextStyle(
-                                color: Color.fromRGBO(49, 49, 49, 1.0)),
+                        for (var tag in _tags)
+                          Container(
+                            margin: const EdgeInsets.only(right: 5),
+                            child: RoundedChip(
+                              label: Text(
+                                tag.tagName,
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        const RoundedChip(
-                          label: Text("#标签2"),
-                        ),
-                        const SizedBox(
-                          width: 5,
-                        ),
                         IconButton(
                             onPressed: () {
-                              Navigator.pushReplacementNamed(context, '/tagEdit');
-                            }, icon: const Icon(Icons.add)),
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      TagEditPage(widget.clip.data.id),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.add)),
                       ],
                     ),
                   )
