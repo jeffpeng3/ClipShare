@@ -9,7 +9,7 @@ import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/pages/nav/profile_page.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/platform_util.dart';
-import 'package:clipshare/util/print_util.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
     super.initState();
     // 在构建完成后初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      PrintUtil.debug(tag, "main created");
+      Log.debug(tag, "main created");
       initCommon();
       if (Platform.isAndroid) {
         initAndroid();
@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   void onWindowClose() {
     // do something
     windowManager.hide();
-    PrintUtil.print("onClose");
+    Log.debug(tag, "onClose");
   }
 
   @override
@@ -124,7 +124,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
 
   @override
   void onTrayMenuItemClick(MenuItem menuItem) {
-    PrintUtil.print('你选择了${menuItem.label}');
+    Log.debug(tag, '你选择了${menuItem.label}');
     switch (menuItem.key) {
       case 'show_window':
         showApp();
@@ -150,7 +150,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
     App.androidChannel
         .invokeMethod("checkAlertWindowPermission")
         .then((hasPermission) {
-      PrintUtil.debug("checkAlarm", hasPermission);
+      Log.debug("checkAlarm", hasPermission);
       if (hasPermission == false) {
         showDialog(
           context: context,
@@ -187,10 +187,10 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
       }
     });
     App.androidChannel.setMethodCallHandler((call) {
-      PrintUtil.debug("androidChannel", call.method);
+      Log.debug("androidChannel", call.method);
       switch (call.method) {
         case "onScreenOpened":
-        //此处应该发送socket通知同步剪贴板到本机
+          //此处应该发送socket通知同步剪贴板到本机
           SocketListener.inst.then((inst) {
             inst.sendData(null, MsgType.requestSyncMissingData, {});
           });
@@ -251,7 +251,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
       String guid = data['guid'];
       String name = data['dev'];
       String type = data['type'];
-      PrintUtil.debug("baseInfo", "$guid $name $type");
+      Log.debug("baseInfo", "$guid $name $type");
       App.devInfo = DevInfo(guid, name, type);
       App.snowflake = Snowflake(guid.hashCode);
       SocketListener.inst;
@@ -280,10 +280,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
         child: Scaffold(
           backgroundColor: const Color.fromARGB(255, 238, 238, 238),
           appBar: AppBar(
-            backgroundColor: Theme
-                .of(context)
-                .colorScheme
-                .inversePrimary,
+            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
             title: Text(widget.title),
             automaticallyImplyLeading: false,
           ),

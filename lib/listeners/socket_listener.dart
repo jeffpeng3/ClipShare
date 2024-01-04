@@ -10,7 +10,7 @@ import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/handler/dev_pairing_handler.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
-import 'package:clipshare/util/print_util.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 
 import '../db/db_util.dart';
@@ -95,7 +95,7 @@ class SocketListener {
     if (_devSockets.keys.contains(dev.guid)) {
       return;
     }
-    PrintUtil.debug(tag, dev.name);
+    Log.debug(tag, dev.name);
     //建立连接
     String ip = datagram.address.address;
     _linkSocket(dev, ip, msg.data["port"]);
@@ -104,7 +104,7 @@ class SocketListener {
   ///socket建立链接
   void _linkSocket(DevInfo dev, String ip, int port) async {
     final socket = await Socket.connect(ip, port);
-    PrintUtil.debug(tag, '已连接到服务器');
+    Log.debug(tag, '已连接到服务器');
     _devSockets[dev.guid] = DevSocket(dev: dev, socket: socket);
     //发送本机信息给对方
     MessageData msg = MessageData(
@@ -124,13 +124,13 @@ class SocketListener {
       },
       onDone: () {
         _onDevDisConnected(dev.guid);
-        PrintUtil.debug(tag, "${dev.name} disConnected, id = ${dev.guid}");
-        PrintUtil.debug(tag, '连接已关闭');
+        Log.debug(tag, "${dev.name} disConnected, id = ${dev.guid}");
+        Log.debug(tag, '连接已关闭');
       },
       onError: (error) {
         // _onDevDisConnected(dev.guid);
         // PrintUtil.debug(tag, "${dev.name} disConnected, id = ${dev.guid}");
-        PrintUtil.debug(tag, '发生错误: $error');
+        Log.debug(tag, '发生错误: $error');
       },
       // cancelOnError: true,
     );
@@ -139,10 +139,10 @@ class SocketListener {
   ///运行服务端 socket 监听
   void _runSocketServer() async {
     _server = await ServerSocket.bind('0.0.0.0', 0);
-    PrintUtil.debug(
+    Log.debug(
         tag, '服务器已启动，监听所有网络接口 ${_server.address.address} ${_server.port}');
     _server.listen((Socket client) {
-      PrintUtil.debug(
+      Log.debug(
           tag, '新连接来自 ${client.remoteAddress.address}:${client.remotePort}');
 
       client.listen(
@@ -153,13 +153,13 @@ class SocketListener {
           _onSocketListened(client, msg);
         },
         onDone: () {
-          PrintUtil.debug(tag, '服务端连接关闭');
+          Log.debug(tag, '服务端连接关闭');
           for (var devId in _devSockets.keys) {
             _onDevDisConnected(devId);
           }
         },
         onError: (error) {
-          PrintUtil.debug(tag, '服务端发生错误: $error');
+          Log.debug(tag, '服务端发生错误: $error');
           // for (var devId in _devSockets.keys) {
           //   _onDevDisConnected(devId);
           // }
@@ -175,15 +175,15 @@ class SocketListener {
       try {
         ob.onReceived(msg);
       } catch (e, stack) {
-        PrintUtil.debug(tag, e);
-        PrintUtil.debug(tag, stack);
+        Log.debug(tag, e);
+        Log.debug(tag, stack);
       }
     }
   }
 
   ///socket 监听消息处理
   void _onSocketListened(Socket socket, MessageData msg) {
-    PrintUtil.debug(tag, msg.key);
+    Log.debug(tag, msg.key);
     DevInfo dev = msg.send;
     switch (msg.key) {
       case MsgType.devInfo:
@@ -256,7 +256,7 @@ class SocketListener {
 
   ///设备连接成功
   void _onDevConnected(DevInfo dev) {
-    PrintUtil.debug(tag, "${dev.name} connected");
+    Log.debug(tag, "${dev.name} connected");
     //判断是否已经配对过
     _deviceDao.getById(dev.guid, App.userId).then((v) {
       if (v == null) return;
@@ -268,20 +268,20 @@ class SocketListener {
       try {
         ob.onConnected(dev);
       } catch (e, t) {
-        PrintUtil.debug(tag, "$e $t");
+        Log.debug(tag, "$e $t");
       }
     }
   }
 
   ///设备配对成功
   void _onDevPaired(DevInfo dev, String uid, bool result) {
-    PrintUtil.debug(tag, "${dev.name} paired");
+    Log.debug(tag, "${dev.name} paired");
     _devSockets[dev.guid]?.isPaired = true;
     for (var ob in _devAliveObservers) {
       try {
         ob.onPaired(dev, uid, result);
       } catch (e, t) {
-        PrintUtil.debug(tag, "$e $t");
+        Log.debug(tag, "$e $t");
       }
     }
   }
@@ -289,12 +289,12 @@ class SocketListener {
   ///设备断开连接
   void _onDevDisConnected(String devId) {
     _devSockets.remove(devId);
-    PrintUtil.debug(tag, "$devId disConnected");
+    Log.debug(tag, "$devId disConnected");
     for (var ob in _devAliveObservers) {
       try {
         ob.onDisConnected(devId);
       } catch (e, t) {
-        PrintUtil.debug(tag, "$e $t");
+        Log.debug(tag, "$e $t");
       }
     }
   }
@@ -302,7 +302,7 @@ class SocketListener {
   ///向指定设备发送消息
   bool sendData(DevInfo? dev, MsgType key, Map<String, dynamic> data,
       [bool onlyPaired = true]) {
-    PrintUtil.debug(tag, data);
+    Log.debug(tag, data);
     MessageData msg = MessageData(
         userId: App.userId,
         send: App.devInfo,
@@ -322,7 +322,7 @@ class SocketListener {
       DevSocket? skt = _devSockets[dev.guid];
       if (skt == null) {
         //发送的设备未连接
-        PrintUtil.debug(tag, "${dev.name} 设备未连接，发送失败");
+        Log.debug(tag, "${dev.name} 设备未连接，发送失败");
         return false;
       }
       skt.socket.write(msg.toJsonStr());
@@ -343,7 +343,7 @@ class SocketListener {
       _multicastSocket.send(utf8.encode(msg.toJsonStr()),
           InternetAddress(Constants.multicastGroup), Constants.port);
     } catch (e, stacktrace) {
-      PrintUtil.debug(tag, "$e $stacktrace");
+      Log.debug(tag, "$e $stacktrace");
     }
   }
 

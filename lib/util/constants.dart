@@ -1,4 +1,4 @@
-import 'package:clipshare/util/print_util.dart';
+import 'package:clipshare/util/log.dart';
 
 class Constants {
   //组播默认端口
@@ -41,7 +41,7 @@ enum MsgType {
 
   static MsgType getValue(String name) =>
       MsgType.values.firstWhere((e) => e.name == name, orElse: () {
-        PrintUtil.debug("MsgKey", "key '$name' unknown");
+        Log.debug("MsgKey", "key '$name' unknown");
         return MsgType.unknown;
       });
 }

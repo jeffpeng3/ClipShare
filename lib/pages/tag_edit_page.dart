@@ -3,7 +3,7 @@ import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/views/v_history_tag_hold.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/global.dart';
-import 'package:clipshare/util/print_util.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 
 class TagEditPage extends StatefulWidget {
@@ -29,7 +29,7 @@ class _TagEditPageState extends State<TagEditPage> {
   void initState() {
     super.initState();
     DBUtil.inst.historyTagDao.listWithHold(widget.hisId.toString()).then((lst) {
-      PrintUtil.debug(tag, lst);
+      Log.debug(tag, lst);
       _selected.clear();
       _tags.clear();
       _tags.addAll(lst);
@@ -84,8 +84,8 @@ class _TagEditPageState extends State<TagEditPage> {
                   setState(() {
                     saving = false;
                   });
-                  PrintUtil.debug(tag, e);
-                  PrintUtil.debug(tag, t);
+                  Log.debug(tag, e);
+                  Log.debug(tag, t);
                 }
               },
               child: saving
@@ -120,7 +120,7 @@ class _TagEditPageState extends State<TagEditPage> {
                   hintStyle: const TextStyle(color: Colors.grey),
                   border: InputBorder.none),
               onChanged: (text) {
-                PrintUtil.debug(tag, text);
+                Log.debug(tag, text);
                 for (var t in _tags) {
                   if (t.tagName == text) {
                     setState(() {
@@ -171,7 +171,7 @@ class _TagEditPageState extends State<TagEditPage> {
                                       _selected.remove(item);
                                     }
                                     setState(() {});
-                                    PrintUtil.debug(
+                                    Log.debug(
                                         tag, "${item.tagName} $checked");
                                   })
                             ],

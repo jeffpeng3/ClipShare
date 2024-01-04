@@ -1,4 +1,4 @@
-import 'package:clipshare/util/print_util.dart';
+import 'package:clipshare/util/log.dart';
 
 abstract class ClipObserver {
   void onChanged(String content);
@@ -31,8 +31,8 @@ class ClipListener {
       try {
         observer.onChanged(content);
       } catch (e, stacktrace) {
-        PrintUtil.debug(tag, e);
-        PrintUtil.debug(tag, stacktrace);
+        Log.debug(tag, e);
+        Log.debug(tag, stacktrace);
       }
     }
   }

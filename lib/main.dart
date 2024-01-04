@@ -5,7 +5,7 @@ import 'package:clipshare/pages/nav/base_page.dart';
 import 'package:clipshare/pages/splash.dart';
 import 'package:clipshare/pages/tag_edit_page.dart';
 import 'package:clipshare/util/constants.dart';
-import 'package:clipshare/util/print_util.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,7 +16,7 @@ void main() async {
     await initWindowsManager();
   }
   var list = await NetworkInterface.list();
-  PrintUtil.debug("ip list", list);
+  Log.debug("ip list", list);
   runApp(const App());
 }
 

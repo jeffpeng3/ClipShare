@@ -1,5 +1,5 @@
 import 'package:clipshare/util/constants.dart';
-import 'package:clipshare/util/print_util.dart';
+import 'package:clipshare/util/log.dart';
 
 class DevPairCode {
   final String code;
@@ -21,7 +21,7 @@ class DevPairingHandler {
     var duration = const Duration(seconds: Constants.pairingLimit);
     //配对超时
     if (DateTime.now().isAfter(pairCode.time.add(duration))) {
-      PrintUtil.debug(tag, "$devId 配对超时");
+      Log.debug(tag, "$devId 配对超时");
       _pairingCodes.removeWhere((k, v) => k == devId);
       return false;
     }

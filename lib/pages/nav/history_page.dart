@@ -9,7 +9,7 @@ import 'package:clipshare/entity/tables/sync_history.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/constants.dart';
-import 'package:clipshare/util/print_util.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -148,10 +148,10 @@ class _HistoryPageState extends State<HistoryPage>
                         const BoxConstraints(maxHeight: 150, minHeight: 80),
                     child: GestureDetector(
                       onTapUp: (TapUpDetails details) {
-                        PrintUtil.print("onTapUp");
+                        Log.debug(tag, "onTapUp");
                       },
                       onTapDown: (TapDownDetails details) {
-                        PrintUtil.print("onTapDown");
+                        Log.debug(tag, "onTapDown");
                       },
                       behavior: HitTestBehavior.translucent,
                       child: ClipDataCard(
@@ -198,7 +198,7 @@ class _HistoryPageState extends State<HistoryPage>
       _copyInThisCopy = false;
       return;
     }
-    PrintUtil.debug("ClipData onChanged", content);
+    Log.debug("ClipData onChanged", content);
     var history = History(
         id: App.snowflake.nextId(),
         uid: App.userId,
@@ -247,10 +247,10 @@ class _HistoryPageState extends State<HistoryPage>
         var hisId = msg.data["id"];
         DBUtil.inst.historyDao.setSync(hisId.toString(), true);
         DBUtil.inst.syncHistoryDao.add(SyncHistory(devId: devId, hisId: hisId));
-        PrintUtil.debug(tag, hisId);
+        Log.debug(tag, hisId);
         for (var clip in _list) {
           if (clip.data.id.toString() == hisId.toString()) {
-            PrintUtil.debug(tag, hisId);
+            Log.debug(tag, hisId);
             clip.data.sync = true;
             setState(() {});
             break;
@@ -275,7 +275,7 @@ class _HistoryPageState extends State<HistoryPage>
             h.sync = true;
             await historyDao.add(h).then((v) {
               if (v == 0) {
-                PrintUtil.debug(tag, "${h.id} 保存失败");
+                Log.debug(tag, "${h.id} 保存失败");
                 return;
               }
               //发送同步确认
@@ -285,8 +285,8 @@ class _HistoryPageState extends State<HistoryPage>
             });
           }
         } catch (e, t) {
-          PrintUtil.debug(tag, e);
-          PrintUtil.debug(tag, t);
+          Log.debug(tag, e);
+          Log.debug(tag, t);
         } finally {
           //同步完成，刷新数据
           refreshData();

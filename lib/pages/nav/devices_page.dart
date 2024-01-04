@@ -10,7 +10,7 @@ import '../../db/db_util.dart';
 import '../../entity/tables/device.dart';
 import '../../listeners/socket_listener.dart';
 import '../../main.dart';
-import '../../util/print_util.dart';
+import '../../util/log.dart';
 
 class DevicesPage extends StatefulWidget {
   const DevicesPage({super.key});
@@ -267,7 +267,7 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
   @override
   void onPaired(DevInfo dev, String uid, bool result) {
     if (!result) {
-      PrintUtil.debug(tag, "_pairingFailed $_pairingFailed");
+      Log.debug(tag, "_pairingFailed $_pairingFailed");
       _pairingFailed = true;
       _pairing = false;
       setState(() {});
@@ -281,7 +281,7 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
     //新设备
     _deviceDao.add(data).then((v) {
       if (v == 0) {
-        PrintUtil.debug(tag, "Device information addition failed");
+        Log.debug(tag, "Device information addition failed");
         return;
       }
       //保存成功，从连接列表中移除
