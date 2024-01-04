@@ -2,7 +2,7 @@ import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/views/v_history_tag_hold.dart';
 import 'package:clipshare/main.dart';
-import 'package:clipshare/util/app_util.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/print_util.dart';
 import 'package:flutter/material.dart';
 

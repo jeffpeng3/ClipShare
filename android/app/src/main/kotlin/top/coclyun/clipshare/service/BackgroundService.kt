@@ -132,10 +132,12 @@ class BackgroundService : Service(),
         }
 
         // 设置通知的标题、内容等
-        builder.setContentTitle("剪贴板同步")
-            .setOngoing(true)
-            .setContentText("剪贴板监听服务正在运行")
+        builder.setContentTitle("ClipShare")
             .setSmallIcon(R.drawable.btn_star_big_on)
+            .setOngoing(true)
+            .setSound(null)
+            .setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
+            .setContentText("ClipShare 正在运行")
         Log.d("notify", "buildNotification")
         return builder.build()
     }
@@ -156,8 +158,10 @@ class BackgroundService : Service(),
         val updatedBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, notifyChannelId)
                 .setSmallIcon(R.drawable.btn_star_big_on)
-                .setContentTitle("剪贴板更新")
+                .setContentTitle("ClipShare")
                 .setOngoing(true)
+                .setSound(null)
+                .setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
                 .setContentText(content)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         val manger = getSystemService(

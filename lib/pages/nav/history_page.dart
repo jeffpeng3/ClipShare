@@ -7,7 +7,7 @@ import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/entity/tables/sync_history.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
-import 'package:clipshare/util/app_util.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/print_util.dart';
 import 'package:flutter/material.dart';

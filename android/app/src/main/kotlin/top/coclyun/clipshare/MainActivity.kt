@@ -31,7 +31,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
     private lateinit var androidChannel: MethodChannel;
     private val requestShizukuCode = 5001
     private val requestOverlayResultCode = 5002
-
+    private var shizukuRunning = false;
     private lateinit var screenReceiver: ScreenReceiver;
     private var wakeLock: PowerManager.WakeLock? = null
 
@@ -40,19 +40,9 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         lateinit var engine: FlutterEngine
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Shizuku.addRequestPermissionResultListener(this);
-        notify("onCreate")
-        // 注册广播接收器
-
-//        acquireWakeLock()
-    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-
-        notify("configureFlutterEngine")
         engine = flutterEngine
         GeneratedPluginRegistrant.registerWith(flutterEngine)
         commonChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "common")
@@ -60,8 +50,9 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         initCommonChannel()
         initAndroidChannel()
 
+        Shizuku.addRequestPermissionResultListener(this);
         val serviceRunning = isServiceRunning(this, BackgroundService::class.java)
-        if (checkPermission(requestShizukuCode) && !serviceRunning) {
+        if (checkShizukuPermission(requestShizukuCode) && !serviceRunning) {
             // 创建 Intent 对象
             val serviceIntent = Intent(this, BackgroundService::class.java)
             // 判断 Android 版本并启动服务
@@ -70,21 +61,24 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
             } else {
                 startService(serviceIntent);
             }
+        } else {
+            androidChannel.invokeMethod("checkMustPermission", null)
         }
     }
 
     private fun notify(content: String) {
         val updatedBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, BackgroundService.notifyChannelId)
-                .setSmallIcon(R.drawable.btn_star_big_on)
-                .setContentTitle("剪贴板更新")
-                .setOngoing(true)
-                .setContentText(content)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setSmallIcon(R.drawable.btn_star_big_on)
+                .setOngoing(true)
+                .setSound(null)
+                .setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
+                .setContentText(content)
         val manger = getSystemService(
             NOTIFICATION_SERVICE
         ) as NotificationManager
-        // 更新通知
+        // 发送通知
         manger.notify(BackgroundService.notificationId, updatedBuilder.build())
     }
 
@@ -94,27 +88,34 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         if (granted) {
             when (requestCode) {
                 requestShizukuCode -> {
-                    Toast.makeText(this, "shizuku granted", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "shizuku 已授权", Toast.LENGTH_LONG).show()
                 }
             }
         }
     }
 
-    private fun checkPermission(code: Int): Boolean {
+    private fun checkShizukuPermission(code: Int): Boolean {
         if (Shizuku.isPreV11()) {
             Toast.makeText(this, "Pre-v11 is unsupported", Toast.LENGTH_LONG).show()
             return false
         }
-        return if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
-            // Granted
-            true
-        } else if (Shizuku.shouldShowRequestPermissionRationale()) {
-            // Users choose "Deny and don't ask again"
-            false
-        } else {
-            // Request the permission
-            Shizuku.requestPermission(code)
-            false
+        try {
+            return if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+                // Granted
+                true
+            } else if (Shizuku.shouldShowRequestPermissionRationale()) {
+                // Users choose "Deny and don't ask again"
+                Toast.makeText(this, "shouldShowRequestPermissionRationale", Toast.LENGTH_LONG)
+                    .show()
+                false
+            } else {
+                // Request the permission
+                Toast.makeText(this, "else", Toast.LENGTH_LONG).show()
+                Shizuku.requestPermission(code)
+                false
+            }
+        } catch (e: Exception) {
+            return false;
         }
     }
 
@@ -140,6 +141,10 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         filter.addAction(Intent.ACTION_SCREEN_OFF)
         registerReceiver(screenReceiver, filter)
         androidChannel.setMethodCallHandler { call, result ->
+            var args: Map<String, Any> = mapOf()
+            if (call.arguments is Map<*, *>) {
+                args = call.arguments as Map<String, Any>
+            }
             when (call.method) {
                 //检查悬浮窗权限
                 "checkAlertWindowPermission" -> {
@@ -171,11 +176,16 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
                     moveTaskToBack(true)
                 }
                 //发送通知
-//                "sendNotify" -> {
-//                    var content = call.arguments['content'].toString();
-//                    notify(content);
-//                    result.success(true);
-//                }
+                "sendNotify" -> {
+                    val content = args["content"].toString();
+                    notify(content)
+                    result.success(true);
+                }
+                "toast"->{
+                    val content = args["content"].toString();
+                    Toast.makeText(this,content,Toast.LENGTH_LONG).show();
+                    result.success(true);
+                }
             }
         }
     }

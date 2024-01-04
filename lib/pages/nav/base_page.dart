@@ -19,6 +19,7 @@ import 'package:window_manager/window_manager.dart';
 import '../../db/db_util.dart';
 import '../../listeners/clip_listener.dart';
 import '../../main.dart';
+import '../../util/global.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -35,12 +36,15 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   late DeviceDao deviceDao;
   bool trayClick = false;
 
+  String get tag => "HomePage";
+
   // final TrayManager _trayManager = TrayManager.instance;
   @override
   void initState() {
+    super.initState();
     // 在构建完成后初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      debugPrint("main created");
+      PrintUtil.debug(tag, "main created");
       initCommon();
       if (Platform.isAndroid) {
         initAndroid();
@@ -49,7 +53,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
         initWindows();
       }
     });
-    super.initState();
+    Global.notify("main created");
   }
 
   ///初始化托盘
@@ -186,10 +190,38 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
       PrintUtil.debug("androidChannel", call.method);
       switch (call.method) {
         case "onScreenOpened":
-          //此处应该发送socket通知同步剪贴板到本机
+        //此处应该发送socket通知同步剪贴板到本机
           SocketListener.inst.then((inst) {
             inst.sendData(null, MsgType.requestSyncMissingData, {});
           });
+          break;
+        case "checkMustPermission":
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('必要权限缺失'),
+                content: const Text(
+                    '请授权必要权限，由于 Android 10 及以上版本的系统不允许后台读取剪贴板，需要依赖 Shizuku 或 Root 权限来提权，否则只能被动接收剪贴板数据而不能发送'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      // 关闭弹窗
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('再也不说了'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      // 关闭弹窗
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('确定'),
+                  ),
+                ],
+              );
+            },
+          );
           break;
       }
       return Future(() => false);
@@ -248,7 +280,10 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
         child: Scaffold(
           backgroundColor: const Color.fromARGB(255, 238, 238, 238),
           appBar: AppBar(
-            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+            backgroundColor: Theme
+                .of(context)
+                .colorScheme
+                .inversePrimary,
             title: Text(widget.title),
             automaticallyImplyLeading: false,
           ),
