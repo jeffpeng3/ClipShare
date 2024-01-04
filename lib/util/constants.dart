@@ -13,6 +13,9 @@ class Constants {
   static const channelClip = "clip";
   static const channelAndroid = "android";
 }
+enum Option{
+  add,delete,update
+}
 enum MsgType {
   //设备信息
   devInfo,
