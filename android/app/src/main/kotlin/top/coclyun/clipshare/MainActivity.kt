@@ -12,7 +12,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.PersistableBundle
-import android.os.PowerManager
 import android.provider.Settings
 import android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION
 import android.util.Log
@@ -32,9 +31,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
     private lateinit var androidChannel: MethodChannel;
     private val requestShizukuCode = 5001
     private val requestOverlayResultCode = 5002
-    private var shizukuRunning = false;
     private lateinit var screenReceiver: ScreenReceiver;
-    private var wakeLock: PowerManager.WakeLock? = null
 
     companion object {
         @JvmStatic
@@ -47,11 +44,11 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
     }
 
     private fun initService() {
-        Log.d("onCreate","initService")
+        Log.d("onCreate", "initService")
         Shizuku.addRequestPermissionResultListener(this);
         val serviceRunning = isServiceRunning(this, BackgroundService::class.java)
         if (checkShizukuPermission(requestShizukuCode) && !serviceRunning) {
-            Log.d("onCreate","start Service")
+            Log.d("onCreate", "start Service")
             // 创建 Intent 对象
             val serviceIntent = Intent(this, BackgroundService::class.java)
             // 判断 Android 版本并启动服务
@@ -62,6 +59,25 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
             }
         } else {
             androidChannel.invokeMethod("checkMustPermission", null)
+        }
+        checkNotification()
+    }
+
+    private fun checkNotification() {
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        if (notificationManager.areNotificationsEnabled()) {
+            return
+        }
+        // 通知权限未开启，引导用户手动开启
+        // 可以显示一个提示对话框，包含跳转到通知设置页面的选项
+        requestNotificationPermission()
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            startActivity(intent)
         }
     }
 
@@ -241,19 +257,6 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         }
     }
 
-
-    private fun acquireWakeLock() {
-        Log.d("wakeLock", "acquireWakeLock")
-        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "YourTag:WakeLockTag")
-        wakeLock?.acquire()
-    }
-
-    private fun releaseWakeLock() {
-        wakeLock?.release()
-        wakeLock = null
-        Log.d("wakeLock", "releaseWakeLock")
-    }
 
     override fun onRestart() {
         super.onRestart()
