@@ -11,6 +11,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.os.PowerManager
 import android.provider.Settings
 import android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION
@@ -40,19 +41,17 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         lateinit var engine: FlutterEngine
     }
 
+    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
+        super.onCreate(savedInstanceState, persistentState)
 
-    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        super.configureFlutterEngine(flutterEngine)
-        engine = flutterEngine
-        GeneratedPluginRegistrant.registerWith(flutterEngine)
-        commonChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "common")
-        androidChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "android")
-        initCommonChannel()
-        initAndroidChannel()
+    }
 
+    private fun initService() {
+        Log.d("onCreate","initService")
         Shizuku.addRequestPermissionResultListener(this);
         val serviceRunning = isServiceRunning(this, BackgroundService::class.java)
         if (checkShizukuPermission(requestShizukuCode) && !serviceRunning) {
+            Log.d("onCreate","start Service")
             // 创建 Intent 对象
             val serviceIntent = Intent(this, BackgroundService::class.java)
             // 判断 Android 版本并启动服务
@@ -64,6 +63,22 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         } else {
             androidChannel.invokeMethod("checkMustPermission", null)
         }
+    }
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        engine = flutterEngine
+        GeneratedPluginRegistrant.registerWith(flutterEngine)
+        commonChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "common")
+        androidChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "android")
+        initCommonChannel()
+        initAndroidChannel()
+        val fromNotification = intent.getBooleanExtra("fromNotification", false)
+        if (fromNotification) {
+            notify("fromNotification")
+            return
+        }
+        initService()
     }
 
     private fun notify(content: String) {
@@ -181,9 +196,10 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
                     notify(content)
                     result.success(true);
                 }
-                "toast"->{
+
+                "toast" -> {
                     val content = args["content"].toString();
-                    Toast.makeText(this,content,Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, content, Toast.LENGTH_LONG).show();
                     result.success(true);
                 }
             }
@@ -242,20 +258,17 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
     override fun onRestart() {
         super.onRestart()
         Log.d("MainActivity", "onRestart")
-        notify("onRestart")
     }
 
     override fun onStop() {
         super.onStop()
         Log.d("MainActivity", "onRestart")
-        notify("onStop")
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Shizuku.removeRequestPermissionResultListener(this);
         Log.d("MainActivity", "onDestroy")
-        notify("onDestroy")
         // 取消注册广播接收器
         unregisterReceiver(screenReceiver)
 //        releaseWakeLock()

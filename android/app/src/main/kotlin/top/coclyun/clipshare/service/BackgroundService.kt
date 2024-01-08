@@ -4,6 +4,7 @@ import android.R
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -98,8 +99,10 @@ class BackgroundService : Service(),
                         mHandler.sendMessage(Message())
                     }
                 }
+                notify("日志服务异常停止：")
                 Log.d("read_logs", "finished")
             } catch (e: Exception) {
+                notify("shizuku服务异常停止：" + e.message)
                 e.printStackTrace()
                 e.message?.let { Log.e("read_logs", it) }
             }
@@ -154,6 +157,12 @@ class BackgroundService : Service(),
         notify(content);
     }
 
+    private fun createPendingIntent(): PendingIntent? {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("fromNotification", true)
+        return PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+    }
+
     private fun notify(content: String) {
         val updatedBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, notifyChannelId)
@@ -161,6 +170,7 @@ class BackgroundService : Service(),
                 .setContentTitle("ClipShare")
                 .setOngoing(true)
                 .setSound(null)
+                .setContentIntent(createPendingIntent())
                 .setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
                 .setContentText(content)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
