@@ -68,7 +68,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         if (notificationManager.areNotificationsEnabled()) {
             return
         }
-        // 通知权限未开启，引导用户手动开启
+        // todo 通知权限未开启，引导用户手动开启
         // 可以显示一个提示对话框，包含跳转到通知设置页面的选项
         requestNotificationPermission()
     }
