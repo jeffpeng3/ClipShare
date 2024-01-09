@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:floor/floor.dart';
 
 @entity
@@ -27,4 +29,20 @@ class Device {
     required this.uid,
     required this.type,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      "guid": guid,
+      "devName": devName,
+      "uid": uid,
+      "type": type,
+      "lastConnTime": lastConnTime,
+      "lastAddr": lastAddr,
+    };
+  }
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
 }

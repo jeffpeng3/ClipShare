@@ -108,7 +108,7 @@ class _$AppDb extends AppDb {
         await database.execute(
             'CREATE UNIQUE INDEX `index_HistoryTag_tagName_hisId` ON `HistoryTag` (`tagName`, `hisId`)');
         await database.execute(
-            'CREATE UNIQUE INDEX `index_OperationRecord_uid_module_method` ON `OperationRecord` (`uid`, `module`, `method`)');
+            'CREATE INDEX `index_OperationRecord_uid_module_method` ON `OperationRecord` (`uid`, `module`, `method`)');
         await database.execute(
             'CREATE VIEW IF NOT EXISTS `VHistoryTagHold` AS select t1.* ,(t2.hisId is not null) as hasTag \nfrom (\n  SELECT distinct h.id as hisId,tag.tagName\n  FROM\n    history as h,historyTag as tag\n) t1\nLEFT JOIN ( SELECT * FROM HistoryTag ) t2\nON t2.hisId = t1.hisId and t2.tagName = t1.tagName\n');
 

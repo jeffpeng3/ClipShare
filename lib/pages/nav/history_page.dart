@@ -36,7 +36,8 @@ class _HistoryPageState extends State<HistoryPage>
   late OperationSyncDao syncHistoryDao;
   bool _copyInThisCopy = false;
   int? _minId;
-  String tag = "HistoryPage";
+  final String tag = "HistoryPage";
+  final String module = "历史记录";
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -208,6 +209,13 @@ class _HistoryPageState extends State<HistoryPage>
         content: content,
         type: 'Text',
         size: content.length);
+    //添加操作记录
+    DBUtil.inst.opRecordDao.add(OperationRecord(
+        id: App.snowflake.nextId(),
+        uid: App.userId,
+        module: module,
+        method: OpMethod.add,
+        data: history.id.toString()));
     addData(history);
     SocketListener.inst.then((inst) {
       inst.sendData(null, MsgType.history, history.toJson());

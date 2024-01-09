@@ -1,4 +1,5 @@
 import 'package:clipshare/entity/dev_info.dart';
+import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,7 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
   bool _pairing = false;
   late DeviceDao _deviceDao;
   final String tag = "DevicesPage";
+  final String module = "设备管理";
 
   @override
   void initState() {
@@ -284,6 +286,12 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
         Log.debug(tag, "Device information addition failed");
         return;
       }
+      DBUtil.inst.opRecordDao.add(OperationRecord(
+          id: App.snowflake.nextId(),
+          uid: App.userId,
+          module: module,
+          method: OpMethod.add,
+          data: data.guid));
       //保存成功，从连接列表中移除
       var pairedDev = _discoverList
           .firstWhere((dev) => dev.devInfo?.guid == dev.devInfo?.guid);

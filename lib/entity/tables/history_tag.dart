@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:floor/floor.dart';
 
 @Entity(indices: [
@@ -5,6 +7,7 @@ import 'package:floor/floor.dart';
 ])
 class HistoryTag {
   @PrimaryKey(autoGenerate: true)
+
   ///主键 id
   int id;
 
@@ -19,4 +22,17 @@ class HistoryTag {
     this.tagName,
     this.hisId,
   );
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "tagName": tagName,
+      "hisId": hisId,
+    };
+  }
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
 }

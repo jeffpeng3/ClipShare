@@ -67,7 +67,9 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                           Icons.delete,
                           color: Colors.blueGrey,
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          //添加删除记录
+                        },
                         tooltip: "删除记录",
                       ),
                       IconButton(
@@ -77,7 +79,9 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                               : Icons.push_pin,
                           color: Colors.blueGrey,
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          //添加操作记录
+                        },
                         tooltip: widget.clip.data.top ? "取消置顶" : "置顶",
                       ),
                       IconButton(

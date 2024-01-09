@@ -7,7 +7,7 @@ import '../../util/constants.dart';
 ///
 /// 操作记录表
 @Entity(indices: [
-  Index(value: ['uid', "module", "method"], unique: true)
+  Index(value: ['uid', "module", "method"])
 ])
 class OperationRecord {
   ///主键 id
@@ -24,7 +24,7 @@ class OperationRecord {
   @TypeConverters([OpMethodTypeConverter])
   OpMethod method;
 
-  /// 操作数据
+  /// 操作数据，如果是json表示是整个数据，否则表示是主键
   String data;
 
   /// 操作时间
