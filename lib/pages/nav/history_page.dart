@@ -5,6 +5,7 @@ import 'package:clipshare/dao/history_dao.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
+import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/entity/tables/operation_sync.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/util/global.dart';
@@ -42,7 +43,7 @@ class _HistoryPageState extends State<HistoryPage>
   void initState() {
     super.initState();
     historyDao = DBUtil.inst.historyDao;
-    syncHistoryDao = DBUtil.inst.operationSyncDao;
+    syncHistoryDao = DBUtil.inst.opSyncDao;
     SocketListener.inst.then((inst) => {inst.addSocketListener(this)});
     refreshData();
     ClipListener.instance().register(this);

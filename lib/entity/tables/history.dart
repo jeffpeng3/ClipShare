@@ -1,24 +1,25 @@
 import 'dart:convert';
 
+import 'package:clipshare/main.dart';
 import 'package:floor/floor.dart';
 
 @entity
 class History implements Comparable {
   @PrimaryKey(autoGenerate: true)
   ///本地id
-  late int id;
+  int id;
 
   ///用户id（uuid）
-  late int uid;
+  int uid;
 
   ///时间
-  late String time;
+  String time;
 
   ///剪贴板内容
-  late String content;
+  String content;
 
   ///内容类型
-  late String type;
+  String type;
 
   ///设备id
   String devId;

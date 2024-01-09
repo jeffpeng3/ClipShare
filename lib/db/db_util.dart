@@ -47,7 +47,7 @@ class DBUtil {
 
   UserDao get userDao => _db.userDao;
 
-  OperationSyncDao get operationSyncDao => _db.operationSyncDao;
+  OperationSyncDao get opSyncDao => _db.operationSyncDao;
 
   HistoryTagDao get historyTagDao => _db.historyTagDao;
 

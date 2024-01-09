@@ -15,12 +15,13 @@ class OperationRecord {
   int id;
 
   ///用户 id
-  String uid;
+  int uid;
 
   ///操作模块
   String module;
 
   /// 操作方法
+  @TypeConverters([OpMethodTypeConverter])
   OpMethod method;
 
   /// 操作数据
@@ -41,7 +42,7 @@ class OperationRecord {
     var id = map["id"];
     var uid = map["uid"];
     var module = map["module"];
-    var method = map["method"];
+    var method = OpMethod.getValue(map["method"]);
     var data = map["data"];
     var time = map["time"];
     var record = OperationRecord(
@@ -60,7 +61,7 @@ class OperationRecord {
       "id": id,
       "uid": uid,
       "module": module,
-      "method": method,
+      "method": method.name,
       "data": data,
       "time": time,
     };
@@ -69,5 +70,18 @@ class OperationRecord {
   @override
   String toString() {
     return jsonEncode(toJson());
+  }
+}
+
+// 枚举类型到String的转换器
+class OpMethodTypeConverter extends TypeConverter<OpMethod, String> {
+  @override
+  OpMethod decode(String name) {
+    return OpMethod.getValue(name);
+  }
+
+  @override
+  String encode(OpMethod value) {
+    return value.name;
   }
 }

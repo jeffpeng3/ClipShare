@@ -64,7 +64,7 @@ class _$AppDb extends AppDb {
 
   DeviceDao? _deviceDaoInstance;
 
-  OperationSyncDao? _syncHistoryDaoInstance;
+  OperationSyncDao? _operationSyncDaoInstance;
 
   HistoryTagDao? _historyTagDaoInstance;
 
@@ -92,19 +92,19 @@ class _$AppDb extends AppDb {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Config` (`key` TEXT NOT NULL, `value` TEXT NOT NULL, `uid` TEXT NOT NULL, PRIMARY KEY (`key`))');
+            'CREATE TABLE IF NOT EXISTS `Config` (`key` TEXT NOT NULL, `value` TEXT NOT NULL, `uid` INTEGER NOT NULL, PRIMARY KEY (`key`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Device` (`guid` TEXT NOT NULL, `devName` TEXT NOT NULL, `uid` INTEGER NOT NULL, `type` TEXT NOT NULL, `lastConnTime` TEXT, `lastAddr` TEXT, PRIMARY KEY (`guid`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `History` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` INTEGER NOT NULL, `time` TEXT NOT NULL, `content` TEXT NOT NULL, `type` TEXT NOT NULL, `devId` TEXT NOT NULL, `top` INTEGER NOT NULL, `sync` INTEGER NOT NULL, `size` INTEGER NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `User` (`id` TEXT, `account` TEXT NOT NULL, `password` TEXT NOT NULL, `type` TEXT NOT NULL, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `User` (`id` INTEGER, `account` TEXT NOT NULL, `password` TEXT NOT NULL, `type` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `OperationSync` (`opId` INTEGER NOT NULL, `devId` TEXT NOT NULL, `uid` INTEGER NOT NULL, `time` TEXT NOT NULL, PRIMARY KEY (`opId`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `HistoryTag` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `tagName` TEXT NOT NULL, `hisId` INTEGER NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `OperationRecord` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` TEXT NOT NULL, `module` TEXT NOT NULL, `method` INTEGER NOT NULL, `data` TEXT NOT NULL, `time` TEXT NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `OperationRecord` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` INTEGER NOT NULL, `module` TEXT NOT NULL, `method` TEXT NOT NULL, `data` TEXT NOT NULL, `time` TEXT NOT NULL)');
         await database.execute(
             'CREATE UNIQUE INDEX `index_HistoryTag_tagName_hisId` ON `HistoryTag` (`tagName`, `hisId`)');
         await database.execute(
@@ -140,7 +140,7 @@ class _$AppDb extends AppDb {
 
   @override
   OperationSyncDao get operationSyncDao {
-    return _syncHistoryDaoInstance ??=
+    return _operationSyncDaoInstance ??=
         _$OperationSyncDao(database, changeListener);
   }
 
@@ -265,7 +265,7 @@ class _$ConfigDao extends ConfigDao {
         mapper: (Map<String, Object?> row) => Config(
             key: row['key'] as String,
             value: row['value'] as String,
-            uid: row['uid'] as String));
+            uid: row['uid'] as int));
   }
 
   @override
@@ -633,7 +633,7 @@ class _$OperationRecordDao extends OperationRecordDao {
         'id': item.id,
         'uid': item.uid,
         'module': item.module,
-        'method': item.method.index,
+        'method': _opMethodTypeConverter.encode(item.method),
         'data': item.data,
         'time': item.time
       });
@@ -650,3 +650,6 @@ class _$OperationRecordDao extends OperationRecordDao {
         record, OnConflictStrategy.abort);
   }
 }
+
+// ignore_for_file: unused_element
+final _opMethodTypeConverter = OpMethodTypeConverter();
