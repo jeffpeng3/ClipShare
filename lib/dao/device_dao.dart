@@ -5,11 +5,11 @@ import 'package:floor/floor.dart';
 abstract class DeviceDao {
   ///获取所有设备
   @Query("select * from device where uid = :uid")
-  Future<List<Device>> getAllDevices(String uid);
+  Future<List<Device>> getAllDevices(int uid);
 
   ///根据设备id获取设备信息
   @Query("select * from device where guid = :guid and uid = :uid")
-  Future<Device?> getById(String guid, String uid);
+  Future<Device?> getById(String guid, int uid);
 
   ///添加一个设备
   @insert
@@ -21,5 +21,5 @@ abstract class DeviceDao {
 
   ///删除设备（逻辑删？todo）
   @Query("delete from device where guid = :guid and uid = :uid")
-  Future<int?> remove(String guid, String uid);
+  Future<int?> remove(String guid, int uid);
 }

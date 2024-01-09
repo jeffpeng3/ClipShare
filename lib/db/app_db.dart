@@ -1,9 +1,9 @@
 // 必须的包
 import 'dart:async';
 
-import 'package:clipshare/dao/sync_history_dao.dart';
+import 'package:clipshare/dao/operation_sync_dao.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
-import 'package:clipshare/entity/tables/sync_history.dart';
+import 'package:clipshare/entity/tables/operation_sync.dart';
 import 'package:clipshare/entity/views/v_history_tag_hold.dart';
 import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
@@ -31,7 +31,7 @@ part 'app_db.floor.g.dart';
   Device,
   History,
   User,
-  SyncHistory,
+  OperationSync,
   HistoryTag,
   OperationRecord
 ], views: [
@@ -46,7 +46,7 @@ abstract class AppDb extends FloorDatabase {
 
   DeviceDao get deviceDao;
 
-  SyncHistoryDao get syncHistoryDao;
+  OperationSyncDao get operationSyncDao;
 
   HistoryTagDao get historyTagDao;
 

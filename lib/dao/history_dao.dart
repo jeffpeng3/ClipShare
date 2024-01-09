@@ -6,7 +6,7 @@ import '../entity/tables/history.dart';
 abstract class HistoryDao {
   ///获取最新记录
   @Query("select * from history where uid = :uid order by id desc limit 1")
-  Future<History?> getLatestLocalClip(String uid);
+  Future<History?> getLatestLocalClip(int uid);
 
   /// 获取某设备未同步的记录
   @Query(
@@ -15,12 +15,12 @@ abstract class HistoryDao {
 
   ///获取前20条历史记录
   @Query("select * from history where uid = :uid order by top,id desc limit 20")
-  Future<List<History>> getHistoriesTop20(String uid);
+  Future<List<History>> getHistoriesTop20(int uid);
 
   ///获取前20条历史记录
   @Query(
       "select * from history where uid = :uid and id < :fromId order by top,id desc limit 20")
-  Future<List<History>> getHistoriesPage(String uid, int fromId);
+  Future<List<History>> getHistoriesPage(int uid, int fromId);
 
   ///置顶/取消置顶某记录
   @Query("update history set top = :top where id = :id ")
@@ -40,7 +40,7 @@ abstract class HistoryDao {
 
   ///将本地记录转换到某个用户
   @Query("update history set uid = :uid where uid = 0")
-  Future<int?> transformLocalToUser(String uid);
+  Future<int?> transformLocalToUser(int uid);
 
   ///删除本地记录用户记录
   @Query("delete from history where uid = 0")

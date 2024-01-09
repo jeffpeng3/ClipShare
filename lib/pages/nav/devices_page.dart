@@ -265,7 +265,7 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
   }
 
   @override
-  void onPaired(DevInfo dev, String uid, bool result) {
+  void onPaired(DevInfo dev, int uid, bool result) {
     if (!result) {
       Log.debug(tag, "_pairingFailed $_pairingFailed");
       _pairingFailed = true;

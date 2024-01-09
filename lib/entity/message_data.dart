@@ -4,7 +4,7 @@ import '../util/constants.dart';
 import 'dev_info.dart';
 
 class MessageData {
-  String userId;
+  int userId;
   DevInfo send;
   DevInfo? recv;
   MsgType key;
@@ -18,7 +18,7 @@ class MessageData {
       this.recv});
 
   static MessageData fromJson(Map<String, dynamic> map) {
-    String userId = map["userId"];
+    int userId = map["userId"];
     DevInfo devInfo = DevInfo.fromJson(map["send"]);
     DevInfo? recv = map["recv"] != null ? DevInfo.fromJson(map["recv"]) : null;
     MsgType key = MsgType.getValue(map["key"]);

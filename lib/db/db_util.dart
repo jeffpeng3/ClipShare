@@ -6,7 +6,7 @@ import 'package:floor/floor.dart';
 
 import '../dao/history_tag_dao.dart';
 import '../dao/operation_record_dao.dart';
-import '../dao/sync_history_dao.dart';
+import '../dao/operation_sync_dao.dart';
 import 'app_db.dart';
 
 class DBUtil {
@@ -47,7 +47,7 @@ class DBUtil {
 
   UserDao get userDao => _db.userDao;
 
-  SyncHistoryDao get syncHistoryDao => _db.syncHistoryDao;
+  OperationSyncDao get operationSyncDao => _db.operationSyncDao;
 
   HistoryTagDao get historyTagDao => _db.historyTagDao;
 

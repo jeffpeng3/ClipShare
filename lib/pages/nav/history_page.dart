@@ -5,7 +5,7 @@ import 'package:clipshare/dao/history_dao.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
-import 'package:clipshare/entity/tables/sync_history.dart';
+import 'package:clipshare/entity/tables/operation_sync.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/constants.dart';
@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../components/clip_detail_dialog.dart';
-import '../../dao/sync_history_dao.dart';
+import '../../dao/operation_sync_dao.dart';
 import '../../db/db_util.dart';
 import '../../listeners/socket_listener.dart';
 import '../../main.dart';
@@ -32,7 +32,7 @@ class _HistoryPageState extends State<HistoryPage>
     implements ClipObserver, SocketObserver {
   final List<ClipData> _list = List.empty(growable: true);
   late HistoryDao historyDao;
-  late SyncHistoryDao syncHistoryDao;
+  late OperationSyncDao syncHistoryDao;
   bool _copyInThisCopy = false;
   int? _minId;
   String tag = "HistoryPage";
@@ -42,7 +42,7 @@ class _HistoryPageState extends State<HistoryPage>
   void initState() {
     super.initState();
     historyDao = DBUtil.inst.historyDao;
-    syncHistoryDao = DBUtil.inst.syncHistoryDao;
+    syncHistoryDao = DBUtil.inst.operationSyncDao;
     SocketListener.inst.then((inst) => {inst.addSocketListener(this)});
     refreshData();
     ClipListener.instance().register(this);
@@ -246,7 +246,7 @@ class _HistoryPageState extends State<HistoryPage>
       case MsgType.ackSync:
         var hisId = msg.data["id"];
         DBUtil.inst.historyDao.setSync(hisId.toString(), true);
-        DBUtil.inst.syncHistoryDao.add(SyncHistory(devId: devId, hisId: hisId));
+        // DBUtil.inst.operationSyncDao.add(OperationSync(devId: devId, uid:App.userId));
         Log.debug(tag, hisId);
         for (var clip in _list) {
           if (clip.data.id.toString() == hisId.toString()) {

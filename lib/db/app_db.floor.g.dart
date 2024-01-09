@@ -1,7 +1,8 @@
+part of 'app_db.dart';
 // **************************************************************************
 // FloorGenerator
 // **************************************************************************
-part of 'app_db.dart';
+
 // ignore: avoid_classes_with_only_static_members
 class $FloorAppDb {
   /// Creates a database builder for a persistent database.
@@ -63,7 +64,7 @@ class _$AppDb extends AppDb {
 
   DeviceDao? _deviceDaoInstance;
 
-  SyncHistoryDao? _syncHistoryDaoInstance;
+  OperationSyncDao? _syncHistoryDaoInstance;
 
   HistoryTagDao? _historyTagDaoInstance;
 
@@ -93,19 +94,17 @@ class _$AppDb extends AppDb {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Config` (`key` TEXT NOT NULL, `value` TEXT NOT NULL, `uid` TEXT NOT NULL, PRIMARY KEY (`key`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Device` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `devName` TEXT NOT NULL, `guid` TEXT NOT NULL, `uid` TEXT NOT NULL, `type` TEXT NOT NULL, `lastConnTime` TEXT, `lastAddr` TEXT)');
+            'CREATE TABLE IF NOT EXISTS `Device` (`guid` TEXT NOT NULL, `devName` TEXT NOT NULL, `uid` INTEGER NOT NULL, `type` TEXT NOT NULL, `lastConnTime` TEXT, `lastAddr` TEXT, PRIMARY KEY (`guid`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `History` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` TEXT NOT NULL, `time` TEXT NOT NULL, `content` TEXT NOT NULL, `type` TEXT NOT NULL, `devId` TEXT NOT NULL, `top` INTEGER NOT NULL, `sync` INTEGER NOT NULL, `size` INTEGER NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `History` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` INTEGER NOT NULL, `time` TEXT NOT NULL, `content` TEXT NOT NULL, `type` TEXT NOT NULL, `devId` TEXT NOT NULL, `top` INTEGER NOT NULL, `sync` INTEGER NOT NULL, `size` INTEGER NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `User` (`id` TEXT, `account` TEXT NOT NULL, `password` TEXT NOT NULL, `type` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `SyncHistory` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `devId` TEXT NOT NULL, `hisId` INTEGER NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `OperationSync` (`opId` INTEGER NOT NULL, `devId` TEXT NOT NULL, `uid` INTEGER NOT NULL, `time` TEXT NOT NULL, PRIMARY KEY (`opId`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `HistoryTag` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `tagName` TEXT NOT NULL, `hisId` INTEGER NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `OperationRecord` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` TEXT NOT NULL, `module` TEXT NOT NULL, `method` INTEGER NOT NULL, `data` TEXT NOT NULL, `time` TEXT NOT NULL)');
-        await database.execute(
-            'CREATE INDEX `index_SyncHistory_devId_hisId` ON `SyncHistory` (`devId`, `hisId`)');
         await database.execute(
             'CREATE UNIQUE INDEX `index_HistoryTag_tagName_hisId` ON `HistoryTag` (`tagName`, `hisId`)');
         await database.execute(
@@ -140,9 +139,9 @@ class _$AppDb extends AppDb {
   }
 
   @override
-  SyncHistoryDao get syncHistoryDao {
+  OperationSyncDao get operationSyncDao {
     return _syncHistoryDaoInstance ??=
-        _$SyncHistoryDao(database, changeListener);
+        _$OperationSyncDao(database, changeListener);
   }
 
   @override
@@ -193,10 +192,10 @@ class _$UserDao extends UserDao {
   final UpdateAdapter<User> _userUpdateAdapter;
 
   @override
-  Future<User?> getById(String id) async {
+  Future<User?> getById(int id) async {
     return _queryAdapter.query('select * from user where id = ?1',
         mapper: (Map<String, Object?> row) => User(
-            id: row['id'] as String?,
+            id: row['id'] as int?,
             account: row['account'] as String,
             password: row['password'] as String,
             type: row['type'] as String),
@@ -272,7 +271,7 @@ class _$ConfigDao extends ConfigDao {
   @override
   Future<String?> getConfig(
       String key,
-      String uid,
+      int uid,
       ) async {
     return _queryAdapter.query(
         'select value from config where key = ?1 and uid = ?2',
@@ -283,7 +282,7 @@ class _$ConfigDao extends ConfigDao {
   @override
   Future<String?> getConfigByDefault(
       String key,
-      String uid,
+      int uid,
       String def,
       ) async {
     return _queryAdapter.query(
@@ -295,7 +294,7 @@ class _$ConfigDao extends ConfigDao {
   @override
   Future<void> removeByKey(
       String key,
-      String uid,
+      int uid,
       ) async {
     await _queryAdapter.queryNoReturn(
         'delete from config where key = ?1 and uid = ?2',
@@ -349,12 +348,12 @@ class _$HistoryDao extends HistoryDao {
   final InsertionAdapter<History> _historyInsertionAdapter;
 
   @override
-  Future<History?> getLatestLocalClip(String uid) async {
+  Future<History?> getLatestLocalClip(int uid) async {
     return _queryAdapter.query(
         'select * from history where uid = ?1 order by id desc limit 1',
         mapper: (Map<String, Object?> row) => History(
             id: row['id'] as int,
-            uid: row['uid'] as String,
+            uid: row['uid'] as int,
             time: row['time'] as String,
             content: row['content'] as String,
             type: row['type'] as String,
@@ -369,17 +368,17 @@ class _$HistoryDao extends HistoryDao {
   Future<List<History>> getMissingHistory(String devId) async {
     return _queryAdapter.queryList(
         'SELECT * FROM history h WHERE NOT EXISTS (SELECT 1 FROM SyncHistory sh WHERE sh.hisId = h.id AND sh.devId = ?1) and h.devId != ?1',
-        mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as String, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
+        mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as int, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
         arguments: [devId]);
   }
 
   @override
-  Future<List<History>> getHistoriesTop20(String uid) async {
+  Future<List<History>> getHistoriesTop20(int uid) async {
     return _queryAdapter.queryList(
         'select * from history where uid = ?1 order by top,id desc limit 20',
         mapper: (Map<String, Object?> row) => History(
             id: row['id'] as int,
-            uid: row['uid'] as String,
+            uid: row['uid'] as int,
             time: row['time'] as String,
             content: row['content'] as String,
             type: row['type'] as String,
@@ -392,12 +391,12 @@ class _$HistoryDao extends HistoryDao {
 
   @override
   Future<List<History>> getHistoriesPage(
-      String uid,
+      int uid,
       int fromId,
       ) async {
     return _queryAdapter.queryList(
         'select * from history where uid = ?1 and id < ?2 order by top,id desc limit 20',
-        mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as String, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
+        mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as int, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
         arguments: [uid, fromId]);
   }
 
@@ -429,7 +428,7 @@ class _$HistoryDao extends HistoryDao {
   }
 
   @override
-  Future<int?> transformLocalToUser(String uid) async {
+  Future<int?> transformLocalToUser(int uid) async {
     return _queryAdapter.query('update history set uid = ?1 where uid = 0',
         mapper: (Map<String, Object?> row) => row.values.first as int,
         arguments: [uid]);
@@ -457,9 +456,8 @@ class _$DeviceDao extends DeviceDao {
             database,
             'Device',
                 (Device item) => <String, Object?>{
-              'id': item.id,
-              'devName': item.devName,
               'guid': item.guid,
+              'devName': item.devName,
               'uid': item.uid,
               'type': item.type,
               'lastConnTime': item.lastConnTime,
@@ -468,11 +466,10 @@ class _$DeviceDao extends DeviceDao {
         _deviceUpdateAdapter = UpdateAdapter(
             database,
             'Device',
-            ['id'],
+            ['guid'],
                 (Device item) => <String, Object?>{
-              'id': item.id,
-              'devName': item.devName,
               'guid': item.guid,
+              'devName': item.devName,
               'uid': item.uid,
               'type': item.type,
               'lastConnTime': item.lastConnTime,
@@ -490,13 +487,12 @@ class _$DeviceDao extends DeviceDao {
   final UpdateAdapter<Device> _deviceUpdateAdapter;
 
   @override
-  Future<List<Device>> getAllDevices(String uid) async {
+  Future<List<Device>> getAllDevices(int uid) async {
     return _queryAdapter.queryList('select * from device where uid = ?1',
         mapper: (Map<String, Object?> row) => Device(
-            id: row['id'] as int?,
             guid: row['guid'] as String,
             devName: row['devName'] as String,
-            uid: row['uid'] as String,
+            uid: row['uid'] as int,
             type: row['type'] as String),
         arguments: [uid]);
   }
@@ -504,15 +500,14 @@ class _$DeviceDao extends DeviceDao {
   @override
   Future<Device?> getById(
       String guid,
-      String uid,
+      int uid,
       ) async {
     return _queryAdapter.query(
         'select * from device where guid = ?1 and uid = ?2',
         mapper: (Map<String, Object?> row) => Device(
-            id: row['id'] as int?,
             guid: row['guid'] as String,
             devName: row['devName'] as String,
-            uid: row['uid'] as String,
+            uid: row['uid'] as int,
             type: row['type'] as String),
         arguments: [guid, uid]);
   }
@@ -520,7 +515,7 @@ class _$DeviceDao extends DeviceDao {
   @override
   Future<int?> remove(
       String guid,
-      String uid,
+      int uid,
       ) async {
     return _queryAdapter.query(
         'delete from device where guid = ?1 and uid = ?2',
@@ -541,28 +536,29 @@ class _$DeviceDao extends DeviceDao {
   }
 }
 
-class _$SyncHistoryDao extends SyncHistoryDao {
-  _$SyncHistoryDao(
+class _$OperationSyncDao extends OperationSyncDao {
+  _$OperationSyncDao(
       this.database,
       this.changeListener,
-      ) : _syncHistoryInsertionAdapter = InsertionAdapter(
+      ) : _operationSyncInsertionAdapter = InsertionAdapter(
       database,
-      'SyncHistory',
-          (SyncHistory item) => <String, Object?>{
-        'id': item.id,
+      'OperationSync',
+          (OperationSync item) => <String, Object?>{
+        'opId': item.opId,
         'devId': item.devId,
-        'hisId': item.hisId
+        'uid': item.uid,
+        'time': item.time
       });
 
   final sqflite.DatabaseExecutor database;
 
   final StreamController<String> changeListener;
 
-  final InsertionAdapter<SyncHistory> _syncHistoryInsertionAdapter;
+  final InsertionAdapter<OperationSync> _operationSyncInsertionAdapter;
 
   @override
-  Future<int> add(SyncHistory syncHistory) {
-    return _syncHistoryInsertionAdapter.insertAndReturnId(
+  Future<int> add(OperationSync syncHistory) {
+    return _operationSyncInsertionAdapter.insertAndReturnId(
         syncHistory, OnConflictStrategy.abort);
   }
 }

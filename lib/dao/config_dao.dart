@@ -9,12 +9,12 @@ abstract class ConfigDao {
 
   ///获取某个配置项
   @Query("select value from config where key = :key and uid = :uid")
-  Future<String?> getConfig(String key, String uid);
+  Future<String?> getConfig(String key, int uid);
 
   ///获取配置项，不存在则返回默认值
   @Query(
       "select coalesce(value,:def) as value from config where key = :key and uid = :uid")
-  Future<String?> getConfigByDefault(String key, String uid, String def);
+  Future<String?> getConfigByDefault(String key, int uid, String def);
 
   ///添加一个配置
   @insert
@@ -30,5 +30,5 @@ abstract class ConfigDao {
 
   ///根据 key 删除配置
   @Query("delete from config where key = :key and uid = :uid")
-  Future<void> removeByKey(String key, String uid);
+  Future<void> removeByKey(String key, int uid);
 }

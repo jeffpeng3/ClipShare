@@ -6,7 +6,7 @@ import '../entity/tables/user.dart';
 abstract class UserDao {
   ///根据用户 id 获取用户信息
   @Query("select * from user where id = :id")
-  Future<User?> getById(String id);
+  Future<User?> getById(int id);
 
   ///添加用户
   @insert

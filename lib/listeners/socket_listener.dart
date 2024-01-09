@@ -28,7 +28,7 @@ abstract class DevAliveObserver {
   void onDisConnected(String devId);
 
   //配对成功
-  void onPaired(DevInfo dev, String uid, bool result);
+  void onPaired(DevInfo dev, int uid, bool result);
 }
 
 class DevSocket {
@@ -274,7 +274,7 @@ class SocketListener {
   }
 
   ///设备配对成功
-  void _onDevPaired(DevInfo dev, String uid, bool result) {
+  void _onDevPaired(DevInfo dev, int uid, bool result) {
     Log.debug(tag, "${dev.name} paired");
     _devSockets[dev.guid]?.isPaired = true;
     for (var ob in _devAliveObservers) {

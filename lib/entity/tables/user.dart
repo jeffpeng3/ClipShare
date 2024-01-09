@@ -4,7 +4,7 @@ import 'package:floor/floor.dart';
 class User {
   @PrimaryKey()
   ///用户id（uuid）
-  String? id;
+  int? id;
 
   ///账号
   late String account;

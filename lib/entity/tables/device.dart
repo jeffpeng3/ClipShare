@@ -2,17 +2,15 @@ import 'package:floor/floor.dart';
 
 @entity
 class Device {
-  @PrimaryKey(autoGenerate: true)
-
-  ///设备 id
-  int? id;
-
-  ///设备名称
-  late String devName;
+  ///设备id
+  @primaryKey
   late String guid;
 
-  ///用户id（uuid）
-  late String uid;
+  ///设备名称
+  String devName;
+
+  ///用户 id
+  int uid;
 
   ///设备类型
   String type = "unknown";
@@ -24,7 +22,6 @@ class Device {
   String? lastAddr;
 
   Device({
-    this.id,
     required this.guid,
     required this.devName,
     required this.uid,

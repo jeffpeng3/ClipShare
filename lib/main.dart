@@ -51,7 +51,7 @@ class App extends StatelessWidget {
 
   //当前设备id
   static late final DevInfo devInfo;
-  static String userId = "0";
+  static int userId = 0;
   static late final Snowflake snowflake;
   static late final FToast toast;
   static late BuildContext context;

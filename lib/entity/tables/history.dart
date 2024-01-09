@@ -9,7 +9,7 @@ class History implements Comparable {
   late int id;
 
   ///用户id（uuid）
-  late String uid;
+  late int uid;
 
   ///时间
   late String time;
