@@ -3,19 +3,22 @@ import 'package:clipshare/util/log.dart';
 class Constants {
   //组播默认端口
   static const int port = 42317;
+
   //组播地址
   static const String multicastGroup = '224.0.0.128';
+
   //组播心跳时长
   static const heartbeatsSeconds = 10;
+
   //配对时限（秒）
   static const pairingLimit = 60;
   static const channelCommon = "common";
   static const channelClip = "clip";
   static const channelAndroid = "android";
 }
-enum Option{
-  add,delete,update
-}
+
+enum Option { add, delete, update }
+
 enum MsgType {
   //设备信息
   devInfo,
@@ -46,5 +49,19 @@ enum MsgType {
       MsgType.values.firstWhere((e) => e.name == name, orElse: () {
         Log.debug("MsgKey", "key '$name' unknown");
         return MsgType.unknown;
+      });
+}
+
+enum OpMethod {
+  add,
+  delete,
+  update,
+  sync,
+  unknown;
+
+  static OpMethod getValue(String name) =>
+      OpMethod.values.firstWhere((e) => e.name == name, orElse: () {
+        Log.debug("OpMethod", "key '$name' unknown");
+        return OpMethod.unknown;
       });
 }
