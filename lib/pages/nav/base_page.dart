@@ -8,6 +8,7 @@ import 'package:clipshare/pages/nav/devices_page.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/pages/nav/profile_page.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/platform_util.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/snowflake.dart';
@@ -252,7 +253,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
       String name = data['dev'];
       String type = data['type'];
       Log.debug("baseInfo", "$guid $name $type");
-      App.devInfo = DevInfo(guid, name, type);
+      App.devInfo = DevInfo(CryptoUtil.toMD5(guid), name, type);
       App.snowflake = Snowflake(guid.hashCode);
       SocketListener.inst;
       pages = const [HistoryPage(), DevicesPage(), ProfilePage()];
