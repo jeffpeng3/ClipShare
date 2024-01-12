@@ -6,9 +6,8 @@ import 'package:floor/floor.dart';
   Index(value: ['tagName', "hisId"], unique: true)
 ])
 class HistoryTag {
-  @PrimaryKey(autoGenerate: true)
-
   ///主键 id
+  @PrimaryKey(autoGenerate: true)
   int id;
 
   ///标签名称
@@ -22,6 +21,10 @@ class HistoryTag {
     this.tagName,
     this.hisId,
   );
+
+  static HistoryTag fromJson(Map<String, dynamic> map) {
+    return HistoryTag(map["id"], map["tagName"], map["hisId"]);
+  }
 
   Map<String, dynamic> toJson() {
     return {

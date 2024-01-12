@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:clipshare/entity/dev_info.dart';
+import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
@@ -9,6 +12,7 @@ import '../../components/device_card.dart';
 import '../../dao/device_dao.dart';
 import '../../db/db_util.dart';
 import '../../entity/tables/device.dart';
+import '../../entity/tables/operation_sync.dart';
 import '../../listeners/socket_listener.dart';
 import '../../main.dart';
 import '../../util/log.dart';
@@ -20,7 +24,8 @@ class DevicesPage extends StatefulWidget {
   State<DevicesPage> createState() => _DevicesPageState();
 }
 
-class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
+class _DevicesPageState extends State<DevicesPage>
+    implements DevAliveObserver, SyncObserver {
   final List<DeviceCard> _discoverList = List.empty(growable: true);
   final List<DeviceCard> _pairedList = List.empty(growable: true);
   late StateSetter _pairingState;
@@ -28,12 +33,12 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
   bool _pairing = false;
   late DeviceDao _deviceDao;
   final String tag = "DevicesPage";
-  final String module = "设备管理";
 
   @override
   void initState() {
     SocketListener.inst.then((inst) {
       inst.addDevAliveListener(this);
+      inst.addSyncListener(Module.device, this);
     });
     _deviceDao = DBUtil.inst.deviceDao;
     _deviceDao.getAllDevices(App.userId).then((list) {
@@ -54,6 +59,7 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
   void dispose() {
     SocketListener.inst.then((inst) {
       inst.removeDevAliveListener(this);
+      inst.removeSyncListener(Module.device, this);
     });
     super.dispose();
   }
@@ -118,7 +124,7 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
 
   void requestPairing(DevInfo dev) {
     SocketListener.inst.then((inst) {
-      inst.sendData(dev, MsgType.requestPairing, {});
+      inst.sendData(dev, MsgType.reqPairing, {});
     });
     _pairing = false;
     _pairingFailed = false;
@@ -289,7 +295,7 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
       DBUtil.inst.opRecordDao.add(OperationRecord(
           id: App.snowflake.nextId(),
           uid: App.userId,
-          module: module,
+          module: Module.device,
           method: OpMethod.add,
           data: data.guid));
       //保存成功，从连接列表中移除
@@ -304,5 +310,58 @@ class _DevicesPageState extends State<DevicesPage> implements DevAliveObserver {
       ));
       setState(() {});
     });
+  }
+
+  @override
+  void ackSync(MessageData msg) {
+    var send = msg.send;
+    var data = msg.data;
+    var opSync =
+        OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
+    //记录同步记录
+    DBUtil.inst.opSyncDao.add(opSync);
+  }
+
+  @override
+  void onSync(MessageData msg) {
+    var send = msg.send;
+    var opRecord = OperationRecord.fromJson(msg.data);
+    Map<String, dynamic> json = jsonDecode(opRecord.data);
+    Device dev = Device.fromJson(json);
+    Future? f;
+    switch (opRecord.method) {
+      case OpMethod.add:
+        //是自己，不插入
+        if (dev.guid != App.devInfo.guid) {
+          f = DBUtil.inst.deviceDao.add(dev);
+          break;
+        }
+        f = Future(() => 1);
+        break;
+      case OpMethod.delete:
+        DBUtil.inst.deviceDao.remove(dev.guid, App.userId);
+        break;
+      case OpMethod.update:
+        f = DBUtil.inst.deviceDao.updateDevice(dev);
+        break;
+      default:
+        return;
+    }
+    if (f == null) {
+      //发送同步确认
+      SocketListener.inst.then((inst) {
+        inst.sendData(send, MsgType.ackSync,
+            {"id": opRecord.id, "module": Module.device.moduleName});
+      });
+    } else {
+      f.then((cnt) {
+        if (cnt <= 0) return;
+        //发送同步确认
+        SocketListener.inst.then((inst) {
+          inst.sendData(send, MsgType.ackSync,
+              {"id": opRecord.id, "module": Module.device.moduleName});
+        });
+      });
+    }
   }
 }

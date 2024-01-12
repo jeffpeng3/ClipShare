@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:clipshare/util/log.dart';
+
 import '../util/constants.dart';
 import 'dev_info.dart';
 
@@ -43,6 +45,8 @@ class MessageData {
   }
 
   String toJsonStr() {
+    var json = jsonEncode(toJson());
+    Log.debug("test json", json);
     return jsonEncode(toJson());
   }
 }

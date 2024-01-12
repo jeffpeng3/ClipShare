@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:clipshare/components/clip_data_card.dart';
@@ -8,7 +9,6 @@ import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/entity/tables/operation_sync.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
-import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
@@ -30,14 +30,13 @@ class HistoryPage extends StatefulWidget {
 
 class _HistoryPageState extends State<HistoryPage>
     with WidgetsBindingObserver
-    implements ClipObserver, SocketObserver {
+    implements ClipObserver, SyncObserver {
   final List<ClipData> _list = List.empty(growable: true);
   late HistoryDao historyDao;
   late OperationSyncDao syncHistoryDao;
   bool _copyInThisCopy = false;
   int? _minId;
   final String tag = "HistoryPage";
-  final String module = "历史记录";
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -45,7 +44,8 @@ class _HistoryPageState extends State<HistoryPage>
     super.initState();
     historyDao = DBUtil.inst.historyDao;
     syncHistoryDao = DBUtil.inst.opSyncDao;
-    SocketListener.inst.then((inst) => {inst.addSocketListener(this)});
+    SocketListener.inst
+        .then((inst) => {inst.addSyncListener(Module.history, this)});
     refreshData();
     ClipListener.instance().register(this);
     //监听生命周期
@@ -59,7 +59,8 @@ class _HistoryPageState extends State<HistoryPage>
     WidgetsBinding.instance.removeObserver(this);
     // 释放资源
     _scrollController.dispose();
-    SocketListener.inst.then((inst) => {inst.removeSocketListener(this)});
+    SocketListener.inst
+        .then((inst) => {inst.removeSyncListener(Module.history, this)});
     super.dispose();
   }
 
@@ -210,21 +211,25 @@ class _HistoryPageState extends State<HistoryPage>
         type: 'Text',
         size: content.length);
     //添加操作记录
-    DBUtil.inst.opRecordDao.add(OperationRecord(
+    var opRecord = OperationRecord(
         id: App.snowflake.nextId(),
         uid: App.userId,
-        module: module,
+        module: Module.history,
         method: OpMethod.add,
-        data: history.id.toString()));
-    addData(history);
-    SocketListener.inst.then((inst) {
-      inst.sendData(null, MsgType.history, history.toJson());
+        data: history.id.toString());
+    DBUtil.inst.opRecordDao.add(opRecord).then((cnt) {
+      if (cnt <= 0) return;
+      opRecord.data = history.toString();
+      SocketListener.inst.then((inst) {
+        inst.sendData(null, MsgType.sync, opRecord.toJson());
+      });
     });
+    addData(history);
   }
 
-  void addData(History history) {
+  Future<int> addData(History history) {
     var clip = ClipData(history);
-    historyDao.add(clip.data);
+    var f = historyDao.add(clip.data);
     if (_minId == null) {
       _minId = clip.data.id;
     } else {
@@ -233,25 +238,16 @@ class _HistoryPageState extends State<HistoryPage>
     _list.add(clip);
     _list.sort((a, b) => b.data.compareTo(a.data));
     setState(() {});
+    return f;
   }
 
-  @override
   Future<void> onReceived(MessageData msg) async {
     String devId = msg.send.guid;
     switch (msg.key) {
-      //接收剪贴板
-      case MsgType.history:
-        History history = History.fromJson(msg.data);
-        history.sync = true;
-        addData(history);
-        _copyInThisCopy = true;
-        Clipboard.setData(ClipboardData(text: history.content));
-        //发送同步确认
-        SocketListener.inst.then((inst) {
-          inst.sendData(msg.send, MsgType.ackSync, {"id": history.id});
-        });
+      //接收单条同步数据
+      case MsgType.sync:
         break;
-      //确认已同步
+      //确认已同步 todo
       case MsgType.ackSync:
         var hisId = msg.data["id"];
         DBUtil.inst.historyDao.setSync(hisId.toString(), true);
@@ -267,19 +263,20 @@ class _HistoryPageState extends State<HistoryPage>
         }
         break;
       //请求未同步数据
-      case MsgType.requestSyncMissingData:
-        //查找请求方未同步的数据
+      case MsgType.reqMissingData:
+        //查找请求方未同步的数据 todo 返回操作记录的数据，一次传输一百条，分批同步
         historyDao.getMissingHistory(devId).then((lst) {
           SocketListener.inst.then((inst) {
             inst.sendData(msg.send, MsgType.missingData, {"data": lst});
           });
         });
         break;
-      //同步缺失数据
+      //批量同步缺失数据
       case MsgType.missingData:
         try {
           var data = msg.data["data"] as List;
           for (var item in data) {
+            //循环调用
             var h = History.fromJson(item);
             h.sync = true;
             await historyDao.add(h).then((v) {
@@ -302,6 +299,71 @@ class _HistoryPageState extends State<HistoryPage>
         }
         break;
       default:
+    }
+  }
+
+  @override
+  void ackSync(MessageData msg) {
+    var send = msg.send;
+    var data = msg.data;
+    var opSync =
+        OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
+    //记录同步记录
+    DBUtil.inst.opSyncDao.add(opSync);
+    //更新本地历史记录为已同步
+    var hisId = msg.data["hisId"];
+    DBUtil.inst.historyDao.setSync(hisId.toString(), true);
+    Log.debug(tag, hisId);
+    for (var clip in _list) {
+      if (clip.data.id.toString() == hisId.toString()) {
+        clip.data.sync = true;
+        setState(() {});
+        break;
+      }
+    }
+  }
+
+  @override
+  void onSync(MessageData msg) {
+    var send = msg.send;
+    var opRecord = OperationRecord.fromJson(msg.data);
+    Map<String, dynamic> json = jsonDecode(opRecord.data);
+    History history = History.fromJson(json);
+    history.sync = true;
+    Future? f;
+    switch (opRecord.method) {
+      case OpMethod.add:
+        f = addData(history);
+        //不是批量同步时放入本地剪贴板
+        if (msg.key != MsgType.missingData) {
+          _copyInThisCopy = true;
+          Clipboard.setData(ClipboardData(text: history.content));
+        }
+        break;
+      case OpMethod.delete:
+        DBUtil.inst.historyDao.delete(history.id.toString());
+        break;
+      case OpMethod.update:
+        f = DBUtil.inst.historyDao.updateHistory(history);
+        break;
+      default:
+        return;
+    }
+    if (f == null) {
+      //发送同步确认
+      SocketListener.inst.then((inst) {
+        inst.sendData(
+            send, MsgType.ackSync, {"id": opRecord.id, "hisId": history.id,"module":Module.history.moduleName});
+      });
+    } else {
+      f.then((cnt) {
+        if (cnt <= 0) return;
+        //发送同步确认
+        SocketListener.inst.then((inst) {
+          inst.sendData(
+              send, MsgType.ackSync, {"id": opRecord.id, "hisId": history.id,"module":Module.history.moduleName});
+        });
+      });
     }
   }
 }

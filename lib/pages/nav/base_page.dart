@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:clipshare/dao/device_dao.dart';
 import 'package:clipshare/entity/dev_info.dart';
+import 'package:clipshare/handler/tag_syncer.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/pages/nav/devices_page.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
@@ -36,7 +37,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   List<Widget> pages = [];
   late DeviceDao deviceDao;
   bool trayClick = false;
-
+  late TagSyncer _tagSyncer;
   String get tag => "HomePage";
 
   // final TrayManager _trayManager = TrayManager.instance;
@@ -54,7 +55,6 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
         initWindows();
       }
     });
-    Global.notify("main created");
   }
 
   ///初始化托盘
@@ -193,7 +193,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
         case "onScreenOpened":
           //此处应该发送socket通知同步剪贴板到本机
           SocketListener.inst.then((inst) {
-            inst.sendData(null, MsgType.requestSyncMissingData, {});
+            inst.sendData(null, MsgType.reqMissingData, {});
           });
           break;
         case "checkMustPermission":
@@ -231,6 +231,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
 
   /// 初始化通用行为
   void initCommon() async {
+    _tagSyncer = TagSyncer();
     //初始化数据库
     deviceDao = DBUtil.inst.deviceDao;
     //接收平台消息
@@ -265,6 +266,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   void dispose() {
     trayManager.removeListener(this);
     windowManager.removeListener(this);
+    _tagSyncer.destroy();
     super.dispose();
   }
 

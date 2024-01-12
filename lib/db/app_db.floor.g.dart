@@ -337,6 +337,21 @@ class _$HistoryDao extends HistoryDao {
               'top': item.top ? 1 : 0,
               'sync': item.sync ? 1 : 0,
               'size': item.size
+            }),
+        _historyUpdateAdapter = UpdateAdapter(
+            database,
+            'History',
+            ['id'],
+                (History item) => <String, Object?>{
+              'id': item.id,
+              'uid': item.uid,
+              'time': item.time,
+              'content': item.content,
+              'type': item.type,
+              'devId': item.devId,
+              'top': item.top ? 1 : 0,
+              'sync': item.sync ? 1 : 0,
+              'size': item.size
             });
 
   final sqflite.DatabaseExecutor database;
@@ -346,6 +361,8 @@ class _$HistoryDao extends HistoryDao {
   final QueryAdapter _queryAdapter;
 
   final InsertionAdapter<History> _historyInsertionAdapter;
+
+  final UpdateAdapter<History> _historyUpdateAdapter;
 
   @override
   Future<History?> getLatestLocalClip(int uid) async {
@@ -441,8 +458,30 @@ class _$HistoryDao extends HistoryDao {
   }
 
   @override
+  Future<History?> getById(String id) async {
+    return _queryAdapter.query('select * from history where id = ?1',
+        mapper: (Map<String, Object?> row) => History(
+            id: row['id'] as int,
+            uid: row['uid'] as int,
+            time: row['time'] as String,
+            content: row['content'] as String,
+            type: row['type'] as String,
+            devId: row['devId'] as String,
+            top: (row['top'] as int) != 0,
+            sync: (row['sync'] as int) != 0,
+            size: row['size'] as int),
+        arguments: [id]);
+  }
+
+  @override
   Future<int> add(History history) {
     return _historyInsertionAdapter.insertAndReturnId(
+        history, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<int> updateHistory(History history) {
+    return _historyUpdateAdapter.updateAndReturnChangedRows(
         history, OnConflictStrategy.abort);
   }
 }
@@ -575,6 +614,15 @@ class _$HistoryTagDao extends HistoryTagDao {
               'id': item.id,
               'tagName': item.tagName,
               'hisId': item.hisId
+            }),
+        _historyTagUpdateAdapter = UpdateAdapter(
+            database,
+            'HistoryTag',
+            ['id'],
+                (HistoryTag item) => <String, Object?>{
+              'id': item.id,
+              'tagName': item.tagName,
+              'hisId': item.hisId
             });
 
   final sqflite.DatabaseExecutor database;
@@ -584,6 +632,8 @@ class _$HistoryTagDao extends HistoryTagDao {
   final QueryAdapter _queryAdapter;
 
   final InsertionAdapter<HistoryTag> _historyTagInsertionAdapter;
+
+  final UpdateAdapter<HistoryTag> _historyTagUpdateAdapter;
 
   @override
   Future<List<HistoryTag>> list(String hId) async {
@@ -616,9 +666,35 @@ class _$HistoryTagDao extends HistoryTagDao {
   }
 
   @override
+  Future<HistoryTag?> get(
+      String hId,
+      String tagName,
+      ) async {
+    return _queryAdapter.query(
+        'select * from HistoryTag where hisId = ?1 and tagName = ?2',
+        mapper: (Map<String, Object?> row) => HistoryTag(
+            row['id'] as int, row['tagName'] as String, row['hisId'] as int),
+        arguments: [hId, tagName]);
+  }
+
+  @override
+  Future<HistoryTag?> getById(String id) async {
+    return _queryAdapter.query('select * from HistoryTag where id = ?1',
+        mapper: (Map<String, Object?> row) => HistoryTag(
+            row['id'] as int, row['tagName'] as String, row['hisId'] as int),
+        arguments: [id]);
+  }
+
+  @override
   Future<int> add(HistoryTag tag) {
     return _historyTagInsertionAdapter.insertAndReturnId(
         tag, OnConflictStrategy.ignore);
+  }
+
+  @override
+  Future<int> updateTag(HistoryTag tag) {
+    return _historyTagUpdateAdapter.updateAndReturnChangedRows(
+        tag, OnConflictStrategy.abort);
   }
 }
 
@@ -626,23 +702,37 @@ class _$OperationRecordDao extends OperationRecordDao {
   _$OperationRecordDao(
       this.database,
       this.changeListener,
-      ) : _operationRecordInsertionAdapter = InsertionAdapter(
-      database,
-      'OperationRecord',
-          (OperationRecord item) => <String, Object?>{
-        'id': item.id,
-        'uid': item.uid,
-        'module': item.module,
-        'method': _opMethodTypeConverter.encode(item.method),
-        'data': item.data,
-        'time': item.time
-      });
+      )   : _queryAdapter = QueryAdapter(database),
+        _operationRecordInsertionAdapter = InsertionAdapter(
+            database,
+            'OperationRecord',
+                (OperationRecord item) => <String, Object?>{
+              'id': item.id,
+              'uid': item.uid,
+              'module': _moduleTypeConverter.encode(item.module),
+              'method': _opMethodTypeConverter.encode(item.method),
+              'data': item.data,
+              'time': item.time
+            });
 
   final sqflite.DatabaseExecutor database;
 
   final StreamController<String> changeListener;
 
+  final QueryAdapter _queryAdapter;
+
   final InsertionAdapter<OperationRecord> _operationRecordInsertionAdapter;
+
+  @override
+  Future<List<OperationRecord>> getSyncRecord(
+      int uid,
+      String devId,
+      ) async {
+    return _queryAdapter.queryList(
+        'select * from OperationRecord record   where not exists (     select 1 from OperationSync opsync     where opsync.uid = ?1 and opsync.devId = ?2 and opsync.opId = record.id   )',
+        mapper: (Map<String, Object?> row) => OperationRecord(id: row['id'] as int, uid: row['uid'] as int, module: _moduleTypeConverter.decode(row['module'] as String), method: _opMethodTypeConverter.decode(row['method'] as String), data: row['data'] as String),
+        arguments: [uid, devId]);
+  }
 
   @override
   Future<int> add(OperationRecord record) {
@@ -652,4 +742,5 @@ class _$OperationRecordDao extends OperationRecordDao {
 }
 
 // ignore_for_file: unused_element
+final _moduleTypeConverter = ModuleTypeConverter();
 final _opMethodTypeConverter = OpMethodTypeConverter();

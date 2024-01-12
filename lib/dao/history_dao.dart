@@ -8,7 +8,7 @@ abstract class HistoryDao {
   @Query("select * from history where uid = :uid order by id desc limit 1")
   Future<History?> getLatestLocalClip(int uid);
 
-  /// 获取某设备未同步的记录
+  /// 【废弃】获取某设备未同步的记录
   @Query(
       "SELECT * FROM history h WHERE NOT EXISTS (SELECT 1 FROM SyncHistory sh WHERE sh.hisId = h.id AND sh.devId = :devId) and h.devId != :devId")
   Future<List<History>> getMissingHistory(String devId);
@@ -45,4 +45,11 @@ abstract class HistoryDao {
   ///删除本地记录用户记录
   @Query("delete from history where uid = 0")
   Future<int?> removeAllLocalHistories();
+
+  ///根据id获取记录
+  @Query("select * from history where id = :id")
+  Future<History?> getById(String id);
+
+  @update
+  Future<int> updateHistory(History history);
 }

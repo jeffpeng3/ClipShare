@@ -45,4 +45,12 @@ class Device {
   String toString() {
     return jsonEncode(toJson());
   }
+
+  static Device fromJson(Map<String, dynamic> map) {
+    return Device(
+        guid: map["guid"],
+        devName: map["devName"],
+        uid: map["uid"],
+        type: map["type"]);
+  }
 }

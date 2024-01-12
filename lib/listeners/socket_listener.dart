@@ -7,7 +7,9 @@ import 'package:clipshare/dao/device_dao.dart';
 import 'package:clipshare/dao/history_dao.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/message_data.dart';
+import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/handler/dev_pairing_handler.dart';
+import 'package:clipshare/handler/req_missing_data_handler.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
@@ -15,10 +17,6 @@ import 'package:flutter/material.dart';
 
 import '../db/db_util.dart';
 import '../util/crypto.dart';
-
-abstract class SocketObserver {
-  void onReceived(MessageData data);
-}
 
 abstract class DevAliveObserver {
   //连接成功
@@ -31,6 +29,14 @@ abstract class DevAliveObserver {
   void onPaired(DevInfo dev, int uid, bool result);
 }
 
+abstract class SyncObserver {
+  //同步数据
+  void onSync(MessageData msg);
+
+  //确认同步
+  void ackSync(MessageData msg);
+}
+
 class DevSocket {
   DevInfo dev;
   Socket socket;
@@ -41,9 +47,8 @@ class DevSocket {
 
 class SocketListener {
   static const String tag = "SocketListener";
-  late HistoryDao _historyDao;
   late DeviceDao _deviceDao;
-  final List<SocketObserver> _socketObservers = List.empty(growable: true);
+  final Map<Module, List<SyncObserver>> _syncObservers = {};
   final List<DevAliveObserver> _devAliveObservers = List.empty(growable: true);
   late RawDatagramSocket _multicastSocket;
   final Map<String, DevSocket> _devSockets = {};
@@ -58,7 +63,6 @@ class SocketListener {
       _singleton ??= await SocketListener._private()._init();
 
   Future<SocketListener> _init() async {
-    _historyDao = DBUtil.inst.historyDao;
     _deviceDao = DBUtil.inst.deviceDao;
     _multicastSocket =
         await _getSocket(Constants.multicastGroup, Constants.port);
@@ -169,14 +173,22 @@ class SocketListener {
     });
   }
 
-  ///socket消息处理
-  void _onReceivedMsg(MessageData msg) {
-    for (var ob in _socketObservers) {
-      try {
-        ob.onReceived(msg);
-      } catch (e, stack) {
-        Log.debug(tag, e);
-        Log.debug(tag, stack);
+  ///数据同步处理
+  void _onSyncMsg(MessageData msg) {
+    Module module = Module.getValue(msg.data["module"]);
+    var lst = _syncObservers[module];
+    if (lst == null) return;
+    for (var ob in lst) {
+      switch (msg.key) {
+        case MsgType.sync:
+        case MsgType.missingData:
+          ob.onSync(msg);
+          break;
+        case MsgType.ackSync:
+          ob.ackSync(msg);
+          break;
+        default:
+          break;
       }
     }
   }
@@ -186,19 +198,40 @@ class SocketListener {
     Log.debug(tag, msg.key);
     DevInfo dev = msg.send;
     switch (msg.key) {
+      ///刚建立连接，保存设备信息
       case MsgType.devInfo:
-        //刚建立连接，保存设备信息
         _devSockets[dev.guid] = DevSocket(dev: dev, socket: socket);
         _onDevConnected(dev);
         break;
-      case MsgType.history:
-      case MsgType.requestSyncMissingData:
-      case MsgType.missingData:
+
+      ///单条数据同步
       case MsgType.ackSync:
-        _onReceivedMsg(msg);
+      case MsgType.sync:
+        _onSyncMsg(msg);
         break;
-      case MsgType.requestPairing:
-        //请求配对我方，生成四位配对码
+
+      ///批量数据同步
+      case MsgType.missingData:
+        var copyMsg = MessageData.fromJson(msg.toJson());
+        // var data = msg.data["data"] as List;
+        var data = msg.data["data"];
+        // for (var item in data) {
+        copyMsg.data = data;
+        _onSyncMsg(copyMsg);
+        // }
+        break;
+
+      ///请求批量同步，一次同步一百条数据
+      case MsgType.reqMissingData:
+        ReqMissingDataHandler.getData(msg.send).then((lst) {
+          for (var item in lst) {
+            sendData(dev, MsgType.missingData, {"data": item});
+          }
+        });
+        break;
+
+      ///请求配对我方，生成四位配对码
+      case MsgType.reqPairing:
         final random = Random();
         int code = 1000 + random.nextInt(9000);
         DevPairingHandler.addCode(dev.guid, CryptoUtil.toMD5(code));
@@ -220,8 +253,9 @@ class SocketListener {
               );
             });
         break;
+
+      ///请求配对我方，验证配对码
       case MsgType.pairing:
-        //请求配对我方，验证配对码
         String code = msg.data["code"];
         //验证配对码
         var verify = DevPairingHandler.verify(dev.guid, code);
@@ -235,8 +269,9 @@ class SocketListener {
             recv: null);
         socket.write(result.toJsonStr());
         break;
+
+      ///获取配对结果
       case MsgType.paired:
-        //获取配对结果
         bool result = msg.data["result"];
         _onDevPaired(dev, msg.userId, result);
         break;
@@ -262,7 +297,7 @@ class SocketListener {
       if (v == null) return;
       _devSockets[dev.guid]?.isPaired = true;
       //连接成功且已配对，获取该设备未同步记录
-      sendData(dev, MsgType.requestSyncMissingData, {});
+      sendData(dev, MsgType.reqMissingData, {});
     });
     for (var ob in _devAliveObservers) {
       try {
@@ -347,18 +382,27 @@ class SocketListener {
     }
   }
 
-  void addSocketListener(SocketObserver observer) {
-    _socketObservers.add(observer);
+  ///添加同步监听
+  void addSyncListener(Module module, SyncObserver observer) {
+    if (_syncObservers.keys.contains(module)) {
+      _syncObservers[module]!.add(observer);
+      return;
+    }
+    _syncObservers[module] = List.empty(growable: true);
+    _syncObservers[module]!.add(observer);
   }
 
-  void removeSocketListener(SocketObserver observer) {
-    _socketObservers.remove(observer);
+  ///移除同步监听
+  void removeSyncListener(Module module, SyncObserver observer) {
+    _syncObservers[module]?.remove(observer);
   }
 
+  ///添加设备连接监听
   void addDevAliveListener(DevAliveObserver observer) {
     _devAliveObservers.add(observer);
   }
 
+  ///移除设备连接监听
   void removeDevAliveListener(DevAliveObserver observer) {
     _devAliveObservers.remove(observer);
   }
