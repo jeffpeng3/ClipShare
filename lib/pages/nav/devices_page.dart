@@ -251,6 +251,10 @@ class _DevicesPageState extends State<DevicesPage>
         //修改widget状态
         paired.isConnected = true;
         setState(() {});
+        //是已配对的设备，请求所有缺失数据
+        SocketListener.inst.then((inst){
+          inst.sendData(null, MsgType.reqMissingData, {});
+        });
         return;
       }
     }
@@ -284,6 +288,10 @@ class _DevicesPageState extends State<DevicesPage>
     }
     //关闭配对弹窗
     Navigator.of(context).pop();
+    //已配对，请求所有缺失数据
+    SocketListener.inst.then((inst){
+      inst.sendData(null, MsgType.reqMissingData, {});
+    });
     var data =
         Device(guid: dev.guid, devName: dev.name, uid: uid, type: dev.type);
     //新设备

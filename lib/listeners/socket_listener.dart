@@ -61,8 +61,8 @@ class SocketListener {
 
   static Future<SocketListener> get inst async =>
       _singleton ??= await SocketListener._private()._init();
-  String serverRec = "";
-  String clientRec = "";
+  String _serverRec = "";
+  String _clientRec = "";
 
   Future<SocketListener> _init() async {
     _deviceDao = DBUtil.inst.deviceDao;
@@ -130,14 +130,14 @@ class SocketListener {
         for (var rec in dataArr) {
           Log.debug("base64", rec);
           if (rec == "") continue;
-          clientRec += rec;
-          clientRec = CryptoUtil.base64Decode(clientRec);
+          _clientRec += rec;
+          _clientRec = CryptoUtil.base64Decode(_clientRec);
           try {
-            Map<String, dynamic> json = jsonDecode(clientRec);
+            Map<String, dynamic> json = jsonDecode(_clientRec);
             var msg = MessageData.fromJson(json);
             _onSocketListened(socket, msg);
           } finally {
-            clientRec = "";
+            _clientRec = "";
           }
         }
       },
@@ -169,15 +169,15 @@ class SocketListener {
           var dataArr = utf8.decode(data).split("\n");
           for (var rec in dataArr) {
             if (rec == "") continue;
-            serverRec += rec;
-            serverRec = CryptoUtil.base64Decode(serverRec);
+            _serverRec += rec;
+            _serverRec = CryptoUtil.base64Decode(_serverRec);
             try {
-              Map<String, dynamic> json = jsonDecode(serverRec);
+              Map<String, dynamic> json = jsonDecode(_serverRec);
               var msg = MessageData.fromJson(json);
               // 在这里处理接收到的消息，你可以根据需要进行逻辑处理
               _onSocketListened(client, msg);
             } finally {
-              serverRec = "";
+              _serverRec = "";
             }
           }
         },
