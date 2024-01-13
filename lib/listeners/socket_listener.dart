@@ -246,7 +246,7 @@ class SocketListener {
         // }
         break;
 
-      ///请求批量同步，一次同步一百条数据
+      ///请求批量同步
       case MsgType.reqMissingData:
         ReqMissingDataHandler.getData(msg.send).then((lst) {
           for (var item in lst) {

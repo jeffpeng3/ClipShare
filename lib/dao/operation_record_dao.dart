@@ -15,6 +15,7 @@ abstract class OperationRecordDao {
     select 1 from OperationSync opsync
     where opsync.uid = :uid and opsync.devId = :devId and opsync.opId = record.id
   )
+  order by id desc
   """)
   Future<List<OperationRecord>> getSyncRecord(int uid, String devId);
 }

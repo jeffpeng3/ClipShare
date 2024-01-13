@@ -36,6 +36,7 @@ class _HistoryPageState extends State<HistoryPage>
   late OperationSyncDao syncHistoryDao;
   bool _copyInThisCopy = false;
   int? _minId;
+  History? _last;
   final String tag = "HistoryPage";
   final ScrollController _scrollController = ScrollController();
 
@@ -74,10 +75,11 @@ class _HistoryPageState extends State<HistoryPage>
   }
 
   void _scrollListener() {
-    // 判断是否滑动到底部
+    // 判断是否快要滑动到底部
     if (_scrollController.position.extentAfter <= 200) {
       // 滑动到底部的处理逻辑
       if (_minId == null) return;
+      Log.debug(tag, "快到底部了！");
       historyDao.getHistoriesPage(App.userId, _minId!).then((list) {
         if (list.isEmpty) return;
         _minId = list[list.length - 1].id;
@@ -109,6 +111,7 @@ class _HistoryPageState extends State<HistoryPage>
         } else {
           _minId = min(_minId!, item.data.id);
         }
+        _last = item.data;
       }
       setState(() {});
     });
@@ -201,6 +204,10 @@ class _HistoryPageState extends State<HistoryPage>
       _copyInThisCopy = false;
       return;
     }
+    //和上次复制的内容相同
+    if (_last?.content == content) {
+      return;
+    }
     Log.debug("ClipData onChanged", content);
     var history = History(
         id: App.snowflake.nextId(),
@@ -238,7 +245,12 @@ class _HistoryPageState extends State<HistoryPage>
     _list.add(clip);
     _list.sort((a, b) => b.data.compareTo(a.data));
     setState(() {});
-    return f;
+    return f.then((cnt) {
+      if (cnt > 0) {
+        _last = history;
+      }
+      return cnt;
+    });
   }
 
   Future<void> onReceived(MessageData msg) async {
@@ -261,15 +273,6 @@ class _HistoryPageState extends State<HistoryPage>
             break;
           }
         }
-        break;
-      //请求未同步数据
-      case MsgType.reqMissingData:
-        //查找请求方未同步的数据 todo 返回操作记录的数据，一次传输一百条，分批同步
-        historyDao.getMissingHistory(devId).then((lst) {
-          SocketListener.inst.then((inst) {
-            inst.sendData(msg.send, MsgType.missingData, {"data": lst});
-          });
-        });
         break;
       //批量同步缺失数据
       case MsgType.missingData:
@@ -352,16 +355,22 @@ class _HistoryPageState extends State<HistoryPage>
     if (f == null) {
       //发送同步确认
       SocketListener.inst.then((inst) {
-        inst.sendData(
-            send, MsgType.ackSync, {"id": opRecord.id, "hisId": history.id,"module":Module.history.moduleName});
+        inst.sendData(send, MsgType.ackSync, {
+          "id": opRecord.id,
+          "hisId": history.id,
+          "module": Module.history.moduleName
+        });
       });
     } else {
       f.then((cnt) {
         if (cnt <= 0) return;
         //发送同步确认
         SocketListener.inst.then((inst) {
-          inst.sendData(
-              send, MsgType.ackSync, {"id": opRecord.id, "hisId": history.id,"module":Module.history.moduleName});
+          inst.sendData(send, MsgType.ackSync, {
+            "id": opRecord.id,
+            "hisId": history.id,
+            "module": Module.history.moduleName
+          });
         });
       });
     }

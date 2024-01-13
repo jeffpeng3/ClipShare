@@ -729,7 +729,7 @@ class _$OperationRecordDao extends OperationRecordDao {
       String devId,
       ) async {
     return _queryAdapter.queryList(
-        'select * from OperationRecord record   where not exists (     select 1 from OperationSync opsync     where opsync.uid = ?1 and opsync.devId = ?2 and opsync.opId = record.id   )',
+        'select * from OperationRecord record   where not exists (     select 1 from OperationSync opsync     where opsync.uid = ?1 and opsync.devId = ?2 and opsync.opId = record.id   )   order by id desc',
         mapper: (Map<String, Object?> row) => OperationRecord(id: row['id'] as int, uid: row['uid'] as int, module: _moduleTypeConverter.decode(row['module'] as String), method: _opMethodTypeConverter.decode(row['method'] as String), data: row['data'] as String),
         arguments: [uid, devId]);
   }
