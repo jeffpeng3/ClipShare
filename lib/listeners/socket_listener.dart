@@ -61,6 +61,8 @@ class SocketListener {
 
   static Future<SocketListener> get inst async =>
       _singleton ??= await SocketListener._private()._init();
+  String serverRec = "";
+  String clientRec = "";
 
   Future<SocketListener> _init() async {
     _deviceDao = DBUtil.inst.deviceDao;
@@ -74,7 +76,8 @@ class SocketListener {
       if (datagram == null) {
         return;
       }
-      Map<String, dynamic> json = jsonDecode(utf8.decode(datagram.data));
+      var data = CryptoUtil.base64Decode(utf8.decode(datagram.data));
+      Map<String, dynamic> json = jsonDecode(data);
       var msg = MessageData.fromJson(json);
       var dev = msg.send;
       //是本机跳过
@@ -117,14 +120,26 @@ class SocketListener {
         key: MsgType.devInfo,
         data: {},
         recv: null);
-    socket.write(msg.toJsonStr());
+    var b64Data = "${CryptoUtil.base64Encode(msg.toJsonStr())}\n";
+    socket.write(b64Data);
     _onDevConnected(dev);
     // 监听从服务器接收的消息
     socket.listen(
       (List<int> data) {
-        Map<String, dynamic> json = jsonDecode(utf8.decode(data));
-        var msg = MessageData.fromJson(json);
-        _onSocketListened(socket, msg);
+        var dataArr = utf8.decode(data).split("\n");
+        for (var rec in dataArr) {
+          Log.debug("base64", rec);
+          if (rec == "") continue;
+          clientRec += rec;
+          clientRec = CryptoUtil.base64Decode(clientRec);
+          try {
+            Map<String, dynamic> json = jsonDecode(clientRec);
+            var msg = MessageData.fromJson(json);
+            _onSocketListened(socket, msg);
+          } finally {
+            clientRec = "";
+          }
+        }
       },
       onDone: () {
         _onDevDisConnected(dev.guid);
@@ -150,11 +165,21 @@ class SocketListener {
           tag, '新连接来自 ${client.remoteAddress.address}:${client.remotePort}');
 
       client.listen(
-        (data) {
-          Map<String, dynamic> json = jsonDecode(utf8.decode(data));
-          var msg = MessageData.fromJson(json);
-          // 在这里处理接收到的消息，你可以根据需要进行逻辑处理
-          _onSocketListened(client, msg);
+        (List<int> data) {
+          var dataArr = utf8.decode(data).split("\n");
+          for (var rec in dataArr) {
+            if (rec == "") continue;
+            serverRec += rec;
+            serverRec = CryptoUtil.base64Decode(serverRec);
+            try {
+              Map<String, dynamic> json = jsonDecode(serverRec);
+              var msg = MessageData.fromJson(json);
+              // 在这里处理接收到的消息，你可以根据需要进行逻辑处理
+              _onSocketListened(client, msg);
+            } finally {
+              serverRec = "";
+            }
+          }
         },
         onDone: () {
           Log.debug(tag, '服务端连接关闭');
@@ -267,7 +292,8 @@ class SocketListener {
             key: MsgType.paired,
             data: {"result": verify},
             recv: null);
-        socket.write(result.toJsonStr());
+        var b64Data = CryptoUtil.base64Encode(result.toJsonStr());
+        socket.write(b64Data);
         break;
 
       ///获取配对结果
@@ -344,13 +370,14 @@ class SocketListener {
         key: key,
         data: data,
         recv: null);
+    var b64Data = "${CryptoUtil.base64Encode(msg.toJsonStr())}\n";
     if (dev == null) {
       var list = onlyPaired
           ? _devSockets.values.where((dev) => dev.isPaired)
           : _devSockets.values;
       //批量发送
       for (var skt in list) {
-        skt.socket.write(msg.toJsonStr());
+        skt.socket.write(b64Data);
       }
     } else {
       //向指定设备发送消息
@@ -360,7 +387,7 @@ class SocketListener {
         Log.debug(tag, "${dev.name} 设备未连接，发送失败");
         return false;
       }
-      skt.socket.write(msg.toJsonStr());
+      skt.socket.write(b64Data);
     }
     return true;
   }
@@ -375,7 +402,8 @@ class SocketListener {
         data: data,
         recv: recv);
     try {
-      _multicastSocket.send(utf8.encode(msg.toJsonStr()),
+      var b64Data = CryptoUtil.base64Encode("${msg.toJsonStr()}\n");
+      _multicastSocket.send(utf8.encode(b64Data),
           InternetAddress(Constants.multicastGroup), Constants.port);
     } catch (e, stacktrace) {
       Log.debug(tag, "$e $stacktrace");
