@@ -66,10 +66,10 @@ class SocketListener {
 
   Future<SocketListener> _init() async {
     _deviceDao = DBUtil.inst.deviceDao;
-    _multicastSocket =
-        await _getSocket(Constants.multicastGroup, Constants.port);
     // 初始化，创建socket监听
     _runSocketServer();
+    _multicastSocket =
+        await _getSocket(Constants.multicastGroup, Constants.port);
     _sendSocketInfo();
     _multicastSocket.listen((event) async {
       final datagram = _multicastSocket.receive();
@@ -435,10 +435,23 @@ class SocketListener {
     _devAliveObservers.remove(observer);
   }
 
-  Future<RawDatagramSocket> _getSocket(String address, [int? port]) async {
+  Future<RawDatagramSocket> _getSocket(String multicastGroup, int port) async {
     RawDatagramSocket socket =
         await RawDatagramSocket.bind(InternetAddress.anyIPv4, port ?? 0);
-    socket.joinMulticast(InternetAddress(address));
+    socket.joinMulticast(InternetAddress(multicastGroup));
     return Future.value(socket);
+  }
+
+  Future<List<RawDatagramSocket>> _getSockets(
+      String multicastGroup, int port) async {
+    final interfaces = await NetworkInterface.list();
+    final sockets = <RawDatagramSocket>[];
+    for (final interface in interfaces) {
+      final socket =
+          await RawDatagramSocket.bind(InternetAddress.anyIPv4, port ?? 0);
+      socket.joinMulticast(InternetAddress(multicastGroup), interface);
+      sockets.add(socket);
+    }
+    return sockets;
   }
 }
