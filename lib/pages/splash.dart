@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 import '../main.dart';
 import 'nav/base_page.dart';
@@ -18,22 +18,25 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    App.toast = FToast();
-    // 在这里执行初始化操作，比如加载数据或设置计时器
-    _loadData();
+    // 在这里执行初始化操作
+    init().then((v) {
+      // 初始化完成，导航到下一个页面c
+      gotoHomePage();
+    });
   }
 
-  // 例子：模拟加载数据的方法
-  Future<void> _loadData() async {
-    DBUtil.inst.init().then((value) =>
-        // 数据加载完成后，导航到下一个页面
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const HomePage(title: 'Flutter Demo'),
-            )
-        )
-    ); // 替换成你的目标页面
+  Future<void> init() async {
+    await DBUtil.inst.init();
+    await SocketListener.inst;
+    return Future.value();
+  }
+
+  void gotoHomePage() {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const HomePage(title: 'Flutter Demo'),
+        ));
   }
 
   @override

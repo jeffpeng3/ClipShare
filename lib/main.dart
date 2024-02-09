@@ -53,7 +53,6 @@ class App extends StatelessWidget {
   static late final DevInfo devInfo;
   static int userId = 0;
   static late final Snowflake snowflake;
-  static late final FToast toast;
   static late BuildContext context;
 
   const App({super.key});

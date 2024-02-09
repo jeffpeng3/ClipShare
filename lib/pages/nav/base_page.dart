@@ -256,7 +256,6 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
       Log.debug("baseInfo", "$guid $name $type");
       App.devInfo = DevInfo(CryptoUtil.toMD5(guid), name, type);
       App.snowflake = Snowflake(guid.hashCode);
-      SocketListener.inst;
       pages = const [HistoryPage(), DevicesPage(), ProfilePage()];
       setState(() {});
     });

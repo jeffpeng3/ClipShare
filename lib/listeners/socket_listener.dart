@@ -50,7 +50,9 @@ class SocketListener {
   late DeviceDao _deviceDao;
   final Map<Module, List<SyncObserver>> _syncObservers = {};
   final List<DevAliveObserver> _devAliveObservers = List.empty(growable: true);
-  late RawDatagramSocket _multicastSocket;
+
+  // late RawDatagramSocket _multicastSocket;
+  List<RawDatagramSocket> _multicasts = List.empty();
   final Map<String, DevSocket> _devSockets = {};
   late ServerSocket _server;
 
@@ -66,45 +68,48 @@ class SocketListener {
 
   Future<SocketListener> _init() async {
     _deviceDao = DBUtil.inst.deviceDao;
+    Log.debug(tag, "socket 初始化");
     // 初始化，创建socket监听
     _runSocketServer();
-    _multicastSocket =
-        await _getSocket(Constants.multicastGroup, Constants.port);
+    _multicasts = await _getSockets(Constants.multicastGroup, Constants.port);
+    // _multicastSocket =
+    // await _getSocket(Constants.multicastGroup, Constants.port);
     _sendSocketInfo();
-    _multicastSocket.listen((event) async {
-      final datagram = _multicastSocket.receive();
-      if (datagram == null) {
-        return;
-      }
-      var data = CryptoUtil.base64Decode(utf8.decode(datagram.data));
-      Map<String, dynamic> json = jsonDecode(data);
-      var msg = MessageData.fromJson(json);
-      var dev = msg.send;
-      //是本机跳过
-      if (dev.guid == App.devInfo.guid) {
-        return;
-      }
-      switch (msg.key) {
-        case MsgType.broadcastInfo:
-          _onReceivedBroadcastInfo(msg, datagram);
-          break;
-        default:
-      }
-    });
+    for (var multicast in _multicasts) {
+      multicast.listen((event) {
+        final datagram = multicast.receive();
+        if (datagram == null) {
+          return;
+        }
+        var data = CryptoUtil.base64Decode(utf8.decode(datagram.data));
+        Map<String, dynamic> json = jsonDecode(data);
+        var msg = MessageData.fromJson(json);
+        var dev = msg.send;
+        //是本机跳过
+        if (dev.guid == App.devInfo.guid) {
+          return;
+        }
+        switch (msg.key) {
+          case MsgType.broadcastInfo:
+            _onReceivedBroadcastInfo(msg, datagram);
+            break;
+          default:
+        }
+      });
+    }
     return this;
   }
 
   ///接收广播设备信息
-  Future<void> _onReceivedBroadcastInfo(
-      MessageData msg, Datagram datagram) async {
+  void _onReceivedBroadcastInfo(MessageData msg, Datagram datagram) {
     DevInfo dev = msg.send;
     //设备已连接，跳过
     if (_devSockets.keys.contains(dev.guid)) {
       return;
     }
-    Log.debug(tag, dev.name);
     //建立连接
     String ip = datagram.address.address;
+    Log.debug(tag, "${dev.name} ip: $ip");
     _linkSocket(dev, ip, msg.data["port"]);
   }
 
@@ -307,12 +312,13 @@ class SocketListener {
 
   ///广播本机socket端口
   void _sendSocketInfo() {
-    Timer.periodic(const Duration(seconds: Constants.heartbeatsSeconds),
-        (timer) {
-      // 广播本机socket信息
-      Map<String, dynamic> map = {"port": _server.port};
-      sendMulticastMsg(MsgType.broadcastInfo, map);
-    });
+    for (var ms in const [100, 500, 2000, 5000]) {
+      Future.delayed(Duration(milliseconds: ms), () {
+        // 广播本机socket信息
+        Map<String, dynamic> map = {"port": _server.port};
+        sendMulticastMsg(MsgType.broadcastInfo, map);
+      });
+    }
   }
 
   ///设备连接成功
@@ -403,8 +409,10 @@ class SocketListener {
         recv: recv);
     try {
       var b64Data = CryptoUtil.base64Encode("${msg.toJsonStr()}\n");
-      _multicastSocket.send(utf8.encode(b64Data),
-          InternetAddress(Constants.multicastGroup), Constants.port);
+      for (var multicast in _multicasts) {
+        multicast.send(utf8.encode(b64Data),
+            InternetAddress(Constants.multicastGroup), Constants.port);
+      }
     } catch (e, stacktrace) {
       Log.debug(tag, "$e $stacktrace");
     }
@@ -437,7 +445,7 @@ class SocketListener {
 
   Future<RawDatagramSocket> _getSocket(String multicastGroup, int port) async {
     RawDatagramSocket socket =
-        await RawDatagramSocket.bind(InternetAddress.anyIPv4, port ?? 0);
+        await RawDatagramSocket.bind(InternetAddress.anyIPv4, port);
     socket.joinMulticast(InternetAddress(multicastGroup));
     return Future.value(socket);
   }
@@ -448,7 +456,7 @@ class SocketListener {
     final sockets = <RawDatagramSocket>[];
     for (final interface in interfaces) {
       final socket =
-          await RawDatagramSocket.bind(InternetAddress.anyIPv4, port ?? 0);
+          await RawDatagramSocket.bind(InternetAddress.anyIPv4, port);
       socket.joinMulticast(InternetAddress(multicastGroup), interface);
       sockets.add(socket);
     }
