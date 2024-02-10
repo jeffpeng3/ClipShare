@@ -65,6 +65,7 @@ class SocketListener {
       _singleton ??= await SocketListener._private()._init();
   String _serverRec = "";
   String _clientRec = "";
+  Future<void> _linkQueue = Future.value();
 
   Future<SocketListener> _init() async {
     _deviceDao = DBUtil.inst.deviceDao;
@@ -91,7 +92,7 @@ class SocketListener {
         }
         switch (msg.key) {
           case MsgType.broadcastInfo:
-            _onReceivedBroadcastInfo(msg, datagram);
+            _linkQueue = _linkQueue.then((v)  => _onReceivedBroadcastInfo(msg, datagram));
             break;
           default:
         }
@@ -110,7 +111,7 @@ class SocketListener {
     //建立连接
     String ip = datagram.address.address;
     Log.debug(tag, "${dev.name} ip: $ip");
-    _linkSocket(dev, ip, msg.data["port"]);
+    return _linkSocket(dev, ip, msg.data["port"]);
   }
 
   ///socket建立链接

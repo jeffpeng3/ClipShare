@@ -131,7 +131,9 @@ class DeviceCardState extends State<DeviceCard> {
                                   Text(_empty ? "    " : widget.devInfo!.type),
                               backgroundColor: chipColor,
                             ),
-                            const SizedBox(width: 5,),
+                            const SizedBox(
+                              width: 5,
+                            ),
                             widget.isSelf
                                 ? const RoundedChip(
                                     label: Text("本机"),
