@@ -20,12 +20,12 @@ class ReqMissingDataHandler {
             });
             break;
           case Module.tag:
-            t = DBUtil.inst.historyTagDao.getById(id).then((v) {
+            t = DBUtil.inst.historyTagDao.getById(int.parse(id)).then((v) {
               item.data = v.toString();
             });
             break;
           case Module.history:
-            t = DBUtil.inst.historyDao.getById(id).then((v) {
+            t = DBUtil.inst.historyDao.getById(int.parse(id)).then((v) {
               item.data = v.toString();
             });
             break;

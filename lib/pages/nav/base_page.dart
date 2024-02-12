@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:clipshare/dao/device_dao.dart';
 import 'package:clipshare/entity/dev_info.dart';
+import 'package:clipshare/handler/history_top_syncer.dart';
 import 'package:clipshare/handler/tag_syncer.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/pages/nav/devices_page.dart';
@@ -38,6 +39,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   late DeviceDao deviceDao;
   bool trayClick = false;
   late TagSyncer _tagSyncer;
+  late HistoryTopSyncer _historyTopSyncer;
   String get tag => "HomePage";
 
   // final TrayManager _trayManager = TrayManager.instance;
@@ -232,6 +234,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   /// 初始化通用行为
   void initCommon() async {
     _tagSyncer = TagSyncer();
+    _historyTopSyncer = HistoryTopSyncer();
     //初始化数据库
     deviceDao = DBUtil.inst.deviceDao;
     //接收平台消息
@@ -254,6 +257,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
     trayManager.removeListener(this);
     windowManager.removeListener(this);
     _tagSyncer.destroy();
+    _historyTopSyncer.destroy();
     super.dispose();
   }
 

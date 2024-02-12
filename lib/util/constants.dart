@@ -69,7 +69,8 @@ enum Module {
   unknown(moduleName: "未知"),
   device(moduleName: "设备管理"),
   tag(moduleName: "标签管理"),
-  history(moduleName: "历史记录");
+  history(moduleName: "历史记录"),
+  historyTop(moduleName: "历史记录置顶");
 
   const Module({required this.moduleName});
 

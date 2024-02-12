@@ -121,7 +121,21 @@ class _HistoryPageState extends State<HistoryPage>
     showDialog(
         context: context,
         builder: (BuildContext context) {
-          return ClipDetailDialog(clip: chip);
+          return AlertDialog(
+              title: null,
+              contentPadding: const EdgeInsets.all(0),
+              content: ClipDetailDialog(
+                dlgContext:context,
+                clip: chip,
+                onUpdate: () {
+                  _list.sort((a, b) => b.data.compareTo(a.data));
+                  setState(() {});
+                },
+                onRemove: (int id) {
+                  _list.removeWhere((element) => element.data.id == id);
+                  setState(() {});
+                },
+              ));
         });
   }
 
@@ -132,7 +146,18 @@ class _HistoryPageState extends State<HistoryPage>
         context: context,
         elevation: 100,
         builder: (BuildContext context) {
-          return ClipDetailDialog(clip: chip);
+          return ClipDetailDialog(
+            dlgContext:context,
+            clip: chip,
+            onUpdate: () {
+              _list.sort((a, b) => b.data.compareTo(a.data));
+              setState(() {});
+            },
+            onRemove: (int id) {
+              _list.removeWhere((element) => element.data.id == id);
+              setState(() {});
+            },
+          );
         });
   }
 
@@ -151,7 +176,7 @@ class _HistoryPageState extends State<HistoryPage>
                   return Container(
                     padding: const EdgeInsets.only(left: 2, right: 2),
                     constraints:
-                        const BoxConstraints(maxHeight: 150, minHeight: 80),
+                    const BoxConstraints(maxHeight: 150, minHeight: 80),
                     child: GestureDetector(
                       onTapUp: (TapUpDetails details) {
                         Log.debug(tag, "onTapUp");
@@ -166,30 +191,14 @@ class _HistoryPageState extends State<HistoryPage>
                           if (!PlatformUtil.isPC()) {
                             return;
                           }
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                    title: null,
-                                    contentPadding: const EdgeInsets.all(0),
-                                    content: ClipDetailDialog(clip: _list[i]));
-                              });
+                          showDetail(_list[i]);
                         },
                       ),
                       onLongPress: () {
                         if (!PlatformUtil.isMobile()) {
                           return;
                         }
-
-                        showModalBottomSheet(
-                            isScrollControlled: true,
-                            clipBehavior: Clip.antiAlias,
-                            context: context,
-                            showDragHandle: true,
-                            elevation: 100,
-                            builder: (BuildContext context) {
-                              return ClipDetailDialog(clip: _list[i]);
-                            });
+                        showDetail(_list[i]);
                       },
                     ),
                   );
@@ -253,69 +262,17 @@ class _HistoryPageState extends State<HistoryPage>
     });
   }
 
-  Future<void> onReceived(MessageData msg) async {
-    String devId = msg.send.guid;
-    switch (msg.key) {
-      //接收单条同步数据
-      case MsgType.sync:
-        break;
-      //确认已同步 todo
-      case MsgType.ackSync:
-        var hisId = msg.data["id"];
-        DBUtil.inst.historyDao.setSync(hisId.toString(), true);
-        // DBUtil.inst.operationSyncDao.add(OperationSync(devId: devId, uid:App.userId));
-        Log.debug(tag, hisId);
-        for (var clip in _list) {
-          if (clip.data.id.toString() == hisId.toString()) {
-            Log.debug(tag, hisId);
-            clip.data.sync = true;
-            setState(() {});
-            break;
-          }
-        }
-        break;
-      //批量同步缺失数据
-      case MsgType.missingData:
-        try {
-          var data = msg.data["data"] as List;
-          for (var item in data) {
-            //循环调用
-            var h = History.fromJson(item);
-            h.sync = true;
-            await historyDao.add(h).then((v) {
-              if (v == 0) {
-                Log.debug(tag, "${h.id} 保存失败");
-                return;
-              }
-              //发送同步确认
-              SocketListener.inst.then((inst) {
-                inst.sendData(msg.send, MsgType.ackSync, {"id": h.id});
-              });
-            });
-          }
-        } catch (e, t) {
-          Log.debug(tag, e);
-          Log.debug(tag, t);
-        } finally {
-          //同步完成，刷新数据
-          refreshData();
-        }
-        break;
-      default:
-    }
-  }
-
   @override
   void ackSync(MessageData msg) {
     var send = msg.send;
     var data = msg.data;
     var opSync =
-        OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
+    OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
     //记录同步记录
     DBUtil.inst.opSyncDao.add(opSync);
     //更新本地历史记录为已同步
     var hisId = msg.data["hisId"];
-    DBUtil.inst.historyDao.setSync(hisId.toString(), true);
+    DBUtil.inst.historyDao.setSync(hisId, true);
     Log.debug(tag, hisId);
     for (var clip in _list) {
       if (clip.data.id.toString() == hisId.toString()) {
@@ -344,7 +301,7 @@ class _HistoryPageState extends State<HistoryPage>
         }
         break;
       case OpMethod.delete:
-        DBUtil.inst.historyDao.delete(history.id.toString());
+        DBUtil.inst.historyDao.delete(history.id);
         break;
       case OpMethod.update:
         f = DBUtil.inst.historyDao.updateHistory(history);

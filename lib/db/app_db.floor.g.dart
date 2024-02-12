@@ -419,7 +419,7 @@ class _$HistoryDao extends HistoryDao {
 
   @override
   Future<int?> setTop(
-      String id,
+      int id,
       bool top,
       ) async {
     return _queryAdapter.query('update history set top = ?2 where id = ?1',
@@ -429,7 +429,7 @@ class _$HistoryDao extends HistoryDao {
 
   @override
   Future<int?> setSync(
-      String id,
+      int id,
       bool sync,
       ) async {
     return _queryAdapter.query('update history set sync = ?2 where id = ?1',
@@ -438,7 +438,7 @@ class _$HistoryDao extends HistoryDao {
   }
 
   @override
-  Future<int?> delete(String id) async {
+  Future<int?> delete(int id) async {
     return _queryAdapter.query('delete from history where id = ?1',
         mapper: (Map<String, Object?> row) => row.values.first as int,
         arguments: [id]);
@@ -458,7 +458,7 @@ class _$HistoryDao extends HistoryDao {
   }
 
   @override
-  Future<History?> getById(String id) async {
+  Future<History?> getById(int id) async {
     return _queryAdapter.query('select * from history where id = ?1',
         mapper: (Map<String, Object?> row) => History(
             id: row['id'] as int,
@@ -644,7 +644,7 @@ class _$HistoryTagDao extends HistoryTagDao {
   }
 
   @override
-  Future<List<VHistoryTagHold>> listWithHold(String hId) async {
+  Future<List<VHistoryTagHold>> listWithHold(int hId) async {
     return _queryAdapter.queryList(
         'SELECT * from VHistoryTagHold where hisId = ?1',
         mapper: (Map<String, Object?> row) => VHistoryTagHold(
@@ -656,7 +656,7 @@ class _$HistoryTagDao extends HistoryTagDao {
 
   @override
   Future<int?> remove(
-      String hId,
+      int hId,
       String tagName,
       ) async {
     return _queryAdapter.query(
@@ -666,8 +666,15 @@ class _$HistoryTagDao extends HistoryTagDao {
   }
 
   @override
+  Future<int?> removeAll(int hId) async {
+    return _queryAdapter.query('delete from HistoryTag where hisId = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [hId]);
+  }
+
+  @override
   Future<HistoryTag?> get(
-      String hId,
+      int hId,
       String tagName,
       ) async {
     return _queryAdapter.query(
@@ -678,7 +685,7 @@ class _$HistoryTagDao extends HistoryTagDao {
   }
 
   @override
-  Future<HistoryTag?> getById(String id) async {
+  Future<HistoryTag?> getById(int id) async {
     return _queryAdapter.query('select * from HistoryTag where id = ?1',
         mapper: (Map<String, Object?> row) => HistoryTag(
             row['id'] as int, row['tagName'] as String, row['hisId'] as int),

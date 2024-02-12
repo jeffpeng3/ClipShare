@@ -24,11 +24,11 @@ abstract class HistoryDao {
 
   ///置顶/取消置顶某记录
   @Query("update history set top = :top where id = :id ")
-  Future<int?> setTop(String id, bool top);
+  Future<int?> setTop(int id, bool top);
 
   ///更新记录同步状态
   @Query("update history set sync = :sync where id = :id ")
-  Future<int?> setSync(String id, bool sync);
+  Future<int?> setSync(int id, bool sync);
 
   ///添加一条历史记录
   @insert
@@ -36,7 +36,7 @@ abstract class HistoryDao {
 
   ///删除某条记录
   @Query("delete from history where id = :id")
-  Future<int?> delete(String id);
+  Future<int?> delete(int id);
 
   ///将本地记录转换到某个用户
   @Query("update history set uid = :uid where uid = 0")
@@ -48,7 +48,7 @@ abstract class HistoryDao {
 
   ///根据id获取记录
   @Query("select * from history where id = :id")
-  Future<History?> getById(String id);
+  Future<History?> getById(int id);
 
   @update
   Future<int> updateHistory(History history);

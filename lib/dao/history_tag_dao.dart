@@ -11,7 +11,7 @@ abstract class HistoryTagDao {
 
   ///查询所有标签，返回值含有一个该历史 id 是否持有该标签的标记
   @Query("SELECT * from VHistoryTagHold where hisId = :hId")
-  Future<List<VHistoryTagHold>> listWithHold(String hId);
+  Future<List<VHistoryTagHold>> listWithHold(int hId);
 
   ///插入一条标签
   @Insert(onConflict: OnConflictStrategy.ignore)
@@ -19,15 +19,19 @@ abstract class HistoryTagDao {
 
   ///删除标签
   @Query("delete from HistoryTag where hisId = :hId and tagName = :tagName ")
-  Future<int?> remove(String hId, String tagName);
+  Future<int?> remove(int hId, String tagName);
+
+  ///删除指定历史的所有标签
+  @Query("delete from HistoryTag where hisId = :hId")
+  Future<int?> removeAll(int hId);
 
   ///获取标签
   @Query("select * from HistoryTag where hisId = :hId and tagName = :tagName ")
-  Future<HistoryTag?> get(String hId, String tagName);
+  Future<HistoryTag?> get(int hId, String tagName);
 
   ///获取标签
   @Query("select * from HistoryTag where id = :id")
-  Future<HistoryTag?> getById(String id);
+  Future<HistoryTag?> getById(int id);
 
   @update
   Future<int> updateTag(HistoryTag tag);

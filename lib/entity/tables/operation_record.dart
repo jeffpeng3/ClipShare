@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:clipshare/main.dart';
 import 'package:floor/floor.dart';
 
 import '../../util/constants.dart';
@@ -12,21 +13,21 @@ import '../../util/constants.dart';
 class OperationRecord {
   ///主键 id
   @PrimaryKey(autoGenerate: true)
-  int id;
+  late int id;
 
   ///用户 id
-  int uid;
+  late int uid;
 
   ///操作模块
   @TypeConverters([ModuleTypeConverter])
-  Module module;
+  late Module module;
 
   /// 操作方法
   @TypeConverters([OpMethodTypeConverter])
-  OpMethod method;
+  late OpMethod method;
 
   /// 操作数据，如果是json表示是整个数据，否则表示是主键
-  String data;
+  late String data;
 
   /// 操作时间
   String time = DateTime.now().toString();
@@ -38,6 +39,12 @@ class OperationRecord {
     required this.method,
     required this.data,
   });
+
+  OperationRecord.fromSimple(this.module, this.method, Object data) {
+    id = App.snowflake.nextId();
+    uid = App.userId;
+    this.data = data.toString();
+  }
 
   static OperationRecord fromJson(map) {
     var id = map["id"];

@@ -32,7 +32,7 @@ class _TagEditPageState extends State<TagEditPage> {
   @override
   void initState() {
     super.initState();
-    DBUtil.inst.historyTagDao.listWithHold(widget.hisId.toString()).then((lst) {
+    DBUtil.inst.historyTagDao.listWithHold(widget.hisId).then((lst) {
       Log.debug(tag, lst);
       _selected.clear();
       _tags.clear();
@@ -97,7 +97,7 @@ class _TagEditPageState extends State<TagEditPage> {
 
                   ///删除
                   for (var v in willRmList) {
-                    var id = widget.hisId.toString();
+                    var id = widget.hisId;
                     link = link.then((value) {
                       //获取原 hisTagId
                       return DBUtil.inst.historyTagDao

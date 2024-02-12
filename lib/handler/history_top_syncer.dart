@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:clipshare/entity/message_data.dart';
+import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/util/constants.dart';
@@ -9,16 +10,17 @@ import '../db/db_util.dart';
 import '../entity/tables/operation_record.dart';
 import '../entity/tables/operation_sync.dart';
 import '../main.dart';
-/// 标签同步处理器
-class TagSyncer implements SyncObserver {
-  TagSyncer() {
+
+/// 记录置顶操作同步处理器
+class HistoryTopSyncer implements SyncObserver {
+  HistoryTopSyncer() {
     SocketListener.inst
-        .then((value) => value.addSyncListener(Module.tag, this));
+        .then((value) => value.addSyncListener(Module.historyTop, this));
   }
 
   void destroy() {
     SocketListener.inst
-        .then((value) => value.removeSyncListener(Module.tag, this));
+        .then((value) => value.removeSyncListener(Module.historyTop, this));
   }
 
   @override
@@ -36,35 +38,23 @@ class TagSyncer implements SyncObserver {
     var send = msg.send;
     var opRecord = OperationRecord.fromJson(msg.data);
     Map<String, dynamic> json = jsonDecode(opRecord.data);
-    HistoryTag tag = HistoryTag.fromJson(json);
+    History history = History.fromJson(json);
     Future? f;
     switch (opRecord.method) {
-      case OpMethod.add:
-        f = DBUtil.inst.historyTagDao.add(tag);
-        break;
-      case OpMethod.delete:
-        DBUtil.inst.historyTagDao.remove(tag.hisId, tag.tagName);
-        break;
       case OpMethod.update:
-        f = DBUtil.inst.historyTagDao.updateTag(tag);
+        f = DBUtil.inst.historyDao.setTop(history.id, history.top);
         break;
       default:
         return;
     }
 
-    if (f == null) {
+    f.then((cnt) {
+      if (cnt <= 0) return;
       //发送同步确认
       SocketListener.inst.then((inst) {
-        inst.sendData(send, MsgType.ackSync, {"id": opRecord.id,"module":Module.tag.moduleName});
+        inst.sendData(send, MsgType.ackSync,
+            {"id": opRecord.id, "module": Module.historyTop.moduleName});
       });
-    } else {
-      f.then((cnt) {
-        if (cnt <= 0) return;
-        //发送同步确认
-        SocketListener.inst.then((inst) {
-          inst.sendData(send, MsgType.ackSync, {"id": opRecord.id,"module":Module.tag.moduleName});
-        });
-      });
-    }
+    });
   }
 }

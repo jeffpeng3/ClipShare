@@ -208,6 +208,7 @@ class SocketListener {
   ///数据同步处理
   void _onSyncMsg(MessageData msg) {
     Module module = Module.getValue(msg.data["module"]);
+    //筛选某个模块的同步处理器
     var lst = _syncObservers[module];
     if (lst == null) return;
     for (var ob in lst) {
