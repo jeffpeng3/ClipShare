@@ -103,6 +103,16 @@ class _DevicesPageState extends State<DevicesPage>
                         fontFamily: "宋体"),
                   ),
                   IconButton(
+                      onPressed: () {
+                        SocketListener.inst.then((inst) {
+                          inst.sendSocketInfo();
+                        });
+                      },
+                      icon: const Icon(
+                        Icons.refresh,
+                        size: 20,
+                      )),
+                  IconButton(
                       onPressed: () {},
                       icon: const Icon(
                         Icons.add,
@@ -252,7 +262,7 @@ class _DevicesPageState extends State<DevicesPage>
         paired.isConnected = true;
         setState(() {});
         //是已配对的设备，请求所有缺失数据
-        SocketListener.inst.then((inst){
+        SocketListener.inst.then((inst) {
           inst.sendData(null, MsgType.reqMissingData, {});
         });
         return;
@@ -289,7 +299,7 @@ class _DevicesPageState extends State<DevicesPage>
     //关闭配对弹窗
     Navigator.of(context).pop();
     //已配对，请求所有缺失数据
-    SocketListener.inst.then((inst){
+    SocketListener.inst.then((inst) {
       inst.sendData(null, MsgType.reqMissingData, {});
     });
     var data =

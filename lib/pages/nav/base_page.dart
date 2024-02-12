@@ -34,7 +34,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   int _index = 0;
-  List<Widget> pages = [];
+  List<Widget> pages = const [HistoryPage(), DevicesPage(), ProfilePage()];
   late DeviceDao deviceDao;
   bool trayClick = false;
   late TagSyncer _tagSyncer;
@@ -246,18 +246,6 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
           }
       }
       return Future(() => false);
-    });
-
-    //调用平台方法，获取设备信息
-    App.commonChannel.invokeMethod("getBaseInfo").then((data) {
-      String guid = data['guid'];
-      String name = data['dev'];
-      String type = data['type'];
-      Log.debug("baseInfo", "$guid $name $type");
-      App.devInfo = DevInfo(CryptoUtil.toMD5(guid), name, type);
-      App.snowflake = Snowflake(guid.hashCode);
-      pages = const [HistoryPage(), DevicesPage(), ProfilePage()];
-      setState(() {});
     });
   }
 

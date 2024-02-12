@@ -75,7 +75,7 @@ class SocketListener {
     _multicasts = await _getSockets(Constants.multicastGroup, Constants.port);
     // _multicastSocket =
     // await _getSocket(Constants.multicastGroup, Constants.port);
-    _sendSocketInfo();
+    sendSocketInfo();
     for (var multicast in _multicasts) {
       multicast.listen((event) {
         final datagram = multicast.receive();
@@ -92,7 +92,8 @@ class SocketListener {
         }
         switch (msg.key) {
           case MsgType.broadcastInfo:
-            _linkQueue = _linkQueue.then((v)  => _onReceivedBroadcastInfo(msg, datagram));
+            _linkQueue =
+                _linkQueue.then((v) => _onReceivedBroadcastInfo(msg, datagram));
             break;
           default:
         }
@@ -312,7 +313,7 @@ class SocketListener {
   }
 
   ///广播本机socket端口
-  void _sendSocketInfo() {
+  void sendSocketInfo() {
     for (var ms in const [100, 500, 2000, 5000]) {
       Future.delayed(Duration(milliseconds: ms), () {
         // 广播本机socket信息
