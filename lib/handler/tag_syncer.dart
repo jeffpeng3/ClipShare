@@ -9,16 +9,15 @@ import '../db/db_util.dart';
 import '../entity/tables/operation_record.dart';
 import '../entity/tables/operation_sync.dart';
 import '../main.dart';
+
 /// 标签同步处理器
 class TagSyncer implements SyncObserver {
   TagSyncer() {
-    SocketListener.inst
-        .then((value) => value.addSyncListener(Module.tag, this));
+    SocketListener.inst.addSyncListener(Module.tag, this);
   }
 
   void destroy() {
-    SocketListener.inst
-        .then((value) => value.removeSyncListener(Module.tag, this));
+    SocketListener.inst.removeSyncListener(Module.tag, this);
   }
 
   @override
@@ -26,7 +25,7 @@ class TagSyncer implements SyncObserver {
     var send = msg.send;
     var data = msg.data;
     var opSync =
-        OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
+    OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
     //记录同步记录
     DBUtil.inst.opSyncDao.add(opSync);
   }
@@ -54,16 +53,14 @@ class TagSyncer implements SyncObserver {
 
     if (f == null) {
       //发送同步确认
-      SocketListener.inst.then((inst) {
-        inst.sendData(send, MsgType.ackSync, {"id": opRecord.id,"module":Module.tag.moduleName});
-      });
+      SocketListener.inst.sendData(send, MsgType.ackSync,
+          {"id": opRecord.id, "module": Module.tag.moduleName});
     } else {
       f.then((cnt) {
         if (cnt <= 0) return;
         //发送同步确认
-        SocketListener.inst.then((inst) {
-          inst.sendData(send, MsgType.ackSync, {"id": opRecord.id,"module":Module.tag.moduleName});
-        });
+        SocketListener.inst.sendData(send, MsgType.ackSync,
+            {"id": opRecord.id, "module": Module.tag.moduleName});
       });
     }
   }

@@ -12,9 +12,7 @@ class ClipListener {
 
   ClipListener._private();
 
-  factory ClipListener.instance() {
-    return _instance;
-  }
+  static ClipListener get inst => _instance;
 
   ClipListener register(ClipObserver observer) {
     _list.add(observer);

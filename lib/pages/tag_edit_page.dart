@@ -79,18 +79,7 @@ class _TagEditPageState extends State<TagEditPage> {
                             method: OpMethod.add,
                             data: t.id.toString());
                         //添加操作记录
-                        return DBUtil.inst.opRecordDao
-                            .add(opRecord)
-                            .then((cnt) {
-                          if (cnt <= 0) return Future.value();
-                          opRecord.data = t.toString();
-                          //发送同步记录
-                          return SocketListener.inst.then((inst) {
-                            inst.sendData(
-                                null, MsgType.sync, opRecord.toJson());
-                            return Future.value();
-                          });
-                        });
+                        return DBUtil.inst.opRecordDao.addAndNotify(opRecord);
                       });
                     });
                   }
@@ -116,17 +105,7 @@ class _TagEditPageState extends State<TagEditPage> {
                               method: OpMethod.delete,
                               data: ht.id.toString());
                           //添加操作记录
-                          return DBUtil.inst.opRecordDao
-                              .add(opRecord)
-                              .then((cnt) {
-                            if (cnt <= 0) return Future.value();
-                            opRecord.data = ht.toString();
-                            //同步删除操作
-                            return SocketListener.inst.then((inst) {
-                              inst.sendData(
-                                  null, MsgType.sync, opRecord.toJson());
-                            });
-                          });
+                          return DBUtil.inst.opRecordDao.addAndNotify(opRecord);
                         });
                       });
                     });

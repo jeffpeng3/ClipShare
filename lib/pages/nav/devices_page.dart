@@ -36,10 +36,9 @@ class _DevicesPageState extends State<DevicesPage>
 
   @override
   void initState() {
-    SocketListener.inst.then((inst) {
-      inst.addDevAliveListener(this);
-      inst.addSyncListener(Module.device, this);
-    });
+    SocketListener.inst.addDevAliveListener(this);
+    SocketListener.inst.addSyncListener(Module.device, this);
+
     _deviceDao = DBUtil.inst.deviceDao;
     _deviceDao.getAllDevices(App.userId).then((list) {
       _pairedList.clear();
@@ -57,10 +56,8 @@ class _DevicesPageState extends State<DevicesPage>
 
   @override
   void dispose() {
-    SocketListener.inst.then((inst) {
-      inst.removeDevAliveListener(this);
-      inst.removeSyncListener(Module.device, this);
-    });
+    SocketListener.inst.removeDevAliveListener(this);
+    SocketListener.inst.removeSyncListener(Module.device, this);
     super.dispose();
   }
 
@@ -104,9 +101,7 @@ class _DevicesPageState extends State<DevicesPage>
                   ),
                   IconButton(
                       onPressed: () {
-                        SocketListener.inst.then((inst) {
-                          inst.sendSocketInfo();
-                        });
+                        SocketListener.inst.sendSocketInfo();
                       },
                       icon: const Icon(
                         Icons.refresh,
@@ -133,9 +128,7 @@ class _DevicesPageState extends State<DevicesPage>
   }
 
   void requestPairing(DevInfo dev) {
-    SocketListener.inst.then((inst) {
-      inst.sendData(dev, MsgType.reqPairing, {});
-    });
+    SocketListener.inst.sendData(dev, MsgType.reqPairing, {});
     _pairing = false;
     _pairingFailed = false;
     setState(() {});
@@ -225,10 +218,8 @@ class _DevicesPageState extends State<DevicesPage>
                       onPressed: completedInputPin
                           ? () {
                               String pin = pinCtr.text;
-                              SocketListener.inst.then((inst) {
-                                inst.sendData(dev, MsgType.pairing,
-                                    {"code": CryptoUtil.toMD5(pin)});
-                              });
+                              SocketListener.inst.sendData(dev, MsgType.pairing,
+                                  {"code": CryptoUtil.toMD5(pin)});
                               _pairing = true;
                               showTimeoutText = false;
                               _pairingFailed = false;
@@ -262,9 +253,7 @@ class _DevicesPageState extends State<DevicesPage>
         paired.isConnected = true;
         setState(() {});
         //是已配对的设备，请求所有缺失数据
-        SocketListener.inst.then((inst) {
-          inst.sendData(null, MsgType.reqMissingData, {});
-        });
+        SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
         return;
       }
     }
@@ -299,9 +288,7 @@ class _DevicesPageState extends State<DevicesPage>
     //关闭配对弹窗
     Navigator.of(context).pop();
     //已配对，请求所有缺失数据
-    SocketListener.inst.then((inst) {
-      inst.sendData(null, MsgType.reqMissingData, {});
-    });
+    SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
     var data =
         Device(guid: dev.guid, devName: dev.name, uid: uid, type: dev.type);
     //新设备
@@ -310,7 +297,7 @@ class _DevicesPageState extends State<DevicesPage>
         Log.debug(tag, "Device information addition failed");
         return;
       }
-      DBUtil.inst.opRecordDao.add(OperationRecord(
+      DBUtil.inst.opRecordDao.addAndNotify(OperationRecord(
           id: App.snowflake.nextId(),
           uid: App.userId,
           module: Module.device,
@@ -367,18 +354,14 @@ class _DevicesPageState extends State<DevicesPage>
     }
     if (f == null) {
       //发送同步确认
-      SocketListener.inst.then((inst) {
-        inst.sendData(send, MsgType.ackSync,
-            {"id": opRecord.id, "module": Module.device.moduleName});
-      });
+      SocketListener.inst.sendData(send, MsgType.ackSync,
+          {"id": opRecord.id, "module": Module.device.moduleName});
     } else {
       f.then((cnt) {
         if (cnt <= 0) return;
         //发送同步确认
-        SocketListener.inst.then((inst) {
-          inst.sendData(send, MsgType.ackSync,
-              {"id": opRecord.id, "module": Module.device.moduleName});
-        });
+        SocketListener.inst.sendData(send, MsgType.ackSync,
+            {"id": opRecord.id, "module": Module.device.moduleName});
       });
     }
   }

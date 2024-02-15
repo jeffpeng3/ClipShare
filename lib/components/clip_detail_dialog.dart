@@ -90,7 +90,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                             widget.onRemove(id);
                             setState(() {});
                             Navigator.pop(widget.dlgContext);
-                            DBUtil.inst.opRecordDao.add(opRecord);
+                            DBUtil.inst.opRecordDao.addAndNotify(opRecord);
                           });
                         },
                         tooltip: "删除记录",
@@ -114,7 +114,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                                 Module.historyTop, OpMethod.update, id);
                             widget.onUpdate();
                             setState(() {});
-                            DBUtil.inst.opRecordDao.add(opRecord);
+                            DBUtil.inst.opRecordDao.addAndNotify(opRecord);
                           });
                         },
                         tooltip: widget.clip.data.top ? "取消置顶" : "置顶",

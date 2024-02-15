@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:clipshare/components/clip_data_card.dart';
 import 'package:clipshare/dao/history_dao.dart';
+import 'package:collection/collection.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
@@ -38,6 +39,7 @@ class _HistoryPageState extends State<HistoryPage>
   bool _copyInThisCopy = false;
   int? _minId;
   History? _last;
+
   final String tag = "HistoryPage";
   final ScrollController _scrollController = ScrollController();
 
@@ -46,10 +48,16 @@ class _HistoryPageState extends State<HistoryPage>
     super.initState();
     historyDao = DBUtil.inst.historyDao;
     syncHistoryDao = DBUtil.inst.opSyncDao;
-    SocketListener.inst
-        .then((inst) => {inst.addSyncListener(Module.history, this)});
-    refreshData();
-    ClipListener.instance().register(this);
+    //更新上次复制的记录
+    historyDao.getLatestLocalClip(App.userId).then((his) {
+      _last = his;
+      //添加同步监听
+      SocketListener.inst.addSyncListener(Module.history, this);
+      //刷新列表
+      refreshData();
+      //剪贴板监听注册
+      ClipListener.inst.register(this);
+    });
     //监听生命周期
     WidgetsBinding.instance.addObserver(this);
     // 监听滚动事件
@@ -61,8 +69,7 @@ class _HistoryPageState extends State<HistoryPage>
     WidgetsBinding.instance.removeObserver(this);
     // 释放资源
     _scrollController.dispose();
-    SocketListener.inst
-        .then((inst) => {inst.removeSyncListener(Module.history, this)});
+    SocketListener.inst.removeSyncListener(Module.history, this);
     super.dispose();
   }
 
@@ -177,7 +184,7 @@ class _HistoryPageState extends State<HistoryPage>
                   return Container(
                     padding: const EdgeInsets.only(left: 2, right: 2),
                     constraints:
-                        const BoxConstraints(maxHeight: 150, minHeight: 80),
+                    const BoxConstraints(maxHeight: 150, minHeight: 80),
                     child: GestureDetector(
                       onTapUp: (TapUpDetails details) {
                         Log.debug(tag, "onTapUp");
@@ -234,13 +241,7 @@ class _HistoryPageState extends State<HistoryPage>
         module: Module.history,
         method: OpMethod.add,
         data: history.id.toString());
-    DBUtil.inst.opRecordDao.add(opRecord).then((cnt) {
-      if (cnt <= 0) return;
-      opRecord.data = history.toString();
-      SocketListener.inst.then((inst) {
-        inst.sendData(null, MsgType.sync, opRecord.toJson());
-      });
-    });
+    DBUtil.inst.opRecordDao.addAndNotify(opRecord);
     addData(history);
   }
 
@@ -268,7 +269,7 @@ class _HistoryPageState extends State<HistoryPage>
     var send = msg.send;
     var data = msg.data;
     var opSync =
-        OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
+    OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
     //记录同步记录
     DBUtil.inst.opSyncDao.add(opSync);
     //更新本地历史记录为已同步
@@ -306,33 +307,50 @@ class _HistoryPageState extends State<HistoryPage>
         }
         break;
       case OpMethod.delete:
-        DBUtil.inst.historyDao.delete(history.id);
+        DBUtil.inst.historyDao.delete(history.id).then((cnt) {
+          if (cnt == null || cnt == 0) return;
+          _list.removeWhere((element) => element.data.id == history.id);
+          //删除以后判断是否是最近复制的，如果是，更新_last
+          if (_last?.id == history.id) {
+            if (_list.isEmpty) {
+              _last = null;
+            } else {
+              _last = _list
+                  .reduce(
+                      (curr, next) => curr.data.id > next.data.id ? curr : next)
+                  .data;
+            }
+          }
+          setState(() {});
+        });
         break;
       case OpMethod.update:
-        f = DBUtil.inst.historyDao.updateHistory(history);
+        f = DBUtil.inst.historyDao.updateHistory(history).then((cnt) {
+          if (cnt == 0) return;
+          var i = _list.indexWhere((element) => element.data.id == history.id);
+          if (i == -1) return;
+          _list[i] = ClipData(history);
+          setState(() {});
+        });
         break;
       default:
         return;
     }
     if (f == null) {
       //发送同步确认
-      SocketListener.inst.then((inst) {
-        inst.sendData(send, MsgType.ackSync, {
-          "id": opRecord.id,
-          "hisId": history.id,
-          "module": Module.history.moduleName
-        });
+      SocketListener.inst.sendData(send, MsgType.ackSync, {
+        "id": opRecord.id,
+        "hisId": history.id,
+        "module": Module.history.moduleName
       });
     } else {
       f.then((cnt) {
         if (cnt <= 0) return;
         //发送同步确认
-        SocketListener.inst.then((inst) {
-          inst.sendData(send, MsgType.ackSync, {
-            "id": opRecord.id,
-            "hisId": history.id,
-            "module": Module.history.moduleName
-          });
+        SocketListener.inst.sendData(send, MsgType.ackSync, {
+          "id": opRecord.id,
+          "hisId": history.id,
+          "module": Module.history.moduleName
         });
       });
     }
@@ -341,12 +359,10 @@ class _HistoryPageState extends State<HistoryPage>
   void updateTop(DevInfo send, History history, int opId) {
     DBUtil.inst.historyDao.setTop(history.id, history.top);
     //发送同步确认
-    SocketListener.inst.then((inst) {
-      inst.sendData(send, MsgType.ackSync, {
-        "id": opId,
-        "hisId": history.id,
-        "module": Module.historyTop.moduleName
-      });
+    SocketListener.inst.sendData(send, MsgType.ackSync, {
+      "id": opId,
+      "hisId": history.id,
+      "module": Module.historyTop.moduleName
     });
   }
 }

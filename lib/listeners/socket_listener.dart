@@ -59,15 +59,16 @@ class SocketListener {
   SocketListener._private();
 
   //单例
-  static SocketListener? _singleton;
+  static final SocketListener _singleton = SocketListener._private();
 
-  static Future<SocketListener> get inst async =>
-      _singleton ??= await SocketListener._private()._init();
+  static SocketListener get inst => _singleton;
+  static bool _isInit = false;
   String _serverRec = "";
   String _clientRec = "";
   Future<void> _linkQueue = Future.value();
 
-  Future<SocketListener> _init() async {
+  Future<SocketListener> init() async {
+    if (_isInit) throw Exception("已初始化");
     _deviceDao = DBUtil.inst.deviceDao;
     Log.debug(tag, "socket 初始化");
     // 初始化，创建socket监听
@@ -99,6 +100,7 @@ class SocketListener {
         }
       });
     }
+    _isInit = true;
     return this;
   }
 
@@ -256,11 +258,7 @@ class SocketListener {
 
       ///请求批量同步
       case MsgType.reqMissingData:
-        ReqMissingDataHandler.getData(msg.send).then((lst) {
-          for (var item in lst) {
-            sendData(dev, MsgType.missingData, {"data": item});
-          }
-        });
+        ReqMissingDataHandler.sendMissingData(dev);
         break;
 
       ///请求配对我方，生成四位配对码
@@ -418,6 +416,13 @@ class SocketListener {
       }
     } catch (e, stacktrace) {
       Log.debug(tag, "$e $stacktrace");
+    }
+  }
+
+  ///发送缺失记录至已连接设备
+  void sendMissingData() {
+    for (var ds in _devSockets.values) {
+      ReqMissingDataHandler.sendMissingData(ds.dev);
     }
   }
 

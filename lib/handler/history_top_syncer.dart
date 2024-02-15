@@ -14,13 +14,11 @@ import '../main.dart';
 /// 记录置顶操作同步处理器
 class HistoryTopSyncer implements SyncObserver {
   HistoryTopSyncer() {
-    SocketListener.inst
-        .then((value) => value.addSyncListener(Module.historyTop, this));
+    SocketListener.inst.addSyncListener(Module.historyTop, this);
   }
 
   void destroy() {
-    SocketListener.inst
-        .then((value) => value.removeSyncListener(Module.historyTop, this));
+    SocketListener.inst.removeSyncListener(Module.historyTop, this);
   }
 
   @override
@@ -51,10 +49,9 @@ class HistoryTopSyncer implements SyncObserver {
     f.then((cnt) {
       if (cnt <= 0) return;
       //发送同步确认
-      SocketListener.inst.then((inst) {
-        inst.sendData(send, MsgType.ackSync,
-            {"id": opRecord.id, "module": Module.historyTop.moduleName});
-      });
+      SocketListener.inst.sendData(send, MsgType.ackSync,
+          {"id": opRecord.id, "module": Module.historyTop.moduleName});
+      ;
     });
   }
 }

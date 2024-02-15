@@ -212,9 +212,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
       switch (call.method) {
         case "onScreenOpened":
           //此处应该发送socket通知同步剪贴板到本机
-          SocketListener.inst.then((inst) {
-            inst.sendData(null, MsgType.reqMissingData, {});
-          });
+          SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
           break;
         case "checkMustPermission":
           showDialog(
@@ -261,7 +259,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
         case "setClipText":
           {
             String text = call.arguments['text'];
-            ClipListener.instance().update(text);
+            ClipListener.inst.update(text);
             debugPrint("clipboard changed: $text");
             return Future(() => true);
           }

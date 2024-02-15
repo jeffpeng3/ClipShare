@@ -35,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
     //初始化本机设备信息
     await initDevInfo();
     //初始化socket
-    await SocketListener.inst;
+    SocketListener.inst.init();
     return Future.value();
   }
 

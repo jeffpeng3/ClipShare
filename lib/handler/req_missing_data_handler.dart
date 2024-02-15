@@ -1,16 +1,27 @@
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/dev_info.dart';
+import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
+import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
 
 class ReqMissingDataHandler {
-  static Future<List<OperationRecord>> getData(DevInfo reqDev) {
+
+  static void sendMissingData(DevInfo dev) {
+    getData(dev.guid).then((lst) {
+      for (var item in lst) {
+        SocketListener.inst.sendData(dev, MsgType.missingData, {"data": item});
+      }
+    });
+  }
+
+  static Future<List<OperationRecord>> getData(String devId) {
     return DBUtil.inst.opRecordDao
-        .getSyncRecord(App.userId, reqDev.guid)
+        .getSyncRecord(App.userId, devId)
         .then((lst) {
       var future = Future.value();
       var rmList = <OperationRecord>[];
