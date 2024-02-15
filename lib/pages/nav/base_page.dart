@@ -2,27 +2,23 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:clipshare/dao/device_dao.dart';
-import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/handler/history_top_syncer.dart';
 import 'package:clipshare/handler/tag_syncer.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/pages/nav/debug_page.dart';
 import 'package:clipshare/pages/nav/devices_page.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/pages/nav/profile_page.dart';
 import 'package:clipshare/util/constants.dart';
-import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/platform_util.dart';
 import 'package:clipshare/util/log.dart';
-import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
-
+import 'package:flutter/foundation.dart';
 import '../../db/db_util.dart';
 import '../../listeners/clip_listener.dart';
 import '../../main.dart';
-import '../../util/global.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -35,17 +31,39 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   int _index = 0;
-  List<Widget> pages = const [HistoryPage(), DevicesPage(), ProfilePage()];
+  List<Widget> pages =
+      List.from(const [HistoryPage(), DevicesPage(), ProfilePage()]);
+  List<BottomNavigationBarItem> navBarItems = List.from(const [
+    BottomNavigationBarItem(
+      icon: Icon(Icons.history),
+      label: 'Home',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.devices_rounded),
+      label: 'Devices',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.person),
+      label: 'Profile',
+    ),
+  ]);
   late DeviceDao deviceDao;
   bool trayClick = false;
   late TagSyncer _tagSyncer;
   late HistoryTopSyncer _historyTopSyncer;
+
   String get tag => "HomePage";
 
   // final TrayManager _trayManager = TrayManager.instance;
   @override
   void initState() {
     super.initState();
+    assert(() {
+      navBarItems.add(const BottomNavigationBarItem(
+          icon: Icon(Icons.bug_report_outlined), label: "Debug"));
+      pages.add(const DebugPage());
+      return true;
+    }());
     // 在构建完成后初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Log.debug(tag, "main created");
@@ -283,22 +301,10 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
             children: pages,
           ),
           bottomNavigationBar: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
             currentIndex: _index,
             onTap: (i) => {_index = i, setState(() {})},
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.history),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.devices_rounded),
-                label: 'Devices',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-            ],
+            items: navBarItems,
           ),
         ));
   }

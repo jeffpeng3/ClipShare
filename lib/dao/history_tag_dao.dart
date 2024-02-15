@@ -23,7 +23,10 @@ abstract class HistoryTagDao {
 
   ///删除指定历史的所有标签
   @Query("delete from HistoryTag where hisId = :hId")
-  Future<int?> removeAll(int hId);
+  Future<int?> removeAllByHisId(int hId);
+  ///删除所有标签
+  @Query("delete from HistoryTag")
+  Future<int?> removeAll();
 
   ///获取标签
   @Query("select * from HistoryTag where hisId = :hId and tagName = :tagName ")

@@ -46,6 +46,9 @@ class Device {
     return jsonEncode(toJson());
   }
 
+  Device.empty(
+      {this.guid = "", this.devName = "", this.uid = 0, this.type = ""});
+
   static Device fromJson(Map<String, dynamic> map) {
     return Device(
         guid: map["guid"],

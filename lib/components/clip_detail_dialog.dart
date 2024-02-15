@@ -80,7 +80,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                         onPressed: () {
                           var id = widget.clip.data.id;
                           //删除tag
-                          DBUtil.inst.historyTagDao.removeAll(id);
+                          DBUtil.inst.historyTagDao.removeAllByHisId(id);
                           //删除历史
                           DBUtil.inst.historyDao.delete(id).then((v) {
                             if (v == null || v <= 0) return;

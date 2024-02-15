@@ -22,6 +22,8 @@ class HistoryTag {
     this.hisId,
   );
 
+  HistoryTag.empty({this.id = 0, this.tagName = "", this.hisId = 0});
+
   static HistoryTag fromJson(Map<String, dynamic> map) {
     return HistoryTag(map["id"], map["tagName"], map["hisId"]);
   }

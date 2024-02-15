@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 import '../../components/clip_detail_dialog.dart';
 import '../../dao/operation_sync_dao.dart';
 import '../../db/db_util.dart';
+import '../../entity/dev_info.dart';
 import '../../listeners/socket_listener.dart';
 import '../../main.dart';
 import '../../util/platform_util.dart';
@@ -125,7 +126,7 @@ class _HistoryPageState extends State<HistoryPage>
               title: null,
               contentPadding: const EdgeInsets.all(0),
               content: ClipDetailDialog(
-                dlgContext:context,
+                dlgContext: context,
                 clip: chip,
                 onUpdate: () {
                   _list.sort((a, b) => b.data.compareTo(a.data));
@@ -147,7 +148,7 @@ class _HistoryPageState extends State<HistoryPage>
         elevation: 100,
         builder: (BuildContext context) {
           return ClipDetailDialog(
-            dlgContext:context,
+            dlgContext: context,
             clip: chip,
             onUpdate: () {
               _list.sort((a, b) => b.data.compareTo(a.data));
@@ -176,7 +177,7 @@ class _HistoryPageState extends State<HistoryPage>
                   return Container(
                     padding: const EdgeInsets.only(left: 2, right: 2),
                     constraints:
-                    const BoxConstraints(maxHeight: 150, minHeight: 80),
+                        const BoxConstraints(maxHeight: 150, minHeight: 80),
                     child: GestureDetector(
                       onTapUp: (TapUpDetails details) {
                         Log.debug(tag, "onTapUp");
@@ -267,7 +268,7 @@ class _HistoryPageState extends State<HistoryPage>
     var send = msg.send;
     var data = msg.data;
     var opSync =
-    OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
+        OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
     //记录同步记录
     DBUtil.inst.opSyncDao.add(opSync);
     //更新本地历史记录为已同步
@@ -290,6 +291,10 @@ class _HistoryPageState extends State<HistoryPage>
     Map<String, dynamic> json = jsonDecode(opRecord.data);
     History history = History.fromJson(json);
     history.sync = true;
+    if (opRecord.module == Module.historyTop) {
+      updateTop(send, history, opRecord.id);
+      return;
+    }
     Future? f;
     switch (opRecord.method) {
       case OpMethod.add:
@@ -331,5 +336,17 @@ class _HistoryPageState extends State<HistoryPage>
         });
       });
     }
+  }
+
+  void updateTop(DevInfo send, History history, int opId) {
+    DBUtil.inst.historyDao.setTop(history.id, history.top);
+    //发送同步确认
+    SocketListener.inst.then((inst) {
+      inst.sendData(send, MsgType.ackSync, {
+        "id": opId,
+        "hisId": history.id,
+        "module": Module.historyTop.moduleName
+      });
+    });
   }
 }

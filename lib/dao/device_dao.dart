@@ -22,4 +22,8 @@ abstract class DeviceDao {
   ///删除设备（逻辑删？todo）
   @Query("delete from device where guid = :guid and uid = :uid")
   Future<int?> remove(String guid, int uid);
+
+  ///删除所有设备（逻辑删？todo）
+  @Query("delete from device where uid = :uid")
+  Future<int?> removeAll(int uid);
 }

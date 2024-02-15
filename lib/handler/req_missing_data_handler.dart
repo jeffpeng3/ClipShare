@@ -1,5 +1,8 @@
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/dev_info.dart';
+import 'package:clipshare/entity/tables/device.dart';
+import 'package:clipshare/entity/tables/history.dart';
+import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
@@ -20,6 +23,11 @@ class ReqMissingDataHandler {
               if (v == null) {
                 if (item.method != OpMethod.delete) {
                   rmList.add(item);
+                } else {
+                  var empty = Device.empty();
+                  empty.guid = id;
+                  empty.uid = App.userId;
+                  item.data = empty.toString();
                 }
               } else {
                 item.data = v.toString();
@@ -31,6 +39,10 @@ class ReqMissingDataHandler {
               if (v == null) {
                 if (item.method != OpMethod.delete) {
                   rmList.add(item);
+                } else {
+                  var empty = HistoryTag.empty();
+                  empty.id = int.parse(id);
+                  item.data = empty.toString();
                 }
               } else {
                 item.data = v.toString();
@@ -42,6 +54,10 @@ class ReqMissingDataHandler {
               if (v == null) {
                 if (item.method != OpMethod.delete) {
                   rmList.add(item);
+                } else {
+                  var empty = History.empty();
+                  empty.id = int.parse(id);
+                  item.data = empty.toString();
                 }
               } else {
                 item.data = v.toString();

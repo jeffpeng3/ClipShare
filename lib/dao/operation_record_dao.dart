@@ -18,4 +18,8 @@ abstract class OperationRecordDao {
   order by id desc
   """)
   Future<List<OperationRecord>> getSyncRecord(int uid, String devId);
+
+  ///删除当前用户的所有操作记录
+  @Query("delete from OperationRecord where uid = :uid")
+  Future<int?> removeAll(int uid);
 }

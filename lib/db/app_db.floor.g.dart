@@ -563,6 +563,13 @@ class _$DeviceDao extends DeviceDao {
   }
 
   @override
+  Future<int?> removeAll(int uid) async {
+    return _queryAdapter.query('delete from device where uid = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [uid]);
+  }
+
+  @override
   Future<int> add(Device dev) {
     return _deviceInsertionAdapter.insertAndReturnId(
         dev, OnConflictStrategy.abort);
@@ -579,21 +586,31 @@ class _$OperationSyncDao extends OperationSyncDao {
   _$OperationSyncDao(
       this.database,
       this.changeListener,
-      ) : _operationSyncInsertionAdapter = InsertionAdapter(
-      database,
-      'OperationSync',
-          (OperationSync item) => <String, Object?>{
-        'opId': item.opId,
-        'devId': item.devId,
-        'uid': item.uid,
-        'time': item.time
-      });
+      )   : _queryAdapter = QueryAdapter(database),
+        _operationSyncInsertionAdapter = InsertionAdapter(
+            database,
+            'OperationSync',
+                (OperationSync item) => <String, Object?>{
+              'opId': item.opId,
+              'devId': item.devId,
+              'uid': item.uid,
+              'time': item.time
+            });
 
   final sqflite.DatabaseExecutor database;
 
   final StreamController<String> changeListener;
 
+  final QueryAdapter _queryAdapter;
+
   final InsertionAdapter<OperationSync> _operationSyncInsertionAdapter;
+
+  @override
+  Future<int?> removeAll(int uid) async {
+    return _queryAdapter.query('delete OperationSync where uid = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [uid]);
+  }
 
   @override
   Future<int> add(OperationSync syncHistory) {
@@ -666,10 +683,16 @@ class _$HistoryTagDao extends HistoryTagDao {
   }
 
   @override
-  Future<int?> removeAll(int hId) async {
+  Future<int?> removeAllByHisId(int hId) async {
     return _queryAdapter.query('delete from HistoryTag where hisId = ?1',
         mapper: (Map<String, Object?> row) => row.values.first as int,
         arguments: [hId]);
+  }
+
+  @override
+  Future<int?> removeAll() async {
+    return _queryAdapter.query('delete from HistoryTag',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
   }
 
   @override
@@ -739,6 +762,13 @@ class _$OperationRecordDao extends OperationRecordDao {
         'select * from OperationRecord record   where not exists (     select 1 from OperationSync opsync     where opsync.uid = ?1 and opsync.devId = ?2 and opsync.opId = record.id   )   order by id desc',
         mapper: (Map<String, Object?> row) => OperationRecord(id: row['id'] as int, uid: row['uid'] as int, module: _moduleTypeConverter.decode(row['module'] as String), method: _opMethodTypeConverter.decode(row['method'] as String), data: row['data'] as String),
         arguments: [uid, devId]);
+  }
+
+  @override
+  Future<int?> removeAll(int uid) async {
+    return _queryAdapter.query('delete from OperationRecord where uid = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [uid]);
   }
 
   @override
