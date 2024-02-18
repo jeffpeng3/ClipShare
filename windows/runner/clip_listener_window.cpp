@@ -56,13 +56,19 @@ void ClipListenerWindow::SendClip(std::wstring& content)
 	channel_->InvokeMethod("setClipText", std::make_unique<flutter::EncodableValue>(args));
 }
 
-std::wstring ClipListenerWindow::GetClipboardText()
+std::wstring ClipListenerWindow::GetClipboardText(int retry)
 {
 	std::wstring empty = L"";
 	// 尝试打开剪贴板
-	if (!OpenClipboard(nullptr))
+	bool isOpen = OpenClipboard(nullptr);
+	if (!isOpen)
 	{
-		return empty;
+		if(retry >= 3)
+		{
+			return empty;
+		}
+		Sleep(100);
+		return GetClipboardText(retry + 1);
 	}
 
 	// 尝试获取剪贴板中的数据

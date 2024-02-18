@@ -28,5 +28,5 @@ private:
     HWND hWndNextViewer_;
     std::wstring lastText = L"";
     void SendClip(std::wstring& content);
-    std::wstring GetClipboardText();
+    std::wstring GetClipboardText(int retry = 0);
 };
