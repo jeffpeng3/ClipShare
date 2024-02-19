@@ -62,7 +62,7 @@ class _TagEditPageState extends State<TagEditPage> {
                   var willRmList = originSet.difference(selectedSet);
                   //选择的值 - 原始值，找出应增加的tag
                   var willAddList = selectedSet.difference(originSet);
-                  //todo 考虑事务
+
                   ///增加
                   Future<int?> link = Future.value(0);
                   for (var v in willAddList) {

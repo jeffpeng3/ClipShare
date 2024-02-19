@@ -26,6 +26,7 @@ class DeviceCard extends StatefulWidget {
 }
 
 class DeviceCardState extends State<DeviceCard> {
+  final Color _connColor = Colors.green;
   Map<String, Icon> typeIcons = const {
     'Windows': Icon(
       Icons.laptop_windows_outlined,
@@ -61,6 +62,8 @@ class DeviceCardState extends State<DeviceCard> {
   );
   int _emptyIconIdx = 0;
   Timer? timer;
+
+  Icon get _currIcon => typeIcons[widget.devInfo!.type]!;
 
   void setTimer() {
     timer = Timer.periodic(const Duration(milliseconds: 1200), (timer) {
@@ -105,7 +108,7 @@ class DeviceCardState extends State<DeviceCard> {
               height: 72,
               child: Row(
                 children: [
-                  _empty ? _emptyIcon : typeIcons[widget.devInfo!.type]!,
+                  _empty ? _emptyIcon : _currIcon,
                   Padding(
                     padding: const EdgeInsets.only(left: 15),
                     child: Column(
@@ -126,6 +129,25 @@ class DeviceCardState extends State<DeviceCard> {
                         ),
                         Row(
                           children: [
+                            !_empty
+                                ? Row(
+                                  children: [
+                                    Container(
+                                      width: 6.0 * 2,
+                                      height: 6.0 * 2,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: widget.isConnected
+                                            ? _connColor
+                                            : Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 10,
+                                    )
+                                  ],
+                                )
+                                : const SizedBox.shrink(),
                             RoundedChip(
                               label:
                                   Text(_empty ? "    " : widget.devInfo!.type),
@@ -140,18 +162,6 @@ class DeviceCardState extends State<DeviceCard> {
                                     backgroundColor: chipColor,
                                   )
                                 : const SizedBox.shrink(),
-                            widget.isPaired
-                                ? RoundedChip(
-                                    label: Text(
-                                        widget.isConnected ? "已连接" : "未连接"),
-                                    backgroundColor: chipColor,
-                                  )
-                                : _empty
-                                    ? const SizedBox.shrink()
-                                    : const RoundedChip(
-                                        label: Text("未配对"),
-                                        backgroundColor: chipColor,
-                                      )
                           ],
                         )
                       ],

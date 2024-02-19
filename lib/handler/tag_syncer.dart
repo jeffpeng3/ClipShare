@@ -42,7 +42,7 @@ class TagSyncer implements SyncObserver {
         f = DBUtil.inst.historyTagDao.add(tag);
         break;
       case OpMethod.delete:
-        DBUtil.inst.historyTagDao.remove(tag.hisId, tag.tagName);
+        DBUtil.inst.historyTagDao.removeById(tag.id);
         break;
       case OpMethod.update:
         f = DBUtil.inst.historyTagDao.updateTag(tag);
