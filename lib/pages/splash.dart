@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
@@ -54,10 +53,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void gotoHomePage() {
     Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const HomePage(title: 'ChipShare'),
-        ));
+      context,
+      MaterialPageRoute(
+        builder: (context) => const HomePage(title: 'ChipShare'),
+      ),
+    );
   }
 
   @override

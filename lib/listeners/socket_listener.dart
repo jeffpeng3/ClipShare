@@ -4,10 +4,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/dao/device_dao.dart';
-import 'package:clipshare/dao/history_dao.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/message_data.dart';
-import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/handler/dev_pairing_handler.dart';
 import 'package:clipshare/handler/req_missing_data_handler.dart';
 import 'package:clipshare/main.dart';
@@ -124,11 +122,12 @@ class SocketListener {
     _devSockets[dev.guid] = DevSocket(dev: dev, socket: socket);
     //发送本机信息给对方
     MessageData msg = MessageData(
-        userId: App.userId,
-        send: App.devInfo,
-        key: MsgType.devInfo,
-        data: {},
-        recv: null);
+      userId: App.userId,
+      send: App.devInfo,
+      key: MsgType.devInfo,
+      data: {},
+      recv: null,
+    );
     var b64Data = "${CryptoUtil.base64Encode(msg.toJsonStr())}\n";
     socket.write(b64Data);
     _onDevConnected(dev);
@@ -168,10 +167,14 @@ class SocketListener {
   void _runSocketServer() async {
     _server = await ServerSocket.bind('0.0.0.0', 0);
     Log.debug(
-        tag, '服务器已启动，监听所有网络接口 ${_server.address.address} ${_server.port}');
+      tag,
+      '服务器已启动，监听所有网络接口 ${_server.address.address} ${_server.port}',
+    );
     _server.listen((Socket client) {
       Log.debug(
-          tag, '新连接来自 ${client.remoteAddress.address}:${client.remotePort}');
+        tag,
+        '新连接来自 ${client.remoteAddress.address}:${client.remotePort}',
+      );
 
       client.listen(
         (List<int> data) {
@@ -267,22 +270,23 @@ class SocketListener {
         int code = 1000 + random.nextInt(9000);
         DevPairingHandler.addCode(dev.guid, CryptoUtil.toMD5(code));
         showDialog(
-            context: App.context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text("配对请求"),
-                content: Text("来自 ${dev.name} 的配对请求\n配对码：$code"),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () {
-                      DevPairingHandler.removeCode(dev.guid);
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('取消该次配对'),
-                  ),
-                ],
-              );
-            });
+          context: App.context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("配对请求"),
+              content: Text("来自 ${dev.name} 的配对请求\n配对码：$code"),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    DevPairingHandler.removeCode(dev.guid);
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('取消该次配对'),
+                ),
+              ],
+            );
+          },
+        );
         break;
 
       ///请求配对我方，验证配对码
@@ -293,11 +297,12 @@ class SocketListener {
         _onDevPaired(dev, msg.userId, verify);
         //返回配对结果
         MessageData result = MessageData(
-            userId: App.userId,
-            send: App.devInfo,
-            key: MsgType.paired,
-            data: {"result": verify},
-            recv: null);
+          userId: App.userId,
+          send: App.devInfo,
+          key: MsgType.paired,
+          data: {"result": verify},
+          recv: null,
+        );
         var b64Data = CryptoUtil.base64Encode(result.toJsonStr());
         socket.write(b64Data);
         break;
@@ -368,15 +373,20 @@ class SocketListener {
   }
 
   ///向指定设备发送消息
-  bool sendData(DevInfo? dev, MsgType key, Map<String, dynamic> data,
-      [bool onlyPaired = true]) {
+  bool sendData(
+    DevInfo? dev,
+    MsgType key,
+    Map<String, dynamic> data, [
+    bool onlyPaired = true,
+  ]) {
     Log.debug(tag, data);
     MessageData msg = MessageData(
-        userId: App.userId,
-        send: App.devInfo,
-        key: key,
-        data: data,
-        recv: null);
+      userId: App.userId,
+      send: App.devInfo,
+      key: key,
+      data: data,
+      recv: null,
+    );
     var b64Data = "${CryptoUtil.base64Encode(msg.toJsonStr())}\n";
     if (dev == null) {
       var list = onlyPaired
@@ -400,19 +410,26 @@ class SocketListener {
   }
 
   /// 发送组播消息
-  void sendMulticastMsg(MsgType key, Map<String, dynamic> data,
-      [DevInfo? recv]) {
+  void sendMulticastMsg(
+    MsgType key,
+    Map<String, dynamic> data, [
+    DevInfo? recv,
+  ]) {
     MessageData msg = MessageData(
-        userId: App.userId,
-        send: App.devInfo,
-        key: key,
-        data: data,
-        recv: recv);
+      userId: App.userId,
+      send: App.devInfo,
+      key: key,
+      data: data,
+      recv: recv,
+    );
     try {
       var b64Data = CryptoUtil.base64Encode("${msg.toJsonStr()}\n");
       for (var multicast in _multicasts) {
-        multicast.send(utf8.encode(b64Data),
-            InternetAddress(Constants.multicastGroup), Constants.port);
+        multicast.send(
+          utf8.encode(b64Data),
+          InternetAddress(Constants.multicastGroup),
+          Constants.port,
+        );
       }
     } catch (e, stacktrace) {
       Log.debug(tag, "$e $stacktrace");
@@ -459,7 +476,9 @@ class SocketListener {
   }
 
   Future<List<RawDatagramSocket>> _getSockets(
-      String multicastGroup, int port) async {
+    String multicastGroup,
+    int port,
+  ) async {
     final interfaces = await NetworkInterface.list();
     final sockets = <RawDatagramSocket>[];
     for (final interface in interfaces) {

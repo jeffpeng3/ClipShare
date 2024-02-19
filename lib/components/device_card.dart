@@ -11,13 +11,14 @@ class DeviceCard extends StatefulWidget {
   bool isSelf;
   bool isConnected;
 
-  DeviceCard(
-      {super.key,
-      required this.devInfo,
-      this.onTap,
-      this.isPaired = false,
-      this.isConnected = false,
-      this.isSelf = false});
+  DeviceCard({
+    super.key,
+    required this.devInfo,
+    this.onTap,
+    this.isPaired = false,
+    this.isConnected = false,
+    this.isSelf = false,
+  });
 
   @override
   State<StatefulWidget> createState() {
@@ -103,34 +104,36 @@ class DeviceCardState extends State<DeviceCard> {
         },
         borderRadius: BorderRadius.circular(12.0),
         child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: SizedBox(
-              height: 72,
-              child: Row(
-                children: [
-                  _empty ? _emptyIcon : _currIcon,
-                  Padding(
-                    padding: const EdgeInsets.only(left: 15),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _empty
-                            ? const RoundedChip(
-                                label: Text("                  "),
-                                backgroundColor: chipColor,
-                              )
-                            : Text(
-                                widget.devInfo!.name,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w500, fontSize: 22),
+          padding: const EdgeInsets.all(16),
+          child: SizedBox(
+            height: 72,
+            child: Row(
+              children: [
+                _empty ? _emptyIcon : _currIcon,
+                Padding(
+                  padding: const EdgeInsets.only(left: 15),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _empty
+                          ? const RoundedChip(
+                              label: Text("                  "),
+                              backgroundColor: chipColor,
+                            )
+                          : Text(
+                              widget.devInfo!.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 22,
                               ),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        Row(
-                          children: [
-                            !_empty
-                                ? Row(
+                            ),
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      Row(
+                        children: [
+                          !_empty
+                              ? Row(
                                   children: [
                                     Container(
                                       width: 6.0 * 2,
@@ -144,32 +147,32 @@ class DeviceCardState extends State<DeviceCard> {
                                     ),
                                     const SizedBox(
                                       width: 10,
-                                    )
+                                    ),
                                   ],
                                 )
-                                : const SizedBox.shrink(),
-                            RoundedChip(
-                              label:
-                                  Text(_empty ? "    " : widget.devInfo!.type),
-                              backgroundColor: chipColor,
-                            ),
-                            const SizedBox(
-                              width: 5,
-                            ),
-                            widget.isSelf
-                                ? const RoundedChip(
-                                    label: Text("本机"),
-                                    backgroundColor: chipColor,
-                                  )
-                                : const SizedBox.shrink(),
-                          ],
-                        )
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            )),
+                              : const SizedBox.shrink(),
+                          RoundedChip(
+                            label: Text(_empty ? "    " : widget.devInfo!.type),
+                            backgroundColor: chipColor,
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          widget.isSelf
+                              ? const RoundedChip(
+                                  label: Text("本机"),
+                                  backgroundColor: chipColor,
+                                )
+                              : const SizedBox.shrink(),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -26,18 +26,18 @@ class ClipDataCardState extends State<ClipDataCard> {
         },
         borderRadius: BorderRadius.circular(12.0),
         child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      child: const Text("data"),
-                    )
-                  ],
-                ),
-                Expanded(
-                    child: Column(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    child: const Text("data"),
+                  ),
+                ],
+              ),
+              Expanded(
+                child: Column(
                   children: [
                     Container(
                       alignment: Alignment.centerLeft,
@@ -47,38 +47,43 @@ class ClipDataCardState extends State<ClipDataCard> {
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    )
-                  ],
-                )),
-                Row(
-                  children: [
-                    widget.clip.data.top
-                        ? const Icon(Icons.push_pin, size: 16)
-                        : const SizedBox(width: 0),
-                    !widget.clip.data.sync
-                        ? const Icon(
-                            Icons.sync,
-                            size: 16,
-                            color: Colors.red,
-                          )
-                        : const SizedBox(width: 0),
-                    GestureDetector(
-                      child: Text(showSimpleTime
-                          ? widget.clip.timeStr
-                          : widget.clip.data.time),
-                      onTap: () {
-                        setState(() {
-                          showSimpleTime = !showSimpleTime;
-                        });
-                      },
                     ),
-                    ConstrainedBox(
-                        constraints: const BoxConstraints(minWidth: 10)),
-                    Text(widget.clip.sizeText)
                   ],
                 ),
-              ],
-            )),
+              ),
+              Row(
+                children: [
+                  widget.clip.data.top
+                      ? const Icon(Icons.push_pin, size: 16)
+                      : const SizedBox(width: 0),
+                  !widget.clip.data.sync
+                      ? const Icon(
+                          Icons.sync,
+                          size: 16,
+                          color: Colors.red,
+                        )
+                      : const SizedBox(width: 0),
+                  GestureDetector(
+                    child: Text(
+                      showSimpleTime
+                          ? widget.clip.timeStr
+                          : widget.clip.data.time,
+                    ),
+                    onTap: () {
+                      setState(() {
+                        showSimpleTime = !showSimpleTime;
+                      });
+                    },
+                  ),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 10),
+                  ),
+                  Text(widget.clip.sizeText),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

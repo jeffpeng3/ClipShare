@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:clipshare/components/clip_data_card.dart';
 import 'package:clipshare/dao/history_dao.dart';
-import 'package:collection/collection.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
@@ -18,7 +17,6 @@ import 'package:flutter/services.dart';
 import '../../components/clip_detail_dialog.dart';
 import '../../dao/operation_sync_dao.dart';
 import '../../db/db_util.dart';
-import '../../entity/dev_info.dart';
 import '../../listeners/socket_listener.dart';
 import '../../main.dart';
 import '../../util/platform_util.dart';
@@ -83,7 +81,9 @@ class HistoryPageState extends State<HistoryPage>
   }
 
   void updatePage(
-      bool Function(History history) where, void Function(History history) cb) {
+    bool Function(History history) where,
+    void Function(History history) cb,
+  ) {
     for (var item in _list) {
       //查找符合条件的数据
       if (where(item.data)) {
@@ -143,33 +143,12 @@ class HistoryPageState extends State<HistoryPage>
 
   void _showDetailDialog(ClipData chip) {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-              title: null,
-              contentPadding: const EdgeInsets.all(0),
-              content: ClipDetailDialog(
-                dlgContext: context,
-                clip: chip,
-                onUpdate: () {
-                  _sortList();
-                },
-                onRemove: (int id) {
-                  _list.removeWhere((element) => element.data.id == id);
-                  setState(() {});
-                },
-              ));
-        });
-  }
-
-  void _showBottomDetailSheet(ClipData chip) {
-    showModalBottomSheet(
-        isScrollControlled: true,
-        clipBehavior: Clip.antiAlias,
-        context: context,
-        elevation: 100,
-        builder: (BuildContext context) {
-          return ClipDetailDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: null,
+          contentPadding: const EdgeInsets.all(0),
+          content: ClipDetailDialog(
             dlgContext: context,
             clip: chip,
             onUpdate: () {
@@ -179,8 +158,32 @@ class HistoryPageState extends State<HistoryPage>
               _list.removeWhere((element) => element.data.id == id);
               setState(() {});
             },
-          );
-        });
+          ),
+        );
+      },
+    );
+  }
+
+  void _showBottomDetailSheet(ClipData chip) {
+    showModalBottomSheet(
+      isScrollControlled: true,
+      clipBehavior: Clip.antiAlias,
+      context: context,
+      elevation: 100,
+      builder: (BuildContext context) {
+        return ClipDetailDialog(
+          dlgContext: context,
+          clip: chip,
+          onUpdate: () {
+            _sortList();
+          },
+          onRemove: (int id) {
+            _list.removeWhere((element) => element.data.id == id);
+            setState(() {});
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -191,40 +194,42 @@ class HistoryPageState extends State<HistoryPage>
           height: 10,
         ),
         Expanded(
-            child: ListView.builder(
-                itemCount: _list.length,
-                controller: _scrollController,
-                itemBuilder: (context, i) {
-                  return Container(
-                    padding: const EdgeInsets.only(left: 2, right: 2),
-                    constraints:
-                        const BoxConstraints(maxHeight: 150, minHeight: 80),
-                    child: GestureDetector(
-                      onTapUp: (TapUpDetails details) {
-                        Log.debug(tag, "onTapUp");
-                      },
-                      onTapDown: (TapDownDetails details) {
-                        Log.debug(tag, "onTapDown");
-                      },
-                      behavior: HitTestBehavior.translucent,
-                      child: ClipDataCard(
-                        _list[i],
-                        onTap: () {
-                          if (!PlatformUtil.isPC()) {
-                            return;
-                          }
-                          _showDetail(_list[i]);
-                        },
-                      ),
-                      onLongPress: () {
-                        if (!PlatformUtil.isMobile()) {
-                          return;
-                        }
-                        _showDetail(_list[i]);
-                      },
-                    ),
-                  );
-                }))
+          child: ListView.builder(
+            itemCount: _list.length,
+            controller: _scrollController,
+            itemBuilder: (context, i) {
+              return Container(
+                padding: const EdgeInsets.only(left: 2, right: 2),
+                constraints:
+                    const BoxConstraints(maxHeight: 150, minHeight: 80),
+                child: GestureDetector(
+                  onTapUp: (TapUpDetails details) {
+                    Log.debug(tag, "onTapUp");
+                  },
+                  onTapDown: (TapDownDetails details) {
+                    Log.debug(tag, "onTapDown");
+                  },
+                  behavior: HitTestBehavior.translucent,
+                  child: ClipDataCard(
+                    _list[i],
+                    onTap: () {
+                      if (!PlatformUtil.isPC()) {
+                        return;
+                      }
+                      _showDetail(_list[i]);
+                    },
+                  ),
+                  onLongPress: () {
+                    if (!PlatformUtil.isMobile()) {
+                      return;
+                    }
+                    _showDetail(_list[i]);
+                  },
+                ),
+              );
+            },
+          ),
+        ),
       ],
     );
   }
@@ -241,20 +246,22 @@ class HistoryPageState extends State<HistoryPage>
     }
     Log.debug("ClipData onChanged", content);
     var history = History(
-        id: App.snowflake.nextId(),
-        uid: App.userId,
-        devId: App.devInfo.guid,
-        time: DateTime.now().toString(),
-        content: content,
-        type: 'Text',
-        size: content.length);
+      id: App.snowflake.nextId(),
+      uid: App.userId,
+      devId: App.devInfo.guid,
+      time: DateTime.now().toString(),
+      content: content,
+      type: 'Text',
+      size: content.length,
+    );
     //添加操作记录
     var opRecord = OperationRecord(
-        id: App.snowflake.nextId(),
-        uid: App.userId,
-        module: Module.history,
-        method: OpMethod.add,
-        data: history.id.toString());
+      id: App.snowflake.nextId(),
+      uid: App.userId,
+      module: Module.history,
+      method: OpMethod.add,
+      data: history.id.toString(),
+    );
     DBUtil.inst.opRecordDao.addAndNotify(opRecord);
     addData(history);
   }
@@ -319,7 +326,7 @@ class HistoryPageState extends State<HistoryPage>
       SocketListener.inst.sendData(send, MsgType.ackSync, {
         "id": opRecord.id,
         "hisId": history.id,
-        "module": Module.historyTop.moduleName
+        "module": Module.historyTop.moduleName,
       });
       return;
     }
@@ -344,7 +351,8 @@ class HistoryPageState extends State<HistoryPage>
             } else {
               _last = _list
                   .reduce(
-                      (curr, next) => curr.data.id > next.data.id ? curr : next)
+                    (curr, next) => curr.data.id > next.data.id ? curr : next,
+                  )
                   .data;
             }
           }
@@ -368,7 +376,7 @@ class HistoryPageState extends State<HistoryPage>
       SocketListener.inst.sendData(send, MsgType.ackSync, {
         "id": opRecord.id,
         "hisId": history.id,
-        "module": Module.history.moduleName
+        "module": Module.history.moduleName,
       });
     } else {
       f.then((cnt) {
@@ -377,7 +385,7 @@ class HistoryPageState extends State<HistoryPage>
         SocketListener.inst.sendData(send, MsgType.ackSync, {
           "id": opRecord.id,
           "hisId": history.id,
-          "module": Module.history.moduleName
+          "module": Module.history.moduleName,
         });
       });
     }

@@ -7,9 +7,11 @@ import '../../util/constants.dart';
 
 ///
 /// 操作记录表
-@Entity(indices: [
-  Index(value: ['uid', "module", "method"])
-])
+@Entity(
+  indices: [
+    Index(value: ['uid', "module", "method"]),
+  ],
+)
 class OperationRecord {
   ///主键 id
   @PrimaryKey(autoGenerate: true)

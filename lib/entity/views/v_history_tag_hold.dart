@@ -1,4 +1,3 @@
-import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:floor/floor.dart';
 
 @DatabaseView("""

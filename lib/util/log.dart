@@ -1,5 +1,4 @@
 import 'package:clipshare/util/constants.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:logger/logger.dart';
 
 class Log {

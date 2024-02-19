@@ -1,16 +1,15 @@
 import 'dart:io';
 
 import 'package:clipshare/entity/dev_info.dart';
-import 'package:clipshare/pages/nav/base_page.dart';
 import 'package:clipshare/pages/splash.dart';
-import 'package:clipshare/pages/tag_edit_page.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:window_manager/window_manager.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:window_manager/window_manager.dart';
+
 void main() async {
   if (Platform.isWindows) {
     await initWindowsManager();

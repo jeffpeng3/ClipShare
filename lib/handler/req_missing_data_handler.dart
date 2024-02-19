@@ -1,6 +1,5 @@
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/dev_info.dart';
-import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
@@ -10,7 +9,6 @@ import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
 
 class ReqMissingDataHandler {
-
   static void sendMissingData(DevInfo dev) {
     getData(dev.guid).then((lst) {
       for (var item in lst) {
@@ -20,9 +18,7 @@ class ReqMissingDataHandler {
   }
 
   static Future<List<OperationRecord>> getData(String devId) {
-    return DBUtil.inst.opRecordDao
-        .getSyncRecord(App.userId, devId)
-        .then((lst) {
+    return DBUtil.inst.opRecordDao.getSyncRecord(App.userId, devId).then((lst) {
       var future = Future.value();
       var rmList = <OperationRecord>[];
       for (var item in lst) {

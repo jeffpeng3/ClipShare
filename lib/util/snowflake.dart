@@ -24,30 +24,50 @@ class Snowflake {
   int _lastTimestamp = -1;
 
   Snowflake(int dataCenterId)
-      : this.fromWorkerAndDataCenterId(IdUtil.getWorkerId(dataCenterId),
-            IdUtil.getDataCenterId(dataCenterId));
+      : this.fromWorkerAndDataCenterId(
+          IdUtil.getWorkerId(dataCenterId),
+          IdUtil.getDataCenterId(dataCenterId),
+        );
 
   Snowflake.fromWorkerAndDataCenterId(int workerId, int dataCenterId)
       : this.fromWorkerDataAndClockId(workerId, dataCenterId, false);
 
-  Snowflake.fromWorkerDataAndClockId(int workerId, int dataCenterId,
-      [bool isUseSystemClock = false])
-      : this.fromEpochDate(null, workerId, dataCenterId, isUseSystemClock,
-            _defaultTimeOffset);
+  Snowflake.fromWorkerDataAndClockId(
+    int workerId,
+    int dataCenterId, [
+    bool isUseSystemClock = false,
+  ]) : this.fromEpochDate(
+          null,
+          workerId,
+          dataCenterId,
+          isUseSystemClock,
+          _defaultTimeOffset,
+        );
 
-  Snowflake.fromEpochDate(DateTime? epochDate, int workerId, int dataCenterId,
-      bool isUseSystemClock, int timeOffset, [int randomSequenceLimit = 0])
-      : this.fromEpochDateAndRandom(
-            epochDate, workerId, dataCenterId, isUseSystemClock, timeOffset, 0);
+  Snowflake.fromEpochDate(
+    DateTime? epochDate,
+    int workerId,
+    int dataCenterId,
+    bool isUseSystemClock,
+    int timeOffset, [
+    int randomSequenceLimit = 0,
+  ]) : this.fromEpochDateAndRandom(
+          epochDate,
+          workerId,
+          dataCenterId,
+          isUseSystemClock,
+          timeOffset,
+          0,
+        );
 
   Snowflake.fromEpochDateAndRandom(
-      DateTime? epochDate,
-      int workerId,
-      int dataCenterId,
-      bool isUseSystemClock,
-      int timeOffset,
-      int randomSequenceLimit)
-      : _twepoch = epochDate != null
+    DateTime? epochDate,
+    int workerId,
+    int dataCenterId,
+    bool isUseSystemClock,
+    int timeOffset,
+    int randomSequenceLimit,
+  )   : _twepoch = epochDate != null
             ? epochDate.millisecondsSinceEpoch
             : _defaultTwepoch,
         _workerId = Assert.checkBetween(workerId, 0, _maxWorkerId),
@@ -74,7 +94,8 @@ class Snowflake {
     if (timestamp < _lastTimestamp) {
       if (_lastTimestamp - timestamp >= _timeOffset) {
         throw StateError(
-            "Clock moved backwards. Refusing to generate id for ${_lastTimestamp - timestamp}ms");
+          "Clock moved backwards. Refusing to generate id for ${_lastTimestamp - timestamp}ms",
+        );
       }
 
       timestamp = _lastTimestamp;
@@ -112,7 +133,8 @@ class Snowflake {
 
     if (timestamp < lastTimestamp) {
       throw StateError(
-          "Clock moved backwards. Refusing to generate id for ${lastTimestamp - timestamp}ms");
+        "Clock moved backwards. Refusing to generate id for ${lastTimestamp - timestamp}ms",
+      );
     } else {
       return timestamp;
     }
@@ -136,6 +158,7 @@ class IdUtil {
 
     return (mpid.toString().hashCode & 0xffff) % (Snowflake._maxWorkerId + 1);
   }
+
   static int getDataCenterId(int id) {
     return id >> Snowflake._dataCenterIdShift & Snowflake._maxDataCenterId;
   }
@@ -150,4 +173,3 @@ class Assert {
     }
   }
 }
-

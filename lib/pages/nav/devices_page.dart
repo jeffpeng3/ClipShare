@@ -44,10 +44,12 @@ class _DevicesPageState extends State<DevicesPage>
       _pairedList.clear();
       for (var dev in list) {
         var info = DevInfo.fromDevice(dev);
-        _pairedList.add(DeviceCard(
-          devInfo: info,
-          isPaired: true,
-        ));
+        _pairedList.add(
+          DeviceCard(
+            devInfo: info,
+            isPaired: true,
+          ),
+        );
       }
       setState(() {});
     });
@@ -78,14 +80,15 @@ class _DevicesPageState extends State<DevicesPage>
                             Text(
                               "我的设备(${_pairedList.length})",
                               style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  fontFamily: "宋体"),
-                            )
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: "宋体",
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      ..._pairedList
+                      ..._pairedList,
                     ],
                   ),
             Padding(
@@ -95,24 +98,27 @@ class _DevicesPageState extends State<DevicesPage>
                   Text(
                     "发现设备(${_discoverList.length})",
                     style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: "宋体"),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: "宋体",
+                    ),
                   ),
                   IconButton(
-                      onPressed: () {
-                        SocketListener.inst.sendSocketInfo();
-                      },
-                      icon: const Icon(
-                        Icons.refresh,
-                        size: 20,
-                      )),
+                    onPressed: () {
+                      SocketListener.inst.sendSocketInfo();
+                    },
+                    icon: const Icon(
+                      Icons.refresh,
+                      size: 20,
+                    ),
+                  ),
                   IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.add,
-                        size: 20,
-                      ))
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.add,
+                      size: 20,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -122,7 +128,7 @@ class _DevicesPageState extends State<DevicesPage>
                     children: _discoverList,
                   ),
           ],
-        )
+        ),
       ],
     );
   }
@@ -144,99 +150,113 @@ class _DevicesPageState extends State<DevicesPage>
           width: 40,
           height: 40,
           textStyle: const TextStyle(
-              fontSize: 20, color: submittedColor, fontWeight: FontWeight.w600),
+            fontSize: 20,
+            color: submittedColor,
+            fontWeight: FontWeight.w600,
+          ),
           decoration: BoxDecoration(
             border: Border.all(color: submittedColor),
             borderRadius: BorderRadius.circular(8),
           ),
         );
-        return StatefulBuilder(builder: (context, state) {
-          _pairingState = state;
-          return AlertDialog(
-            title: const Text("请输入配对码"),
-            contentPadding: const EdgeInsets.all(8),
-            content: Container(
-              height: 90,
-              constraints: const BoxConstraints(minWidth: 500),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                const SizedBox(
-                  height: 30,
-                ),
-                Pinput(
-                  controller: pinCtr,
-                  autofocus: true,
-                  defaultPinTheme: defaultPinTheme,
-                  focusedPinTheme: defaultPinTheme.copyWith(
-                    decoration: defaultPinTheme.decoration!.copyWith(
-                      border: Border.all(color: focusedBorderColor),
+        return StatefulBuilder(
+          builder: (context, state) {
+            _pairingState = state;
+            return AlertDialog(
+              title: const Text("请输入配对码"),
+              contentPadding: const EdgeInsets.all(8),
+              content: Container(
+                height: 90,
+                constraints: const BoxConstraints(minWidth: 500),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      height: 30,
                     ),
-                  ),
-                  submittedPinTheme: defaultPinTheme.copyWith(
-                    decoration: defaultPinTheme.decoration!.copyWith(
-                      border: Border.all(color: submittedColor),
-                    ),
-                  ),
-                  errorPinTheme: defaultPinTheme.copyWith(
-                      decoration: defaultPinTheme.decoration!.copyWith(
-                        border: Border.all(color: Colors.redAccent),
+                    Pinput(
+                      controller: pinCtr,
+                      autofocus: true,
+                      defaultPinTheme: defaultPinTheme,
+                      focusedPinTheme: defaultPinTheme.copyWith(
+                        decoration: defaultPinTheme.decoration!.copyWith(
+                          border: Border.all(color: focusedBorderColor),
+                        ),
                       ),
-                      textStyle: defaultPinTheme.textStyle!
-                          .copyWith(color: Colors.redAccent)),
-                  pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                  showCursor: true,
-                  onChanged: (pin) {
-                    completedInputPin = pin.length == 4;
-                    state(() {});
-                  },
+                      submittedPinTheme: defaultPinTheme.copyWith(
+                        decoration: defaultPinTheme.decoration!.copyWith(
+                          border: Border.all(color: submittedColor),
+                        ),
+                      ),
+                      errorPinTheme: defaultPinTheme.copyWith(
+                        decoration: defaultPinTheme.decoration!.copyWith(
+                          border: Border.all(color: Colors.redAccent),
+                        ),
+                        textStyle: defaultPinTheme.textStyle!
+                            .copyWith(color: Colors.redAccent),
+                      ),
+                      pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
+                      showCursor: true,
+                      onChanged: (pin) {
+                        completedInputPin = pin.length == 4;
+                        state(() {});
+                      },
+                    ),
+                    (showTimeoutText || _pairingFailed)
+                        ? Text(
+                            showTimeoutText ? "配对超时！" : "配对码错误",
+                            textAlign: TextAlign.left,
+                            style: const TextStyle(color: Colors.redAccent),
+                          )
+                        : const SizedBox(),
+                  ],
                 ),
-                (showTimeoutText || _pairingFailed)
-                    ? Text(
-                        showTimeoutText ? "配对超时！" : "配对码错误",
-                        textAlign: TextAlign.left,
-                        style: const TextStyle(color: Colors.redAccent),
-                      )
-                    : const SizedBox()
-              ]),
-            ),
-            actions: [
-              TextButton(
+              ),
+              actions: [
+                TextButton(
                   onPressed: _pairing
                       ? null
                       : () {
                           Navigator.of(context).pop();
                         },
-                  child: const Text("取消")),
-              _pairing
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.0,
+                  child: const Text("取消"),
+                ),
+                _pairing
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.0,
+                        ),
+                      )
+                    : TextButton(
+                        onPressed: completedInputPin
+                            ? () {
+                                String pin = pinCtr.text;
+                                SocketListener.inst.sendData(
+                                  dev,
+                                  MsgType.pairing,
+                                  {"code": CryptoUtil.toMD5(pin)},
+                                );
+                                _pairing = true;
+                                showTimeoutText = false;
+                                _pairingFailed = false;
+                                Future.delayed(const Duration(seconds: 5), () {
+                                  if (_pairing) {
+                                    _pairing = false;
+                                    showTimeoutText = true;
+                                    state(() {});
+                                  }
+                                });
+                                state(() {});
+                              }
+                            : null,
+                        child: const Text("配对!"),
                       ),
-                    )
-                  : TextButton(
-                      onPressed: completedInputPin
-                          ? () {
-                              String pin = pinCtr.text;
-                              SocketListener.inst.sendData(dev, MsgType.pairing,
-                                  {"code": CryptoUtil.toMD5(pin)});
-                              _pairing = true;
-                              showTimeoutText = false;
-                              _pairingFailed = false;
-                              Future.delayed(const Duration(seconds: 5), () {
-                                if (_pairing) {
-                                  _pairing = false;
-                                  showTimeoutText = true;
-                                  state(() {});
-                                }
-                              });
-                              state(() {});
-                            }
-                          : null,
-                      child: const Text("配对!")),
-            ],
-          );
-        });
+              ],
+            );
+          },
+        );
       },
     );
     result.then((value) {
@@ -257,10 +277,12 @@ class _DevicesPageState extends State<DevicesPage>
         return;
       }
     }
-    _discoverList.add(DeviceCard(
-      devInfo: info,
-      onTap: () => {requestPairing(info)},
-    ));
+    _discoverList.add(
+      DeviceCard(
+        devInfo: info,
+        onTap: () => {requestPairing(info)},
+      ),
+    );
     setState(() {});
   }
 
@@ -297,22 +319,27 @@ class _DevicesPageState extends State<DevicesPage>
         Log.debug(tag, "Device information addition failed");
         return;
       }
-      DBUtil.inst.opRecordDao.addAndNotify(OperationRecord(
+      DBUtil.inst.opRecordDao.addAndNotify(
+        OperationRecord(
           id: App.snowflake.nextId(),
           uid: App.userId,
           module: Module.device,
           method: OpMethod.add,
-          data: data.guid));
+          data: data.guid,
+        ),
+      );
       //保存成功，从连接列表中移除
       var pairedDev = _discoverList
           .firstWhere((dev) => dev.devInfo?.guid == dev.devInfo?.guid);
       _discoverList.remove(pairedDev);
       //添加到已配对列表
-      _pairedList.add(DeviceCard(
-        devInfo: pairedDev.devInfo,
-        isPaired: true,
-        isConnected: true,
-      ));
+      _pairedList.add(
+        DeviceCard(
+          devInfo: pairedDev.devInfo,
+          isPaired: true,
+          isConnected: true,
+        ),
+      );
       setState(() {});
     });
   }
@@ -354,14 +381,20 @@ class _DevicesPageState extends State<DevicesPage>
     }
     if (f == null) {
       //发送同步确认
-      SocketListener.inst.sendData(send, MsgType.ackSync,
-          {"id": opRecord.id, "module": Module.device.moduleName});
+      SocketListener.inst.sendData(
+        send,
+        MsgType.ackSync,
+        {"id": opRecord.id, "module": Module.device.moduleName},
+      );
     } else {
       f.then((cnt) {
         if (cnt <= 0) return;
         //发送同步确认
-        SocketListener.inst.sendData(send, MsgType.ackSync,
-            {"id": opRecord.id, "module": Module.device.moduleName});
+        SocketListener.inst.sendData(
+          send,
+          MsgType.ackSync,
+          {"id": opRecord.id, "module": Module.device.moduleName},
+        );
       });
     }
   }

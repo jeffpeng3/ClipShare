@@ -13,7 +13,8 @@ abstract class ConfigDao {
 
   ///获取配置项，不存在则返回默认值
   @Query(
-      "select coalesce(value,:def) as value from config where key = :key and uid = :uid")
+    "select coalesce(value,:def) as value from config where key = :key and uid = :uid",
+  )
   Future<String?> getConfigByDefault(String key, int uid, String def);
 
   ///添加一个配置

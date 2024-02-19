@@ -1,7 +1,5 @@
 import 'package:clipshare/listeners/socket_listener.dart';
-import 'package:clipshare/util/log.dart';
 import 'package:floor/floor.dart';
-import 'package:flutter/foundation.dart';
 
 import '../entity/tables/operation_record.dart';
 

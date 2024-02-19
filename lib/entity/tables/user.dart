@@ -3,6 +3,7 @@ import 'package:floor/floor.dart';
 @entity
 class User {
   @PrimaryKey()
+
   ///用户id（uuid）
   int? id;
 

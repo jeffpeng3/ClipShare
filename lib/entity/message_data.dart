@@ -12,12 +12,13 @@ class MessageData {
   MsgType key;
   Map<String, dynamic> data;
 
-  MessageData(
-      {required this.userId,
-      required this.send,
-      required this.key,
-      required this.data,
-      this.recv});
+  MessageData({
+    required this.userId,
+    required this.send,
+    required this.key,
+    required this.data,
+    this.recv,
+  });
 
   static MessageData fromJson(Map<String, dynamic> map) {
     int userId = map["userId"];
@@ -26,7 +27,12 @@ class MessageData {
     MsgType key = MsgType.getValue(map["key"]);
     Map<String, dynamic> data = map["data"];
     return MessageData(
-        userId: userId, send: devInfo, key: key, data: data, recv: recv);
+      userId: userId,
+      send: devInfo,
+      key: key,
+      data: data,
+      recv: recv,
+    );
   }
 
   Map<String, dynamic> toJson() {

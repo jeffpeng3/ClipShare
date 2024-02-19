@@ -45,11 +45,13 @@ enum MsgType {
   //未知key
   unknown;
 
-  static MsgType getValue(String name) =>
-      MsgType.values.firstWhere((e) => e.name == name, orElse: () {
-        Log.debug("MsgKey", "key '$name' unknown");
-        return MsgType.unknown;
-      });
+  static MsgType getValue(String name) => MsgType.values.firstWhere(
+        (e) => e.name == name,
+        orElse: () {
+          Log.debug("MsgKey", "key '$name' unknown");
+          return MsgType.unknown;
+        },
+      );
 }
 
 enum OpMethod {
@@ -58,11 +60,13 @@ enum OpMethod {
   update,
   unknown;
 
-  static OpMethod getValue(String name) =>
-      OpMethod.values.firstWhere((e) => e.name == name, orElse: () {
-        Log.debug("OpMethod", "key '$name' unknown");
-        return OpMethod.unknown;
-      });
+  static OpMethod getValue(String name) => OpMethod.values.firstWhere(
+        (e) => e.name == name,
+        orElse: () {
+          Log.debug("OpMethod", "key '$name' unknown");
+          return OpMethod.unknown;
+        },
+      );
 }
 
 enum Module {
@@ -75,9 +79,12 @@ enum Module {
   const Module({required this.moduleName});
 
   final String moduleName;
-  static Module getValue(String name) =>
-      Module.values.firstWhere((e) => e.moduleName == name, orElse: () {
-        Log.debug("Module", "key '$name' unknown");
-        return Module.unknown;
-      });
+
+  static Module getValue(String name) => Module.values.firstWhere(
+        (e) => e.moduleName == name,
+        orElse: () {
+          Log.debug("Module", "key '$name' unknown");
+          return Module.unknown;
+        },
+      );
 }

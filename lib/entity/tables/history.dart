@@ -58,16 +58,17 @@ class History implements Comparable {
     }
   }
 
-  History.empty(
-      {this.id = 0,
-      this.uid = 0,
-      this.time = "",
-      this.content = "",
-      this.type = "",
-      this.devId = "",
-      this.top = false,
-      this.sync = false,
-      this.size = 0});
+  History.empty({
+    this.id = 0,
+    this.uid = 0,
+    this.time = "",
+    this.content = "",
+    this.type = "",
+    this.devId = "",
+    this.top = false,
+    this.sync = false,
+    this.size = 0,
+  });
 
   static History fromJson(map) {
     var id = map["id"];
@@ -80,15 +81,16 @@ class History implements Comparable {
     var sync = map["sync"];
     var size = map["size"];
     return History(
-        id: id,
-        uid: uid,
-        time: time,
-        content: content,
-        type: type,
-        devId: devId,
-        size: size,
-        top: top,
-        sync: sync);
+      id: id,
+      uid: uid,
+      time: time,
+      content: content,
+      type: type,
+      devId: devId,
+      size: size,
+      top: top,
+      sync: sync,
+    );
   }
 
   Map<String, dynamic> toJson() {

@@ -1,37 +1,38 @@
 import 'package:flutter/material.dart';
 
 class RoundedChip extends Chip {
-  const RoundedChip(
-      {super.key,
-      this.avatar,
-      required this.label,
-      this.labelStyle,
-      this.labelPadding,
-      this.deleteIcon,
-      this.onDeleted,
-      this.deleteIconColor,
-      this.deleteButtonTooltipMessage,
-      this.side = BorderSide.none,
-      this.shape = const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(50))),
-      this.clipBehavior = Clip.none,
-      this.focusNode,
-      this.autofocus = false,
-      this.color,
-      this.backgroundColor,
-      this.padding,
-      this.visualDensity = const VisualDensity(
-          horizontal: VisualDensity.minimumDensity,
-          vertical: VisualDensity.minimumDensity),
-      this.materialTapTargetSize,
-      this.elevation,
-      this.shadowColor,
-      this.surfaceTintColor,
-      this.iconTheme
-      })
-      : super(
-      label: label
-  );
+  const RoundedChip({
+    super.key,
+    this.avatar,
+    required this.label,
+    this.labelStyle,
+    this.labelPadding,
+    this.deleteIcon,
+    this.onDeleted,
+    this.deleteIconColor,
+    this.deleteButtonTooltipMessage,
+    this.side = BorderSide.none,
+    this.shape = const RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(50)),
+    ),
+    this.clipBehavior = Clip.none,
+    this.focusNode,
+    this.autofocus = false,
+    this.color,
+    this.backgroundColor,
+    this.padding,
+    this.visualDensity = const VisualDensity(
+      horizontal: VisualDensity.minimumDensity,
+      vertical: VisualDensity.minimumDensity,
+    ),
+    this.materialTapTargetSize,
+    this.elevation,
+    this.shadowColor,
+    this.surfaceTintColor,
+    this.iconTheme,
+  }) : super(
+          label: label,
+        );
 
   @override
   final Widget? avatar;
@@ -77,5 +78,4 @@ class RoundedChip extends Chip {
   final Color? surfaceTintColor;
   @override
   final IconThemeData? iconTheme;
-
 }

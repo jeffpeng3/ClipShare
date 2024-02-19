@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
-import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -11,7 +11,6 @@ import '../db/db_util.dart';
 import '../entity/tables/operation_record.dart';
 import '../entity/tables/operation_sync.dart';
 import '../main.dart';
-import 'package:clipshare/pages/nav/history_page.dart';
 
 /// 记录置顶操作同步处理器
 class HistoryTopSyncer implements SyncObserver {
@@ -30,8 +29,11 @@ class HistoryTopSyncer implements SyncObserver {
   void ackSync(MessageData msg) {
     var send = msg.send;
     var data = msg.data;
-    var opSync =
-        OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
+    var opSync = OperationSync(
+      opId: data["id"],
+      devId: send.guid,
+      uid: App.userId,
+    );
     //记录同步记录
     DBUtil.inst.opSyncDao.add(opSync);
   }
@@ -54,10 +56,15 @@ class HistoryTopSyncer implements SyncObserver {
     f.then((cnt) {
       if (cnt <= 0) return;
       hisPageKey.currentState?.updatePage(
-          (his) => his.id == history.id, (his) => his.top = history.top);
+        (his) => his.id == history.id,
+        (his) => his.top = history.top,
+      );
       //发送同步确认
-      SocketListener.inst.sendData(send, MsgType.ackSync,
-          {"id": opRecord.id, "module": Module.historyTop.moduleName});
+      SocketListener.inst.sendData(
+        send,
+        MsgType.ackSync,
+        {"id": opRecord.id, "module": Module.historyTop.moduleName},
+      );
     });
   }
 }

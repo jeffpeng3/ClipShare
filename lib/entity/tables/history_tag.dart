@@ -2,9 +2,11 @@ import 'dart:convert';
 
 import 'package:floor/floor.dart';
 
-@Entity(indices: [
-  Index(value: ['tagName', "hisId"], unique: true)
-])
+@Entity(
+  indices: [
+    Index(value: ['tagName', "hisId"], unique: true),
+  ],
+)
 class HistoryTag {
   ///主键 id
   @PrimaryKey(autoGenerate: true)

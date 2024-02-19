@@ -10,12 +10,12 @@ import 'package:clipshare/pages/nav/devices_page.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/pages/nav/profile_page.dart';
 import 'package:clipshare/util/constants.dart';
-import 'package:clipshare/util/platform_util.dart';
 import 'package:clipshare/util/log.dart';
+import 'package:clipshare/util/platform_util.dart';
 import 'package:flutter/material.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:flutter/foundation.dart';
+
 import '../../db/db_util.dart';
 import '../../listeners/clip_listener.dart';
 import '../../main.dart';
@@ -36,7 +36,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
       key: HistoryTopSyncer.hisPageKey,
     ),
     const DevicesPage(),
-    const ProfilePage()
+    const ProfilePage(),
   ]);
   List<BottomNavigationBarItem> navBarItems = List.from(const [
     BottomNavigationBarItem(
@@ -64,8 +64,12 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   void initState() {
     super.initState();
     assert(() {
-      navBarItems.add(const BottomNavigationBarItem(
-          icon: Icon(Icons.bug_report_outlined), label: "Debug"));
+      navBarItems.add(
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.bug_report_outlined),
+          label: "Debug",
+        ),
+      );
       pages.add(const DebugPage());
       return true;
     }());
@@ -184,16 +188,19 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
             return AlertDialog(
               title: const Text('悬浮窗权限申请'),
               content: const Text(
-                  '由于 Android 10 及以上版本的系统不允许后台读取剪贴板，当剪贴板发生变化时应用需要通过读取系统日志以及悬浮窗权限间接进行剪贴板读取。\n\n点击确定跳转页面授权悬浮窗权限'),
+                '由于 Android 10 及以上版本的系统不允许后台读取剪贴板，当剪贴板发生变化时应用需要通过读取系统日志以及悬浮窗权限间接进行剪贴板读取。\n\n点击确定跳转页面授权悬浮窗权限',
+              ),
               actions: [
                 TextButton(
                   onPressed: () {
                     // 关闭弹窗
                     Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('请授予悬浮窗权限，否则无法后台读取剪贴板'),
-                      backgroundColor: Colors.red,
-                    ));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('请授予悬浮窗权限，否则无法后台读取剪贴板'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
                   },
                   child: const Text('取消'),
                 ),
@@ -226,7 +233,8 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
               return AlertDialog(
                 title: const Text('必要权限缺失'),
                 content: const Text(
-                    '请授权必要权限，由于 Android 10 及以上版本的系统不允许后台读取剪贴板，需要依赖 Shizuku 或 Root 权限来提权，否则只能被动接收剪贴板数据而不能发送'),
+                  '请授权必要权限，由于 Android 10 及以上版本的系统不允许后台读取剪贴板，需要依赖 Shizuku 或 Root 权限来提权，否则只能被动接收剪贴板数据而不能发送',
+                ),
                 actions: [
                   TextButton(
                     onPressed: () {
@@ -286,29 +294,30 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   Widget build(BuildContext context) {
     App.context = context;
     return PopScope(
-        canPop: false,
-        onPopInvoked: (bool didPop) {
-          if (PlatformUtil.isAndroid()) {
-            App.androidChannel.invokeMethod("moveToBg");
-          }
-        },
-        child: Scaffold(
-          backgroundColor: const Color.fromARGB(255, 238, 238, 238),
-          appBar: AppBar(
-            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-            title: Text(widget.title),
-            automaticallyImplyLeading: false,
-          ),
-          body: IndexedStack(
-            index: _index,
-            children: pages,
-          ),
-          bottomNavigationBar: BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            currentIndex: _index,
-            onTap: (i) => {_index = i, setState(() {})},
-            items: navBarItems,
-          ),
-        ));
+      canPop: false,
+      onPopInvoked: (bool didPop) {
+        if (PlatformUtil.isAndroid()) {
+          App.androidChannel.invokeMethod("moveToBg");
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color.fromARGB(255, 238, 238, 238),
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Text(widget.title),
+          automaticallyImplyLeading: false,
+        ),
+        body: IndexedStack(
+          index: _index,
+          children: pages,
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          currentIndex: _index,
+          onTap: (i) => {_index = i, setState(() {})},
+          items: navBarItems,
+        ),
+      ),
+    );
   }
 }
