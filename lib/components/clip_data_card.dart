@@ -32,11 +32,15 @@ class ClipDataCardState extends State<ClipDataCard> {
     DBUtil.inst.deviceDao.getById(history.devId, App.userId).then((dev) {
       if (dev == null) return;
       _devName = dev.devName;
-      setState(() {});
+      if(mounted) {
+        setState(() {});
+      }
     });
     DBUtil.inst.historyTagDao.list(history.id).then((lst) {
       _tags = lst.map((e) => e.tagName).toList(growable: false);
-      setState(() {});
+      if(mounted) {
+        setState(() {});
+      }
     });
     return Card(
       elevation: 0,
