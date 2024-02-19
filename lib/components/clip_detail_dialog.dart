@@ -42,7 +42,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
   }
 
   void initTags() {
-    DBUtil.inst.historyTagDao.list(widget.clip.data.id.toString()).then((lst) {
+    DBUtil.inst.historyTagDao.list(widget.clip.data.id).then((lst) {
       _tags = lst;
       setState(() {});
     });
@@ -149,6 +149,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                 ),
               ],
             ),
+            // 标签栏
             Row(
               children: [
                 SingleChildScrollView(

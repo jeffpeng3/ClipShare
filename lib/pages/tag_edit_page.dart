@@ -210,7 +210,6 @@ class _TagEditPageState extends State<TagEditPage> {
                                     _selected.remove(item);
                                   }
                                   setState(() {});
-                                  Log.debug(tag, "${item.tagName} $checked");
                                 },
                               ),
                             ],

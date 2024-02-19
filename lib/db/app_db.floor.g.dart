@@ -753,7 +753,7 @@ class _$HistoryTagDao extends HistoryTagDao {
   final UpdateAdapter<HistoryTag> _historyTagUpdateAdapter;
 
   @override
-  Future<List<HistoryTag>> list(String hId) async {
+  Future<List<HistoryTag>> list(int hId) async {
     return _queryAdapter.queryList(
       'select * from HistoryTag where hisId = ?1',
       mapper: (Map<String, Object?> row) => HistoryTag(

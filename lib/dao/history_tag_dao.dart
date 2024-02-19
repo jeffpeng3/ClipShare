@@ -7,7 +7,7 @@ import '../entity/views/v_history_tag_hold.dart';
 abstract class HistoryTagDao {
   ///查询某个记录的标签列表
   @Query("select * from HistoryTag where hisId = :hId")
-  Future<List<HistoryTag>> list(String hId);
+  Future<List<HistoryTag>> list(int hId);
 
   ///查询所有标签，返回值含有一个该历史 id 是否持有该标签的标记
   @Query("SELECT * from VHistoryTagHold where hisId = :hId")
