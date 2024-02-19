@@ -27,15 +27,15 @@ class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
 
   @override
-  State<HistoryPage> createState() => _HistoryPageState();
+  State<HistoryPage> createState() => HistoryPageState();
 }
 
-class _HistoryPageState extends State<HistoryPage>
+class HistoryPageState extends State<HistoryPage>
     with WidgetsBindingObserver
     implements ClipObserver, SyncObserver {
   final List<ClipData> _list = List.empty(growable: true);
-  late HistoryDao historyDao;
-  late OperationSyncDao syncHistoryDao;
+  late HistoryDao _historyDao;
+  late OperationSyncDao _syncHistoryDao;
   bool _copyInThisCopy = false;
   int? _minId;
   History? _last;
@@ -46,10 +46,10 @@ class _HistoryPageState extends State<HistoryPage>
   @override
   void initState() {
     super.initState();
-    historyDao = DBUtil.inst.historyDao;
-    syncHistoryDao = DBUtil.inst.opSyncDao;
+    _historyDao = DBUtil.inst.historyDao;
+    _syncHistoryDao = DBUtil.inst.opSyncDao;
     //更新上次复制的记录
-    historyDao.getLatestLocalClip(App.userId).then((his) {
+    _historyDao.getLatestLocalClip(App.userId).then((his) {
       _last = his;
       //添加同步监听
       SocketListener.inst.addSyncListener(Module.history, this);
@@ -82,35 +82,46 @@ class _HistoryPageState extends State<HistoryPage>
     }
   }
 
+  void updatePage(
+      bool Function(History history) where, void Function(History history) cb) {
+    for (var item in _list) {
+      //查找符合条件的数据
+      if (where(item.data)) {
+        //更新数据
+        cb(item.data);
+        _sortList();
+      }
+    }
+  }
+
   void _scrollListener() {
     // 判断是否快要滑动到底部
     if (_scrollController.position.extentAfter <= 200) {
       // 滑动到底部的处理逻辑
       if (_minId == null) return;
-      Log.debug(tag, "快到底部了！");
-      historyDao.getHistoriesPage(App.userId, _minId!).then((list) {
+      _historyDao.getHistoriesPage(App.userId, _minId!).then((list) {
         if (list.isEmpty) return;
         _minId = list[list.length - 1].id;
         _list.addAll(ClipData.fromList(list));
-        _list.sort((a, b) => b.data.compareTo(a.data));
+        _sortList();
         setState(() {});
       });
     }
   }
 
-  void showDetail(ClipData chip) {
+  void _showDetail(ClipData chip) {
     if (PlatformUtil.isPC()) {
-      showDetailDialog(chip);
+      _showDetailDialog(chip);
       return;
     }
-    showBottomDetailSheet(chip);
+    _showBottomDetailSheet(chip);
   }
 
   ///重新加载列表
   void refreshData() {
     _minId = null;
     _list.clear();
-    historyDao.getHistoriesTop20(App.userId).then((list) {
+    _historyDao.getHistoriesTop20(App.userId).then((list) {
       _list.addAll(ClipData.fromList(list));
       for (int i = 0; i < _list.length; i++) {
         ClipData item = _list[i];
@@ -125,7 +136,12 @@ class _HistoryPageState extends State<HistoryPage>
     });
   }
 
-  void showDetailDialog(ClipData chip) {
+  void _sortList() {
+    _list.sort((a, b) => b.data.compareTo(a.data));
+    setState(() {});
+  }
+
+  void _showDetailDialog(ClipData chip) {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -136,8 +152,7 @@ class _HistoryPageState extends State<HistoryPage>
                 dlgContext: context,
                 clip: chip,
                 onUpdate: () {
-                  _list.sort((a, b) => b.data.compareTo(a.data));
-                  setState(() {});
+                  _sortList();
                 },
                 onRemove: (int id) {
                   _list.removeWhere((element) => element.data.id == id);
@@ -147,7 +162,7 @@ class _HistoryPageState extends State<HistoryPage>
         });
   }
 
-  void showBottomDetailSheet(ClipData chip) {
+  void _showBottomDetailSheet(ClipData chip) {
     showModalBottomSheet(
         isScrollControlled: true,
         clipBehavior: Clip.antiAlias,
@@ -158,8 +173,7 @@ class _HistoryPageState extends State<HistoryPage>
             dlgContext: context,
             clip: chip,
             onUpdate: () {
-              _list.sort((a, b) => b.data.compareTo(a.data));
-              setState(() {});
+              _sortList();
             },
             onRemove: (int id) {
               _list.removeWhere((element) => element.data.id == id);
@@ -184,7 +198,7 @@ class _HistoryPageState extends State<HistoryPage>
                   return Container(
                     padding: const EdgeInsets.only(left: 2, right: 2),
                     constraints:
-                    const BoxConstraints(maxHeight: 150, minHeight: 80),
+                        const BoxConstraints(maxHeight: 150, minHeight: 80),
                     child: GestureDetector(
                       onTapUp: (TapUpDetails details) {
                         Log.debug(tag, "onTapUp");
@@ -199,14 +213,14 @@ class _HistoryPageState extends State<HistoryPage>
                           if (!PlatformUtil.isPC()) {
                             return;
                           }
-                          showDetail(_list[i]);
+                          _showDetail(_list[i]);
                         },
                       ),
                       onLongPress: () {
                         if (!PlatformUtil.isMobile()) {
                           return;
                         }
-                        showDetail(_list[i]);
+                        _showDetail(_list[i]);
                       },
                     ),
                   );
@@ -247,7 +261,7 @@ class _HistoryPageState extends State<HistoryPage>
 
   Future<int> addData(History history) {
     var clip = ClipData(history);
-    var f = historyDao.add(clip.data);
+    var f = _historyDao.add(clip.data);
     if (_minId == null) {
       _minId = clip.data.id;
     } else {
@@ -269,7 +283,7 @@ class _HistoryPageState extends State<HistoryPage>
     var send = msg.send;
     var data = msg.data;
     var opSync =
-    OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
+        OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
     //记录同步记录
     DBUtil.inst.opSyncDao.add(opSync);
     //更新本地历史记录为已同步
@@ -293,7 +307,20 @@ class _HistoryPageState extends State<HistoryPage>
     History history = History.fromJson(json);
     history.sync = true;
     if (opRecord.module == Module.historyTop) {
-      updateTop(send, history, opRecord.id);
+      //更新数据库
+      DBUtil.inst.historyDao.setTop(history.id, history.top).then((v) {
+        //更新页面
+        updatePage(
+          (h) => h.id == history.id,
+          (his) => his.top = history.top,
+        );
+      });
+      //发送同步确认
+      SocketListener.inst.sendData(send, MsgType.ackSync, {
+        "id": opRecord.id,
+        "hisId": history.id,
+        "module": Module.historyTop.moduleName
+      });
       return;
     }
     Future? f;
@@ -354,15 +381,5 @@ class _HistoryPageState extends State<HistoryPage>
         });
       });
     }
-  }
-
-  void updateTop(DevInfo send, History history, int opId) {
-    DBUtil.inst.historyDao.setTop(history.id, history.top);
-    //发送同步确认
-    SocketListener.inst.sendData(send, MsgType.ackSync, {
-      "id": opId,
-      "hisId": history.id,
-      "module": Module.historyTop.moduleName
-    });
   }
 }

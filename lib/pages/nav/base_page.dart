@@ -31,8 +31,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   int _index = 0;
-  List<Widget> pages =
-      List.from(const [HistoryPage(), DevicesPage(), ProfilePage()]);
+  List<Widget> pages = List.from([
+    HistoryPage(
+      key: HistoryTopSyncer.hisPageKey,
+    ),
+    const DevicesPage(),
+    const ProfilePage()
+  ]);
   List<BottomNavigationBarItem> navBarItems = List.from(const [
     BottomNavigationBarItem(
       icon: Icon(Icons.history),

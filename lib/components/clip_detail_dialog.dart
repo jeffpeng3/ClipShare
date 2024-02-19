@@ -108,7 +108,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                           var isTop = !widget.clip.data.top;
                           widget.clip.data.top = isTop;
 
-                          DBUtil.inst.historyDao.setTop(id, !isTop).then((v) {
+                          DBUtil.inst.historyDao.setTop(id, isTop).then((v) {
                             if (v == null || v <= 0) return;
                             var opRecord = OperationRecord.fromSimple(
                                 Module.historyTop, OpMethod.update, id);

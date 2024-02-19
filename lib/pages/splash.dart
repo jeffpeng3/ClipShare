@@ -56,7 +56,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const HomePage(title: 'Flutter Demo'),
+          builder: (context) => const HomePage(title: 'ChipShare'),
         ));
   }
 
