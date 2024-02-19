@@ -48,41 +48,45 @@ class ClipDataCardState extends State<ClipDataCard> {
         child: Padding(
           padding: const EdgeInsets.all(8),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  //来源设备
-                  RoundedChip(
-                    avatar: const Icon(Icons.devices_rounded),
-                    backgroundColor: const Color(0x1a000000),
-                    label: Text(
-                      _devName,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                  //标签
-                  for (var tagName in _tags)
-                    Container(
-                      margin: const EdgeInsets.only(left: 5),
-                      child: RoundedChip(
-                        backgroundColor: const Color(0x1a000000),
-                        avatar: const CircleAvatar(
-                          backgroundColor: Colors.blue,
-                          child: Text(
-                            '#',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        label: Text(
-                          tagName,
-                          style: const TextStyle(fontSize: 12),
-                        ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    //来源设备
+                    RoundedChip(
+                      avatar: const Icon(Icons.devices_rounded),
+                      backgroundColor: const Color(0x1a000000),
+                      label: Text(
+                        _devName,
+                        style: const TextStyle(fontSize: 12),
                       ),
                     ),
-                ],
+                    //标签
+                    for (var tagName in _tags)
+                      Container(
+                        margin: const EdgeInsets.only(left: 5),
+                        child: RoundedChip(
+                          backgroundColor: const Color(0x1a000000),
+                          avatar: const CircleAvatar(
+                            backgroundColor: Colors.blue,
+                            child: Text(
+                              '#',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          label: Text(
+                            tagName,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
               Expanded(
                 child: Column(

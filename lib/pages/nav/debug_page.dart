@@ -1,6 +1,7 @@
-import 'package:clipshare/db/db_util.dart';
-import 'package:clipshare/main.dart';
 import 'package:flutter/material.dart';
+
+import '../../db/db_util.dart';
+import '../../main.dart';
 
 class DebugPage extends StatefulWidget {
   const DebugPage({super.key});

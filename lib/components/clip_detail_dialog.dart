@@ -50,12 +50,35 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> tagChips = List.empty(growable: true);
+    for (var tag in _tags) {
+      tagChips.add(Container(
+        margin: const EdgeInsets.only(left: 5),
+        child: RoundedChip(
+          avatar: const CircleAvatar(
+            backgroundColor: Colors.blue,
+            child: Text(
+              '#',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          label: Text(
+            tag.tagName,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ),
+      ));
+    }
     return Container(
       constraints: const BoxConstraints(minWidth: 500),
       padding: const EdgeInsets.only(bottom: 30),
       child: Padding(
         padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
@@ -150,72 +173,43 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
               ],
             ),
             // 标签栏
-            Row(
-              children: [
-                SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      for (var tag in _tags)
-                        Container(
-                          margin: const EdgeInsets.only(left: 5),
-                          child: RoundedChip(
-                            avatar: const CircleAvatar(
-                              backgroundColor: Colors.blue,
-                              child: Text(
-                                '#',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            label: Text(
-                              tag.tagName,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  ...tagChips,
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              TagEditPage(widget.clip.data.id),
                         ),
-                      IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  TagEditPage(widget.clip.data.id),
-                            ),
-                          ).then((value) {
-                            initTags();
-                          });
-                        },
-                        icon: const Icon(Icons.add),
-                      ),
-                    ],
+                      ).then((value) {
+                        initTags();
+                      });
+                    },
+                    icon: const Icon(Icons.add),
+                  ),
+                ],
+              ),
+            ),
+            //剪贴板内容部分
+            Container(
+              constraints: const BoxConstraints(maxHeight: 300),
+              margin: const EdgeInsets.only(top: 10),
+              child: SingleChildScrollView(
+                clipBehavior: Clip.antiAlias,
+                child: Container(
+                  alignment: Alignment.topLeft,
+                  child: SelectableText(
+                    widget.clip.data.content,
+                    textAlign: TextAlign.left,
                   ),
                 ),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    constraints: const BoxConstraints(maxHeight: 500),
-                    margin: const EdgeInsets.only(top: 10),
-                    child: SingleChildScrollView(
-                      clipBehavior: Clip.antiAlias,
-                      child: Container(
-                        alignment: Alignment.topLeft,
-                        child: SelectableText(
-                          widget.clip.data.content,
-                          textAlign: TextAlign.left,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            )
           ],
         ),
       ),
