@@ -14,8 +14,6 @@ import '../main.dart';
 
 /// 记录置顶操作同步处理器
 class HistoryTopSyncer implements SyncObserver {
-  static final GlobalKey<HistoryPageState> hisPageKey =
-      GlobalKey<HistoryPageState>();
 
   HistoryTopSyncer() {
     SocketListener.inst.addSyncListener(Module.historyTop, this);
@@ -55,7 +53,7 @@ class HistoryTopSyncer implements SyncObserver {
 
     f.then((cnt) {
       if (cnt <= 0) return;
-      hisPageKey.currentState?.updatePage(
+      HistoryPage.pageKey.currentState?.updatePage(
         (his) => his.id == history.id,
         (his) => his.top = history.top,
       );

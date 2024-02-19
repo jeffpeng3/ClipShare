@@ -159,10 +159,21 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                     children: [
                       for (var tag in _tags)
                         Container(
-                          margin: const EdgeInsets.only(right: 5),
+                          margin: const EdgeInsets.only(left: 5),
                           child: RoundedChip(
+                            avatar: const CircleAvatar(
+                              backgroundColor: Colors.blue,
+                              child: Text(
+                                '#',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                             label: Text(
                               tag.tagName,
+                              style: const TextStyle(fontSize: 12),
                             ),
                           ),
                         ),

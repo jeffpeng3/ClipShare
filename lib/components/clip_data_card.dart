@@ -24,6 +24,10 @@ class ClipDataCardState extends State<ClipDataCard> {
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     var history = widget.clip.data;
     DBUtil.inst.deviceDao.getById(history.devId, App.userId).then((dev) {
       if (dev == null) return;
@@ -34,10 +38,6 @@ class ClipDataCardState extends State<ClipDataCard> {
       _tags = lst.map((e) => e.tagName).toList(growable: false);
       setState(() {});
     });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Card(
       elevation: 0,
       child: InkWell(
@@ -60,6 +60,7 @@ class ClipDataCardState extends State<ClipDataCard> {
                       style: const TextStyle(fontSize: 12),
                     ),
                   ),
+                  //标签
                   for (var tagName in _tags)
                     Container(
                       margin: const EdgeInsets.only(left: 5),

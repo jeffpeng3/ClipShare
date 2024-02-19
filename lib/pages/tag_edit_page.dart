@@ -2,6 +2,7 @@ import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/views/v_history_tag_hold.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 
@@ -114,6 +115,10 @@ class _TagEditPageState extends State<TagEditPage> {
                   setState(() {
                     saving = false;
                   });
+                  HistoryPage.pageKey.currentState?.updatePage(
+                    (history) => true,
+                    (history) {},
+                  );
                   Navigator.pop(context);
                 });
               } catch (e, t) {

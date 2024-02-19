@@ -22,6 +22,9 @@ import '../../main.dart';
 import '../../util/platform_util.dart';
 
 class HistoryPage extends StatefulWidget {
+  static final GlobalKey<HistoryPageState> pageKey =
+      GlobalKey<HistoryPageState>();
+
   const HistoryPage({super.key});
 
   @override

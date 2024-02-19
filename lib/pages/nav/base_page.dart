@@ -33,7 +33,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   int _index = 0;
   List<Widget> pages = List.from([
     HistoryPage(
-      key: HistoryTopSyncer.hisPageKey,
+      key: HistoryPage.pageKey,
     ),
     const DevicesPage(),
     const ProfilePage(),
