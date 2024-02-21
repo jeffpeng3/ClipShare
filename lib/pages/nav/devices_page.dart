@@ -43,10 +43,9 @@ class _DevicesPageState extends State<DevicesPage>
     _deviceDao.getAllDevices(App.userId).then((list) {
       _pairedList.clear();
       for (var dev in list) {
-        var info = DevInfo.fromDevice(dev);
         _pairedList.add(
           DeviceCard(
-            devInfo: info,
+            dev: dev,
             isPaired: true,
           ),
         );
@@ -123,7 +122,7 @@ class _DevicesPageState extends State<DevicesPage>
               ),
             ),
             _discoverList.isEmpty
-                ? DeviceCard(devInfo: null)
+                ? DeviceCard(dev: null)
                 : Column(
                     children: _discoverList,
                   ),
@@ -266,9 +265,10 @@ class _DevicesPageState extends State<DevicesPage>
   }
 
   @override
-  void onConnected(DevInfo info) {
+  void onConnected(DevInfo info) async {
+    var dev = await Device.fromDevInfo(info);
     for (var paired in _pairedList) {
-      if (paired.devInfo == info) {
+      if (paired.dev == dev) {
         //修改widget状态
         paired.isConnected = true;
         setState(() {});
@@ -279,7 +279,12 @@ class _DevicesPageState extends State<DevicesPage>
     }
     _discoverList.add(
       DeviceCard(
-        devInfo: info,
+        dev: Device(
+          guid: info.guid,
+          devName: info.name,
+          uid: 0,
+          type: info.type,
+        ),
         onTap: () => {requestPairing(info)},
       ),
     );
@@ -288,9 +293,9 @@ class _DevicesPageState extends State<DevicesPage>
 
   @override
   void onDisConnected(String devId) {
-    _discoverList.removeWhere((dev) => dev.devInfo?.guid == devId);
+    _discoverList.removeWhere((dev) => dev.dev?.guid == devId);
     for (var dev in _pairedList) {
-      if (dev.devInfo?.guid == devId) {
+      if (dev.dev?.guid == devId) {
         dev.isConnected = false;
       }
     }
@@ -329,13 +334,13 @@ class _DevicesPageState extends State<DevicesPage>
         ),
       );
       //保存成功，从连接列表中移除
-      var pairedDev = _discoverList
-          .firstWhere((dev) => dev.devInfo?.guid == dev.devInfo?.guid);
+      var pairedDev =
+          _discoverList.firstWhere((dev) => dev.dev?.guid == dev.dev?.guid);
       _discoverList.remove(pairedDev);
       //添加到已配对列表
       _pairedList.add(
         DeviceCard(
-          devInfo: pairedDev.devInfo,
+          dev: pairedDev.dev,
           isPaired: true,
           isConnected: true,
         ),

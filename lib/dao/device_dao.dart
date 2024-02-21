@@ -15,6 +15,12 @@ abstract class DeviceDao {
   @insert
   Future<int> add(Device dev);
 
+  ///重命名设备名
+  @Query(
+    "update device set customName = :name where uid = :uid and guid = :guid",
+  )
+  Future<int?> rename(String guid, String name, int uid);
+
   ///更新设备信息
   @update
   Future<int> updateDevice(Device dev);

@@ -1,11 +1,16 @@
 import 'dart:async';
 
 import 'package:clipshare/components/round_chip.dart';
-import 'package:clipshare/entity/dev_info.dart';
+import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/entity/tables/device.dart';
+import 'package:clipshare/main.dart';
+import 'package:clipshare/util/constants.dart';
 import 'package:flutter/material.dart';
 
+import '../entity/tables/operation_record.dart';
+
 class DeviceCard extends StatefulWidget {
-  final DevInfo? devInfo;
+  final Device? dev;
   final GestureTapCallback? onTap;
   bool isPaired;
   bool isSelf;
@@ -13,7 +18,7 @@ class DeviceCard extends StatefulWidget {
 
   DeviceCard({
     super.key,
-    required this.devInfo,
+    required this.dev,
     this.onTap,
     this.isPaired = false,
     this.isConnected = false,
@@ -64,7 +69,7 @@ class DeviceCardState extends State<DeviceCard> {
   int _emptyIconIdx = 0;
   Timer? timer;
 
-  Icon get _currIcon => typeIcons[widget.devInfo!.type]!;
+  Icon get _currIcon => typeIcons[widget.dev!.type]!;
 
   void setTimer() {
     timer = Timer.periodic(const Duration(milliseconds: 1200), (timer) {
@@ -78,7 +83,7 @@ class DeviceCardState extends State<DeviceCard> {
   @override
   void initState() {
     super.initState();
-    _empty = widget.devInfo == null;
+    _empty = widget.dev == null;
     setTimer();
     setState(() {});
   }
@@ -87,6 +92,62 @@ class DeviceCardState extends State<DeviceCard> {
   void dispose() {
     timer?.cancel();
     super.dispose();
+  }
+
+  void _showRenameDialog() {
+    var dev = widget.dev!;
+    var textController = TextEditingController();
+    textController.text = dev.customName ?? "";
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("重命名设备"),
+          content: SizedBox(
+            width: 300,
+            child: TextField(
+              autofocus: true,
+              controller: textController,
+              decoration: const InputDecoration(
+                label: Text("请输入"),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("取消"),
+            ),
+            TextButton(
+              onPressed: () {
+                var name = textController.text;
+                DBUtil.inst.deviceDao
+                    .rename(dev.guid, name, App.userId)
+                    .then((cnt) {
+                  if (cnt != null && cnt > 0) {
+                    widget.dev!.customName=name;
+                    var opRecord = OperationRecord.fromSimple(
+                      Module.device,
+                      OpMethod.update,
+                      dev.guid,
+                    );
+                    DBUtil.inst.opRecordDao.addAndNotify(opRecord);
+                    Navigator.pop(context);
+                    setState(() {
+
+                    });
+                  }
+                });
+              },
+              child: const Text("保存"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -106,7 +167,7 @@ class DeviceCardState extends State<DeviceCard> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: SizedBox(
-            height: 72,
+            height: 80,
             child: Row(
               children: [
                 _empty ? _emptyIcon : _currIcon,
@@ -120,19 +181,38 @@ class DeviceCardState extends State<DeviceCard> {
                               label: Text("                  "),
                               backgroundColor: chipColor,
                             )
-                          : Text(
-                              widget.devInfo!.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 22,
-                              ),
+                          : Row(
+                              children: [
+                                Text(
+                                  widget.dev!.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 22,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 5,
+                                ),
+                                widget.isPaired
+                                    ? IconButton(
+                                        onPressed: () {
+                                          _showRenameDialog();
+                                        },
+                                        icon: const Icon(
+                                          Icons.edit_note,
+                                        ),
+                                        tooltip: "重命名",
+                                        visualDensity: VisualDensity.compact,
+                                      )
+                                    : const SizedBox.shrink(),
+                              ],
                             ),
                       const SizedBox(
                         height: 8,
                       ),
                       Row(
                         children: [
-                          !_empty
+                          !_empty && widget.isPaired
                               ? Row(
                                   children: [
                                     Container(
@@ -152,7 +232,7 @@ class DeviceCardState extends State<DeviceCard> {
                                 )
                               : const SizedBox.shrink(),
                           RoundedChip(
-                            label: Text(_empty ? "    " : widget.devInfo!.type),
+                            label: Text(_empty ? "    " : widget.dev!.type),
                             backgroundColor: chipColor,
                           ),
                           const SizedBox(

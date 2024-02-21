@@ -31,7 +31,7 @@ class ClipDataCardState extends State<ClipDataCard> {
     var history = widget.clip.data;
     DBUtil.inst.deviceDao.getById(history.devId, App.userId).then((dev) {
       if (dev == null) return;
-      _devName = dev.devName;
+      _devName = dev.name;
       if(mounted) {
         setState(() {});
       }

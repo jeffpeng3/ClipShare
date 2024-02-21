@@ -1,4 +1,4 @@
-part of 'app_db.dart';
+part of 'app_db.dart'; 
 // **************************************************************************
 // FloorGenerator
 // **************************************************************************
@@ -86,45 +86,31 @@ class _$AppDb extends AppDb {
       },
       onUpgrade: (database, startVersion, endVersion) async {
         await MigrationAdapter.runMigrations(
-          database,
-          startVersion,
-          endVersion,
-          migrations,
-        );
+            database, startVersion, endVersion, migrations);
 
         await callback?.onUpgrade?.call(database, startVersion, endVersion);
       },
       onCreate: (database, version) async {
         await database.execute(
-          'CREATE TABLE IF NOT EXISTS `Config` (`key` TEXT NOT NULL, `value` TEXT NOT NULL, `uid` INTEGER NOT NULL, PRIMARY KEY (`key`))',
-        );
+            'CREATE TABLE IF NOT EXISTS `Config` (`key` TEXT NOT NULL, `value` TEXT NOT NULL, `uid` INTEGER NOT NULL, PRIMARY KEY (`key`))');
         await database.execute(
-          'CREATE TABLE IF NOT EXISTS `Device` (`guid` TEXT NOT NULL, `devName` TEXT NOT NULL, `uid` INTEGER NOT NULL, `type` TEXT NOT NULL, `lastConnTime` TEXT, `lastAddr` TEXT, PRIMARY KEY (`guid`))',
-        );
+            'CREATE TABLE IF NOT EXISTS `Device` (`guid` TEXT NOT NULL, `devName` TEXT NOT NULL, `uid` INTEGER NOT NULL, `customName` TEXT, `type` TEXT NOT NULL, `lastConnTime` TEXT, `lastAddr` TEXT, PRIMARY KEY (`guid`))');
         await database.execute(
-          'CREATE TABLE IF NOT EXISTS `History` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` INTEGER NOT NULL, `time` TEXT NOT NULL, `content` TEXT NOT NULL, `type` TEXT NOT NULL, `devId` TEXT NOT NULL, `top` INTEGER NOT NULL, `sync` INTEGER NOT NULL, `size` INTEGER NOT NULL)',
-        );
+            'CREATE TABLE IF NOT EXISTS `History` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` INTEGER NOT NULL, `time` TEXT NOT NULL, `content` TEXT NOT NULL, `type` TEXT NOT NULL, `devId` TEXT NOT NULL, `top` INTEGER NOT NULL, `sync` INTEGER NOT NULL, `size` INTEGER NOT NULL)');
         await database.execute(
-          'CREATE TABLE IF NOT EXISTS `User` (`id` INTEGER, `account` TEXT NOT NULL, `password` TEXT NOT NULL, `type` TEXT NOT NULL, PRIMARY KEY (`id`))',
-        );
+            'CREATE TABLE IF NOT EXISTS `User` (`id` INTEGER, `account` TEXT NOT NULL, `password` TEXT NOT NULL, `type` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-          'CREATE TABLE IF NOT EXISTS `OperationSync` (`opId` INTEGER NOT NULL, `devId` TEXT NOT NULL, `uid` INTEGER NOT NULL, `time` TEXT NOT NULL, PRIMARY KEY (`opId`))',
-        );
+            'CREATE TABLE IF NOT EXISTS `OperationSync` (`opId` INTEGER NOT NULL, `devId` TEXT NOT NULL, `uid` INTEGER NOT NULL, `time` TEXT NOT NULL, PRIMARY KEY (`opId`))');
         await database.execute(
-          'CREATE TABLE IF NOT EXISTS `HistoryTag` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `tagName` TEXT NOT NULL, `hisId` INTEGER NOT NULL)',
-        );
+            'CREATE TABLE IF NOT EXISTS `HistoryTag` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `tagName` TEXT NOT NULL, `hisId` INTEGER NOT NULL)');
         await database.execute(
-          'CREATE TABLE IF NOT EXISTS `OperationRecord` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` INTEGER NOT NULL, `module` TEXT NOT NULL, `method` TEXT NOT NULL, `data` TEXT NOT NULL, `time` TEXT NOT NULL)',
-        );
+            'CREATE TABLE IF NOT EXISTS `OperationRecord` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` INTEGER NOT NULL, `module` TEXT NOT NULL, `method` TEXT NOT NULL, `data` TEXT NOT NULL, `time` TEXT NOT NULL)');
         await database.execute(
-          'CREATE UNIQUE INDEX `index_HistoryTag_tagName_hisId` ON `HistoryTag` (`tagName`, `hisId`)',
-        );
+            'CREATE UNIQUE INDEX `index_HistoryTag_tagName_hisId` ON `HistoryTag` (`tagName`, `hisId`)');
         await database.execute(
-          'CREATE INDEX `index_OperationRecord_uid_module_method` ON `OperationRecord` (`uid`, `module`, `method`)',
-        );
+            'CREATE INDEX `index_OperationRecord_uid_module_method` ON `OperationRecord` (`uid`, `module`, `method`)');
         await database.execute(
-          'CREATE VIEW IF NOT EXISTS `VHistoryTagHold` AS select t1.* ,(t2.hisId is not null) as hasTag \nfrom (\n  SELECT distinct h.id as hisId,tag.tagName\n  FROM\n    history as h,historyTag as tag\n) t1\nLEFT JOIN ( SELECT * FROM HistoryTag ) t2\nON t2.hisId = t1.hisId and t2.tagName = t1.tagName\n',
-        );
+            'CREATE VIEW IF NOT EXISTS `VHistoryTagHold` AS select t1.* ,(t2.hisId is not null) as hasTag \nfrom (\n  SELECT distinct h.id as hisId,tag.tagName\n  FROM\n    history as h,historyTag as tag\n) t1\nLEFT JOIN ( SELECT * FROM HistoryTag ) t2\nON t2.hisId = t1.hisId and t2.tagName = t1.tagName\n');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -176,26 +162,24 @@ class _$UserDao extends UserDao {
     this.changeListener,
   )   : _queryAdapter = QueryAdapter(database),
         _userInsertionAdapter = InsertionAdapter(
-          database,
-          'User',
-          (User item) => <String, Object?>{
-            'id': item.id,
-            'account': item.account,
-            'password': item.password,
-            'type': item.type,
-          },
-        ),
+            database,
+            'User',
+            (User item) => <String, Object?>{
+                  'id': item.id,
+                  'account': item.account,
+                  'password': item.password,
+                  'type': item.type
+                }),
         _userUpdateAdapter = UpdateAdapter(
-          database,
-          'User',
-          ['id'],
-          (User item) => <String, Object?>{
-            'id': item.id,
-            'account': item.account,
-            'password': item.password,
-            'type': item.type,
-          },
-        );
+            database,
+            'User',
+            ['id'],
+            (User item) => <String, Object?>{
+                  'id': item.id,
+                  'account': item.account,
+                  'password': item.password,
+                  'type': item.type
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -209,32 +193,25 @@ class _$UserDao extends UserDao {
 
   @override
   Future<User?> getById(int id) async {
-    return _queryAdapter.query(
-      'select * from user where id = ?1',
-      mapper: (Map<String, Object?> row) => User(
-        id: row['id'] as int?,
-        account: row['account'] as String,
-        password: row['password'] as String,
-        type: row['type'] as String,
-      ),
-      arguments: [id],
-    );
+    return _queryAdapter.query('select * from user where id = ?1',
+        mapper: (Map<String, Object?> row) => User(
+            id: row['id'] as int?,
+            account: row['account'] as String,
+            password: row['password'] as String,
+            type: row['type'] as String),
+        arguments: [id]);
   }
 
   @override
   Future<int> add(User user) {
     return _userInsertionAdapter.insertAndReturnId(
-      user,
-      OnConflictStrategy.abort,
-    );
+        user, OnConflictStrategy.abort);
   }
 
   @override
   Future<int> updateUser(User user) {
     return _userUpdateAdapter.updateAndReturnChangedRows(
-      user,
-      OnConflictStrategy.abort,
-    );
+        user, OnConflictStrategy.abort);
   }
 }
 
@@ -244,34 +221,31 @@ class _$ConfigDao extends ConfigDao {
     this.changeListener,
   )   : _queryAdapter = QueryAdapter(database),
         _configInsertionAdapter = InsertionAdapter(
-          database,
-          'Config',
-          (Config item) => <String, Object?>{
-            'key': item.key,
-            'value': item.value,
-            'uid': item.uid,
-          },
-        ),
+            database,
+            'Config',
+            (Config item) => <String, Object?>{
+                  'key': item.key,
+                  'value': item.value,
+                  'uid': item.uid
+                }),
         _configUpdateAdapter = UpdateAdapter(
-          database,
-          'Config',
-          ['key'],
-          (Config item) => <String, Object?>{
-            'key': item.key,
-            'value': item.value,
-            'uid': item.uid,
-          },
-        ),
+            database,
+            'Config',
+            ['key'],
+            (Config item) => <String, Object?>{
+                  'key': item.key,
+                  'value': item.value,
+                  'uid': item.uid
+                }),
         _configDeletionAdapter = DeletionAdapter(
-          database,
-          'Config',
-          ['key'],
-          (Config item) => <String, Object?>{
-            'key': item.key,
-            'value': item.value,
-            'uid': item.uid,
-          },
-        );
+            database,
+            'Config',
+            ['key'],
+            (Config item) => <String, Object?>{
+                  'key': item.key,
+                  'value': item.value,
+                  'uid': item.uid
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -287,14 +261,11 @@ class _$ConfigDao extends ConfigDao {
 
   @override
   Future<List<Config>> getAllConfigs() async {
-    return _queryAdapter.queryList(
-      'select * from config',
-      mapper: (Map<String, Object?> row) => Config(
-        key: row['key'] as String,
-        value: row['value'] as String,
-        uid: row['uid'] as int,
-      ),
-    );
+    return _queryAdapter.queryList('select * from config',
+        mapper: (Map<String, Object?> row) => Config(
+            key: row['key'] as String,
+            value: row['value'] as String,
+            uid: row['uid'] as int));
   }
 
   @override
@@ -303,10 +274,9 @@ class _$ConfigDao extends ConfigDao {
     int uid,
   ) async {
     return _queryAdapter.query(
-      'select value from config where key = ?1 and uid = ?2',
-      mapper: (Map<String, Object?> row) => row.values.first as String,
-      arguments: [key, uid],
-    );
+        'select value from config where key = ?1 and uid = ?2',
+        mapper: (Map<String, Object?> row) => row.values.first as String,
+        arguments: [key, uid]);
   }
 
   @override
@@ -316,10 +286,9 @@ class _$ConfigDao extends ConfigDao {
     String def,
   ) async {
     return _queryAdapter.query(
-      'select coalesce(value,?3) as value from config where key = ?1 and uid = ?2',
-      mapper: (Map<String, Object?> row) => row.values.first as String,
-      arguments: [key, uid, def],
-    );
+        'select coalesce(value,?3) as value from config where key = ?1 and uid = ?2',
+        mapper: (Map<String, Object?> row) => row.values.first as String,
+        arguments: [key, uid, def]);
   }
 
   @override
@@ -328,25 +297,20 @@ class _$ConfigDao extends ConfigDao {
     int uid,
   ) async {
     await _queryAdapter.queryNoReturn(
-      'delete from config where key = ?1 and uid = ?2',
-      arguments: [key, uid],
-    );
+        'delete from config where key = ?1 and uid = ?2',
+        arguments: [key, uid]);
   }
 
   @override
   Future<int> add(Config config) {
     return _configInsertionAdapter.insertAndReturnId(
-      config,
-      OnConflictStrategy.abort,
-    );
+        config, OnConflictStrategy.abort);
   }
 
   @override
   Future<int> updateConfig(Config config) {
     return _configUpdateAdapter.updateAndReturnChangedRows(
-      config,
-      OnConflictStrategy.abort,
-    );
+        config, OnConflictStrategy.abort);
   }
 
   @override
@@ -361,36 +325,34 @@ class _$HistoryDao extends HistoryDao {
     this.changeListener,
   )   : _queryAdapter = QueryAdapter(database),
         _historyInsertionAdapter = InsertionAdapter(
-          database,
-          'History',
-          (History item) => <String, Object?>{
-            'id': item.id,
-            'uid': item.uid,
-            'time': item.time,
-            'content': item.content,
-            'type': item.type,
-            'devId': item.devId,
-            'top': item.top ? 1 : 0,
-            'sync': item.sync ? 1 : 0,
-            'size': item.size,
-          },
-        ),
+            database,
+            'History',
+            (History item) => <String, Object?>{
+                  'id': item.id,
+                  'uid': item.uid,
+                  'time': item.time,
+                  'content': item.content,
+                  'type': item.type,
+                  'devId': item.devId,
+                  'top': item.top ? 1 : 0,
+                  'sync': item.sync ? 1 : 0,
+                  'size': item.size
+                }),
         _historyUpdateAdapter = UpdateAdapter(
-          database,
-          'History',
-          ['id'],
-          (History item) => <String, Object?>{
-            'id': item.id,
-            'uid': item.uid,
-            'time': item.time,
-            'content': item.content,
-            'type': item.type,
-            'devId': item.devId,
-            'top': item.top ? 1 : 0,
-            'sync': item.sync ? 1 : 0,
-            'size': item.size,
-          },
-        );
+            database,
+            'History',
+            ['id'],
+            (History item) => <String, Object?>{
+                  'id': item.id,
+                  'uid': item.uid,
+                  'time': item.time,
+                  'content': item.content,
+                  'type': item.type,
+                  'devId': item.devId,
+                  'top': item.top ? 1 : 0,
+                  'sync': item.sync ? 1 : 0,
+                  'size': item.size
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -405,57 +367,43 @@ class _$HistoryDao extends HistoryDao {
   @override
   Future<History?> getLatestLocalClip(int uid) async {
     return _queryAdapter.query(
-      'select * from history where uid = ?1 order by id desc limit 1',
-      mapper: (Map<String, Object?> row) => History(
-        id: row['id'] as int,
-        uid: row['uid'] as int,
-        time: row['time'] as String,
-        content: row['content'] as String,
-        type: row['type'] as String,
-        devId: row['devId'] as String,
-        top: (row['top'] as int) != 0,
-        sync: (row['sync'] as int) != 0,
-        size: row['size'] as int,
-      ),
-      arguments: [uid],
-    );
+        'select * from history where uid = ?1 order by id desc limit 1',
+        mapper: (Map<String, Object?> row) => History(
+            id: row['id'] as int,
+            uid: row['uid'] as int,
+            time: row['time'] as String,
+            content: row['content'] as String,
+            type: row['type'] as String,
+            devId: row['devId'] as String,
+            top: (row['top'] as int) != 0,
+            sync: (row['sync'] as int) != 0,
+            size: row['size'] as int),
+        arguments: [uid]);
   }
 
   @override
   Future<List<History>> getMissingHistory(String devId) async {
     return _queryAdapter.queryList(
-      'SELECT * FROM history h WHERE NOT EXISTS (SELECT 1 FROM SyncHistory sh WHERE sh.hisId = h.id AND sh.devId = ?1) and h.devId != ?1',
-      mapper: (Map<String, Object?> row) => History(
-          id: row['id'] as int,
-          uid: row['uid'] as int,
-          time: row['time'] as String,
-          content: row['content'] as String,
-          type: row['type'] as String,
-          devId: row['devId'] as String,
-          top: (row['top'] as int) != 0,
-          sync: (row['sync'] as int) != 0,
-          size: row['size'] as int),
-      arguments: [devId],
-    );
+        'SELECT * FROM history h WHERE NOT EXISTS (SELECT 1 FROM SyncHistory sh WHERE sh.hisId = h.id AND sh.devId = ?1) and h.devId != ?1',
+        mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as int, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
+        arguments: [devId]);
   }
 
   @override
   Future<List<History>> getHistoriesTop20(int uid) async {
     return _queryAdapter.queryList(
-      'select * from history where uid = ?1 order by top,id desc limit 20',
-      mapper: (Map<String, Object?> row) => History(
-        id: row['id'] as int,
-        uid: row['uid'] as int,
-        time: row['time'] as String,
-        content: row['content'] as String,
-        type: row['type'] as String,
-        devId: row['devId'] as String,
-        top: (row['top'] as int) != 0,
-        sync: (row['sync'] as int) != 0,
-        size: row['size'] as int,
-      ),
-      arguments: [uid],
-    );
+        'select * from history where uid = ?1 order by top,id desc limit 20',
+        mapper: (Map<String, Object?> row) => History(
+            id: row['id'] as int,
+            uid: row['uid'] as int,
+            time: row['time'] as String,
+            content: row['content'] as String,
+            type: row['type'] as String,
+            devId: row['devId'] as String,
+            top: (row['top'] as int) != 0,
+            sync: (row['sync'] as int) != 0,
+            size: row['size'] as int),
+        arguments: [uid]);
   }
 
   @override
@@ -464,19 +412,9 @@ class _$HistoryDao extends HistoryDao {
     int fromId,
   ) async {
     return _queryAdapter.queryList(
-      'select * from history where uid = ?1 and id < ?2 order by top,id desc limit 20',
-      mapper: (Map<String, Object?> row) => History(
-          id: row['id'] as int,
-          uid: row['uid'] as int,
-          time: row['time'] as String,
-          content: row['content'] as String,
-          type: row['type'] as String,
-          devId: row['devId'] as String,
-          top: (row['top'] as int) != 0,
-          sync: (row['sync'] as int) != 0,
-          size: row['size'] as int),
-      arguments: [uid, fromId],
-    );
+        'select * from history where uid = ?1 and id < ?2 order by top,id desc limit 20',
+        mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as int, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
+        arguments: [uid, fromId]);
   }
 
   @override
@@ -484,11 +422,9 @@ class _$HistoryDao extends HistoryDao {
     int id,
     bool top,
   ) async {
-    return _queryAdapter.query(
-      'update history set top = ?2 where id = ?1',
-      mapper: (Map<String, Object?> row) => row.values.first as int,
-      arguments: [id, top ? 1 : 0],
-    );
+    return _queryAdapter.query('update history set top = ?2 where id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [id, top ? 1 : 0]);
   }
 
   @override
@@ -496,72 +432,57 @@ class _$HistoryDao extends HistoryDao {
     int id,
     bool sync,
   ) async {
-    return _queryAdapter.query(
-      'update history set sync = ?2 where id = ?1',
-      mapper: (Map<String, Object?> row) => row.values.first as int,
-      arguments: [id, sync ? 1 : 0],
-    );
+    return _queryAdapter.query('update history set sync = ?2 where id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [id, sync ? 1 : 0]);
   }
 
   @override
   Future<int?> delete(int id) async {
-    return _queryAdapter.query(
-      'delete from history where id = ?1',
-      mapper: (Map<String, Object?> row) => row.values.first as int,
-      arguments: [id],
-    );
+    return _queryAdapter.query('delete from history where id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [id]);
   }
 
   @override
   Future<int?> transformLocalToUser(int uid) async {
-    return _queryAdapter.query(
-      'update history set uid = ?1 where uid = 0',
-      mapper: (Map<String, Object?> row) => row.values.first as int,
-      arguments: [uid],
-    );
+    return _queryAdapter.query('update history set uid = ?1 where uid = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [uid]);
   }
 
   @override
   Future<int?> removeAllLocalHistories() async {
-    return _queryAdapter.query(
-      'delete from history where uid = 0',
-      mapper: (Map<String, Object?> row) => row.values.first as int,
-    );
+    return _queryAdapter.query('delete from history where uid = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
   }
 
   @override
   Future<History?> getById(int id) async {
-    return _queryAdapter.query(
-      'select * from history where id = ?1',
-      mapper: (Map<String, Object?> row) => History(
-        id: row['id'] as int,
-        uid: row['uid'] as int,
-        time: row['time'] as String,
-        content: row['content'] as String,
-        type: row['type'] as String,
-        devId: row['devId'] as String,
-        top: (row['top'] as int) != 0,
-        sync: (row['sync'] as int) != 0,
-        size: row['size'] as int,
-      ),
-      arguments: [id],
-    );
+    return _queryAdapter.query('select * from history where id = ?1',
+        mapper: (Map<String, Object?> row) => History(
+            id: row['id'] as int,
+            uid: row['uid'] as int,
+            time: row['time'] as String,
+            content: row['content'] as String,
+            type: row['type'] as String,
+            devId: row['devId'] as String,
+            top: (row['top'] as int) != 0,
+            sync: (row['sync'] as int) != 0,
+            size: row['size'] as int),
+        arguments: [id]);
   }
 
   @override
   Future<int> add(History history) {
     return _historyInsertionAdapter.insertAndReturnId(
-      history,
-      OnConflictStrategy.abort,
-    );
+        history, OnConflictStrategy.abort);
   }
 
   @override
   Future<int> updateHistory(History history) {
     return _historyUpdateAdapter.updateAndReturnChangedRows(
-      history,
-      OnConflictStrategy.abort,
-    );
+        history, OnConflictStrategy.abort);
   }
 }
 
@@ -571,30 +492,30 @@ class _$DeviceDao extends DeviceDao {
     this.changeListener,
   )   : _queryAdapter = QueryAdapter(database),
         _deviceInsertionAdapter = InsertionAdapter(
-          database,
-          'Device',
-          (Device item) => <String, Object?>{
-            'guid': item.guid,
-            'devName': item.devName,
-            'uid': item.uid,
-            'type': item.type,
-            'lastConnTime': item.lastConnTime,
-            'lastAddr': item.lastAddr,
-          },
-        ),
+            database,
+            'Device',
+            (Device item) => <String, Object?>{
+                  'guid': item.guid,
+                  'devName': item.devName,
+                  'uid': item.uid,
+                  'customName': item.customName,
+                  'type': item.type,
+                  'lastConnTime': item.lastConnTime,
+                  'lastAddr': item.lastAddr
+                }),
         _deviceUpdateAdapter = UpdateAdapter(
-          database,
-          'Device',
-          ['guid'],
-          (Device item) => <String, Object?>{
-            'guid': item.guid,
-            'devName': item.devName,
-            'uid': item.uid,
-            'type': item.type,
-            'lastConnTime': item.lastConnTime,
-            'lastAddr': item.lastAddr,
-          },
-        );
+            database,
+            'Device',
+            ['guid'],
+            (Device item) => <String, Object?>{
+                  'guid': item.guid,
+                  'devName': item.devName,
+                  'uid': item.uid,
+                  'customName': item.customName,
+                  'type': item.type,
+                  'lastConnTime': item.lastConnTime,
+                  'lastAddr': item.lastAddr
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -608,16 +529,16 @@ class _$DeviceDao extends DeviceDao {
 
   @override
   Future<List<Device>> getAllDevices(int uid) async {
-    return _queryAdapter.queryList(
-      'select * from device where uid = ?1',
-      mapper: (Map<String, Object?> row) => Device(
-        guid: row['guid'] as String,
-        devName: row['devName'] as String,
-        uid: row['uid'] as int,
-        type: row['type'] as String,
-      ),
-      arguments: [uid],
-    );
+    return _queryAdapter.queryList('select * from device where uid = ?1',
+        mapper: (Map<String, Object?> row) => Device(
+            guid: row['guid'] as String,
+            devName: row['devName'] as String,
+            uid: row['uid'] as int,
+            type: row['type'] as String,
+            customName: row['customName'] as String?,
+            lastAddr: row['lastAddr'] as String?,
+            lastConnTime: row['lastConnTime'] as String?),
+        arguments: [uid]);
   }
 
   @override
@@ -626,15 +547,28 @@ class _$DeviceDao extends DeviceDao {
     int uid,
   ) async {
     return _queryAdapter.query(
-      'select * from device where guid = ?1 and uid = ?2',
-      mapper: (Map<String, Object?> row) => Device(
-        guid: row['guid'] as String,
-        devName: row['devName'] as String,
-        uid: row['uid'] as int,
-        type: row['type'] as String,
-      ),
-      arguments: [guid, uid],
-    );
+        'select * from device where guid = ?1 and uid = ?2',
+        mapper: (Map<String, Object?> row) => Device(
+            guid: row['guid'] as String,
+            devName: row['devName'] as String,
+            uid: row['uid'] as int,
+            type: row['type'] as String,
+            customName: row['customName'] as String?,
+            lastAddr: row['lastAddr'] as String?,
+            lastConnTime: row['lastConnTime'] as String?),
+        arguments: [guid, uid]);
+  }
+
+  @override
+  Future<int?> rename(
+    String guid,
+    String name,
+    int uid,
+  ) async {
+    return _queryAdapter.query(
+        'update device set customName = ?2 where uid = ?3 and guid = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [guid, name, uid]);
   }
 
   @override
@@ -643,35 +577,28 @@ class _$DeviceDao extends DeviceDao {
     int uid,
   ) async {
     return _queryAdapter.query(
-      'delete from device where guid = ?1 and uid = ?2',
-      mapper: (Map<String, Object?> row) => row.values.first as int,
-      arguments: [guid, uid],
-    );
+        'delete from device where guid = ?1 and uid = ?2',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [guid, uid]);
   }
 
   @override
   Future<int?> removeAll(int uid) async {
-    return _queryAdapter.query(
-      'delete from device where uid = ?1',
-      mapper: (Map<String, Object?> row) => row.values.first as int,
-      arguments: [uid],
-    );
+    return _queryAdapter.query('delete from device where uid = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [uid]);
   }
 
   @override
   Future<int> add(Device dev) {
     return _deviceInsertionAdapter.insertAndReturnId(
-      dev,
-      OnConflictStrategy.abort,
-    );
+        dev, OnConflictStrategy.abort);
   }
 
   @override
   Future<int> updateDevice(Device dev) {
     return _deviceUpdateAdapter.updateAndReturnChangedRows(
-      dev,
-      OnConflictStrategy.abort,
-    );
+        dev, OnConflictStrategy.abort);
   }
 }
 
@@ -681,15 +608,14 @@ class _$OperationSyncDao extends OperationSyncDao {
     this.changeListener,
   )   : _queryAdapter = QueryAdapter(database),
         _operationSyncInsertionAdapter = InsertionAdapter(
-          database,
-          'OperationSync',
-          (OperationSync item) => <String, Object?>{
-            'opId': item.opId,
-            'devId': item.devId,
-            'uid': item.uid,
-            'time': item.time,
-          },
-        );
+            database,
+            'OperationSync',
+            (OperationSync item) => <String, Object?>{
+                  'opId': item.opId,
+                  'devId': item.devId,
+                  'uid': item.uid,
+                  'time': item.time
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -701,19 +627,15 @@ class _$OperationSyncDao extends OperationSyncDao {
 
   @override
   Future<int?> removeAll(int uid) async {
-    return _queryAdapter.query(
-      'delete OperationSync where uid = ?1',
-      mapper: (Map<String, Object?> row) => row.values.first as int,
-      arguments: [uid],
-    );
+    return _queryAdapter.query('delete OperationSync where uid = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [uid]);
   }
 
   @override
   Future<int> add(OperationSync syncHistory) {
     return _operationSyncInsertionAdapter.insertAndReturnId(
-      syncHistory,
-      OnConflictStrategy.abort,
-    );
+        syncHistory, OnConflictStrategy.abort);
   }
 }
 
@@ -723,24 +645,22 @@ class _$HistoryTagDao extends HistoryTagDao {
     this.changeListener,
   )   : _queryAdapter = QueryAdapter(database),
         _historyTagInsertionAdapter = InsertionAdapter(
-          database,
-          'HistoryTag',
-          (HistoryTag item) => <String, Object?>{
-            'id': item.id,
-            'tagName': item.tagName,
-            'hisId': item.hisId,
-          },
-        ),
+            database,
+            'HistoryTag',
+            (HistoryTag item) => <String, Object?>{
+                  'id': item.id,
+                  'tagName': item.tagName,
+                  'hisId': item.hisId
+                }),
         _historyTagUpdateAdapter = UpdateAdapter(
-          database,
-          'HistoryTag',
-          ['id'],
-          (HistoryTag item) => <String, Object?>{
-            'id': item.id,
-            'tagName': item.tagName,
-            'hisId': item.hisId,
-          },
-        );
+            database,
+            'HistoryTag',
+            ['id'],
+            (HistoryTag item) => <String, Object?>{
+                  'id': item.id,
+                  'tagName': item.tagName,
+                  'hisId': item.hisId
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -754,28 +674,21 @@ class _$HistoryTagDao extends HistoryTagDao {
 
   @override
   Future<List<HistoryTag>> list(int hId) async {
-    return _queryAdapter.queryList(
-      'select * from HistoryTag where hisId = ?1',
-      mapper: (Map<String, Object?> row) => HistoryTag(
-        row['id'] as int,
-        row['tagName'] as String,
-        row['hisId'] as int,
-      ),
-      arguments: [hId],
-    );
+    return _queryAdapter.queryList('select * from HistoryTag where hisId = ?1',
+        mapper: (Map<String, Object?> row) => HistoryTag(
+            row['id'] as int, row['tagName'] as String, row['hisId'] as int),
+        arguments: [hId]);
   }
 
   @override
   Future<List<VHistoryTagHold>> listWithHold(int hId) async {
     return _queryAdapter.queryList(
-      'SELECT * from VHistoryTagHold where hisId = ?1',
-      mapper: (Map<String, Object?> row) => VHistoryTagHold(
-        row['hisId'] as int,
-        row['tagName'] as String,
-        (row['hasTag'] as int) != 0,
-      ),
-      arguments: [hId],
-    );
+        'SELECT * from VHistoryTagHold where hisId = ?1',
+        mapper: (Map<String, Object?> row) => VHistoryTagHold(
+            row['hisId'] as int,
+            row['tagName'] as String,
+            (row['hasTag'] as int) != 0),
+        arguments: [hId]);
   }
 
   @override
@@ -784,36 +697,29 @@ class _$HistoryTagDao extends HistoryTagDao {
     String tagName,
   ) async {
     return _queryAdapter.query(
-      'delete from HistoryTag where hisId = ?1 and tagName = ?2',
-      mapper: (Map<String, Object?> row) => row.values.first as int,
-      arguments: [hId, tagName],
-    );
+        'delete from HistoryTag where hisId = ?1 and tagName = ?2',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [hId, tagName]);
   }
 
   @override
-  Future<int?> removeById(int id) {
-    return _queryAdapter.query(
-      'delete from HistoryTag where id = ?1',
-      mapper: (Map<String, Object?> row) => row.values.first as int,
-      arguments: [id],
-    );
+  Future<int?> removeById(int id) async {
+    return _queryAdapter.query('delete from HistoryTag where id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [id]);
   }
 
   @override
   Future<int?> removeAllByHisId(int hId) async {
-    return _queryAdapter.query(
-      'delete from HistoryTag where hisId = ?1',
-      mapper: (Map<String, Object?> row) => row.values.first as int,
-      arguments: [hId],
-    );
+    return _queryAdapter.query('delete from HistoryTag where hisId = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [hId]);
   }
 
   @override
   Future<int?> removeAll() async {
-    return _queryAdapter.query(
-      'delete from HistoryTag',
-      mapper: (Map<String, Object?> row) => row.values.first as int,
-    );
+    return _queryAdapter.query('delete from HistoryTag',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
   }
 
   @override
@@ -822,43 +728,30 @@ class _$HistoryTagDao extends HistoryTagDao {
     String tagName,
   ) async {
     return _queryAdapter.query(
-      'select * from HistoryTag where hisId = ?1 and tagName = ?2',
-      mapper: (Map<String, Object?> row) => HistoryTag(
-        row['id'] as int,
-        row['tagName'] as String,
-        row['hisId'] as int,
-      ),
-      arguments: [hId, tagName],
-    );
+        'select * from HistoryTag where hisId = ?1 and tagName = ?2',
+        mapper: (Map<String, Object?> row) => HistoryTag(
+            row['id'] as int, row['tagName'] as String, row['hisId'] as int),
+        arguments: [hId, tagName]);
   }
 
   @override
   Future<HistoryTag?> getById(int id) async {
-    return _queryAdapter.query(
-      'select * from HistoryTag where id = ?1',
-      mapper: (Map<String, Object?> row) => HistoryTag(
-        row['id'] as int,
-        row['tagName'] as String,
-        row['hisId'] as int,
-      ),
-      arguments: [id],
-    );
+    return _queryAdapter.query('select * from HistoryTag where id = ?1',
+        mapper: (Map<String, Object?> row) => HistoryTag(
+            row['id'] as int, row['tagName'] as String, row['hisId'] as int),
+        arguments: [id]);
   }
 
   @override
   Future<int> add(HistoryTag tag) {
     return _historyTagInsertionAdapter.insertAndReturnId(
-      tag,
-      OnConflictStrategy.ignore,
-    );
+        tag, OnConflictStrategy.ignore);
   }
 
   @override
   Future<int> updateTag(HistoryTag tag) {
     return _historyTagUpdateAdapter.updateAndReturnChangedRows(
-      tag,
-      OnConflictStrategy.abort,
-    );
+        tag, OnConflictStrategy.abort);
   }
 }
 
@@ -868,17 +761,16 @@ class _$OperationRecordDao extends OperationRecordDao {
     this.changeListener,
   )   : _queryAdapter = QueryAdapter(database),
         _operationRecordInsertionAdapter = InsertionAdapter(
-          database,
-          'OperationRecord',
-          (OperationRecord item) => <String, Object?>{
-            'id': item.id,
-            'uid': item.uid,
-            'module': _moduleTypeConverter.encode(item.module),
-            'method': _opMethodTypeConverter.encode(item.method),
-            'data': item.data,
-            'time': item.time,
-          },
-        );
+            database,
+            'OperationRecord',
+            (OperationRecord item) => <String, Object?>{
+                  'id': item.id,
+                  'uid': item.uid,
+                  'module': _moduleTypeConverter.encode(item.module),
+                  'method': _opMethodTypeConverter.encode(item.method),
+                  'data': item.data,
+                  'time': item.time
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -894,32 +786,22 @@ class _$OperationRecordDao extends OperationRecordDao {
     String devId,
   ) async {
     return _queryAdapter.queryList(
-      'select * from OperationRecord record   where not exists (     select 1 from OperationSync opsync     where opsync.uid = ?1 and opsync.devId = ?2 and opsync.opId = record.id   )   order by id desc',
-      mapper: (Map<String, Object?> row) => OperationRecord(
-          id: row['id'] as int,
-          uid: row['uid'] as int,
-          module: _moduleTypeConverter.decode(row['module'] as String),
-          method: _opMethodTypeConverter.decode(row['method'] as String),
-          data: row['data'] as String),
-      arguments: [uid, devId],
-    );
+        'select * from OperationRecord record   where not exists (     select 1 from OperationSync opsync     where opsync.uid = ?1 and opsync.devId = ?2 and opsync.opId = record.id   )   order by id desc',
+        mapper: (Map<String, Object?> row) => OperationRecord(id: row['id'] as int, uid: row['uid'] as int, module: _moduleTypeConverter.decode(row['module'] as String), method: _opMethodTypeConverter.decode(row['method'] as String), data: row['data'] as String),
+        arguments: [uid, devId]);
   }
 
   @override
   Future<int?> removeAll(int uid) async {
-    return _queryAdapter.query(
-      'delete from OperationRecord where uid = ?1',
-      mapper: (Map<String, Object?> row) => row.values.first as int,
-      arguments: [uid],
-    );
+    return _queryAdapter.query('delete from OperationRecord where uid = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [uid]);
   }
 
   @override
   Future<int> add(OperationRecord record) {
     return _operationRecordInsertionAdapter.insertAndReturnId(
-      record,
-      OnConflictStrategy.abort,
-    );
+        record, OnConflictStrategy.abort);
   }
 }
 

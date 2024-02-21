@@ -23,10 +23,14 @@ import '../entity/tables/user.dart';
 part 'app_db.floor.g.dart';
 
 /// 添加实体类到 @Database 注解中，app_db、db_util 中添加 get 方法
-/// 执行命令 flutter pub run build_runner build --delete-conflicting-outputs
-/// 生成的文件位于 .dart_tool/build/generated/项目名称/lib/db
-/// 下面这行放在 app_db.floor.g.dart 文件里，使其变成 app_database.dart 文件的一部分
-/// part of 'app_db.dart';
+/// 生成方法（二选一）
+///
+/// 1. 执行命令 flutter pub run build_runner build --delete-conflicting-outputs
+///    生成的文件位于 .dart_tool/build/generated/项目名称/lib/db
+///    下面这行放在 app_db.floor.g.dart 文件里，使其变成 app_database.dart 文件的一部分
+///    part of 'app_db.dart';
+///
+/// 2. 直接执行 /scripts/gen_db.bat 一键完成
 @Database(
   version: 1,
   entities: [
