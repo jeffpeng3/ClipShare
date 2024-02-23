@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   # 数据库框架
   floor: ^1.4.2
   sqflite: any
@@ -48,7 +50,6 @@ dependencies:
   uuid: ^3.0.0
   # 验证码
   pinput: ^3.0.1
-  fluttertoast: ^8.2.4
   logger: ^2.0.2+1
 dev_dependencies:
   flutter_test:

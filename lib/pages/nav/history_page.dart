@@ -15,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../components/clip_detail_dialog.dart';
-import '../../dao/operation_sync_dao.dart';
 import '../../db/db_util.dart';
 import '../../listeners/socket_listener.dart';
 import '../../main.dart';
@@ -34,21 +33,19 @@ class HistoryPage extends StatefulWidget {
 class HistoryPageState extends State<HistoryPage>
     with WidgetsBindingObserver
     implements ClipObserver, SyncObserver {
+  final ScrollController _scrollController = ScrollController();
   final List<ClipData> _list = List.empty(growable: true);
-  late HistoryDao _historyDao;
-  late OperationSyncDao _syncHistoryDao;
   bool _copyInThisCopy = false;
   int? _minId;
+  late HistoryDao _historyDao;
   History? _last;
 
   final String tag = "HistoryPage";
-  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _historyDao = DBUtil.inst.historyDao;
-    _syncHistoryDao = DBUtil.inst.opSyncDao;
     //更新上次复制的记录
     _historyDao.getLatestLocalClip(App.userId).then((his) {
       _last = his;
@@ -112,14 +109,6 @@ class HistoryPageState extends State<HistoryPage>
     }
   }
 
-  void _showDetail(ClipData chip) {
-    if (PlatformUtil.isPC()) {
-      _showDetailDialog(chip);
-      return;
-    }
-    _showBottomDetailSheet(chip);
-  }
-
   ///重新加载列表
   void refreshData() {
     _minId = null;
@@ -142,6 +131,14 @@ class HistoryPageState extends State<HistoryPage>
   void _sortList() {
     _list.sort((a, b) => b.data.compareTo(a.data));
     setState(() {});
+  }
+
+  void _showDetail(ClipData chip) {
+    if (PlatformUtil.isPC()) {
+      _showDetailDialog(chip);
+      return;
+    }
+    _showBottomDetailSheet(chip);
   }
 
   void _showDetailDialog(ClipData chip) {
@@ -197,40 +194,48 @@ class HistoryPageState extends State<HistoryPage>
           height: 10,
         ),
         Expanded(
-          child: ListView.builder(
-            itemCount: _list.length,
-            controller: _scrollController,
-            itemBuilder: (context, i) {
-              return Container(
-                padding: const EdgeInsets.only(left: 2, right: 2),
-                constraints:
-                    const BoxConstraints(maxHeight: 150, minHeight: 80),
-                child: GestureDetector(
-                  onTapUp: (TapUpDetails details) {
-                    Log.debug(tag, "onTapUp");
-                  },
-                  onTapDown: (TapDownDetails details) {
-                    Log.debug(tag, "onTapDown");
-                  },
-                  behavior: HitTestBehavior.translucent,
-                  child: ClipDataCard(
-                    _list[i],
-                    onTap: () {
-                      if (!PlatformUtil.isPC()) {
+          child: RefreshIndicator(
+            onRefresh: () async {
+              return Future.delayed(
+                const Duration(milliseconds: 500),
+                refreshData,
+              );
+            },
+            child: ListView.builder(
+              itemCount: _list.length,
+              controller: _scrollController,
+              itemBuilder: (context, i) {
+                return Container(
+                  padding: const EdgeInsets.only(left: 2, right: 2),
+                  constraints:
+                      const BoxConstraints(maxHeight: 150, minHeight: 80),
+                  child: GestureDetector(
+                    onTapUp: (TapUpDetails details) {
+                      Log.debug(tag, "onTapUp");
+                    },
+                    onTapDown: (TapDownDetails details) {
+                      Log.debug(tag, "onTapDown");
+                    },
+                    behavior: HitTestBehavior.translucent,
+                    child: ClipDataCard(
+                      _list[i],
+                      onTap: () {
+                        if (!PlatformUtil.isPC()) {
+                          return;
+                        }
+                        _showDetail(_list[i]);
+                      },
+                    ),
+                    onLongPress: () {
+                      if (!PlatformUtil.isMobile()) {
                         return;
                       }
                       _showDetail(_list[i]);
                     },
                   ),
-                  onLongPress: () {
-                    if (!PlatformUtil.isMobile()) {
-                      return;
-                    }
-                    _showDetail(_list[i]);
-                  },
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ],

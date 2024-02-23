@@ -382,6 +382,30 @@ class _$HistoryDao extends HistoryDao {
   }
 
   @override
+  Future<List<History>> getHistoriesPageByWhere(
+    int uid,
+    int fromId,
+    String content,
+    String type,
+    List<String> tags,
+    String startTime,
+    String endTime,
+  ) async {
+    const offset = 7;
+    final _sqliteVariablesForTags =
+        Iterable<String>.generate(tags.length, (i) => '?${i + offset}')
+            .join(',');
+    return _queryAdapter.queryList(
+        'select * from History   where uid = ?1      and id > ?2      and case when ?3 = \'\'            then               1            else               content like \'%\'||?3||\'%\'          end      and case when ?4 = \'\'            then               1            else               type = ?4          end      and case when ?5 = \'\' or ?6 = \'\'            then               1            else               date(time) between ?5 and ?6          end      and       case when length(null in (' +
+            _sqliteVariablesForTags +
+            ')) = 1 then        1      else        id in (          select distinct hisId           from HistoryTag ht           where tagName in (' +
+            _sqliteVariablesForTags +
+            ')        )      end   order by top desc,id desc   limit 20',
+        mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as int, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
+        arguments: [uid, fromId, content, type, startTime, endTime, ...tags]);
+  }
+
+  @override
   Future<List<History>> getMissingHistory(String devId) async {
     return _queryAdapter.queryList(
         'SELECT * FROM history h WHERE NOT EXISTS (SELECT 1 FROM SyncHistory sh WHERE sh.hisId = h.id AND sh.devId = ?1) and h.devId != ?1',
@@ -671,6 +695,13 @@ class _$HistoryTagDao extends HistoryTagDao {
   final InsertionAdapter<HistoryTag> _historyTagInsertionAdapter;
 
   final UpdateAdapter<HistoryTag> _historyTagUpdateAdapter;
+
+  @override
+  Future<List<String>> getAllTagNames() async {
+    return _queryAdapter.queryList(
+        'select distinct tagName from HistoryTag order by tagName',
+        mapper: (Map<String, Object?> row) => row.values.first as String);
+  }
 
   @override
   Future<List<HistoryTag>> list(int hId) async {

@@ -9,6 +9,7 @@ import 'package:clipshare/pages/nav/debug_page.dart';
 import 'package:clipshare/pages/nav/devices_page.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/pages/nav/profile_page.dart';
+import 'package:clipshare/pages/search_page.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/platform_util.dart';
@@ -30,13 +31,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
-  int _index = 0;
+  int _index = 03;
   List<Widget> pages = List.from([
     HistoryPage(
       key: HistoryPage.pageKey,
     ),
     const DevicesPage(),
     const ProfilePage(),
+    const SearchPage(),
   ]);
   List<BottomNavigationBarItem> navBarItems = List.from(const [
     BottomNavigationBarItem(
@@ -50,6 +52,10 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
     BottomNavigationBarItem(
       icon: Icon(Icons.person),
       label: 'Profile',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.search),
+      label: 'Search',
     ),
   ]);
   late DeviceDao deviceDao;

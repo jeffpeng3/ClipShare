@@ -8,6 +8,55 @@ abstract class HistoryDao {
   @Query("select * from history where uid = :uid order by id desc limit 1")
   Future<History?> getLatestLocalClip(int uid);
 
+  /// todo 根据条件查询，一次查 20 条，置顶优先，id 降序
+  @Query("""
+  select * from History
+  where uid = :uid
+     and id > :fromId
+     and case 
+          when :content = ''
+           then 
+             1
+           else 
+             content like '%'||:content||'%'
+          end
+     and case 
+          when :type = ''
+           then 
+             1
+           else 
+             type = :type
+          end
+     and case 
+          when :startTime = '' or :endTime = ''
+           then 
+             1
+           else 
+             date(time) between :startTime and :endTime
+          end
+     and case 
+          when length(null in (:tags)) = 1 then
+            1
+          else
+            id in (
+              select distinct hisId 
+              from HistoryTag ht 
+              where tagName in (:tags)
+            )
+          end
+  order by top desc,id desc
+  limit 20
+  """)
+  Future<List<History>> getHistoriesPageByWhere(
+    int uid,
+    int fromId,
+    String content,
+    String type,
+    List<String> tags,
+    String startTime,
+    String endTime,
+  );
+
   /// 【废弃】获取某设备未同步的记录
   @Query(
     "SELECT * FROM history h WHERE NOT EXISTS (SELECT 1 FROM SyncHistory sh WHERE sh.hisId = h.id AND sh.devId = :devId) and h.devId != :devId",

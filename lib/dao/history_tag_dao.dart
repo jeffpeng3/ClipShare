@@ -5,6 +5,10 @@ import '../entity/views/v_history_tag_hold.dart';
 
 @dao
 abstract class HistoryTagDao {
+  ///获取所有标签名
+  @Query("select distinct tagName from HistoryTag order by tagName")
+  Future<List<String>> getAllTagNames();
+
   ///查询某个记录的标签列表
   @Query("select * from HistoryTag where hisId = :hId")
   Future<List<HistoryTag>> list(int hId);

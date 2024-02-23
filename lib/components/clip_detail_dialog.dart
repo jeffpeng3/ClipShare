@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:clipshare/components/round_chip.dart';
+import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/pages/tag_edit_page.dart';

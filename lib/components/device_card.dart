@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:clipshare/components/round_chip.dart';
+import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/main.dart';
@@ -128,7 +128,7 @@ class DeviceCardState extends State<DeviceCard> {
                     .rename(dev.guid, name, App.userId)
                     .then((cnt) {
                   if (cnt != null && cnt > 0) {
-                    widget.dev!.customName=name;
+                    widget.dev!.customName = name;
                     var opRecord = OperationRecord.fromSimple(
                       Module.device,
                       OpMethod.update,
@@ -136,9 +136,7 @@ class DeviceCardState extends State<DeviceCard> {
                     );
                     DBUtil.inst.opRecordDao.addAndNotify(opRecord);
                     Navigator.pop(context);
-                    setState(() {
-
-                    });
+                    setState(() {});
                   }
                 });
               },
