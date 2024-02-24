@@ -47,6 +47,7 @@ class _TagEditPageState extends State<TagEditPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text("编辑标签"),
         actions: [
           TextButton(
