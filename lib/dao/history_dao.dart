@@ -35,6 +35,12 @@ abstract class HistoryDao {
              date(time) between :startTime and :endTime
           end
      and case 
+          when length(null in (:devIds)) = 1 then
+            1
+          else
+            devId in (:devIds)
+          end
+     and case 
           when length(null in (:tags)) = 1 then
             1
           else
@@ -53,6 +59,7 @@ abstract class HistoryDao {
     String content,
     String type,
     List<String> tags,
+    List<String> devIds,
     String startTime,
     String endTime,
   );

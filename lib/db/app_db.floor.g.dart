@@ -388,21 +388,39 @@ class _$HistoryDao extends HistoryDao {
     String content,
     String type,
     List<String> tags,
+    List<String> devIds,
     String startTime,
     String endTime,
   ) async {
-    const offset = 7;
+    int offset = 7;
     final _sqliteVariablesForTags =
         Iterable<String>.generate(tags.length, (i) => '?${i + offset}')
             .join(',');
+    offset += tags.length;
+    final _sqliteVariablesForDevIds =
+        Iterable<String>.generate(devIds.length, (i) => '?${i + offset}')
+            .join(',');
     return _queryAdapter.queryList(
-        'select * from History   where uid = ?1      and id > ?2      and case when ?3 = \'\'            then               1            else               content like \'%\'||?3||\'%\'          end      and case when ?4 = \'\'            then               1            else               type = ?4          end      and case when ?5 = \'\' or ?6 = \'\'            then               1            else               date(time) between ?5 and ?6          end      and       case when length(null in (' +
+        'select * from History   where uid = ?1      and id > ?2      and case            when ?3 = \'\'            then               1            else               content like \'%\'||?3||\'%\'           end      and case            when ?4 = \'\'            then               1            else               type = ?4           end      and case            when ?5 = \'\' or ?6 = \'\'            then               1            else               date(time) between ?5 and ?6           end      and case            when length(null in (' +
+            _sqliteVariablesForDevIds +
+            ')) = 1 then             1           else             devId in (' +
+            _sqliteVariablesForDevIds +
+            ')           end      and case            when length(null in (' +
             _sqliteVariablesForTags +
-            ')) = 1 then        1      else        id in (          select distinct hisId           from HistoryTag ht           where tagName in (' +
+            ')) = 1 then             1           else             id in (               select distinct hisId                from HistoryTag ht                where tagName in (' +
             _sqliteVariablesForTags +
-            ')        )      end   order by top desc,id desc   limit 20',
+            ')             )           end   order by top desc,id desc   limit 20',
         mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as int, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
-        arguments: [uid, fromId, content, type, startTime, endTime, ...tags]);
+        arguments: [
+          uid,
+          fromId,
+          content,
+          type,
+          startTime,
+          endTime,
+          ...tags,
+          ...devIds
+        ]);
   }
 
   @override
