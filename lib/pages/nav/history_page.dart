@@ -6,6 +6,7 @@ import 'package:clipshare/dao/history_dao.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
+import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/entity/tables/operation_sync.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
@@ -262,32 +263,52 @@ class HistoryPageState extends State<HistoryPage>
       type: 'Text',
       size: content.length,
     );
-    //添加操作记录
-    var opRecord = OperationRecord(
-      id: App.snowflake.nextId(),
-      uid: App.userId,
-      module: Module.history,
-      method: OpMethod.add,
-      data: history.id.toString(),
-    );
-    DBUtil.inst.opRecordDao.addAndNotify(opRecord);
     addData(history);
   }
 
   Future<int> addData(History history) {
     var clip = ClipData(history);
-    var f = _historyDao.add(clip.data);
-    if (_minId == null) {
-      _minId = clip.data.id;
-    } else {
-      _minId = min(_minId!, clip.data.id);
-    }
-    _list.add(clip);
-    _list.sort((a, b) => b.data.compareTo(a.data));
-    setState(() {});
-    return f.then((cnt) {
-      if (cnt > 0) {
-        _last = history;
+    return _historyDao.add(clip.data).then((cnt) {
+      if (cnt <= 0) return cnt;
+      _last = history;
+      //更新页面
+      if (_minId == null) {
+        _minId = clip.data.id;
+      } else {
+        _minId = min(_minId!, clip.data.id);
+      }
+      _list.add(clip);
+      _list.sort((a, b) => b.data.compareTo(a.data));
+      setState(() {});
+      //添加历史操作记录
+      var opRecord = OperationRecord.fromSimple(
+        Module.history,
+        OpMethod.add,
+        history.id.toString(),
+      );
+      DBUtil.inst.opRecordDao.addAndNotify(opRecord);
+      var urlReg = RegExp(
+        r"[a-zA-z]+://[^\s]*",
+        caseSensitive: false,
+      );
+      var isUrl = urlReg.hasMatch(history.content);
+      if (isUrl) {
+        //添加标签
+        var tag = HistoryTag(
+          App.snowflake.nextId(),
+          "链接",
+          history.id,
+        );
+        DBUtil.inst.historyTagDao.add(tag).then((cnt) {
+          if (cnt <= 0) return;
+          //发送操作记录
+          var opRecord = OperationRecord.fromSimple(
+            Module.tag,
+            OpMethod.add,
+            tag.id.toString(),
+          );
+          DBUtil.inst.opRecordDao.addAndNotify(opRecord);
+        });
       }
       return cnt;
     });
