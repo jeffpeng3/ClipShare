@@ -22,7 +22,6 @@ class ClipData {
   String getTimeStr() {
     String time = "";
     DateTime now = DateTime.now();
-
     Duration difference = now.difference(DateTime.parse(data.time));
 
     if (difference.inMinutes < 1) {
@@ -34,7 +33,7 @@ class ClipData {
       int hours = difference.inHours;
       time = "$hours小时前";
     } else {
-      time = data.time.toString(); // 使用默认的日期时间格式
+      time = data.time.substring(0, 19); // 使用默认的日期时间格式
     }
 
     return time;

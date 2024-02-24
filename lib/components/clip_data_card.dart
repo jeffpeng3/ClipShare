@@ -211,7 +211,7 @@ class ClipDataCardState extends State<ClipDataCard> {
                     child: Text(
                       _showSimpleTime
                           ? widget.clip.timeStr
-                          : widget.clip.data.time,
+                          : widget.clip.data.time.substring(0,19),
                     ),
                     onTap: () {
                       setState(() {
