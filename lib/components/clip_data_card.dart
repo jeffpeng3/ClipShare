@@ -2,13 +2,25 @@ import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/pages/search_page.dart';
 import 'package:flutter/material.dart';
+
+import '../util/platform_util.dart';
+import 'clip_detail_dialog.dart';
 
 class ClipDataCard extends StatefulWidget {
   final ClipData clip;
-  final GestureTapCallback? onTap;
+  final void Function() onUpdate;
+  final void Function(int id) onRemove;
+  final bool routeToSearchOnClickChip;
 
-  const ClipDataCard(this.clip, {super.key, this.onTap});
+  const ClipDataCard({
+    required this.clip,
+    required this.onUpdate,
+    required this.onRemove,
+    super.key,
+    this.routeToSearchOnClickChip = false,
+  });
 
   @override
   State<StatefulWidget> createState() {
@@ -18,7 +30,7 @@ class ClipDataCard extends StatefulWidget {
 
 class ClipDataCardState extends State<ClipDataCard> {
   bool _showSimpleTime = true;
-  String _devName = "本机";
+  var _device = App.device;
   List<String> _tags = List.empty();
 
   @override
@@ -26,19 +38,62 @@ class ClipDataCardState extends State<ClipDataCard> {
     super.initState();
   }
 
+  void _showDetail(ClipData chip) {
+    if (PlatformUtil.isPC()) {
+      _showDetailDialog(chip);
+      return;
+    }
+    _showBottomDetailSheet(chip);
+  }
+
+  void _showDetailDialog(ClipData chip) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: null,
+          contentPadding: const EdgeInsets.all(0),
+          content: ClipDetailDialog(
+            dlgContext: context,
+            clip: chip,
+            onUpdate: widget.onUpdate,
+            onRemove: widget.onRemove,
+          ),
+        );
+      },
+    );
+  }
+
+  void _showBottomDetailSheet(ClipData chip) {
+    showModalBottomSheet(
+      isScrollControlled: true,
+      clipBehavior: Clip.antiAlias,
+      context: context,
+      elevation: 100,
+      builder: (BuildContext context) {
+        return ClipDetailDialog(
+          dlgContext: context,
+          clip: chip,
+          onUpdate: widget.onUpdate,
+          onRemove: widget.onRemove,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var history = widget.clip.data;
     DBUtil.inst.deviceDao.getById(history.devId, App.userId).then((dev) {
       if (dev == null) return;
-      _devName = dev.name;
-      if(mounted) {
+      _device = dev;
+      if (mounted) {
         setState(() {});
       }
     });
     DBUtil.inst.historyTagDao.list(history.id).then((lst) {
       _tags = lst.map((e) => e.tagName).toList(growable: false);
-      if(mounted) {
+      if (mounted) {
         setState(() {});
       }
     });
@@ -46,7 +101,16 @@ class ClipDataCardState extends State<ClipDataCard> {
       elevation: 0,
       child: InkWell(
         onTap: () {
-          widget.onTap?.call();
+          if (!PlatformUtil.isPC()) {
+            return;
+          }
+          _showDetail(widget.clip);
+        },
+        onLongPress: () {
+          if (!PlatformUtil.isMobile()) {
+            return;
+          }
+          _showDetail(widget.clip);
         },
         borderRadius: BorderRadius.circular(12.0),
         child: Padding(
@@ -62,8 +126,20 @@ class ClipDataCardState extends State<ClipDataCard> {
                     RoundedChip(
                       avatar: const Icon(Icons.devices_rounded),
                       backgroundColor: const Color(0x1a000000),
+                      onPressed: () {
+                        if (widget.routeToSearchOnClickChip) {
+                          //导航至搜索页面
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  SearchPage(devId: _device.guid),
+                            ),
+                          );
+                        }
+                      },
                       label: Text(
-                        _devName,
+                        _device.name,
                         style: const TextStyle(fontSize: 12),
                       ),
                     ),
@@ -72,6 +148,18 @@ class ClipDataCardState extends State<ClipDataCard> {
                       Container(
                         margin: const EdgeInsets.only(left: 5),
                         child: RoundedChip(
+                          onPressed: () {
+                            if (widget.routeToSearchOnClickChip) {
+                              //导航至搜索页面
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      SearchPage(tagName: tagName),
+                                ),
+                              );
+                            }
+                          },
                           backgroundColor: const Color(0x1a000000),
                           avatar: const CircleAvatar(
                             backgroundColor: Colors.blue,

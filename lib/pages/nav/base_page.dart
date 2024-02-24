@@ -9,7 +9,6 @@ import 'package:clipshare/pages/nav/debug_page.dart';
 import 'package:clipshare/pages/nav/devices_page.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/pages/nav/profile_page.dart';
-import 'package:clipshare/pages/search_page.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/platform_util.dart';
@@ -20,6 +19,7 @@ import 'package:window_manager/window_manager.dart';
 import '../../db/db_util.dart';
 import '../../listeners/clip_listener.dart';
 import '../../main.dart';
+import '../search_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -31,14 +31,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
-  int _index = 03;
+  int _index = 0;
   List<Widget> pages = List.from([
     HistoryPage(
       key: HistoryPage.pageKey,
     ),
     const DevicesPage(),
     const ProfilePage(),
-    const SearchPage(),
   ]);
   List<BottomNavigationBarItem> navBarItems = List.from(const [
     BottomNavigationBarItem(
@@ -52,10 +51,6 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
     BottomNavigationBarItem(
       icon: Icon(Icons.person),
       label: 'Profile',
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.search),
-      label: 'Search',
     ),
   ]);
   late DeviceDao deviceDao;
@@ -310,7 +305,26 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
         backgroundColor: const Color.fromARGB(255, 238, 238, 238),
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(widget.title),
+          title: Row(
+            children: [
+              Expanded(child: Text(widget.title)),
+              IconButton(
+                onPressed: () {
+                  //导航至搜索页面
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SearchPage(),
+                    ),
+                  );
+                },
+                tooltip: "搜索",
+                icon: const Icon(
+                  Icons.search_rounded,
+                ),
+              )
+            ],
+          ),
           automaticallyImplyLeading: false,
         ),
         body: IndexedStack(

@@ -5,6 +5,7 @@ import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:flutter/material.dart';
 
 import '../entity/dev_info.dart';
+import '../entity/tables/device.dart';
 import '../main.dart';
 import '../util/crypto.dart';
 import '../util/log.dart';
@@ -47,6 +48,12 @@ class _SplashScreenState extends State<SplashScreen> {
       String type = data['type'];
       Log.debug("baseInfo", "$guid $name $type");
       App.devInfo = DevInfo(CryptoUtil.toMD5(guid), name, type);
+      App.device = Device(
+        guid: App.devInfo.guid,
+        devName: "本机",
+        uid: App.userId,
+        type: App.devInfo.type,
+      );
       App.snowflake = Snowflake(guid.hashCode);
     });
   }

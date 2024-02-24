@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:clipshare/entity/dev_info.dart';
+import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/pages/splash.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/platform_util.dart';
@@ -61,6 +62,7 @@ class App extends StatelessWidget {
 
   //当前设备id
   static late final DevInfo devInfo;
+  static late final Device device;
   static int userId = 0;
   static late final Snowflake snowflake;
   static late BuildContext context;

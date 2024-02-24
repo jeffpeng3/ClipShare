@@ -5,14 +5,20 @@ import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/util/platform_util.dart';
 import 'package:flutter/material.dart';
 
 import '../components/clip_data_card.dart';
-import '../util/log.dart';
-import '../util/platform_util.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final String? devId;
+  final String? tagName;
+
+  const SearchPage({
+    super.key,
+    this.devId,
+    this.tagName,
+  });
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -28,12 +34,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
   List<String> _allTagNames = List.empty();
   bool _copyInThisCopy = false;
   int? _minId;
-  final Device localDev = Device(
-    guid: App.devInfo.guid,
-    devName: "本机",
-    uid: App.userId,
-    type: App.devInfo.type,
-  );
+  final _searchFocus = FocusNode();
 
   ///搜索相关
   final Set<String> _selectedTags = {};
@@ -59,6 +60,14 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     // 监听滚动事件
     _scrollController.addListener(_scrollListener);
+    //初始化搜索参数
+    if (widget.devId != null) {
+      _selectedDevIds.add(widget.devId!);
+    }
+    if (widget.tagName != null) {
+      _selectedTags.add(widget.tagName!);
+    }
+    //加载数据
     refreshData();
   }
 
@@ -84,7 +93,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
     //加载所有设备名
     DBUtil.inst.deviceDao.getAllDevices(App.userId).then((lst) {
       var tmpLst = List<Device>.empty(growable: true);
-      tmpLst.add(localDev);
+      tmpLst.add(App.device);
       tmpLst.addAll(lst);
       setState(() {
         _allDevices = tmpLst;
@@ -117,6 +126,9 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
         }
       }
       setState(() {});
+      if (PlatformUtil.isPC()) {
+        _searchFocus.requestFocus();
+      }
     });
   }
 
@@ -408,129 +420,134 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(5),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _textController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                      isDense: true,
-                      contentPadding: const EdgeInsets.only(
-                        left: 8,
-                        right: 8,
-                      ),
-                      label: const Text("请输入"),
-                      border: const OutlineInputBorder(),
-                      suffixIcon: Container(
-                        margin: const EdgeInsets.only(right: 5),
-                        child: IconButton(
-                          tooltip: "搜索",
-                          onPressed: () {
-                            refreshData();
-                          },
-                          icon: const Icon(Icons.search_rounded),
-                          iconSize: 25,
-                        ),
-                      )),
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.only(left: 5, right: 5),
-                child: IconButton(
-                  onPressed: () {
-                    _showExtendSearchDialog();
-                  },
-                  tooltip: "更多筛选项",
-                  icon: const Icon(Icons.menu_rounded),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 5,
-          ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                for (var type in ["全部", "文本", "图片", "富文本", "文件"])
-                  Row(
-                    children: [
-                      RoundedChip(
-                        selected: searchType == type,
-                        onPressed: () {
-                          if (searchType == type) {
-                            return;
-                          }
-                          setState(() {
-                            searchType = type;
-                          });
-                          refreshData();
-                        },
-                        selectedColor:
-                            searchType == type ? Colors.blue[100] : null,
-                        label: Text(type),
-                      ),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 5,
-          ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                return Future.delayed(
-                  const Duration(milliseconds: 500),
-                  refreshData,
-                );
-              },
-              child: ListView.builder(
-                itemCount: _list.length,
-                controller: _scrollController,
-                itemBuilder: (context, i) {
-                  return Container(
-                    padding: const EdgeInsets.only(left: 2, right: 2),
-                    constraints:
-                        const BoxConstraints(maxHeight: 150, minHeight: 80),
-                    child: GestureDetector(
-                      onTapUp: (TapUpDetails details) {
-                        Log.debug(tag, "onTapUp");
-                      },
-                      onTapDown: (TapDownDetails details) {
-                        Log.debug(tag, "onTapDown");
-                      },
-                      behavior: HitTestBehavior.translucent,
-                      child: ClipDataCard(
-                        _list[i],
-                        onTap: () {
-                          if (!PlatformUtil.isPC()) {
-                            return;
-                          }
-                        },
-                      ),
-                      onLongPress: () {
-                        if (!PlatformUtil.isMobile()) {
-                          return;
-                        }
-                      },
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _textController,
+                focusNode: _searchFocus,
+                autofocus: true,
+                textAlignVertical: TextAlignVertical.center,
+                decoration: InputDecoration(
+                    isDense: true,
+                    // isCollapsed:true,
+                    contentPadding: const EdgeInsets.only(
+                      left: 8,
+                      right: 8,
                     ),
-                  );
+                    hintText: "搜索",
+                    border: InputBorder.none,
+                    suffixIcon: InkWell(
+                      onTap: () {
+                        refreshData();
+                      },
+                      splashColor: Colors.black12,
+                      highlightColor: Colors.black12,
+                      borderRadius: BorderRadius.circular(50),
+                      child: const Tooltip(
+                        message: "搜索",
+                        child: Icon(
+                          Icons.search_rounded,
+                          size: 25,
+                        ),
+                      ),
+                    )),
+                onSubmitted: (value) {
+                  refreshData();
                 },
               ),
             ),
-          ),
-        ],
+            Container(
+              margin: const EdgeInsets.only(left: 5, right: 5),
+              child: IconButton(
+                onPressed: () {
+                  _showExtendSearchDialog();
+                },
+                tooltip: "更多筛选项",
+                icon: const Icon(Icons.menu_rounded),
+              ),
+            ),
+          ],
+        ),
+      ),
+      backgroundColor: const Color.fromARGB(255, 238, 238, 238),
+      body: Padding(
+        padding: const EdgeInsets.all(5),
+        child: Column(
+          children: [
+            const SizedBox(
+              height: 5,
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (var type in ["全部", "文本", "图片", "富文本", "文件"])
+                    Row(
+                      children: [
+                        RoundedChip(
+                          selected: searchType == type,
+                          onPressed: () {
+                            if (searchType == type) {
+                              return;
+                            }
+                            setState(() {
+                              searchType = type;
+                            });
+                            refreshData();
+                          },
+                          selectedColor:
+                              searchType == type ? Colors.blue[100] : null,
+                          label: Text(type),
+                        ),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(
+              height: 5,
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  return Future.delayed(
+                    const Duration(milliseconds: 500),
+                    refreshData,
+                  );
+                },
+                child: ListView.builder(
+                  itemCount: _list.length,
+                  controller: _scrollController,
+                  itemBuilder: (context, i) {
+                    return Container(
+                      padding: const EdgeInsets.only(left: 2, right: 2),
+                      constraints:
+                          const BoxConstraints(maxHeight: 150, minHeight: 80),
+                      child: ClipDataCard(
+                        clip: _list[i],
+                        onUpdate: () {
+                          _list.sort((a, b) => b.data.compareTo(a.data));
+                          setState(() {});
+                        },
+                        onRemove: (int id) {
+                          _list.removeWhere((element) => element.data.id == id);
+                          setState(() {});
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

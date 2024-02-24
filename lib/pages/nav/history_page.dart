@@ -15,11 +15,9 @@ import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../components/clip_detail_dialog.dart';
 import '../../db/db_util.dart';
 import '../../listeners/socket_listener.dart';
 import '../../main.dart';
-import '../../util/platform_util.dart';
 
 class HistoryPage extends StatefulWidget {
   static final GlobalKey<HistoryPageState> pageKey =
@@ -148,59 +146,6 @@ class HistoryPageState extends State<HistoryPage>
     debounceSetState(null);
   }
 
-  void _showDetail(ClipData chip) {
-    if (PlatformUtil.isPC()) {
-      _showDetailDialog(chip);
-      return;
-    }
-    _showBottomDetailSheet(chip);
-  }
-
-  void _showDetailDialog(ClipData chip) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: null,
-          contentPadding: const EdgeInsets.all(0),
-          content: ClipDetailDialog(
-            dlgContext: context,
-            clip: chip,
-            onUpdate: () {
-              _sortList();
-            },
-            onRemove: (int id) {
-              _list.removeWhere((element) => element.data.id == id);
-              debounceSetState(null);
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  void _showBottomDetailSheet(ClipData chip) {
-    showModalBottomSheet(
-      isScrollControlled: true,
-      clipBehavior: Clip.antiAlias,
-      context: context,
-      elevation: 100,
-      builder: (BuildContext context) {
-        return ClipDetailDialog(
-          dlgContext: context,
-          clip: chip,
-          onUpdate: () {
-            _sortList();
-          },
-          onRemove: (int id) {
-            _list.removeWhere((element) => element.data.id == id);
-            debounceSetState(null);
-          },
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -224,28 +169,15 @@ class HistoryPageState extends State<HistoryPage>
                   padding: const EdgeInsets.only(left: 2, right: 2),
                   constraints:
                       const BoxConstraints(maxHeight: 150, minHeight: 80),
-                  child: GestureDetector(
-                    onTapUp: (TapUpDetails details) {
-                      Log.debug(tag, "onTapUp");
+                  child: ClipDataCard(
+                    clip: _list[i],
+                    routeToSearchOnClickChip: true,
+                    onUpdate: () {
+                      _sortList();
                     },
-                    onTapDown: (TapDownDetails details) {
-                      Log.debug(tag, "onTapDown");
-                    },
-                    behavior: HitTestBehavior.translucent,
-                    child: ClipDataCard(
-                      _list[i],
-                      onTap: () {
-                        if (!PlatformUtil.isPC()) {
-                          return;
-                        }
-                        _showDetail(_list[i]);
-                      },
-                    ),
-                    onLongPress: () {
-                      if (!PlatformUtil.isMobile()) {
-                        return;
-                      }
-                      _showDetail(_list[i]);
+                    onRemove: (int id) {
+                      _list.removeWhere((element) => element.data.id == id);
+                      debounceSetState(null);
                     },
                   ),
                 );
