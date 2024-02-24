@@ -40,8 +40,22 @@ class HistoryPageState extends State<HistoryPage>
   int? _minId;
   late HistoryDao _historyDao;
   History? _last;
+  var updating = false;
 
   final String tag = "HistoryPage";
+
+  void debounceSetState(void Function()? func) {
+    if (updating) {
+      return;
+    }
+    setState(() {
+      updating = true;
+    });
+    Future.delayed(const Duration(milliseconds: 500)).then((value) {
+      updating = false;
+      setState(func ?? () {});
+    });
+  }
 
   @override
   void initState() {
@@ -105,7 +119,7 @@ class HistoryPageState extends State<HistoryPage>
         _minId = list[list.length - 1].id;
         _list.addAll(ClipData.fromList(list));
         _sortList();
-        setState(() {});
+        debounceSetState(null);
       });
     }
   }
@@ -125,13 +139,13 @@ class HistoryPageState extends State<HistoryPage>
         }
         _last = item.data;
       }
-      setState(() {});
+      debounceSetState(null);
     });
   }
 
   void _sortList() {
     _list.sort((a, b) => b.data.compareTo(a.data));
-    setState(() {});
+    debounceSetState(null);
   }
 
   void _showDetail(ClipData chip) {
@@ -157,7 +171,7 @@ class HistoryPageState extends State<HistoryPage>
             },
             onRemove: (int id) {
               _list.removeWhere((element) => element.data.id == id);
-              setState(() {});
+              debounceSetState(null);
             },
           ),
         );
@@ -180,7 +194,7 @@ class HistoryPageState extends State<HistoryPage>
           },
           onRemove: (int id) {
             _list.removeWhere((element) => element.data.id == id);
-            setState(() {});
+            debounceSetState(null);
           },
         );
       },
@@ -279,7 +293,7 @@ class HistoryPageState extends State<HistoryPage>
       }
       _list.add(clip);
       _list.sort((a, b) => b.data.compareTo(a.data));
-      setState(() {});
+      debounceSetState(null);
       //添加历史操作记录
       var opRecord = OperationRecord.fromSimple(
         Module.history,
@@ -329,7 +343,7 @@ class HistoryPageState extends State<HistoryPage>
     for (var clip in _list) {
       if (clip.data.id.toString() == hisId.toString()) {
         clip.data.sync = true;
-        setState(() {});
+        debounceSetState(null);
         break;
       }
     }
@@ -385,7 +399,7 @@ class HistoryPageState extends State<HistoryPage>
                   .data;
             }
           }
-          setState(() {});
+          debounceSetState(null);
         });
         break;
       case OpMethod.update:
@@ -394,7 +408,7 @@ class HistoryPageState extends State<HistoryPage>
           var i = _list.indexWhere((element) => element.data.id == history.id);
           if (i == -1) return;
           _list[i] = ClipData(history);
-          setState(() {});
+          debounceSetState(null);
         });
         break;
       default:

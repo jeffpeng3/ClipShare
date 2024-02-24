@@ -71,12 +71,12 @@ abstract class HistoryDao {
   Future<List<History>> getMissingHistory(String devId);
 
   ///获取前20条历史记录
-  @Query("select * from history where uid = :uid order by top,id desc limit 20")
+  @Query("select * from history where uid = :uid order by top desc,id desc limit 20")
   Future<List<History>> getHistoriesTop20(int uid);
 
   ///获取前20条历史记录
   @Query(
-    "select * from history where uid = :uid and id < :fromId order by top,id desc limit 20",
+    "select * from history where uid = :uid and id < :fromId order by top desc,id desc limit 20",
   )
   Future<List<History>> getHistoriesPage(int uid, int fromId);
 

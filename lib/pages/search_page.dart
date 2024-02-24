@@ -218,7 +218,9 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                           label: Text(
                             start,
                             style: TextStyle(
-                              color: searchStartDate == "" ? Colors.grey : null,
+                              color: searchStartDate == "" && start == "开始日期"
+                                  ? Colors.grey
+                                  : null,
                             ),
                           ),
                           avatar: const Icon(Icons.date_range_outlined),
@@ -246,7 +248,9 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                           label: Text(
                             end,
                             style: TextStyle(
-                              color: searchEndDate == "" ? Colors.grey : null,
+                              color: searchEndDate == "" && end == "结束日期"
+                                  ? Colors.grey
+                                  : null,
                             ),
                           ),
                           avatar: const Icon(Icons.date_range_outlined),
