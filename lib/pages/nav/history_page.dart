@@ -209,10 +209,10 @@ class HistoryPageState extends State<HistoryPage>
       type: 'Text',
       size: content.length,
     );
-    addData(history);
+    addData(history, true);
   }
 
-  Future<int> addData(History history) {
+  Future<int> addData(History history, bool shouldSync) {
     var clip = ClipData(history);
     return _historyDao.add(clip.data).then((cnt) {
       if (cnt <= 0) return cnt;
@@ -226,6 +226,7 @@ class HistoryPageState extends State<HistoryPage>
       _list.add(clip);
       _list.sort((a, b) => b.data.compareTo(a.data));
       debounceSetState(null);
+      if (!shouldSync) return cnt;
       //添加历史操作记录
       var opRecord = OperationRecord.fromSimple(
         Module.history,
@@ -308,7 +309,7 @@ class HistoryPageState extends State<HistoryPage>
     Future? f;
     switch (opRecord.method) {
       case OpMethod.add:
-        f = addData(history);
+        f = addData(history, false);
         //不是批量同步时放入本地剪贴板
         if (msg.key != MsgType.missingData) {
           _copyInThisCopy = true;

@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:clipshare/dao/device_dao.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/message_data.dart';
+import 'package:clipshare/entity/my_socket.dart';
 import 'package:clipshare/handler/dev_pairing_handler.dart';
 import 'package:clipshare/handler/req_missing_data_handler.dart';
 import 'package:clipshare/main.dart';
@@ -37,7 +38,7 @@ abstract class SyncObserver {
 
 class DevSocket {
   DevInfo dev;
-  Socket socket;
+  MySocket socket;
   bool isPaired;
 
   DevSocket({required this.dev, required this.socket, this.isPaired = false});
@@ -61,20 +62,15 @@ class SocketListener {
 
   static SocketListener get inst => _singleton;
   static bool _isInit = false;
-  String _serverRec = "";
-  String _clientRec = "";
   Future<void> _linkQueue = Future.value();
 
   Future<SocketListener> init() async {
     if (_isInit) throw Exception("已初始化");
     _deviceDao = DBUtil.inst.deviceDao;
-    Log.debug(tag, "socket 初始化");
     // 初始化，创建socket监听
     _runSocketServer();
     _multicasts = await _getSockets(Constants.multicastGroup, Constants.port);
-    // _multicastSocket =
-    // await _getSocket(Constants.multicastGroup, Constants.port);
-    sendSocketInfo();
+    multicastDiscovery();
     for (var multicast in _multicasts) {
       multicast.listen((event) {
         final datagram = multicast.receive();
@@ -111,59 +107,39 @@ class SocketListener {
     }
     //建立连接
     String ip = datagram.address.address;
-    Log.debug(tag, "${dev.name} ip: $ip");
-    return _linkSocket(dev, ip, msg.data["port"]);
+    Log.debug(tag, "${dev.name} ip: $ip，port ${msg.data["port"]}");
+    return _linkAliveSocket(dev, ip, msg.data["port"]);
   }
 
-  ///socket建立链接
-  void _linkSocket(DevInfo dev, String ip, int port) async {
-    final socket = await Socket.connect(ip, port);
-    Log.debug(tag, '已连接到服务器');
-    _devSockets[dev.guid] = DevSocket(dev: dev, socket: socket);
-    //发送本机信息给对方
-    MessageData msg = MessageData(
-      userId: App.userId,
-      send: App.devInfo,
-      key: MsgType.devInfo,
-      data: {},
-      recv: null,
-    );
-    var b64Data = "${CryptoUtil.base64Encode(msg.toJsonStr())}\n";
-    socket.write(b64Data);
-    _onDevConnected(dev);
-    // 监听从服务器接收的消息
-    socket.listen(
-      (List<int> data) {
-        var dataArr = utf8.decode(data).split("\n");
-        for (var rec in dataArr) {
-          Log.debug("base64", rec);
-          if (rec == "") continue;
-          _clientRec += rec;
-          _clientRec = CryptoUtil.base64Decode(_clientRec);
-          try {
-            Map<String, dynamic> json = jsonDecode(_clientRec);
-            var msg = MessageData.fromJson(json);
-            _onSocketListened(socket, msg);
-          } finally {
-            _clientRec = "";
-          }
-        }
-      },
-      onDone: () {
-        _onDevDisConnected(dev.guid);
-        Log.debug(tag, "${dev.name} disConnected, id = ${dev.guid}");
-        Log.debug(tag, '连接已关闭');
-      },
-      onError: (error) {
-        // _onDevDisConnected(dev.guid);
-        // PrintUtil.debug(tag, "${dev.name} disConnected, id = ${dev.guid}");
-        Log.debug(tag, '发生错误: $error');
-      },
-      // cancelOnError: true,
-    );
+  ///socket建立链接，确认设备存活，不需要进行数据处理
+  void _linkAliveSocket(DevInfo dev, String ip, int port) async {
+    return MySocket.connect(ip, port).then((ms) {
+      Log.debug(tag, '已连接到服务器');
+      var ds = DevSocket(dev: dev, socket: ms);
+      _devSockets[dev.guid] = ds;
+      ds.socket.listen(
+        (data) {},
+        onDone: () {
+          _onDevDisConnected(dev.guid);
+        },
+        onError: (error) {
+          Log.debug(tag, '发生错误: $error');
+        },
+      );
+      _onDevConnected(dev);
+      //发送本机信息给对方
+      MessageData msg = MessageData(
+        userId: App.userId,
+        send: App.devInfo,
+        key: MsgType.devInfo,
+        data: {"port": _server.port},
+        recv: null,
+      );
+      ms.send(msg.toJsonStr());
+    });
   }
 
-  ///运行服务端 socket 监听
+  ///运行服务端 socket 监听消息同步
   void _runSocketServer() async {
     _server = await ServerSocket.bind('0.0.0.0', 0);
     Log.debug(
@@ -175,29 +151,12 @@ class SocketListener {
         tag,
         '新连接来自 ${client.remoteAddress.address}:${client.remotePort}',
       );
-
-      client.listen(
-        (List<int> data) {
-          var dataArr = utf8.decode(data).split("\n");
-          for (var rec in dataArr) {
-            if (rec == "") continue;
-            _serverRec += rec;
-            _serverRec = CryptoUtil.base64Decode(_serverRec);
-            try {
-              Map<String, dynamic> json = jsonDecode(_serverRec);
-              var msg = MessageData.fromJson(json);
-              // 在这里处理接收到的消息，你可以根据需要进行逻辑处理
-              _onSocketListened(client, msg);
-            } finally {
-              _serverRec = "";
-            }
-          }
-        },
-        onDone: () {
-          Log.debug(tag, '服务端连接关闭');
-          for (var devId in _devSockets.keys) {
-            _onDevDisConnected(devId);
-          }
+      var clientSkt = MySocket(client);
+      clientSkt.listen(
+        (data) {
+          Map<String, dynamic> json = jsonDecode(data);
+          var msg = MessageData.fromJson(json);
+          _onSocketReceived(clientSkt, msg);
         },
         onError: (error) {
           Log.debug(tag, '服务端发生错误: $error');
@@ -205,41 +164,32 @@ class SocketListener {
           //   _onDevDisConnected(devId);
           // }
         },
-        // cancelOnError: true,
       );
     });
   }
 
-  ///数据同步处理
-  void _onSyncMsg(MessageData msg) {
-    Module module = Module.getValue(msg.data["module"]);
-    //筛选某个模块的同步处理器
-    var lst = _syncObservers[module];
-    if (lst == null) return;
-    for (var ob in lst) {
-      switch (msg.key) {
-        case MsgType.sync:
-        case MsgType.missingData:
-          ob.onSync(msg);
-          break;
-        case MsgType.ackSync:
-          ob.ackSync(msg);
-          break;
-        default:
-          break;
-      }
-    }
-  }
-
   ///socket 监听消息处理
-  void _onSocketListened(Socket socket, MessageData msg) {
+  void _onSocketReceived(MySocket client, MessageData msg) {
     Log.debug(tag, msg.key);
     DevInfo dev = msg.send;
     switch (msg.key) {
       ///刚建立连接，保存设备信息
       case MsgType.devInfo:
-        _devSockets[dev.guid] = DevSocket(dev: dev, socket: socket);
-        _onDevConnected(dev);
+        var port = msg.data["port"];
+        MySocket.connect(client.ip, port).then((ms) {
+          var ds = DevSocket(dev: dev, socket: ms);
+          _devSockets[dev.guid] = ds;
+          ds.socket.listen(
+            (data) {},
+            onDone: () {
+              _onDevDisConnected(dev.guid);
+            },
+            onError: (error) {
+              Log.debug(tag, '发生错误: $error');
+            },
+          );
+          _onDevConnected(dev);
+        });
         break;
 
       ///单条数据同步
@@ -251,12 +201,9 @@ class SocketListener {
       ///批量数据同步
       case MsgType.missingData:
         var copyMsg = MessageData.fromJson(msg.toJson());
-        // var data = msg.data["data"] as List;
         var data = msg.data["data"];
-        // for (var item in data) {
         copyMsg.data = data;
         _onSyncMsg(copyMsg);
-        // }
         break;
 
       ///请求批量同步
@@ -303,8 +250,7 @@ class SocketListener {
           data: {"result": verify},
           recv: null,
         );
-        var b64Data = CryptoUtil.base64Encode(result.toJsonStr());
-        socket.write(b64Data);
+        sendData(dev, MsgType.paired, {"result": verify});
         break;
 
       ///获取配对结果
@@ -316,8 +262,29 @@ class SocketListener {
     }
   }
 
+  ///数据同步处理
+  void _onSyncMsg(MessageData msg) {
+    Module module = Module.getValue(msg.data["module"]);
+    //筛选某个模块的同步处理器
+    var lst = _syncObservers[module];
+    if (lst == null) return;
+    for (var ob in lst) {
+      switch (msg.key) {
+        case MsgType.sync:
+        case MsgType.missingData:
+          ob.onSync(msg);
+          break;
+        case MsgType.ackSync:
+          ob.ackSync(msg);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
   ///广播本机socket端口
-  void sendSocketInfo() {
+  void multicastDiscovery() {
     for (var ms in const [100, 500, 2000, 5000]) {
       Future.delayed(Duration(milliseconds: ms), () {
         // 广播本机socket信息
@@ -362,7 +329,7 @@ class SocketListener {
   ///设备断开连接
   void _onDevDisConnected(String devId) {
     _devSockets.remove(devId);
-    Log.debug(tag, "$devId disConnected");
+    Log.debug(tag, "$devId 断开连接");
     for (var ob in _devAliveObservers) {
       try {
         ob.onDisConnected(devId);
@@ -373,13 +340,14 @@ class SocketListener {
   }
 
   ///向指定设备发送消息
-  bool sendData(
+  void sendData(
     DevInfo? dev,
     MsgType key,
     Map<String, dynamic> data, [
     bool onlyPaired = true,
   ]) {
-    Log.debug(tag, data);
+    // Log.debug(tag, data);
+
     MessageData msg = MessageData(
       userId: App.userId,
       send: App.devInfo,
@@ -387,14 +355,18 @@ class SocketListener {
       data: data,
       recv: null,
     );
-    var b64Data = "${CryptoUtil.base64Encode(msg.toJsonStr())}\n";
+    var jsonData = msg.toJsonStr();
+    //向所有已配对设备发送消息
     if (dev == null) {
       var list = onlyPaired
           ? _devSockets.values.where((dev) => dev.isPaired)
           : _devSockets.values;
       //批量发送
       for (var skt in list) {
-        skt.socket.write(b64Data);
+        MySocket.connect(skt.socket.ip, skt.socket.port).then((ds) {
+          ds.send(jsonData);
+          ds.close();
+        });
       }
     } else {
       //向指定设备发送消息
@@ -402,11 +374,13 @@ class SocketListener {
       if (skt == null) {
         //发送的设备未连接
         Log.debug(tag, "${dev.name} 设备未连接，发送失败");
-        return false;
+        return;
       }
-      skt.socket.write(b64Data);
+      MySocket.connect(skt.socket.ip, skt.socket.port).then((ds) {
+        ds.send(jsonData);
+        ds.close();
+      });
     }
-    return true;
   }
 
   /// 发送组播消息
