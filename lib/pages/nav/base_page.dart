@@ -12,6 +12,7 @@ import 'package:clipshare/pages/nav/profile_page.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/platform_util.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
@@ -57,6 +58,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   bool trayClick = false;
   late TagSyncer _tagSyncer;
   late HistoryTopSyncer _historyTopSyncer;
+  late StreamSubscription _networkListener;
 
   String get tag => "HomePage";
 
@@ -263,6 +265,14 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
 
   /// 初始化通用行为
   void initCommon() async {
+    _networkListener = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult result) {
+      Log.debug(tag, "网络变化 -> ${result.name}");
+      if (result != ConnectivityResult.none) {
+        SocketListener.inst.discoverDevice();
+      }
+    });
     _tagSyncer = TagSyncer();
     _historyTopSyncer = HistoryTopSyncer();
     //初始化数据库
@@ -288,6 +298,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
     windowManager.removeListener(this);
     _tagSyncer.destroy();
     _historyTopSyncer.destroy();
+    _networkListener.cancel();
     super.dispose();
   }
 

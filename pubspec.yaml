@@ -39,7 +39,6 @@ dependencies:
   tray_manager: ^0.2.0
   # 窗体管理
   window_manager: ^0.3.7
-  web_socket_channel: ^2.4.0
   # 开机启动
   launch_at_startup: ^0.2.2
   # The following adds the Cupertino Icons font to your application.
@@ -51,6 +50,8 @@ dependencies:
   # 验证码
   pinput: ^3.0.1
   logger: ^2.0.2+1
+  # 检测网络变化
+  connectivity_plus: ^5.0.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

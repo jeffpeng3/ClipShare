@@ -70,7 +70,7 @@ class SocketListener {
     // 初始化，创建socket监听
     _runSocketServer();
     _multicasts = await _getSockets(Constants.multicastGroup, Constants.port);
-    multicastDiscovery();
+    discoverDevice();
     for (var multicast in _multicasts) {
       multicast.listen((event) {
         final datagram = multicast.receive();
@@ -283,15 +283,26 @@ class SocketListener {
     }
   }
 
-  ///广播本机socket端口
-  void multicastDiscovery() {
+  var _discovering = false;
+  var _discoverFuture = Future.delayed(const Duration(milliseconds: 5200));
+
+  ///发现设备
+  void discoverDevice() {
+    if (_discovering) return;
+    _discovering = true;
+    Log.debug(tag, "开始发现设备");
     for (var ms in const [100, 500, 2000, 5000]) {
-      Future.delayed(Duration(milliseconds: ms), () {
+      var f = Future.delayed(Duration(milliseconds: ms), () {
         // 广播本机socket信息
         Map<String, dynamic> map = {"port": _server.port};
         sendMulticastMsg(MsgType.broadcastInfo, map);
       });
+      _discoverFuture = _discoverFuture.then((value) => f);
     }
+    _discoverFuture.then((v) {
+      _discoverFuture = Future.delayed(const Duration(milliseconds: 5200));
+      _discovering = false;
+    });
   }
 
   ///设备连接成功

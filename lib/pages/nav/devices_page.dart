@@ -104,7 +104,7 @@ class _DevicesPageState extends State<DevicesPage>
                   ),
                   IconButton(
                     onPressed: () {
-                      SocketListener.inst.multicastDiscovery();
+                      SocketListener.inst.discoverDevice();
                     },
                     icon: const Icon(
                       Icons.refresh,
