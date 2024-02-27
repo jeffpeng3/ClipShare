@@ -274,6 +274,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         Log.d("MainActivity", "onDestroy")
         // 取消注册广播接收器
         unregisterReceiver(screenReceiver)
-//        releaseWakeLock()
+        //MainActivity被销毁时停止服务运行
+        stopService(Intent(this, BackgroundService::class.java))
     }
 }
