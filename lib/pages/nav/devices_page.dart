@@ -419,6 +419,7 @@ class _DevicesPageState extends State<DevicesPage>
 
   @override
   void onDiscoverStart() {
+    _rotationController.repeat();
     setState(() {
       _discovering = true;
     });

@@ -184,6 +184,10 @@ class SocketListener {
     switch (msg.key) {
       ///刚建立连接，保存设备信息
       case MsgType.devInfo:
+        if(_devSockets.keys.contains(dev.guid)){
+          //已经链接，跳过
+          break;
+        }
         var port = msg.data["port"];
         MySocket.connect(client.ip, port).then((ms) {
           var ds = DevSocket(dev: dev, socket: ms);
