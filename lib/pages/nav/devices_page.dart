@@ -25,20 +25,28 @@ class DevicesPage extends StatefulWidget {
 }
 
 class _DevicesPageState extends State<DevicesPage>
-    implements DevAliveObserver, SyncObserver {
+    with SingleTickerProviderStateMixin
+    implements DevAliveObserver, SyncObserver, DiscoverObserver {
   final List<DeviceCard> _discoverList = List.empty(growable: true);
   final List<DeviceCard> _pairedList = List.empty(growable: true);
   late StateSetter _pairingState;
   bool _pairingFailed = false;
   bool _pairing = false;
+  bool _discovering = false;
   late DeviceDao _deviceDao;
+  late AnimationController _rotationController;
   final String tag = "DevicesPage";
 
   @override
   void initState() {
     SocketListener.inst.addDevAliveListener(this);
+    SocketListener.inst.addDiscoverListener(this);
     SocketListener.inst.addSyncListener(Module.device, this);
-
+    // 旋转动画
+    _rotationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
     _deviceDao = DBUtil.inst.deviceDao;
     _deviceDao.getAllDevices(App.userId).then((list) {
       _pairedList.clear();
@@ -102,13 +110,18 @@ class _DevicesPageState extends State<DevicesPage>
                       fontFamily: "宋体",
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      SocketListener.inst.discoverDevice();
-                    },
-                    icon: const Icon(
-                      Icons.refresh,
-                      size: 20,
+                  RotationTransition(
+                    turns: _rotationController,
+                    child: IconButton(
+                      onPressed: () {
+                        if (!_discovering) {
+                          SocketListener.inst.discoverDevice();
+                        }
+                      },
+                      icon: const Icon(
+                        Icons.sync,
+                        size: 20,
+                      ),
                     ),
                   ),
                   IconButton(
@@ -402,5 +415,22 @@ class _DevicesPageState extends State<DevicesPage>
         );
       });
     }
+  }
+
+  @override
+  void onDiscoverStart() {
+    setState(() {
+      _discovering = true;
+    });
+    Log.debug(tag, "onDiscoverStart");
+  }
+
+  @override
+  void onDiscoverFinished() {
+    setState(() {
+      _discovering = false;
+    });
+    Log.debug(tag, "onDiscoverFinished");
+    _rotationController.stop();
   }
 }

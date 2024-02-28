@@ -9,6 +9,7 @@ import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/my_socket.dart';
 import 'package:clipshare/handler/dev_pairing_handler.dart';
 import 'package:clipshare/handler/req_missing_data_handler.dart';
+import 'package:clipshare/handler/task_runner.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
@@ -36,6 +37,14 @@ abstract class SyncObserver {
   void ackSync(MessageData msg);
 }
 
+abstract class DiscoverObserver {
+  //开始
+  void onDiscoverStart();
+
+  //结束
+  void onDiscoverFinished();
+}
+
 class DevSocket {
   DevInfo dev;
   MySocket socket;
@@ -49,9 +58,8 @@ class SocketListener {
   late DeviceDao _deviceDao;
   final Map<Module, List<SyncObserver>> _syncObservers = {};
   final List<DevAliveObserver> _devAliveObservers = List.empty(growable: true);
+  final List<DiscoverObserver> _discoverObservers = List.empty(growable: true);
 
-  // late RawDatagramSocket _multicastSocket;
-  List<RawDatagramSocket> _multicasts = List.empty();
   final Map<String, DevSocket> _devSockets = {};
   late ServerSocket _server;
 
@@ -69,9 +77,10 @@ class SocketListener {
     _deviceDao = DBUtil.inst.deviceDao;
     // 初始化，创建socket监听
     _runSocketServer();
-    _multicasts = await _getSockets(Constants.multicastGroup, Constants.port);
+    var multicasts =
+        await _getSockets(Constants.multicastGroup, Constants.port);
     discoverDevice();
-    for (var multicast in _multicasts) {
+    for (var multicast in multicasts) {
       multicast.listen((event) {
         final datagram = multicast.receive();
         if (datagram == null) {
@@ -141,7 +150,7 @@ class SocketListener {
 
   ///运行服务端 socket 监听消息同步
   void _runSocketServer() async {
-    _server = await ServerSocket.bind('0.0.0.0', 0);
+    _server = await ServerSocket.bind('0.0.0.0', Constants.port);
     Log.debug(
       tag,
       '服务器已启动，监听所有网络接口 ${_server.address.address} ${_server.port}',
@@ -189,6 +198,18 @@ class SocketListener {
             },
           );
           _onDevConnected(dev);
+          //对方是客户端主动连接，发送本机信息
+          if (msg.data.keys.contains("manual")) {
+            //发送本机信息给对方
+            MessageData msg = MessageData(
+              userId: App.userId,
+              send: App.devInfo,
+              key: MsgType.devInfo,
+              data: {"port": _server.port},
+              recv: null,
+            );
+            ds.socket.send(msg.toJsonStr());
+          }
         });
         break;
 
@@ -284,25 +305,83 @@ class SocketListener {
   }
 
   var _discovering = false;
-  var _discoverFuture = Future.delayed(const Duration(milliseconds: 5200));
 
   ///发现设备
-  void discoverDevice() {
+  void discoverDevice() async {
     if (_discovering) return;
     _discovering = true;
+    for (var ob in _discoverObservers) {
+      ob.onDiscoverStart();
+    }
     Log.debug(tag, "开始发现设备");
+    List<Future<void> Function()> tasks = _multicastDiscover();
+    TaskRunner<void>(
+      initialTasks: tasks,
+      onFinish: () async {
+        TaskRunner<void>(
+          initialTasks: await _subNetDiscover(),
+          onFinish: () {
+            _discovering = false;
+            for (var ob in _discoverObservers) {
+              ob.onDiscoverFinished();
+            }
+          },
+          concurrency: 50,
+        );
+      },
+      concurrency: 1,
+    );
+  }
+
+  Future<List<Future<void> Function()>> _subNetDiscover() async {
+    List<Future<void> Function()> tasks = List.empty(growable: true);
+    tasks.add(() => Future(() => print("scan ips")));
+    var interfaces = await NetworkInterface.list();
+    var expendAddress = interfaces
+        .map((networkInterface) => networkInterface.addresses)
+        .expand((ip) => ip);
+    var ips = expendAddress
+        .where((ip) => ip.type == InternetAddressType.IPv4)
+        .map((address) => address.address)
+        .toList();
+    for (var ip in ips) {
+      //生成所有 ip
+      final ipList =
+          List.generate(255, (i) => '${ip.split('.').take(3).join('.')}.$i')
+              .where((genIp) => genIp != ip)
+              .toList();
+      //对每个ip尝试连接
+      for (var genIp in ipList) {
+        var future = MySocket.connect(genIp, Constants.port).then((ms) {
+          //发送本机信息给对方
+          MessageData msg = MessageData(
+            userId: App.userId,
+            send: App.devInfo,
+            key: MsgType.devInfo,
+            data: {"port": _server.port, "manual": 1},
+            recv: null,
+          );
+          ms.send(msg.toJsonStr());
+          ms.close();
+        });
+        tasks.add(() => future);
+      }
+    }
+    return tasks;
+  }
+
+  ///组播发现设备
+  List<Future<void> Function()> _multicastDiscover() {
+    List<Future<void> Function()> tasks = List.empty(growable: true);
     for (var ms in const [100, 500, 2000, 5000]) {
       var f = Future.delayed(Duration(milliseconds: ms), () {
         // 广播本机socket信息
         Map<String, dynamic> map = {"port": _server.port};
         sendMulticastMsg(MsgType.broadcastInfo, map);
       });
-      _discoverFuture = _discoverFuture.then((value) => f);
+      tasks.add(() => f);
     }
-    _discoverFuture.then((v) {
-      _discoverFuture = Future.delayed(const Duration(milliseconds: 5200));
-      _discovering = false;
-    });
+    return tasks;
   }
 
   ///设备连接成功
@@ -399,7 +478,7 @@ class SocketListener {
     MsgType key,
     Map<String, dynamic> data, [
     DevInfo? recv,
-  ]) {
+  ]) async {
     MessageData msg = MessageData(
       userId: App.userId,
       send: App.devInfo,
@@ -409,12 +488,14 @@ class SocketListener {
     );
     try {
       var b64Data = CryptoUtil.base64Encode("${msg.toJsonStr()}\n");
-      for (var multicast in _multicasts) {
+      var multicasts = await _getSockets(Constants.multicastGroup);
+      for (var multicast in multicasts) {
         multicast.send(
           utf8.encode(b64Data),
           InternetAddress(Constants.multicastGroup),
           Constants.port,
         );
+        multicast.close();
       }
     } catch (e, stacktrace) {
       Log.debug(tag, "$e $stacktrace");
@@ -453,17 +534,20 @@ class SocketListener {
     _devAliveObservers.remove(observer);
   }
 
-  Future<RawDatagramSocket> _getSocket(String multicastGroup, int port) async {
-    RawDatagramSocket socket =
-        await RawDatagramSocket.bind(InternetAddress.anyIPv4, port);
-    socket.joinMulticast(InternetAddress(multicastGroup));
-    return Future.value(socket);
+  ///添加设备发现监听
+  void addDiscoverListener(DiscoverObserver observer) {
+    _discoverObservers.add(observer);
+  }
+
+  ///移除设备发现监听
+  void removeDiscoverListener(DiscoverObserver observer) {
+    _discoverObservers.remove(observer);
   }
 
   Future<List<RawDatagramSocket>> _getSockets(
-    String multicastGroup,
-    int port,
-  ) async {
+    String multicastGroup, [
+    int port = 0,
+  ]) async {
     final interfaces = await NetworkInterface.list();
     final sockets = <RawDatagramSocket>[];
     for (final interface in interfaces) {
