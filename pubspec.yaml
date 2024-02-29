@@ -52,6 +52,8 @@ dependencies:
   logger: ^2.0.2+1
   # 检测网络变化
   connectivity_plus: ^5.0.2
+  # 本机信息
+  device_info_plus: ^9.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

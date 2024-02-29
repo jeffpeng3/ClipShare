@@ -1,14 +1,15 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 
 import '../entity/dev_info.dart';
 import '../entity/tables/device.dart';
 import '../main.dart';
 import '../util/crypto.dart';
-import '../util/log.dart';
 import '../util/snowflake.dart';
 import 'nav/base_page.dart';
 
@@ -41,21 +42,36 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   ///调用平台方法，获取设备信息
-  Future<void> initDevInfo() {
-    return App.commonChannel.invokeMethod("getBaseInfo").then((data) {
-      String guid = data['guid'];
-      String name = data['dev'];
-      String type = data['type'];
-      Log.debug("baseInfo", "$guid $name $type");
+  Future<void> initDevInfo() async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      var androidInfo = await deviceInfo.androidInfo;
+      var guid = androidInfo.id;
+      var name = androidInfo.model;
+      var type = "Android";
       App.devInfo = DevInfo(CryptoUtil.toMD5(guid), name, type);
       App.device = Device(
-        guid: App.devInfo.guid,
+        guid: guid,
         devName: "本机",
         uid: App.userId,
-        type: App.devInfo.type,
+        type: type,
       );
-      App.snowflake = Snowflake(guid.hashCode);
-    });
+    } else if (Platform.isWindows) {
+      var windowsInfo = await deviceInfo.windowsInfo;
+      var guid = windowsInfo.deviceId;
+      var name = windowsInfo.computerName;
+      var type = "Windows";
+      App.devInfo = DevInfo(CryptoUtil.toMD5(guid), name, type);
+      App.device = Device(
+        guid: guid,
+        devName: "本机",
+        uid: App.userId,
+        type: type,
+      );
+    } else {
+      throw Exception("Not Support Platform");
+    }
+    App.snowflake = Snowflake(App.device.guid.hashCode);
   }
 
   void gotoHomePage() {
