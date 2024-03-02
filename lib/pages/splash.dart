@@ -46,10 +46,10 @@ class _SplashScreenState extends State<SplashScreen> {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
       var androidInfo = await deviceInfo.androidInfo;
-      var guid = androidInfo.id;
+      var guid = CryptoUtil.toMD5(androidInfo.id);
       var name = androidInfo.model;
       var type = "Android";
-      App.devInfo = DevInfo(CryptoUtil.toMD5(guid), name, type);
+      App.devInfo = DevInfo(guid, name, type);
       App.device = Device(
         guid: guid,
         devName: "本机",
@@ -58,10 +58,10 @@ class _SplashScreenState extends State<SplashScreen> {
       );
     } else if (Platform.isWindows) {
       var windowsInfo = await deviceInfo.windowsInfo;
-      var guid = windowsInfo.deviceId;
+      var guid = CryptoUtil.toMD5(windowsInfo.deviceId);
       var name = windowsInfo.computerName;
       var type = "Windows";
-      App.devInfo = DevInfo(CryptoUtil.toMD5(guid), name, type);
+      App.devInfo = DevInfo(guid, name, type);
       App.device = Device(
         guid: guid,
         devName: "本机",
