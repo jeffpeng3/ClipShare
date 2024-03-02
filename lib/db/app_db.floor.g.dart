@@ -94,7 +94,7 @@ class _$AppDb extends AppDb {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Config` (`key` TEXT NOT NULL, `value` TEXT NOT NULL, `uid` INTEGER NOT NULL, PRIMARY KEY (`key`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Device` (`guid` TEXT NOT NULL, `devName` TEXT NOT NULL, `uid` INTEGER NOT NULL, `customName` TEXT, `type` TEXT NOT NULL, `lastConnTime` TEXT, `lastAddr` TEXT, PRIMARY KEY (`guid`))');
+            'CREATE TABLE IF NOT EXISTS `Device` (`guid` TEXT NOT NULL, `devName` TEXT NOT NULL, `uid` INTEGER NOT NULL, `customName` TEXT, `type` TEXT NOT NULL, `address` TEXT, `isPaired` INTEGER NOT NULL, PRIMARY KEY (`guid`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `History` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` INTEGER NOT NULL, `time` TEXT NOT NULL, `content` TEXT NOT NULL, `type` TEXT NOT NULL, `devId` TEXT NOT NULL, `top` INTEGER NOT NULL, `sync` INTEGER NOT NULL, `size` INTEGER NOT NULL)');
         await database.execute(
@@ -533,8 +533,8 @@ class _$DeviceDao extends DeviceDao {
                   'uid': item.uid,
                   'customName': item.customName,
                   'type': item.type,
-                  'lastConnTime': item.lastConnTime,
-                  'lastAddr': item.lastAddr
+                  'address': item.address,
+                  'isPaired': item.isPaired ? 1 : 0
                 }),
         _deviceUpdateAdapter = UpdateAdapter(
             database,
@@ -546,8 +546,8 @@ class _$DeviceDao extends DeviceDao {
                   'uid': item.uid,
                   'customName': item.customName,
                   'type': item.type,
-                  'lastConnTime': item.lastConnTime,
-                  'lastAddr': item.lastAddr
+                  'address': item.address,
+                  'isPaired': item.isPaired ? 1 : 0
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -569,8 +569,8 @@ class _$DeviceDao extends DeviceDao {
             uid: row['uid'] as int,
             type: row['type'] as String,
             customName: row['customName'] as String?,
-            lastAddr: row['lastAddr'] as String?,
-            lastConnTime: row['lastConnTime'] as String?),
+            address: row['address'] as String?,
+            isPaired: (row['isPaired'] as int) != 0),
         arguments: [uid]);
   }
 
@@ -587,8 +587,8 @@ class _$DeviceDao extends DeviceDao {
             uid: row['uid'] as int,
             type: row['type'] as String,
             customName: row['customName'] as String?,
-            lastAddr: row['lastAddr'] as String?,
-            lastConnTime: row['lastConnTime'] as String?),
+            address: row['address'] as String?,
+            isPaired: (row['isPaired'] as int) != 0),
         arguments: [guid, uid]);
   }
 

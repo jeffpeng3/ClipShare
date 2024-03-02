@@ -1,4 +1,6 @@
 import 'package:clipshare/util/log.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class Constants {
   //组播默认端口
@@ -15,13 +17,42 @@ class Constants {
   static const channelCommon = "common";
   static const channelClip = "clip";
   static const channelAndroid = "android";
+
+  //设备类型图片
+  static Map<String, Icon> devTypeIcons = const {
+    'Windows': Icon(
+      Icons.laptop_windows_outlined,
+      color: Colors.grey,
+      size: 48,
+    ),
+    'Android': Icon(
+      Icons.phone_android_outlined,
+      color: Colors.grey,
+      size: 48,
+    ),
+    'Mac': Icon(
+      Icons.laptop_mac_outlined,
+      color: Colors.grey,
+      size: 48,
+    ),
+    'Linux': Icon(
+      Icons.laptop_windows_outlined,
+      color: Colors.grey,
+      size: 48,
+    ),
+    'IOS': Icon(
+      Icons.apple_outlined,
+      color: Colors.grey,
+      size: 48,
+    ),
+  };
 }
 
 enum Option { add, delete, update }
 
 enum MsgType {
-  //设备信息
-  devInfo,
+  //设备连接
+  connect,
   //同步确认
   ackSync,
   //在线数据同步
@@ -42,6 +73,12 @@ enum MsgType {
   missingData,
   //删除记录
   rmHistory,
+  //配对情况
+  pairedStatus,
+  //手动断开连接
+  disConnect,
+  //忘记设备
+  forgetDev,
   //未知key
   unknown;
 

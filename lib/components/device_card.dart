@@ -11,7 +11,8 @@ import '../entity/tables/operation_record.dart';
 
 class DeviceCard extends StatefulWidget {
   final Device? dev;
-  final GestureTapCallback? onTap;
+  final void Function(Device, bool, void Function())? onTap;
+  final void Function(Device, bool, void Function())? onLongPress;
   bool isPaired;
   bool isSelf;
   bool isConnected;
@@ -20,6 +21,7 @@ class DeviceCard extends StatefulWidget {
     super.key,
     required this.dev,
     this.onTap,
+    this.onLongPress,
     this.isPaired = false,
     this.isConnected = false,
     this.isSelf = false,
@@ -27,39 +29,13 @@ class DeviceCard extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return DeviceCardState();
+    return _DeviceCardState();
   }
+
 }
 
-class DeviceCardState extends State<DeviceCard> {
+class _DeviceCardState extends State<DeviceCard> {
   final Color _connColor = Colors.green;
-  Map<String, Icon> typeIcons = const {
-    'Windows': Icon(
-      Icons.laptop_windows_outlined,
-      color: Colors.grey,
-      size: 48,
-    ),
-    'Android': Icon(
-      Icons.phone_android_outlined,
-      color: Colors.grey,
-      size: 48,
-    ),
-    'Mac': Icon(
-      Icons.laptop_mac_outlined,
-      color: Colors.grey,
-      size: 48,
-    ),
-    'Linux': Icon(
-      Icons.laptop_windows_outlined,
-      color: Colors.grey,
-      size: 48,
-    ),
-    'IOS': Icon(
-      Icons.apple_outlined,
-      color: Colors.grey,
-      size: 48,
-    ),
-  };
   bool _empty = true;
   Icon _emptyIcon = const Icon(
     Icons.laptop_windows_outlined,
@@ -69,12 +45,13 @@ class DeviceCardState extends State<DeviceCard> {
   int _emptyIconIdx = 0;
   Timer? timer;
 
-  Icon get _currIcon => typeIcons[widget.dev!.type]!;
+  Icon get _currIcon => Constants.devTypeIcons[widget.dev!.type]!;
 
-  void setTimer() {
+  void _setTimer() {
     timer = Timer.periodic(const Duration(milliseconds: 1200), (timer) {
-      String key = typeIcons.keys.elementAt(_emptyIconIdx % typeIcons.length);
-      _emptyIcon = typeIcons[key]!;
+      String key = Constants.devTypeIcons.keys
+          .elementAt(_emptyIconIdx % Constants.devTypeIcons.length);
+      _emptyIcon = Constants.devTypeIcons[key]!;
       _emptyIconIdx++;
       setState(() {});
     });
@@ -84,7 +61,7 @@ class DeviceCardState extends State<DeviceCard> {
   void initState() {
     super.initState();
     _empty = widget.dev == null;
-    setTimer();
+    _setTimer();
     setState(() {});
   }
 
@@ -159,7 +136,13 @@ class DeviceCardState extends State<DeviceCard> {
           if (_empty) {
             return;
           }
-          widget.onTap?.call();
+          widget.onTap?.call(widget.dev!, widget.isConnected,_showRenameDialog);
+        },
+        onLongPress: () {
+          if (_empty) {
+            return;
+          }
+          widget.onLongPress?.call(widget.dev!, widget.isConnected,_showRenameDialog);
         },
         borderRadius: BorderRadius.circular(12.0),
         child: Padding(

@@ -333,7 +333,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
                 icon: const Icon(
                   Icons.search_rounded,
                 ),
-              )
+              ),
             ],
           ),
           automaticallyImplyLeading: false,

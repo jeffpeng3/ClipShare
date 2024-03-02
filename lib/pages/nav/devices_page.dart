@@ -5,6 +5,8 @@ import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
+import 'package:clipshare/util/platform_util.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 
@@ -35,6 +37,7 @@ class _DevicesPageState extends State<DevicesPage>
   bool _discovering = false;
   late DeviceDao _deviceDao;
   late AnimationController _rotationController;
+  late Animation<double> _animation;
   final String tag = "DevicesPage";
 
   @override
@@ -51,10 +54,23 @@ class _DevicesPageState extends State<DevicesPage>
     _deviceDao.getAllDevices(App.userId).then((list) {
       _pairedList.clear();
       for (var dev in list) {
+        if (!dev.isPaired) {
+          continue;
+        }
         _pairedList.add(
           DeviceCard(
             dev: dev,
             isPaired: true,
+            onTap: (device, isConnected, showReNameDlg) {
+              if (PlatformUtil.isPC()) {
+                _showBottomDetailSheet(device, isConnected, showReNameDlg);
+              }
+            },
+            onLongPress: (device, isConnected, showReNameDlg) {
+              if (PlatformUtil.isMobile()) {
+                _showBottomDetailSheet(device, isConnected, showReNameDlg);
+              }
+            },
           ),
         );
       }
@@ -145,7 +161,138 @@ class _DevicesPageState extends State<DevicesPage>
     );
   }
 
-  void requestPairing(DevInfo dev) {
+  void _showBottomDetailSheet(
+    Device device,
+    bool isConnected,
+    void Function() showReNameDlg,
+  ) {
+    showModalBottomSheet(
+      isScrollControlled: true,
+      clipBehavior: Clip.antiAlias,
+      context: context,
+      elevation: 100,
+      builder: (BuildContext context) {
+        return Container(
+          height: 200,
+          constraints: const BoxConstraints(minWidth: 500),
+          child: Padding(
+            padding: const EdgeInsets.all(5),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Constants.devTypeIcons[device.type]!,
+                      const SizedBox(
+                        width: 5,
+                      ),
+                      Text(
+                        device.name,
+                        style: const TextStyle(fontSize: 25),
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        splashColor: Colors.black12,
+                        onTap: showReNameDlg,
+                        borderRadius: BorderRadius.circular(12),
+                        child: const Padding(
+                          padding: EdgeInsets.only(top: 5, bottom: 5),
+                          child: Column(
+                            children: [
+                              Icon(Icons.edit_note_rounded),
+                              Text("重命名"),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          var devInfo = DevInfo.fromDevice(device);
+                          if (isConnected) {
+                            SocketListener.inst.disConnectDevice(
+                              devInfo,
+                              true,
+                            );
+                          } else {
+                            if (device.address == null) {
+                              //todo 局域网设备，启用自动发现去连接
+                            } else {
+                              //todo 根据地址去连接
+                            }
+                            // SocketListener.inst.sendData(
+                            //   devInfo,
+                            //   MsgType.connect,
+                            //   {"manual": 1},
+                            // );
+                          }
+                        },
+                        splashColor: Colors.black12,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 5, bottom: 5),
+                          child: Column(
+                            children: [
+                              Icon(
+                                isConnected
+                                    ? Icons.link_off_outlined
+                                    : Icons.link,
+                              ),
+                              Text(isConnected ? "断开连接" : "重新连接"),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          if (isConnected) {
+                            var devInfo = DevInfo.fromDevice(device);
+                            SocketListener.inst.onDevForget(
+                              devInfo,
+                              App.userId,
+                            );
+                            SocketListener.inst
+                                .sendData(devInfo, MsgType.forgetDev, {});
+                          }
+                          //更新配对状态为未配对
+                          device.isPaired = false;
+                          DBUtil.inst.deviceDao.updateDevice(device);
+                        },
+                        splashColor: Colors.black12,
+                        borderRadius: BorderRadius.circular(12),
+                        child: const Padding(
+                          padding: EdgeInsets.only(top: 5, bottom: 5),
+                          child: Column(
+                            children: [
+                              Icon(Icons.block_flipped),
+                              Text("取消配对"),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // IconButton(onPressed: (){}, icon: const Icon(Icons.edit_note))
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  ///请求配对设备
+  void _requestPairing(DevInfo dev) {
     SocketListener.inst.sendData(dev, MsgType.reqPairing, {});
     _pairing = false;
     _pairingFailed = false;
@@ -286,9 +433,16 @@ class _DevicesPageState extends State<DevicesPage>
         paired.isConnected = true;
         setState(() {});
         //是已配对的设备，请求所有缺失数据
-        SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
+        // SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
         return;
       }
+    }
+    var hasSame = _discoverList.firstWhereOrNull(
+          (element) => element.dev?.guid == info.guid,
+        ) !=
+        null;
+    if (hasSame) {
+      return;
     }
     _discoverList.add(
       DeviceCard(
@@ -298,10 +452,22 @@ class _DevicesPageState extends State<DevicesPage>
           uid: 0,
           type: info.type,
         ),
-        onTap: () => {requestPairing(info)},
+        onTap: (device, isConnected, showReNameDlg) => _requestPairing(info),
       ),
     );
     setState(() {});
+  }
+
+  @override
+  void onForget(DevInfo dev, int uid) {
+    //忘记设备，从已配对列表移动到发现设备列表
+    var forgetDev = _pairedList
+        .firstWhereOrNull((element) => element.dev?.guid == dev.guid);
+    _pairedList.removeWhere((element) => element.dev?.guid == dev.guid);
+    forgetDev?.isPaired = false;
+    if (forgetDev?.isConnected ?? false) {
+      onConnected(dev);
+    }
   }
 
   @override
@@ -316,7 +482,7 @@ class _DevicesPageState extends State<DevicesPage>
   }
 
   @override
-  void onPaired(DevInfo dev, int uid, bool result) {
+  void onPaired(DevInfo dev, int uid, bool result) async {
     if (!result) {
       Log.debug(tag, "_pairingFailed $_pairingFailed");
       _pairingFailed = true;
@@ -329,37 +495,62 @@ class _DevicesPageState extends State<DevicesPage>
     Navigator.of(context).pop();
     //已配对，请求所有缺失数据
     SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
-    var data =
-        Device(guid: dev.guid, devName: dev.name, uid: uid, type: dev.type);
-    //新设备
-    _deviceDao.add(data).then((v) {
-      if (v == 0) {
-        Log.debug(tag, "Device information addition failed");
-        return;
-      }
-      DBUtil.inst.opRecordDao.addAndNotify(
-        OperationRecord(
-          id: App.snowflake.nextId(),
-          uid: App.userId,
-          module: Module.device,
-          method: OpMethod.add,
-          data: data.guid,
-        ),
-      );
-      //保存成功，从连接列表中移除
-      var pairedDev =
-          _discoverList.firstWhere((dev) => dev.dev?.guid == dev.dev?.guid);
-      _discoverList.remove(pairedDev);
-      //添加到已配对列表
-      _pairedList.add(
-        DeviceCard(
-          dev: pairedDev.dev,
-          isPaired: true,
-          isConnected: true,
-        ),
-      );
-      setState(() {});
-    });
+    var newDev = Device(
+      guid: dev.guid,
+      devName: dev.name,
+      uid: uid,
+      type: dev.type,
+      isPaired: true,
+    );
+    var dbDev = await _deviceDao.getById(dev.guid, App.userId);
+    if (dbDev != null) {
+      //之前配对过，只是取消配对了
+      dbDev.isPaired = true;
+      _deviceDao.updateDevice(dbDev);
+      _addPairedDevInPage(dbDev);
+    } else {
+      //新设备
+      _deviceDao.add(newDev).then((v) {
+        if (v == 0) {
+          Log.debug(tag, "Device information addition failed");
+          return;
+        }
+        // DBUtil.inst.opRecordDao.addAndNotify(
+        //   OperationRecord(
+        //     id: App.snowflake.nextId(),
+        //     uid: App.userId,
+        //     module: Module.device,
+        //     method: OpMethod.add,
+        //     data: newDev.guid,
+        //   ),
+        // );
+        _addPairedDevInPage(newDev);
+      });
+    }
+  }
+
+  void _addPairedDevInPage(Device dev) {
+    //配对成功，从连接列表中移除
+    _discoverList.removeWhere((ele) => ele.dev?.guid == dev.guid);
+    //添加到已配对列表
+    _pairedList.add(
+      DeviceCard(
+        dev: dev,
+        isPaired: true,
+        isConnected: true,
+        onTap: (device, isConnected, showReNameDlg) {
+          if (PlatformUtil.isPC()) {
+            _showBottomDetailSheet(device, isConnected, showReNameDlg);
+          }
+        },
+        onLongPress: (device, isConnected, showReNameDlg) {
+          if (PlatformUtil.isMobile()) {
+            _showBottomDetailSheet(device, isConnected, showReNameDlg);
+          }
+        },
+      ),
+    );
+    setState(() {});
   }
 
   @override

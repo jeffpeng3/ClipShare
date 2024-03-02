@@ -63,7 +63,10 @@ class MySocket {
     );
   }
 
-  void close() async {
-    _socket.close();
+  Future close() {
+    return _socket.close();
+  }
+  void destroy() async {
+    _socket.destroy();
   }
 }

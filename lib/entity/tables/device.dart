@@ -24,11 +24,11 @@ class Device {
   ///设备类型
   String type = "unknown";
 
-  ///上次链接时间
-  String? lastConnTime;
+  ///链接地址
+  String? address;
 
-  ///上次链接地址
-  String? lastAddr;
+  ///是否已配对
+  bool isPaired;
 
   String get name =>
       customName == null || customName == "" ? devName : customName!;
@@ -39,8 +39,8 @@ class Device {
     required this.uid,
     required this.type,
     this.customName,
-    this.lastAddr,
-    this.lastConnTime,
+    this.address,
+    this.isPaired = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -49,8 +49,7 @@ class Device {
       "devName": devName,
       "uid": uid,
       "type": type,
-      "lastConnTime": lastConnTime,
-      "lastAddr": lastAddr,
+      "address": address,
       "customName": customName,
     };
   }
@@ -65,6 +64,7 @@ class Device {
     this.devName = "",
     this.uid = 0,
     this.type = "",
+    this.isPaired = false,
   });
 
   @override
@@ -86,10 +86,12 @@ class Device {
       uid: map["uid"],
       type: map["type"],
       customName: map["customName"],
+      address: map["address"],
+      isPaired: map["isPaired"],
     );
   }
 
   static Future<Device?> fromDevInfo(DevInfo dev) {
-    return DBUtil.inst.deviceDao.getById(dev.guid, App.userId).then((v) => v);
+    return DBUtil.inst.deviceDao.getById(dev.guid, App.userId);
   }
 }

@@ -30,6 +30,6 @@ class PlatformUtil {
   }
 
   static bool isPC() {
-    return isMacOS() || isLinux() || isLinux() || isWindows();
+    return isMacOS() || isLinux() || isWindows();
   }
 }

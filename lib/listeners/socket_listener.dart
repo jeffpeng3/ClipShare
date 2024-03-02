@@ -27,6 +27,9 @@ abstract class DevAliveObserver {
 
   //配对成功
   void onPaired(DevInfo dev, int uid, bool result);
+
+  //忘记设备
+  void onForget(DevInfo dev, int uid);
 }
 
 abstract class SyncObserver {
@@ -122,12 +125,50 @@ class SocketListener {
 
   ///socket建立链接，确认设备存活，不需要进行数据处理
   void _linkAliveSocket(DevInfo dev, String ip, int port) async {
+    //本地是否已配对
+    var localDevice = await _deviceDao.getById(dev.guid, App.userId);
+    var localIsPaired = localDevice?.isPaired ?? false;
     return MySocket.connect(ip, port).then((ms) {
       Log.debug(tag, '已连接到服务器');
+      //发送本机信息给服务器
+      MessageData msg = MessageData(
+        userId: App.userId,
+        send: App.devInfo,
+        key: MsgType.connect,
+        data: {"port": _server.port},
+        recv: null,
+      );
+      ms.send(msg.toJsonStr());
+      //保存连接
       var ds = DevSocket(dev: dev, socket: ms);
       _devSockets[dev.guid] = ds;
+      //监听服务器配对状态消息
       ds.socket.listen(
-        (data) {},
+        (data) {
+          Map<String, dynamic> json = jsonDecode(data);
+          var msg = MessageData.fromJson(json);
+          switch (msg.key) {
+            case MsgType.pairedStatus:
+              var remoteIsPaired = msg.data["isPaired"];
+              //双方配对信息一致
+              if (remoteIsPaired && localIsPaired) {
+                Log.debug(tag, "pairedStatusLog _linkAliveSocket isPaired");
+                //已配对，获取该设备未同步记录
+                _devSockets[dev.guid]!.isPaired = true;
+                sendData(dev, MsgType.reqMissingData, {});
+                _onDevConnected(dev);
+              } else {
+                Log.debug(tag, "pairedStatusLog _linkAliveSocket notPaired");
+                if (localDevice != null) {
+                  onDevForget(dev, App.userId);
+                  _deviceDao.updateDevice(localDevice..isPaired = false);
+                }
+                _onDevConnected(dev);
+              }
+              break;
+            default:
+          }
+        },
         onDone: () {
           _onDevDisConnected(dev.guid);
         },
@@ -135,16 +176,6 @@ class SocketListener {
           Log.debug(tag, '发生错误: $error');
         },
       );
-      _onDevConnected(dev);
-      //发送本机信息给对方
-      MessageData msg = MessageData(
-        userId: App.userId,
-        send: App.devInfo,
-        key: MsgType.devInfo,
-        data: {"port": _server.port},
-        recv: null,
-      );
-      ms.send(msg.toJsonStr());
     });
   }
 
@@ -178,22 +209,92 @@ class SocketListener {
   }
 
   ///socket 监听消息处理
-  void _onSocketReceived(MySocket client, MessageData msg) {
+  void _onSocketReceived(MySocket client, MessageData msg) async {
     Log.debug(tag, msg.key);
     DevInfo dev = msg.send;
     switch (msg.key) {
-      ///刚建立连接，保存设备信息
-      case MsgType.devInfo:
-        if(_devSockets.keys.contains(dev.guid)){
+      ///客户端连接
+      case MsgType.connect:
+        //是否服务器反向连接
+        var isReverse = msg.data.containsKey('reverse');
+        if (_devSockets.containsKey(dev.guid) && !isReverse) {
           //已经链接，跳过
           break;
         }
-        var port = msg.data["port"];
+        //本地是否已配对
+        var localDevice = await _deviceDao.getById(dev.guid, App.userId);
+        var localIsPaired = localDevice?.isPaired ?? false;
+        var pairedStatusData = MessageData(
+          userId: App.userId,
+          send: App.devInfo,
+          key: MsgType.pairedStatus,
+          data: {"isPaired": localIsPaired},
+        ).toJsonStr();
+        if (isReverse) {
+          //服务器反向连接。告诉服务器配对状态
+          client.send(pairedStatusData);
+          break;
+        }
+        var port =
+            msg.data.containsKey("port") ? msg.data["port"] : Constants.port;
+        //告诉客户端配对状态
+        client.send(pairedStatusData);
+        //连接客户端服务器
         MySocket.connect(client.ip, port).then((ms) {
           var ds = DevSocket(dev: dev, socket: ms);
           _devSockets[dev.guid] = ds;
+          //是客户端手动连接，发送本机信息
+          if (msg.data.keys.contains("manual")) {
+            //发送本机信息给对方
+            MessageData msg = MessageData(
+              userId: App.userId,
+              send: App.devInfo,
+              key: MsgType.connect,
+              data: {"port": _server.port},
+              recv: null,
+            );
+            ds.socket.send(msg.toJsonStr());
+          }
+          //服务器反向连接
+          ms.send(
+            MessageData(
+              userId: App.userId,
+              send: App.devInfo,
+              key: MsgType.connect,
+              data: {'reverse': 1},
+              recv: null,
+            ).toJsonStr(),
+          );
+          //监听服务器配对状态消息
           ds.socket.listen(
-            (data) {},
+            (data) async {
+              Map<String, dynamic> json = jsonDecode(data);
+              var msg = MessageData.fromJson(json);
+              switch (msg.key) {
+                case MsgType.pairedStatus:
+                  var remoteIsPaired = msg.data["isPaired"];
+                  //双方配对信息一致
+                  if (remoteIsPaired && localIsPaired) {
+                    Log.debug(
+                        tag, "pairedStatusLog _onSocketReceived isPaired");
+                    //已配对，获取该设备未同步记录
+                    _devSockets[dev.guid]!.isPaired = true;
+                    sendData(dev, MsgType.reqMissingData, {});
+                    _onDevConnected(dev);
+                  } else {
+                    Log.debug(
+                        tag, "pairedStatusLog _onSocketReceived notPaired");
+                    if (localDevice != null) {
+                      //忘记设备
+                      onDevForget(dev, App.userId);
+                      _deviceDao.updateDevice(localDevice..isPaired = false);
+                    }
+                    _onDevConnected(dev);
+                  }
+                  break;
+                default:
+              }
+            },
             onDone: () {
               _onDevDisConnected(dev.guid);
             },
@@ -201,20 +302,17 @@ class SocketListener {
               Log.debug(tag, '发生错误: $error');
             },
           );
-          _onDevConnected(dev);
-          //对方是客户端主动连接，发送本机信息
-          if (msg.data.keys.contains("manual")) {
-            //发送本机信息给对方
-            MessageData msg = MessageData(
-              userId: App.userId,
-              send: App.devInfo,
-              key: MsgType.devInfo,
-              data: {"port": _server.port},
-              recv: null,
-            );
-            ds.socket.send(msg.toJsonStr());
-          }
         });
+        break;
+
+      ///主动断开连接
+      case MsgType.disConnect:
+        disConnectDevice(dev, false);
+        break;
+
+      ///忘记设备
+      case MsgType.forgetDev:
+        onDevForget(dev, App.userId);
         break;
 
       ///单条数据同步
@@ -323,7 +421,7 @@ class SocketListener {
       initialTasks: tasks,
       onFinish: () async {
         TaskRunner<void>(
-          initialTasks: await _subNetDiscover(),
+          initialTasks: true ? [] : await _subNetDiscover(),
           onFinish: () {
             _discovering = false;
             for (var ob in _discoverObservers) {
@@ -339,7 +437,6 @@ class SocketListener {
 
   Future<List<Future<void> Function()>> _subNetDiscover() async {
     List<Future<void> Function()> tasks = List.empty(growable: true);
-    tasks.add(() => Future(() => print("scan ips")));
     var interfaces = await NetworkInterface.list();
     var expendAddress = interfaces
         .map((networkInterface) => networkInterface.addresses)
@@ -361,13 +458,13 @@ class SocketListener {
           MessageData msg = MessageData(
             userId: App.userId,
             send: App.devInfo,
-            key: MsgType.devInfo,
+            key: MsgType.connect,
             data: {"port": _server.port, "manual": 1},
             recv: null,
           );
           ms.send(msg.toJsonStr());
           ms.close();
-        });
+        }).catchError((err) {});
         tasks.add(() => future);
       }
     }
@@ -391,13 +488,6 @@ class SocketListener {
   ///设备连接成功
   void _onDevConnected(DevInfo dev) {
     Log.debug(tag, "${dev.name} connected");
-    //判断是否已经配对过
-    _deviceDao.getById(dev.guid, App.userId).then((v) {
-      if (v == null) return;
-      _devSockets[dev.guid]?.isPaired = true;
-      //连接成功且已配对，获取该设备未同步记录
-      sendData(dev, MsgType.reqMissingData, {});
-    });
     for (var ob in _devAliveObservers) {
       try {
         ob.onConnected(dev);
@@ -414,6 +504,19 @@ class SocketListener {
     for (var ob in _devAliveObservers) {
       try {
         ob.onPaired(dev, uid, result);
+      } catch (e, t) {
+        Log.debug(tag, "$e $t");
+      }
+    }
+  }
+
+  ///设备配对成功
+  void onDevForget(DevInfo dev, int uid) {
+    Log.debug(tag, "${dev.name} paired");
+    _devSockets[dev.guid]?.isPaired = false;
+    for (var ob in _devAliveObservers) {
+      try {
+        ob.onForget(dev, uid);
       } catch (e, t) {
         Log.debug(tag, "$e $t");
       }
@@ -440,8 +543,6 @@ class SocketListener {
     Map<String, dynamic> data, [
     bool onlyPaired = true,
   ]) {
-    // Log.debug(tag, data);
-
     MessageData msg = MessageData(
       userId: App.userId,
       send: App.devInfo,
@@ -508,7 +609,8 @@ class SocketListener {
 
   ///发送缺失记录至已连接设备
   void sendMissingData() {
-    for (var ds in _devSockets.values) {
+    var lst = _devSockets.values.where((element) => element.isPaired);
+    for (var ds in lst) {
       ReqMissingDataHandler.sendMissingData(ds.dev);
     }
   }
@@ -561,5 +663,18 @@ class SocketListener {
       sockets.add(socket);
     }
     return sockets;
+  }
+
+  ///断开主动设备连接
+  bool disConnectDevice(DevInfo dev, bool backSend) {
+    var id = dev.guid;
+    if (_devSockets.containsKey(id)) {
+      if (backSend) {
+        sendData(dev, MsgType.disConnect, {});
+      }
+      _devSockets[id]!.socket.destroy();
+      return true;
+    }
+    return false;
   }
 }

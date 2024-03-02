@@ -8,7 +8,7 @@ abstract class HistoryDao {
   @Query("select * from history where uid = :uid order by id desc limit 1")
   Future<History?> getLatestLocalClip(int uid);
 
-  /// todo 根据条件查询，一次查 20 条，置顶优先，id 降序
+  /// 根据条件查询，一次查 20 条，置顶优先，id 降序
   @Query("""
   select * from History
   where uid = :uid
