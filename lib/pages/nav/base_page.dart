@@ -270,7 +270,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
         .listen((ConnectivityResult result) {
       Log.debug(tag, "网络变化 -> ${result.name}");
       if (result != ConnectivityResult.none) {
-        SocketListener.inst.discoverDevice();
+        SocketListener.inst.startDiscoverDevice();
       }
     });
     _tagSyncer = TagSyncer();

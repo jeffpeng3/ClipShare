@@ -82,7 +82,7 @@ class SocketListener {
     _runSocketServer();
     var multicasts =
         await _getSockets(Constants.multicastGroup, Constants.port);
-    discoverDevice();
+    startDiscoverDevice();
     for (var multicast in multicasts) {
       multicast.listen((event) {
         final datagram = multicast.receive();
@@ -407,22 +407,26 @@ class SocketListener {
   }
 
   var _discovering = false;
+  TaskRunner? _taskRunner = null;
 
   ///发现设备
-  void discoverDevice() async {
+  void startDiscoverDevice([bool restart=false]) async {
     if (_discovering) return;
     _discovering = true;
-    for (var ob in _discoverObservers) {
-      ob.onDiscoverStart();
+    if(!restart) {
+      for (var ob in _discoverObservers) {
+        ob.onDiscoverStart();
+      }
     }
     Log.debug(tag, "开始发现设备");
     List<Future<void> Function()> tasks = _multicastDiscover();
-    TaskRunner<void>(
+    _taskRunner = TaskRunner<void>(
       initialTasks: tasks,
       onFinish: () async {
-        TaskRunner<void>(
-          initialTasks: true ? [] : await _subNetDiscover(),
+        _taskRunner = TaskRunner<void>(
+          initialTasks: await _subNetDiscover(),
           onFinish: () {
+            _taskRunner = null;
             _discovering = false;
             for (var ob in _discoverObservers) {
               ob.onDiscoverFinished();
@@ -433,6 +437,26 @@ class SocketListener {
       },
       concurrency: 1,
     );
+  }
+
+  ///停止发现设备
+  Future<void> stopDiscoverDevice([bool restart=false]) async{
+    Log.debug(tag, "停止发现设备");
+    _taskRunner?.stop();
+    _taskRunner = null;
+    _discovering = false;
+    if(!restart) {
+      for (var ob in _discoverObservers) {
+        ob.onDiscoverFinished();
+      }
+    }
+  }
+
+  ///重新发现设备
+  void restartDiscoverDevice() async{
+    Log.debug(tag, "重新开始发现设备");
+    await stopDiscoverDevice(true);
+    startDiscoverDevice(true);
   }
 
   Future<List<Future<void> Function()>> _subNetDiscover() async {

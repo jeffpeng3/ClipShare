@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:clipshare/util/log.dart';
+
 /// copy from localsend
 typedef FutureFunction<T> = Future<T> Function();
 
 class TaskRunner<T> {
+  static final tag = "TaskRunner";
   final StreamController<T> _streamController = StreamController();
   final Queue<FutureFunction<T>> _queue;
 
@@ -51,7 +54,9 @@ class TaskRunner<T> {
             _runnerCount--;
             if (_stopped || (_runnerCount == 0 && !_stayAlive)) {
               _streamController.close();
-              onFinish?.call();
+              if(!_stopped) {
+                onFinish?.call();
+              }
             }
           },
         ),
@@ -66,8 +71,8 @@ class TaskRunner<T> {
       try {
         var res = await task();
         _streamController.add(res);
-      } catch (err) {
-        _streamController.addError(err);
+      } catch (e) {
+        Log.debug(tag, e.toString());
       }
     }
     onFinish();

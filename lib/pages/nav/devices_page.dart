@@ -34,9 +34,10 @@ class _DevicesPageState extends State<DevicesPage>
   late StateSetter _pairingState;
   bool _pairingFailed = false;
   bool _pairing = false;
-  bool _discovering = false;
+  bool _discovering = true;
   late DeviceDao _deviceDao;
   late AnimationController _rotationController;
+  var _rotationReverse = false;
   late Animation<double> _animation;
   final String tag = "DevicesPage";
 
@@ -48,8 +49,9 @@ class _DevicesPageState extends State<DevicesPage>
     // 旋转动画
     _rotationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 4),
     )..repeat();
+    _setRotationAnimation();
     _deviceDao = DBUtil.inst.deviceDao;
     _deviceDao.getAllDevices(App.userId).then((list) {
       _pairedList.clear();
@@ -127,12 +129,17 @@ class _DevicesPageState extends State<DevicesPage>
                     ),
                   ),
                   RotationTransition(
-                    turns: _rotationController,
+                    turns: _animation,
                     child: IconButton(
                       onPressed: () {
-                        if (!_discovering) {
-                          SocketListener.inst.discoverDevice();
+                        if (_discovering) {
+                          _rotationReverse = !_rotationReverse;
+                          _setRotationAnimation();
+                          SocketListener.inst.restartDiscoverDevice();
+                        } else {
+                          SocketListener.inst.startDiscoverDevice();
                         }
+                        setState(() {});
                       },
                       icon: const Icon(
                         Icons.sync,
@@ -623,6 +630,16 @@ class _DevicesPageState extends State<DevicesPage>
       _discovering = false;
     });
     Log.debug(tag, "onDiscoverFinished");
+    _rotationReverse = false;
+    _setRotationAnimation();
     _rotationController.stop();
+  }
+
+  ///设置旋转动画
+  void _setRotationAnimation() {
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1 * (_rotationReverse ? -1 : 1),
+    ).animate(_rotationController);
   }
 }
