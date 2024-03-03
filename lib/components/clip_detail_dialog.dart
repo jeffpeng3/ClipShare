@@ -52,25 +52,27 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
   Widget build(BuildContext context) {
     List<Widget> tagChips = List.empty(growable: true);
     for (var tag in _tags) {
-      tagChips.add(Container(
-        margin: const EdgeInsets.only(left: 5),
-        child: RoundedChip(
-          avatar: const CircleAvatar(
-            backgroundColor: Colors.blue,
-            child: Text(
-              '#',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.white,
+      tagChips.add(
+        Container(
+          margin: const EdgeInsets.only(left: 5),
+          child: RoundedChip(
+            avatar: const CircleAvatar(
+              backgroundColor: Colors.blue,
+              child: Text(
+                '#',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
-          label: Text(
-            tag.tagName,
-            style: const TextStyle(fontSize: 12),
+            label: Text(
+              tag.tagName,
+              style: const TextStyle(fontSize: 12),
+            ),
           ),
         ),
-      ));
+      );
     }
     return Container(
       constraints: const BoxConstraints(minWidth: 500),

@@ -261,7 +261,7 @@ class SocketListener {
               userId: App.userId,
               send: App.devInfo,
               key: MsgType.connect,
-              data: {'reverse': 1},
+              data: {'reverse': true},
               recv: null,
             ).toJsonStr(),
           );
@@ -410,10 +410,11 @@ class SocketListener {
   TaskRunner? _taskRunner = null;
 
   ///发现设备
-  void startDiscoverDevice([bool restart=false]) async {
+  void startDiscoverDevice([bool restart = false]) async {
+    // if (true) return;
     if (_discovering) return;
     _discovering = true;
-    if(!restart) {
+    if (!restart) {
       for (var ob in _discoverObservers) {
         ob.onDiscoverStart();
       }
@@ -440,12 +441,12 @@ class SocketListener {
   }
 
   ///停止发现设备
-  Future<void> stopDiscoverDevice([bool restart=false]) async{
+  Future<void> stopDiscoverDevice([bool restart = false]) async {
     Log.debug(tag, "停止发现设备");
     _taskRunner?.stop();
     _taskRunner = null;
     _discovering = false;
-    if(!restart) {
+    if (!restart) {
       for (var ob in _discoverObservers) {
         ob.onDiscoverFinished();
       }
@@ -453,7 +454,7 @@ class SocketListener {
   }
 
   ///重新发现设备
-  void restartDiscoverDevice() async{
+  void restartDiscoverDevice() async {
     Log.debug(tag, "重新开始发现设备");
     await stopDiscoverDevice(true);
     startDiscoverDevice(true);
@@ -477,22 +478,35 @@ class SocketListener {
               .toList();
       //对每个ip尝试连接
       for (var genIp in ipList) {
-        var future = MySocket.connect(genIp, Constants.port).then((ms) {
-          //发送本机信息给对方
-          MessageData msg = MessageData(
-            userId: App.userId,
-            send: App.devInfo,
-            key: MsgType.connect,
-            data: {"port": _server.port, "manual": 1},
-            recv: null,
-          );
-          ms.send(msg.toJsonStr());
-          ms.close();
-        }).catchError((err) {});
-        tasks.add(() => future);
+        tasks.add(() => manualConnect(genIp));
       }
     }
     return tasks;
+  }
+
+  ///手动连接 ip
+  Future<void> manualConnect(String ip,
+      {int? port, Function? onErr, Map<String, dynamic> data = const {}}) {
+    return MySocket.connect(ip, port ?? Constants.port).then((ms) {
+      //外部终止连接
+      if (data.containsKey('stop') && data['stop'] == true) {
+        ms.close();
+        return;
+      }
+      //发送本机信息给对方
+      MessageData msg = MessageData(
+        userId: App.userId,
+        send: App.devInfo,
+        key: MsgType.connect,
+        data: {
+          "port": _server.port,
+          "manual": true,
+        }..addAll(data),
+        recv: null,
+      );
+      ms.send(msg.toJsonStr());
+      ms.close();
+    }).catchError(onErr ?? (err) {});
   }
 
   ///组播发现设备

@@ -11,6 +11,7 @@ import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/entity/tables/operation_sync.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -234,12 +235,7 @@ class HistoryPageState extends State<HistoryPage>
         history.id.toString(),
       );
       DBUtil.inst.opRecordDao.addAndNotify(opRecord);
-      var urlReg = RegExp(
-        r"[a-zA-z]+://[^\s]*",
-        caseSensitive: false,
-      );
-      var isUrl = urlReg.hasMatch(history.content);
-      if (isUrl) {
+      if (history.content.hasUrl) {
         //添加标签
         var tag = HistoryTag(
           App.snowflake.nextId(),

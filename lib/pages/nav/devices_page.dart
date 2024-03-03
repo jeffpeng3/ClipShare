@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:clipshare/components/add_device_dialog.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
@@ -148,7 +149,9 @@ class _DevicesPageState extends State<DevicesPage>
                     ),
                   ),
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      _showAddDeviceDialog();
+                    },
                     icon: const Icon(
                       Icons.add,
                       size: 20,
@@ -641,5 +644,14 @@ class _DevicesPageState extends State<DevicesPage>
       begin: 0.0,
       end: 1 * (_rotationReverse ? -1 : 1),
     ).animate(_rotationController);
+  }
+
+  ///显示添加设备弹窗
+  void _showAddDeviceDialog() {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) => const AddDeviceDialog(),
+    );
   }
 }
