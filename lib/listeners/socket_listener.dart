@@ -411,7 +411,7 @@ class SocketListener {
 
   ///发现设备
   void startDiscoverDevice([bool restart = false]) async {
-    if (true) return;
+    // if (true) return;
     if (_discovering) return;
     _discovering = true;
     if (!restart) {
