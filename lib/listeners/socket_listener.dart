@@ -26,7 +26,7 @@ abstract class DevAliveObserver {
   void onDisConnected(String devId);
 
   //配对成功
-  void onPaired(DevInfo dev, int uid, bool result);
+  void onPaired(DevInfo dev, int uid, bool result, String? address);
 
   //忘记设备
   void onForget(DevInfo dev, int uid);
@@ -65,6 +65,9 @@ class SocketListener {
 
   final Map<String, DevSocket> _devSockets = {};
   late ServerSocket _server;
+
+  //临时记录链接配对自定义ip设备记录
+  final Set<String> customIpSetTemp = {};
 
   SocketListener._private();
 
@@ -212,6 +215,12 @@ class SocketListener {
   void _onSocketReceived(MySocket client, MessageData msg) async {
     Log.debug(tag, msg.key);
     DevInfo dev = msg.send;
+    var address = "";
+    var isCustom = customIpSetTemp.any((v) {
+      var res = v.split(":")[0] == client.ip;
+      address = v;
+      return res;
+    });
     switch (msg.key) {
       ///客户端连接
       case MsgType.connect:
@@ -275,15 +284,11 @@ class SocketListener {
                   var remoteIsPaired = msg.data["isPaired"];
                   //双方配对信息一致
                   if (remoteIsPaired && localIsPaired) {
-                    Log.debug(
-                        tag, "pairedStatusLog _onSocketReceived isPaired");
                     //已配对，获取该设备未同步记录
                     _devSockets[dev.guid]!.isPaired = true;
                     sendData(dev, MsgType.reqMissingData, {});
                     _onDevConnected(dev);
                   } else {
-                    Log.debug(
-                        tag, "pairedStatusLog _onSocketReceived notPaired");
                     if (localDevice != null) {
                       //忘记设备
                       onDevForget(dev, App.userId);
@@ -364,22 +369,17 @@ class SocketListener {
         String code = msg.data["code"];
         //验证配对码
         var verify = DevPairingHandler.verify(dev.guid, code);
-        _onDevPaired(dev, msg.userId, verify);
+        _onDevPaired(dev, msg.userId, verify, isCustom ? address : null);
         //返回配对结果
-        MessageData result = MessageData(
-          userId: App.userId,
-          send: App.devInfo,
-          key: MsgType.paired,
-          data: {"result": verify},
-          recv: null,
-        );
         sendData(dev, MsgType.paired, {"result": verify});
+        customIpSetTemp.removeWhere((v) => v == address);
         break;
 
       ///获取配对结果
       case MsgType.paired:
         bool result = msg.data["result"];
-        _onDevPaired(dev, msg.userId, result);
+        _onDevPaired(dev, msg.userId, result, isCustom ? address : null);
+        customIpSetTemp.removeWhere((v) => v == address);
         break;
       default:
     }
@@ -407,11 +407,11 @@ class SocketListener {
   }
 
   var _discovering = false;
-  TaskRunner? _taskRunner = null;
+  TaskRunner? _taskRunner;
 
   ///发现设备
   void startDiscoverDevice([bool restart = false]) async {
-    // if (true) return;
+    if (true) return;
     if (_discovering) return;
     _discovering = true;
     if (!restart) {
@@ -490,8 +490,11 @@ class SocketListener {
     return MySocket.connect(ip, port ?? Constants.port).then((ms) {
       //外部终止连接
       if (data.containsKey('stop') && data['stop'] == true) {
-        ms.close();
+        ms.destroy();
         return;
+      }
+      if (data.containsKey("custom")) {
+        customIpSetTemp.add("$ip:$port");
       }
       //发送本机信息给对方
       MessageData msg = MessageData(
@@ -536,12 +539,12 @@ class SocketListener {
   }
 
   ///设备配对成功
-  void _onDevPaired(DevInfo dev, int uid, bool result) {
+  void _onDevPaired(DevInfo dev, int uid, bool result, String? address) {
     Log.debug(tag, "${dev.name} paired");
     _devSockets[dev.guid]?.isPaired = true;
     for (var ob in _devAliveObservers) {
       try {
-        ob.onPaired(dev, uid, result);
+        ob.onPaired(dev, uid, result, address);
       } catch (e, t) {
         Log.debug(tag, "$e $t");
       }

@@ -127,6 +127,7 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
                     _connecting = true;
                     _connectData = {
                       "stop": false,
+                      "custom":true,
                     };
                   });
                   SocketListener.inst.manualConnect(

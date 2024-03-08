@@ -492,7 +492,7 @@ class _DevicesPageState extends State<DevicesPage>
   }
 
   @override
-  void onPaired(DevInfo dev, int uid, bool result) async {
+  void onPaired(DevInfo dev, int uid, bool result, String? address) async {
     if (!result) {
       Log.debug(tag, "_pairingFailed $_pairingFailed");
       _pairingFailed = true;
@@ -511,6 +511,7 @@ class _DevicesPageState extends State<DevicesPage>
       uid: uid,
       type: dev.type,
       isPaired: true,
+      address: address,
     );
     var dbDev = await _deviceDao.getById(dev.guid, App.userId);
     if (dbDev != null) {
