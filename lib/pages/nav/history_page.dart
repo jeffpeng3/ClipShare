@@ -32,7 +32,7 @@ class HistoryPage extends StatefulWidget {
 
 class HistoryPageState extends State<HistoryPage>
     with WidgetsBindingObserver
-    implements ClipObserver, SyncObserver {
+    implements ClipObserver, SyncListener {
   final ScrollController _scrollController = ScrollController();
   final List<ClipData> _list = List.empty(growable: true);
   bool _copyInThisCopy = false;

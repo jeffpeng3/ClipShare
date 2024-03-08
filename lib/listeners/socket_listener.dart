@@ -18,7 +18,7 @@ import 'package:flutter/material.dart';
 import '../db/db_util.dart';
 import '../util/crypto.dart';
 
-abstract class DevAliveObserver {
+abstract class DevAliveListener {
   //连接成功
   void onConnected(DevInfo info);
 
@@ -32,7 +32,7 @@ abstract class DevAliveObserver {
   void onForget(DevInfo dev, int uid);
 }
 
-abstract class SyncObserver {
+abstract class SyncListener {
   //同步数据
   void onSync(MessageData msg);
 
@@ -40,7 +40,7 @@ abstract class SyncObserver {
   void ackSync(MessageData msg);
 }
 
-abstract class DiscoverObserver {
+abstract class DiscoverListener {
   //开始
   void onDiscoverStart();
 
@@ -59,9 +59,9 @@ class DevSocket {
 class SocketListener {
   static const String tag = "SocketListener";
   late DeviceDao _deviceDao;
-  final Map<Module, List<SyncObserver>> _syncObservers = {};
-  final List<DevAliveObserver> _devAliveObservers = List.empty(growable: true);
-  final List<DiscoverObserver> _discoverObservers = List.empty(growable: true);
+  final Map<Module, List<SyncListener>> _syncListeners = {};
+  final List<DevAliveListener> _devAliveListeners = List.empty(growable: true);
+  final List<DiscoverListener> _discoverListeners = List.empty(growable: true);
 
   final Map<String, DevSocket> _devSockets = {};
   late ServerSocket _server;
@@ -389,16 +389,16 @@ class SocketListener {
   void _onSyncMsg(MessageData msg) {
     Module module = Module.getValue(msg.data["module"]);
     //筛选某个模块的同步处理器
-    var lst = _syncObservers[module];
+    var lst = _syncListeners[module];
     if (lst == null) return;
-    for (var ob in lst) {
+    for (var listener in lst) {
       switch (msg.key) {
         case MsgType.sync:
         case MsgType.missingData:
-          ob.onSync(msg);
+          listener.onSync(msg);
           break;
         case MsgType.ackSync:
-          ob.ackSync(msg);
+          listener.ackSync(msg);
           break;
         default:
           break;
@@ -415,12 +415,13 @@ class SocketListener {
     if (_discovering) return;
     _discovering = true;
     if (!restart) {
-      for (var ob in _discoverObservers) {
-        ob.onDiscoverStart();
+      for (var listener in _discoverListeners) {
+        listener.onDiscoverStart();
       }
     }
     Log.debug(tag, "开始发现设备");
     List<Future<void> Function()> tasks = _multicastDiscover();
+    tasks.addAll(await _customDiscover());
     _taskRunner = TaskRunner<void>(
       initialTasks: tasks,
       onFinish: () async {
@@ -429,8 +430,8 @@ class SocketListener {
           onFinish: () {
             _taskRunner = null;
             _discovering = false;
-            for (var ob in _discoverObservers) {
-              ob.onDiscoverFinished();
+            for (var listener in _discoverListeners) {
+              listener.onDiscoverFinished();
             }
           },
           concurrency: 50,
@@ -447,8 +448,8 @@ class SocketListener {
     _taskRunner = null;
     _discovering = false;
     if (!restart) {
-      for (var ob in _discoverObservers) {
-        ob.onDiscoverFinished();
+      for (var listener in _discoverListeners) {
+        listener.onDiscoverFinished();
       }
     }
   }
@@ -460,6 +461,21 @@ class SocketListener {
     startDiscoverDevice(true);
   }
 
+  ///组播发现设备
+  List<Future<void> Function()> _multicastDiscover() {
+    List<Future<void> Function()> tasks = List.empty(growable: true);
+    for (var ms in const [100, 500, 2000, 5000]) {
+      var f = Future.delayed(Duration(milliseconds: ms), () {
+        // 广播本机socket信息
+        Map<String, dynamic> map = {"port": _server.port};
+        sendMulticastMsg(MsgType.broadcastInfo, map);
+      });
+      tasks.add(() => f);
+    }
+    return tasks;
+  }
+
+  ///发现子网设备
   Future<List<Future<void> Function()>> _subNetDiscover() async {
     List<Future<void> Function()> tasks = List.empty(growable: true);
     var interfaces = await NetworkInterface.list();
@@ -480,6 +496,18 @@ class SocketListener {
       for (var genIp in ipList) {
         tasks.add(() => manualConnect(genIp));
       }
+    }
+    return tasks;
+  }
+
+  ///发现自添加设备
+  Future<List<Future<void> Function()>> _customDiscover() async {
+    List<Future<void> Function()> tasks = List.empty(growable: true);
+    var lst = await _deviceDao.getAllDevices(App.userId);
+    var devices = lst.where((dev) => dev.address != null).toList();
+    for (var dev in devices) {
+      var [ip, port] = dev.address!.split(":");
+      tasks.add(() => manualConnect(ip, port: int.parse(port)));
     }
     return tasks;
   }
@@ -512,26 +540,12 @@ class SocketListener {
     }).catchError(onErr ?? (err) {});
   }
 
-  ///组播发现设备
-  List<Future<void> Function()> _multicastDiscover() {
-    List<Future<void> Function()> tasks = List.empty(growable: true);
-    for (var ms in const [100, 500, 2000, 5000]) {
-      var f = Future.delayed(Duration(milliseconds: ms), () {
-        // 广播本机socket信息
-        Map<String, dynamic> map = {"port": _server.port};
-        sendMulticastMsg(MsgType.broadcastInfo, map);
-      });
-      tasks.add(() => f);
-    }
-    return tasks;
-  }
-
   ///设备连接成功
   void _onDevConnected(DevInfo dev) {
     Log.debug(tag, "${dev.name} connected");
-    for (var ob in _devAliveObservers) {
+    for (var listener in _devAliveListeners) {
       try {
-        ob.onConnected(dev);
+        listener.onConnected(dev);
       } catch (e, t) {
         Log.debug(tag, "$e $t");
       }
@@ -542,9 +556,9 @@ class SocketListener {
   void _onDevPaired(DevInfo dev, int uid, bool result, String? address) {
     Log.debug(tag, "${dev.name} paired");
     _devSockets[dev.guid]?.isPaired = true;
-    for (var ob in _devAliveObservers) {
+    for (var listener in _devAliveListeners) {
       try {
-        ob.onPaired(dev, uid, result, address);
+        listener.onPaired(dev, uid, result, address);
       } catch (e, t) {
         Log.debug(tag, "$e $t");
       }
@@ -555,9 +569,9 @@ class SocketListener {
   void onDevForget(DevInfo dev, int uid) {
     Log.debug(tag, "${dev.name} paired");
     _devSockets[dev.guid]?.isPaired = false;
-    for (var ob in _devAliveObservers) {
+    for (var listener in _devAliveListeners) {
       try {
-        ob.onForget(dev, uid);
+        listener.onForget(dev, uid);
       } catch (e, t) {
         Log.debug(tag, "$e $t");
       }
@@ -568,9 +582,9 @@ class SocketListener {
   void _onDevDisConnected(String devId) {
     _devSockets.remove(devId);
     Log.debug(tag, "$devId 断开连接");
-    for (var ob in _devAliveObservers) {
+    for (var listener in _devAliveListeners) {
       try {
-        ob.onDisConnected(devId);
+        listener.onDisConnected(devId);
       } catch (e, t) {
         Log.debug(tag, "$e $t");
       }
@@ -657,38 +671,38 @@ class SocketListener {
   }
 
   ///添加同步监听
-  void addSyncListener(Module module, SyncObserver observer) {
-    if (_syncObservers.keys.contains(module)) {
-      _syncObservers[module]!.add(observer);
+  void addSyncListener(Module module, SyncListener Listener) {
+    if (_syncListeners.keys.contains(module)) {
+      _syncListeners[module]!.add(Listener);
       return;
     }
-    _syncObservers[module] = List.empty(growable: true);
-    _syncObservers[module]!.add(observer);
+    _syncListeners[module] = List.empty(growable: true);
+    _syncListeners[module]!.add(Listener);
   }
 
   ///移除同步监听
-  void removeSyncListener(Module module, SyncObserver observer) {
-    _syncObservers[module]?.remove(observer);
+  void removeSyncListener(Module module, SyncListener Listener) {
+    _syncListeners[module]?.remove(Listener);
   }
 
   ///添加设备连接监听
-  void addDevAliveListener(DevAliveObserver observer) {
-    _devAliveObservers.add(observer);
+  void addDevAliveListener(DevAliveListener Listener) {
+    _devAliveListeners.add(Listener);
   }
 
   ///移除设备连接监听
-  void removeDevAliveListener(DevAliveObserver observer) {
-    _devAliveObservers.remove(observer);
+  void removeDevAliveListener(DevAliveListener Listener) {
+    _devAliveListeners.remove(Listener);
   }
 
   ///添加设备发现监听
-  void addDiscoverListener(DiscoverObserver observer) {
-    _discoverObservers.add(observer);
+  void addDiscoverListener(DiscoverListener Listener) {
+    _discoverListeners.add(Listener);
   }
 
   ///移除设备发现监听
-  void removeDiscoverListener(DiscoverObserver observer) {
-    _discoverObservers.remove(observer);
+  void removeDiscoverListener(DiscoverListener Listener) {
+    _discoverListeners.remove(Listener);
   }
 
   Future<List<RawDatagramSocket>> _getSockets(

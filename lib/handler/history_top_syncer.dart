@@ -13,7 +13,7 @@ import '../entity/tables/operation_sync.dart';
 import '../main.dart';
 
 /// 记录置顶操作同步处理器
-class HistoryTopSyncer implements SyncObserver {
+class HistoryTopSyncer implements SyncListener {
 
   HistoryTopSyncer() {
     SocketListener.inst.addSyncListener(Module.historyTop, this);

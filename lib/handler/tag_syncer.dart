@@ -11,7 +11,7 @@ import '../entity/tables/operation_sync.dart';
 import '../main.dart';
 
 /// 标签同步处理器
-class TagSyncer implements SyncObserver {
+class TagSyncer implements SyncListener {
   TagSyncer() {
     SocketListener.inst.addSyncListener(Module.tag, this);
   }

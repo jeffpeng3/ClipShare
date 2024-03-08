@@ -29,7 +29,7 @@ class DevicesPage extends StatefulWidget {
 
 class _DevicesPageState extends State<DevicesPage>
     with SingleTickerProviderStateMixin
-    implements DevAliveObserver, SyncObserver, DiscoverObserver {
+    implements DevAliveListener, SyncListener, DiscoverListener {
   final List<DeviceCard> _discoverList = List.empty(growable: true);
   final List<DeviceCard> _pairedList = List.empty(growable: true);
   late StateSetter _pairingState;
