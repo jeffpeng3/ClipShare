@@ -7,6 +7,7 @@ class TextEditDialog extends StatefulWidget {
   final String labelText;
   final String initStr;
   final String hint;
+  final bool autofocus;
   final bool Function(String)? verify;
   final String? errorText;
   final void Function(String) onOk;
@@ -21,6 +22,7 @@ class TextEditDialog extends StatefulWidget {
     this.okText = "确定",
     this.verify,
     this.errorText,
+    this.autofocus=true
   });
 
   @override
@@ -42,6 +44,7 @@ class _TextEditDialogState extends State<TextEditDialog> {
         height: 80,
         child: TextField(
           controller: _editor,
+          autofocus: widget.autofocus,
           decoration: InputDecoration(
             hintText: widget.hint,
             labelText: widget.labelText,

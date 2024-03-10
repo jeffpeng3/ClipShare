@@ -28,9 +28,8 @@ class _SettingPageState extends State<SettingPage> {
       builder: (context, vm) {
         final ref = context.ref;
         return Padding(
-          padding: const EdgeInsets.all(4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+          child: ListView(
             children: [
               ///常规
               SettingCardGroup(
@@ -59,7 +58,6 @@ class _SettingPageState extends State<SettingPage> {
                         }
                       },
                     ),
-                    separate: true,
                     show: () => PlatformUtil.isPC(),
                   ),
                   SettingCard(
@@ -75,6 +73,51 @@ class _SettingPageState extends State<SettingPage> {
                   ),
                 ],
               ),
+
+              ///权限
+              SettingCardGroup(
+                groupName: "权限",
+                icon: const Icon(Icons.admin_panel_settings),
+                cardList: [
+                  SettingCard(
+                    main: const Text("通知权限"),
+                    sub: const Text("进行相关系统通知"),
+                    value: true,
+                    action: (val) => Icon(
+                      val ? Icons.check_circle : Icons.help,
+                      color: val ? Colors.green : Colors.orange,
+                    ),
+                  ),
+                  SettingCard(
+                    main: const Text("悬浮窗权限"),
+                    sub: const Text("高版本系统中通过悬浮窗获取剪贴板焦点"),
+                    value: true,
+                    action: (val) => Icon(
+                      val ? Icons.check_circle : Icons.help,
+                      color: val ? Colors.green : Colors.orange,
+                    ),
+                  ),
+                  SettingCard(
+                    main: const Text("剪贴板权限"),
+                    sub: const Text("请通过Shizuku或Root授权"),
+                    value: true,
+                    action: (val) => Icon(
+                      val ? Icons.check_circle : Icons.help,
+                      color: val ? Colors.green : Colors.orange,
+                    ),
+                  ),
+                  SettingCard(
+                    main: const Text("电池优化"),
+                    sub: const Text("添加电池优化防止被后台系统杀死"),
+                    value: false,
+                    action: (val) => Icon(
+                      val ? Icons.check_circle : Icons.help,
+                      color: val ? Colors.green : Colors.orange,
+                    ),
+                  ),
+                ],
+              ),
+
               ///发现
               SettingCardGroup(
                 groupName: "发现",
@@ -85,7 +128,6 @@ class _SettingPageState extends State<SettingPage> {
                     sub: const Text("其他人显示的设备名称"),
                     value: vm.localName,
                     action: (v) => Text(v),
-                    separate: true,
                     onTap: () {
                       showDialog(
                         context: context,
@@ -107,7 +149,6 @@ class _SettingPageState extends State<SettingPage> {
                     ),
                     value: vm.port,
                     action: (v) => Text(v.toString()),
-                    separate: true,
                     onTap: () {
                       showDialog(
                         context: context,
@@ -143,6 +184,31 @@ class _SettingPageState extends State<SettingPage> {
                   ),
                 ],
               ),
+
+              ///关于
+              SettingCardGroup(
+                groupName: "关于",
+                icon: const Icon(Icons.info),
+                cardList: [
+                  SettingCard(
+                    main: const Text("开源相关"),
+                    value: false,
+                    action: (v) => const Icon(Icons.code),
+                  ),
+                  SettingCard(
+                    main: const Text("关于软件"),
+                    sub: const Text("V1.0"),
+                    value: false,
+                    action: (v) => TextButton(
+                      onPressed: () {},
+                      child: const Text("检测更新"),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 10,
+              )
             ],
           ),
         );

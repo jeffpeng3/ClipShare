@@ -5,7 +5,7 @@ class SettingCard<T> extends StatefulWidget {
   final Widget main;
   final Widget? sub;
   final Widget Function(T val)? action;
-  final bool separate;
+  bool separate;
   final bool showValueInSub;
   late BorderRadius borderRadius;
   final bool Function()? show;

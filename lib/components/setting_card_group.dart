@@ -41,7 +41,8 @@ class SettingCardGroup extends StatelessWidget {
                           ? topBorder
                           : i == cardList.length - 1
                               ? bottomBorder
-                              : BorderRadius.zero),
+                              : BorderRadius.zero)
+                  ..separate = cardList.length != 1 && i != cardList.length - 1,
             ],
           );
   }

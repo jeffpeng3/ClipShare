@@ -186,8 +186,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
               padding: const EdgeInsets.all(8),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 300),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: ListView(
                   children: [
                     //筛选日期 label
                     Container(

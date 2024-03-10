@@ -43,15 +43,15 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   List<BottomNavigationBarItem> navBarItems = List.from(const [
     BottomNavigationBarItem(
       icon: Icon(Icons.history),
-      label: 'Home',
+      label: '历史',
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.devices_rounded),
-      label: 'Devices',
+      label: '设备',
     ),
     BottomNavigationBarItem(
-      icon: Icon(Icons.person),
-      label: 'Profile',
+      icon: Icon(Icons.settings),
+      label: '设置',
     ),
   ]);
   late DeviceDao deviceDao;
@@ -62,7 +62,6 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
 
   String get tag => "HomePage";
 
-  // final TrayManager _trayManager = TrayManager.instance;
   @override
   void initState() {
     super.initState();
