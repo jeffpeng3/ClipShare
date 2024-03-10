@@ -8,7 +8,7 @@ import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/pages/nav/debug_page.dart';
 import 'package:clipshare/pages/nav/devices_page.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
-import 'package:clipshare/pages/nav/profile_page.dart';
+import 'package:clipshare/pages/nav/setting_page.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/platform_util.dart';
@@ -38,7 +38,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
       key: HistoryPage.pageKey,
     ),
     const DevicesPage(),
-    const ProfilePage(),
+    const SettingPage(),
   ]);
   List<BottomNavigationBarItem> navBarItems = List.from(const [
     BottomNavigationBarItem(

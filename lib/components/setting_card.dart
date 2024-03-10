@@ -7,11 +7,11 @@ class SettingCard<T> extends StatefulWidget {
   final Widget Function(T val)? action;
   final bool separate;
   final bool showValueInSub;
-  final BorderRadius borderRadius;
+  late BorderRadius borderRadius;
   final bool Function()? show;
   final void Function()? onTap;
 
-  const SettingCard({
+  SettingCard({
     super.key,
     required this.main,
     required this.value,
