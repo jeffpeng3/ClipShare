@@ -192,7 +192,15 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                         initTags();
                       });
                     },
-                    icon: const Icon(Icons.add),
+                    icon: const Row(
+                      children: [
+                        Text("标签"),
+                        Icon(
+                          Icons.add,
+                          size: 22,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

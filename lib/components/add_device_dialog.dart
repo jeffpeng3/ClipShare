@@ -1,4 +1,5 @@
 import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,7 @@ class AddDeviceDialog extends StatefulWidget {
 class _AddDeviceDialogState extends State<AddDeviceDialog> {
   final tag = "AddDeviceDialog";
   final _ipEditor = TextEditingController();
-  final _portEditor = TextEditingController();
+  final _portEditor = TextEditingController()..text = Constants.port.toString();
   final _ipErrTxt = "请输入正确的IPv4地址";
   final _portErrTxt = "0-65535";
   var _showIpErr = false;
@@ -127,7 +128,7 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
                     _connecting = true;
                     _connectData = {
                       "stop": false,
-                      "custom":true,
+                      "custom": true,
                     };
                   });
                   SocketListener.inst.manualConnect(
