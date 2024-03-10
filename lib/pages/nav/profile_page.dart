@@ -1,5 +1,6 @@
 import 'package:clipshare/components/setting_card.dart';
 import 'package:clipshare/components/setting_header.dart';
+import 'package:clipshare/components/text_edit_dialog.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/platform_util.dart';
@@ -71,6 +72,19 @@ class _ProfilePageState extends State<ProfilePage> {
                 action: (v) => Text(v),
                 separate: true,
                 borderRadius: topBorder,
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => TextEditDialog(
+                      title: "修改设备名称",
+                      labelText: "设备名称",
+                      initStr: vm.localName,
+                      onOk: (str) {
+                        ref.notifier(settingProvider).setLocalName(str);
+                      },
+                    ),
+                  );
+                },
               ),
               SettingCard(
                 main: const Text("端口号"),
@@ -80,6 +94,25 @@ class _ProfilePageState extends State<ProfilePage> {
                 value: vm.port,
                 action: (v) => Text(v.toString()),
                 separate: true,
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => TextEditDialog(
+                      title: "修改端口",
+                      labelText: "端口",
+                      initStr: vm.port.toString(),
+                      verify: (str) {
+                        var port = int.tryParse(str);
+                        if (port == null) return false;
+                        return port >= 0 && port <= 65535;
+                      },
+                      errorText: "端口号范围0-65535",
+                      onOk: (str) {
+                        ref.notifier(settingProvider).setLocalName(str);
+                      },
+                    ),
+                  );
+                },
               ),
               SettingCard(
                 main: const Text("可被发现"),

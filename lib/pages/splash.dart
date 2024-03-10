@@ -74,7 +74,8 @@ class _SplashScreenState extends State<SplashScreen> {
     );
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
-      localName: localName ?? App.devInfo.name,
+      localName:
+          localName != null && localName != "" ? localName : App.devInfo.name,
       startMini: startMini?.toBool() ?? false,
       launchAtStartup: launchAtStartup?.toBool() ?? false,
       allowDiscover: allowDiscover?.toBool() ?? false,

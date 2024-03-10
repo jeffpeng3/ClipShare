@@ -1,16 +1,18 @@
 extension StringExtension on String {
   bool get hasUrl {
-    var reg = RegExp(
-      r"[a-zA-z]+://[^\s]*",
-      caseSensitive: false,
-    );
-    return reg.hasMatch(this);
+    return matchRegExp(r"[a-zA-z]+://[^\s]*");
   }
 
   bool get isIPv4 {
-    var reg = RegExp(
+    return matchRegExp(
       r"((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}",
-      caseSensitive: false,
+    );
+  }
+
+  bool matchRegExp(String regExp, [bool caseSensitive = false]) {
+    var reg = RegExp(
+      regExp,
+      caseSensitive: caseSensitive,
     );
     return reg.hasMatch(this);
   }
