@@ -7,13 +7,16 @@ import 'package:clipshare/dao/device_dao.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/my_socket.dart';
+import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/handler/dev_pairing_handler.dart';
 import 'package:clipshare/handler/req_missing_data_handler.dart';
 import 'package:clipshare/handler/task_runner.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
+import 'package:refena_flutter/refena_flutter.dart';
 
 import '../db/db_util.dart';
 import '../util/crypto.dart';
@@ -57,6 +60,8 @@ class DevSocket {
 }
 
 class SocketListener {
+  static late Ref _ref;
+  static late Settings settings;
   static const String tag = "SocketListener";
   late DeviceDao _deviceDao;
   final Map<Module, List<SyncListener>> _syncListeners = {};
@@ -78,13 +83,14 @@ class SocketListener {
   static bool _isInit = false;
   Future<void> _linkQueue = Future.value();
 
-  Future<SocketListener> init() async {
+  Future<SocketListener> init(Ref ref) async {
     if (_isInit) throw Exception("已初始化");
+    _ref = ref;
+    settings = _ref.read(settingProvider);
     _deviceDao = DBUtil.inst.deviceDao;
     // 初始化，创建socket监听
     _runSocketServer();
-    var multicasts =
-        await _getSockets(Constants.multicastGroup, Constants.port);
+    var multicasts = await _getSockets(Constants.multicastGroup, settings.port);
     startDiscoverDevice();
     for (var multicast in multicasts) {
       multicast.listen((event) {
@@ -184,7 +190,7 @@ class SocketListener {
 
   ///运行服务端 socket 监听消息同步
   void _runSocketServer() async {
-    _server = await ServerSocket.bind('0.0.0.0', Constants.port);
+    _server = await ServerSocket.bind('0.0.0.0', settings.port);
     Log.debug(
       tag,
       '服务器已启动，监听所有网络接口 ${_server.address.address} ${_server.port}',
@@ -245,7 +251,7 @@ class SocketListener {
           break;
         }
         var port =
-            msg.data.containsKey("port") ? msg.data["port"] : Constants.port;
+            msg.data.containsKey("port") ? msg.data["port"] : settings.port;
         //告诉客户端配对状态
         client.send(pairedStatusData);
         //连接客户端服务器
@@ -515,7 +521,7 @@ class SocketListener {
   ///手动连接 ip
   Future<void> manualConnect(String ip,
       {int? port, Function? onErr, Map<String, dynamic> data = const {}}) {
-    return MySocket.connect(ip, port ?? Constants.port).then((ms) {
+    return MySocket.connect(ip, port ?? settings.port).then((ms) {
       //外部终止连接
       if (data.containsKey('stop') && data['stop'] == true) {
         ms.destroy();
@@ -653,7 +659,7 @@ class SocketListener {
         multicast.send(
           utf8.encode(b64Data),
           InternetAddress(Constants.multicastGroup),
-          Constants.port,
+          settings.port,
         );
         multicast.close();
       }

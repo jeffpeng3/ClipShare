@@ -1,100 +1,116 @@
 import 'package:flutter/material.dart';
 
-class Setting<T> extends StatefulWidget {
-  final String name;
+class SettingCard<T> extends StatefulWidget {
   final T value;
-  final T defVal;
   final Widget main;
   final Widget? sub;
   final Widget Function(T val)? action;
   final bool separate;
+  final bool showValueInSub;
+  final BorderRadius borderRadius;
+  final bool Function()? show;
   final void Function()? onTap;
 
-  const Setting({
+  const SettingCard({
     super.key,
-    required this.name,
     required this.main,
-    required this.defVal,
+    required this.value,
     this.sub,
     this.action,
     this.separate = false,
+    this.showValueInSub = false,
     this.onTap,
-  }) : value = defVal;
+    this.borderRadius = BorderRadius.zero,
+    this.show,
+  });
 
   @override
   State<StatefulWidget> createState() {
-    return _SettingState<T>();
+    return _SettingCardState<T>();
   }
 }
 
-class _SettingState<T> extends State<Setting<T>> {
+class _SettingCardState<T> extends State<SettingCard<T>> {
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      child: InkWell(
-        onTap: () {
-          widget.onTap?.call();
-        },
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: IntrinsicHeight(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: widget.sub == null
-                            ? [
-                                DefaultTextStyle(
-                                  style: const TextStyle(
-                                    fontSize: 19,
-                                    color: Colors.black87,
-                                  ),
-                                  child: widget.main,
-                                ),
-                              ]
-                            : [
-                                Expanded(
-                                  flex: 3,
-                                  child: DefaultTextStyle(
+    //不显示内容
+    if (widget.show != null && !widget.show!.call()) {
+      return const SizedBox.shrink();
+    }
+    Widget? sub = widget.sub;
+    if (widget.showValueInSub) {
+      sub = Text(widget.value.toString());
+    }
+    return ClipRRect(
+      borderRadius: widget.borderRadius,
+      child: Material(
+        color: Colors.white,
+        child: InkWell(
+          onTap: () {
+            widget.onTap?.call();
+          },
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: IntrinsicHeight(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: sub == null
+                              ? [
+                                  DefaultTextStyle(
                                     style: const TextStyle(
-                                      fontSize: 19,
+                                      fontSize: 17,
                                       color: Colors.black87,
                                     ),
                                     child: widget.main,
                                   ),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: DefaultTextStyle(
-                                    style: const TextStyle(
-                                      color: Colors.grey,
+                                ]
+                              : [
+                                  Expanded(
+                                    flex: 3,
+                                    child: DefaultTextStyle(
+                                      style: const TextStyle(
+                                        fontSize: 17,
+                                        color: Colors.black87,
+                                      ),
+                                      child: widget.main,
                                     ),
-                                    child: widget.sub!,
                                   ),
-                                ),
-                              ],
+                                  Expanded(
+                                    flex: 2,
+                                    child: DefaultTextStyle(
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                      ),
+                                      child: sub,
+                                    ),
+                                  ),
+                                ],
+                        ),
                       ),
-                    ),
-                    widget.action == null
-                        ? const SizedBox.shrink()
-                        : widget.action!.call(widget.value)
-                  ],
+                      IntrinsicWidth(
+                        child: widget.action == null
+                            ? const SizedBox.shrink()
+                            : widget.action!.call(widget.value),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            widget.separate
-                ? const Divider(
-                    thickness: 1,
-                    height: 1,
-                    color: Color.fromRGBO(232, 228, 228, 1.0),
-                  )
-                : const SizedBox.shrink(),
-          ],
+              widget.separate
+                  ? const Divider(
+                      thickness: 1,
+                      height: 1,
+                      color: Color.fromRGBO(232, 228, 228, 1.0),
+                    )
+                  : const SizedBox.shrink(),
+            ],
+          ),
         ),
       ),
     );

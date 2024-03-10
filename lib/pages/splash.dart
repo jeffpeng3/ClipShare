@@ -2,9 +2,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:refena_flutter/refena_flutter.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../entity/dev_info.dart';
 import '../entity/tables/device.dart';
@@ -36,9 +41,47 @@ class _SplashScreenState extends State<SplashScreen> {
     await DBUtil.inst.init();
     //初始化本机设备信息
     await initDevInfo();
+    //加载配置信息
+    await loadConfigs();
     //初始化socket
-    SocketListener.inst.init();
+    SocketListener.inst.init(context.ref);
     return Future.value();
+  }
+
+  ///加载配置信息
+  Future<void> loadConfigs() async {
+    var cfg = DBUtil.inst.configDao;
+    var port = await cfg.getConfig(
+      "port",
+      App.userId,
+    );
+    var localName = await cfg.getConfig(
+      "localName",
+      App.userId,
+    );
+    var startMini = await cfg.getConfig(
+      "startMini",
+      App.userId,
+    );
+    var launchAtStartup = await cfg.getConfig(
+      "launchAtStartup",
+      App.userId,
+    );
+    var allowDiscover = await cfg.getConfig(
+      "allowDiscover",
+      App.userId,
+    );
+    App.settings = Settings(
+      port: port?.toInt() ?? Constants.port,
+      localName: localName ?? App.devInfo.name,
+      startMini: startMini?.toBool() ?? false,
+      launchAtStartup: launchAtStartup?.toBool() ?? false,
+      allowDiscover: allowDiscover?.toBool() ?? false,
+    );
+    if (!App.settings.startMini) {
+      await windowManager.show();
+      await windowManager.focus();
+    }
   }
 
   ///调用平台方法，获取设备信息

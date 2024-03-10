@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:clipshare/entity/dev_info.dart';
+import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/pages/splash.dart';
 import 'package:clipshare/util/constants.dart';
@@ -10,13 +11,14 @@ import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:refena_flutter/refena_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
 void main() async {
   if (Platform.isWindows) {
     await initWindowsManager();
   }
-  runApp(const App());
+  runApp(RefenaScope(child: const App()));
 }
 
 Future<void> initWindowsManager() async {
@@ -32,8 +34,6 @@ Future<void> initWindowsManager() async {
     titleBarStyle: TitleBarStyle.normal,
   );
   windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
   });
   return Future<void>.value();
 }
@@ -66,6 +66,7 @@ class App extends StatelessWidget {
   static int userId = 0;
   static late final Snowflake snowflake;
   static late BuildContext context;
+  static late Settings settings;
 
   const App({super.key});
 

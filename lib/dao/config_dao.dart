@@ -4,18 +4,12 @@ import 'package:floor/floor.dart';
 @dao
 abstract class ConfigDao {
   ///获取所有配置项
-  @Query("select * from config")
-  Future<List<Config>> getAllConfigs();
+  @Query("select * from config where uid = :uid")
+  Future<List<Config>> getAllConfigs(int uid);
 
   ///获取某个配置项
-  @Query("select value from config where key = :key and uid = :uid")
+  @Query("select `value` from config where `key` = :key and uid = :uid")
   Future<String?> getConfig(String key, int uid);
-
-  ///获取配置项，不存在则返回默认值
-  @Query(
-    "select coalesce(value,:def) as value from config where key = :key and uid = :uid",
-  )
-  Future<String?> getConfigByDefault(String key, int uid, String def);
 
   ///添加一个配置
   @insert

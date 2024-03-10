@@ -260,12 +260,13 @@ class _$ConfigDao extends ConfigDao {
   final DeletionAdapter<Config> _configDeletionAdapter;
 
   @override
-  Future<List<Config>> getAllConfigs() async {
-    return _queryAdapter.queryList('select * from config',
+  Future<List<Config>> getAllConfigs(int uid) async {
+    return _queryAdapter.queryList('select * from config where uid = ?1',
         mapper: (Map<String, Object?> row) => Config(
             key: row['key'] as String,
             value: row['value'] as String,
-            uid: row['uid'] as int));
+            uid: row['uid'] as int),
+        arguments: [uid]);
   }
 
   @override
@@ -274,21 +275,9 @@ class _$ConfigDao extends ConfigDao {
     int uid,
   ) async {
     return _queryAdapter.query(
-        'select value from config where key = ?1 and uid = ?2',
+        'select `value` from config where `key` = ?1 and uid = ?2',
         mapper: (Map<String, Object?> row) => row.values.first as String,
         arguments: [key, uid]);
-  }
-
-  @override
-  Future<String?> getConfigByDefault(
-    String key,
-    int uid,
-    String def,
-  ) async {
-    return _queryAdapter.query(
-        'select coalesce(value,?3) as value from config where key = ?1 and uid = ?2',
-        mapper: (Map<String, Object?> row) => row.values.first as String,
-        arguments: [key, uid, def]);
   }
 
   @override

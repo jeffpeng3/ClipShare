@@ -54,6 +54,8 @@ dependencies:
   connectivity_plus: ^5.0.2
   # 本机信息
   device_info_plus: ^9.1.2
+  # 状态管理
+  refena_flutter: ^1.6.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

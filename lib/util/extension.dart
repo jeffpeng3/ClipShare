@@ -23,4 +23,16 @@ extension StringExtension on String {
       return false;
     }
   }
+
+  int toInt() {
+    return int.parse(this);
+  }
+
+  bool toBool() {
+    return bool.parse(this);
+  }
+
+  double toDouble() {
+    return double.parse(this);
+  }
 }

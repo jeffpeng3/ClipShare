@@ -113,7 +113,7 @@ bool FlutterWindow::OnCreate()
 
 	flutter_controller_->engine()->SetNextFrameCallback([&]()
 		{
-			this->Show();
+//			this->Show();
 			std::thread t([&]()
 			{
 					ClipListenerWindow clipListenerWindow(chip_channel_.get());
