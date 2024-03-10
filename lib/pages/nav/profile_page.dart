@@ -1,3 +1,4 @@
+import 'package:clipshare/components/setting_card.dart';
 import 'package:flutter/material.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -10,6 +11,11 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
-    return const Text("profile page");
+    return Column(
+      mainAxisSize: MainAxisSize.min, // 设置主轴方向尽可能小，即去除间距
+      children: [
+
+      ],
+    );
   }
 }
