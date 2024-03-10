@@ -6,6 +6,7 @@ import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/platform_util.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -78,7 +79,7 @@ class _SplashScreenState extends State<SplashScreen> {
       launchAtStartup: launchAtStartup?.toBool() ?? false,
       allowDiscover: allowDiscover?.toBool() ?? false,
     );
-    if (!App.settings.startMini) {
+    if (!App.settings.startMini && PlatformUtil.isPC()) {
       await windowManager.show();
       await windowManager.focus();
     }
