@@ -7,6 +7,7 @@ import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/platform_util.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -178,6 +179,7 @@ class _SettingPageState extends State<SettingPage> {
                     action: (v) => Switch(
                       value: v,
                       onChanged: (checked) {
+                        HapticFeedback.mediumImpact();
                         ref.notifier(settingProvider).setAllowDiscover(checked);
                       },
                     ),

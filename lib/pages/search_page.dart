@@ -7,6 +7,7 @@ import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/platform_util.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../components/clip_data_card.dart';
 

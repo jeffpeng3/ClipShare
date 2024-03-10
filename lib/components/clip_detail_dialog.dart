@@ -5,8 +5,11 @@ import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/pages/tag_edit_page.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
 
 import '../entity/clip_data.dart';
 import '../entity/tables/history_tag.dart';
@@ -34,6 +37,8 @@ class ClipDetailDialog extends StatefulWidget {
 class ClipDetailDialogState extends State<ClipDetailDialog> {
   bool _copy = false;
   List<HistoryTag> _tags = List.empty(growable: true);
+
+  String get tag => "ClipDetailDialog";
 
   @override
   void initState() {
@@ -213,9 +218,17 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                 clipBehavior: Clip.antiAlias,
                 child: Container(
                   alignment: Alignment.topLeft,
-                  child: SelectableText(
-                    widget.clip.data.content,
+                  child: SelectableLinkify(
                     textAlign: TextAlign.left,
+                    text: widget.clip.data.content,
+                    options: const LinkifyOptions(humanize: false),
+                    linkStyle: const TextStyle(
+                      decoration: TextDecoration.none,
+                    ),
+                    onOpen: (link) async {
+                      Log.debug(tag, link.url);
+                      link.url.askOpenUrl();
+                    },
                   ),
                 ),
               ),

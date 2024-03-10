@@ -58,6 +58,10 @@ dependencies:
   refena_flutter: ^1.6.0
   # 包信息
   package_info_plus: 5.0.1
+  # 链接可点击
+  flutter_linkify: ^6.0.0
+  # 打开链接
+  url_launcher: ^6.2.5
 dev_dependencies:
   flutter_test:
     sdk: flutter
