@@ -6,7 +6,7 @@ import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
-import 'package:clipshare/util/platform_util.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
@@ -65,12 +65,12 @@ class _DevicesPageState extends State<DevicesPage>
             dev: dev,
             isPaired: true,
             onTap: (device, isConnected, showReNameDlg) {
-              if (PlatformUtil.isPC()) {
+              if (PlatformExt.isPC) {
                 _showBottomDetailSheet(device, isConnected, showReNameDlg);
               }
             },
             onLongPress: (device, isConnected, showReNameDlg) {
-              if (PlatformUtil.isMobile()) {
+              if (PlatformExt.isMobile) {
                 _showBottomDetailSheet(device, isConnected, showReNameDlg);
               }
             },
@@ -550,12 +550,12 @@ class _DevicesPageState extends State<DevicesPage>
         isPaired: true,
         isConnected: true,
         onTap: (device, isConnected, showReNameDlg) {
-          if (PlatformUtil.isPC()) {
+          if (PlatformExt.isPC) {
             _showBottomDetailSheet(device, isConnected, showReNameDlg);
           }
         },
         onLongPress: (device, isConnected, showReNameDlg) {
-          if (PlatformUtil.isMobile()) {
+          if (PlatformExt.isMobile) {
             _showBottomDetailSheet(device, isConnected, showReNameDlg);
           }
         },

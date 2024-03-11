@@ -6,7 +6,6 @@ import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/pages/splash.dart';
 import 'package:clipshare/util/constants.dart';
-import 'package:clipshare/util/platform_util.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -78,7 +77,7 @@ class App extends StatelessWidget {
       scrollBehavior: MyCustomScrollBehavior(),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
-        fontFamily: PlatformUtil.isWindows() ? 'Microsoft YaHei' : null,
+        fontFamily: Platform.isWindows ? 'Microsoft YaHei' : null,
       ),
       //当前运行环境配置
       locale: const Locale("zh", "CH"),

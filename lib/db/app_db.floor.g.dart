@@ -390,7 +390,7 @@ class _$HistoryDao extends HistoryDao {
         Iterable<String>.generate(devIds.length, (i) => '?${i + offset}')
             .join(',');
     return _queryAdapter.queryList(
-        'select * from History   where uid = ?1      and id > ?2      and case            when ?3 = \'\'            then               1            else               content like \'%\'||?3||\'%\'           end      and case            when ?4 = \'\'            then               1            else               type = ?4           end      and case            when ?5 = \'\' or ?6 = \'\'            then               1            else               date(time) between ?5 and ?6           end      and case            when length(null in (' +
+        'select * from History   where uid = ?1      and case           when ?2 != 0             then               id < ?2             else               id > 0           end      and case            when ?3 = \'\'            then               1            else               content like \'%\'||?3||\'%\'           end      and case            when ?4 = \'\'            then               1            else               type = ?4           end      and case            when ?5 = \'\' or ?6 = \'\'            then               1            else               date(time) between ?5 and ?6           end      and case            when length(null in (' +
             _sqliteVariablesForDevIds +
             ')) = 1 then             1           else             devId in (' +
             _sqliteVariablesForDevIds +

@@ -5,7 +5,7 @@ import 'package:clipshare/components/setting_card_group.dart';
 import 'package:clipshare/components/text_edit_dialog.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
-import 'package:clipshare/util/platform_util.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
@@ -59,7 +59,7 @@ class _SettingPageState extends State<SettingPage> {
                         }
                       },
                     ),
-                    show: () => PlatformUtil.isPC(),
+                    show: () => PlatformExt.isPC,
                   ),
                   SettingCard(
                     main: const Text("启动时最小化窗口"),
@@ -70,7 +70,7 @@ class _SettingPageState extends State<SettingPage> {
                         ref.notifier(settingProvider).setStartMini(checked);
                       },
                     ),
-                    show: () => PlatformUtil.isPC(),
+                    show: () => PlatformExt.isPC,
                   ),
                 ],
               ),
@@ -88,6 +88,7 @@ class _SettingPageState extends State<SettingPage> {
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
+                    show: () => Platform.isAndroid,
                   ),
                   SettingCard(
                     main: const Text("悬浮窗权限"),
@@ -97,6 +98,7 @@ class _SettingPageState extends State<SettingPage> {
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
+                    show: () => Platform.isAndroid,
                   ),
                   SettingCard(
                     main: const Text("剪贴板权限"),
@@ -106,6 +108,7 @@ class _SettingPageState extends State<SettingPage> {
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
+                    show: () => Platform.isAndroid,
                   ),
                   SettingCard(
                     main: const Text("电池优化"),
@@ -115,6 +118,7 @@ class _SettingPageState extends State<SettingPage> {
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
+                    show: () => Platform.isAndroid,
                   ),
                 ],
               ),

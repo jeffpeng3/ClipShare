@@ -229,6 +229,29 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                       Log.debug(tag, link.url);
                       link.url.askOpenUrl();
                     },
+                    contextMenuBuilder: (context, editableTextState) {
+                      return AdaptiveTextSelectionToolbar.buttonItems(
+                        anchors: editableTextState.contextMenuAnchors,
+                        buttonItems: <ContextMenuButtonItem>[
+                          ContextMenuButtonItem(
+                            onPressed: () {
+                              editableTextState.copySelection(
+                                SelectionChangedCause.toolbar,
+                              );
+                            },
+                            type: ContextMenuButtonType.copy,
+                          ),
+                          ContextMenuButtonItem(
+                            onPressed: () {
+                              editableTextState.selectAll(
+                                SelectionChangedCause.toolbar,
+                              );
+                            },
+                            type: ContextMenuButtonType.selectAll,
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),

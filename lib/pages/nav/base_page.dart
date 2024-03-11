@@ -11,7 +11,6 @@ import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/pages/nav/setting_page.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
-import 'package:clipshare/util/platform_util.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:tray_manager/tray_manager.dart';
@@ -307,7 +306,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
     return PopScope(
       canPop: false,
       onPopInvoked: (bool didPop) {
-        if (PlatformUtil.isAndroid()) {
+        if (Platform.isAndroid) {
           App.androidChannel.invokeMethod("moveToBg");
         }
       },

@@ -12,7 +12,13 @@ abstract class HistoryDao {
   @Query("""
   select * from History
   where uid = :uid
-     and id > :fromId
+     and case
+          when :fromId != 0
+            then
+              id < :fromId
+            else
+              id > 0
+          end
      and case 
           when :content = ''
            then 

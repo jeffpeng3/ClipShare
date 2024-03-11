@@ -1,10 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../main.dart';
 
-extension StringExtension on String {
+extension StringExt on String {
   bool get hasUrl {
     return matchRegExp(r"[a-zA-z]+://[^\s]*");
   }
@@ -95,5 +97,15 @@ extension StringExtension on String {
   void openUrl() async {
     var uri = Uri.parse(this);
     await launchUrl(uri);
+  }
+}
+
+extension PlatformExt on Platform {
+  static bool get isMobile {
+    return Platform.isIOS || Platform.isAndroid;
+  }
+
+  static bool get isPC {
+    return Platform.isMacOS || Platform.isLinux || Platform.isWindows;
   }
 }

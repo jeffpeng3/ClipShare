@@ -1,11 +1,13 @@
+import 'dart:io';
+
 import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/pages/search_page.dart';
 import 'package:flutter/material.dart';
 
-import '../util/platform_util.dart';
 import 'clip_detail_dialog.dart';
 
 class ClipDataCard extends StatefulWidget {
@@ -39,7 +41,7 @@ class ClipDataCardState extends State<ClipDataCard> {
   }
 
   void _showDetail(ClipData chip) {
-    if (PlatformUtil.isPC()) {
+    if (PlatformExt.isPC) {
       _showDetailDialog(chip);
       return;
     }
@@ -101,13 +103,13 @@ class ClipDataCardState extends State<ClipDataCard> {
       elevation: 0,
       child: InkWell(
         onTap: () {
-          if (!PlatformUtil.isPC()) {
+          if (!PlatformExt.isPC) {
             return;
           }
           _showDetail(widget.clip);
         },
         onLongPress: () {
-          if (!PlatformUtil.isMobile()) {
+          if (!PlatformExt.isMobile) {
             return;
           }
           _showDetail(widget.clip);

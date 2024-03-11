@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/components/rounded_chip.dart';
@@ -5,9 +6,8 @@ import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/main.dart';
-import 'package:clipshare/util/platform_util.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../components/clip_data_card.dart';
 
@@ -127,7 +127,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
         }
       }
       setState(() {});
-      if (PlatformUtil.isPC()) {
+      if (PlatformExt.isPC) {
         _searchFocus.requestFocus();
       }
     });
@@ -475,7 +475,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
       ),
       backgroundColor: const Color.fromARGB(255, 238, 238, 238),
       body: Padding(
-        padding: const EdgeInsets.all(5),
+        padding: const EdgeInsets.fromLTRB(5, 5, 5, 0),
         child: Column(
           children: [
             const SizedBox(
