@@ -85,8 +85,8 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         super.configureFlutterEngine(flutterEngine)
         engine = flutterEngine
         GeneratedPluginRegistrant.registerWith(flutterEngine)
-        commonChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "common")
-        androidChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "android")
+        commonChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "top.coclyun.clipshare/common")
+        androidChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "top.coclyun.clipshare/android")
         initCommonChannel()
         initAndroidChannel()
         val fromNotification = intent.getBooleanExtra("fromNotification", false)

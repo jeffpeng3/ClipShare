@@ -151,9 +151,6 @@ class HistoryPageState extends State<HistoryPage>
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          height: 10,
-        ),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {

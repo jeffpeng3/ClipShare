@@ -14,9 +14,9 @@ class Constants {
 
   //配对时限（秒）
   static const pairingLimit = 60;
-  static const channelCommon = "common";
-  static const channelClip = "clip";
-  static const channelAndroid = "android";
+  static const channelCommon = "top.coclyun.clipshare/common";
+  static const channelClip = "top.coclyun.clipshare/clip";
+  static const channelAndroid = "top.coclyun.clipshare/android";
 
   //设备类型图片
   static Map<String, Icon> devTypeIcons = const {

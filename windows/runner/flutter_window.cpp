@@ -106,9 +106,9 @@ bool FlutterWindow::OnCreate()
 	const flutter::StandardMethodCodec& codec = flutter::StandardMethodCodec::GetInstance();
 
 	chip_channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-		flutter_controller_->engine()->messenger(), "clip", &codec);
+		flutter_controller_->engine()->messenger(), "top.coclyun.clipshare/clip", &codec);
 	common_channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-		flutter_controller_->engine()->messenger(), "common", &codec);
+		flutter_controller_->engine()->messenger(), "top.coclyun.clipshare/common", &codec);
 	InitCommonChannel();
 
 	flutter_controller_->engine()->SetNextFrameCallback([&]()
