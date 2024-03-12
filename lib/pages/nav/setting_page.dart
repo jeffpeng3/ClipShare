@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:clipshare/components/setting_card.dart';
 import 'package:clipshare/components/setting_card_group.dart';
 import 'package:clipshare/components/text_edit_dialog.dart';
+import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
@@ -19,8 +21,67 @@ class SettingPage extends StatefulWidget {
   State<SettingPage> createState() => _SettingPageState();
 }
 
-class _SettingPageState extends State<SettingPage> {
+class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
   final tag = "ProfilePage";
+
+  //通知权限
+  var notifyHandler = NotifyPermHandler();
+
+  //shizuku
+  var shizukuHandler = ShizukuPermHandler();
+
+  //悬浮窗权限
+  var floatHandler = FloatPermHandler();
+
+  //检查电池优化
+  var ignoreBatteryHandler = IgnoreBatteryHandler();
+  bool hasNotifyPerm = false;
+  bool hasShizukuPerm = false;
+  bool hasFloatPerm = false;
+  bool hasIgnoreBattery = false;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      checkPermissions();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    //监听生命周期
+    WidgetsBinding.instance.addObserver(this);
+    checkPermissions();
+  }
+
+  void checkPermissions() {
+    if (Platform.isAndroid) {
+      notifyHandler.hasPermission().then((v) {
+        Log.debug(tag, "hasNotifyPerm: $v");
+        setState(() {
+          hasNotifyPerm = v;
+        });
+      });
+      shizukuHandler.hasPermission().then((v) {
+        Log.debug(tag, "hasShizukuPerm: $v");
+        setState(() {
+          hasShizukuPerm = v;
+        });
+      });
+      floatHandler.hasPermission().then((v) {
+        setState(() {
+          hasFloatPerm = v;
+        });
+      });
+      ignoreBatteryHandler.hasPermission().then((v) {
+        setState(() {
+          hasIgnoreBattery = v;
+        });
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,42 +144,62 @@ class _SettingPageState extends State<SettingPage> {
                   SettingCard(
                     main: const Text("通知权限"),
                     sub: const Text("进行相关系统通知"),
-                    value: true,
+                    value: hasNotifyPerm,
                     action: (val) => Icon(
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
                     show: () => Platform.isAndroid,
+                    onTap: () {
+                      if (!hasNotifyPerm) {
+                        notifyHandler.request();
+                      }
+                    },
                   ),
                   SettingCard(
                     main: const Text("悬浮窗权限"),
                     sub: const Text("高版本系统中通过悬浮窗获取剪贴板焦点"),
-                    value: true,
+                    value: hasFloatPerm,
                     action: (val) => Icon(
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
                     show: () => Platform.isAndroid,
+                    onTap: () {
+                      if (!hasFloatPerm) {
+                        floatHandler.request();
+                      }
+                    },
                   ),
                   SettingCard(
                     main: const Text("剪贴板权限"),
                     sub: const Text("请通过Shizuku或Root授权"),
-                    value: true,
+                    value: hasShizukuPerm,
                     action: (val) => Icon(
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
                     show: () => Platform.isAndroid,
+                    onTap: () {
+                      if (!hasShizukuPerm) {
+                        shizukuHandler.request();
+                      }
+                    },
                   ),
                   SettingCard(
                     main: const Text("电池优化"),
                     sub: const Text("添加电池优化防止被后台系统杀死"),
-                    value: false,
+                    value: hasIgnoreBattery,
                     action: (val) => Icon(
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
                     show: () => Platform.isAndroid,
+                    onTap: () {
+                      if (!hasIgnoreBattery) {
+                        ignoreBatteryHandler.request();
+                      }
+                    },
                   ),
                 ],
               ),

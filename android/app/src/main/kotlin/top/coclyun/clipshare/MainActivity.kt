@@ -12,6 +12,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.os.PowerManager
 import android.provider.Settings
 import android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION
 import android.util.Log
@@ -63,16 +64,17 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         checkNotification()
     }
 
-    private fun checkNotification() {
+    /**
+     * 检查通知权限
+     */
+    private fun checkNotification(): Boolean {
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        if (notificationManager.areNotificationsEnabled()) {
-            return
-        }
-        // todo 通知权限未开启，引导用户手动开启
-        // 可以显示一个提示对话框，包含跳转到通知设置页面的选项
-        requestNotificationPermission()
+        return notificationManager.areNotificationsEnabled()
     }
 
+    /**
+     * 请求通知权限
+     */
     private fun requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
@@ -85,8 +87,14 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         super.configureFlutterEngine(flutterEngine)
         engine = flutterEngine
         GeneratedPluginRegistrant.registerWith(flutterEngine)
-        commonChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "top.coclyun.clipshare/common")
-        androidChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "top.coclyun.clipshare/android")
+        commonChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "top.coclyun.clipshare/common"
+        )
+        androidChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "top.coclyun.clipshare/android"
+        )
         initCommonChannel()
         initAndroidChannel()
         val fromNotification = intent.getBooleanExtra("fromNotification", false)
@@ -97,6 +105,9 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         initService()
     }
 
+    /**
+     * 发送通知
+     */
     private fun notify(content: String) {
         val updatedBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, BackgroundService.notifyChannelId)
@@ -125,6 +136,10 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         }
     }
 
+    /**
+     * 检查shizuku权限
+     * @param code 权限代码
+     */
     private fun checkShizukuPermission(code: Int): Boolean {
         if (Shizuku.isPreV11()) {
             Toast.makeText(this, "Pre-v11 is unsupported", Toast.LENGTH_LONG).show()
@@ -142,7 +157,6 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
             } else {
                 // Request the permission
                 Toast.makeText(this, "else", Toast.LENGTH_LONG).show()
-                Shizuku.requestPermission(code)
                 false
             }
         } catch (e: Exception) {
@@ -150,6 +164,11 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         }
     }
 
+    /**
+     * 判断服务是否运行
+     * @param context 上下文
+     * @param serviceClass 服务类
+     */
     private fun isServiceRunning(context: Context, serviceClass: Class<*>): Boolean {
         val activityManager = context.getSystemService(ACTIVITY_SERVICE) as ActivityManager
 
@@ -164,6 +183,9 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         return false
     }
 
+    /**
+     * 初始化平台channel
+     */
     private fun initAndroidChannel() {
         // 注册广播接收器
         screenReceiver = ScreenReceiver(androidChannel)
@@ -189,18 +211,29 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
                     );
                     startActivityForResult(intent, requestOverlayResultCode);
                 }
-                //返回设备信息
-                "getBaseInfo" -> {
-                    val androId = Settings.System.getString(
-                        contentResolver, Settings.System.ANDROID_ID
-                    )
-                    result.success(
-                        mapOf(
-                            "guid" to androId,
-                            "dev" to Build.MODEL,
-                            "type" to "Android"
-                        )
-                    );
+                //检查shizuku权限
+                "checkShizukuPermission" -> {
+                    result.success(checkShizukuPermission(requestShizukuCode))
+                }
+                //授权shizuku权限
+                "grantShizukuPermission" -> {
+                    Shizuku.requestPermission(requestShizukuCode)
+                }
+                //检查通知权限
+                "checkNotification" -> {
+                    result.success(checkNotification())
+                }
+                //授权通知权限
+                "grantNotification" -> {
+                    requestNotificationPermission()
+                }
+                //检查电池优化
+                "checkIgnoreBattery" -> {
+                    result.success(isIgnoringBatteryOptimizations())
+                }
+                //请求忽略电池优化
+                "requestIgnoreBattery" -> {
+                    requestIgnoreBatteryOptimizations()
                 }
                 //将应用置于后台
                 "moveToBg" -> {
@@ -222,6 +255,29 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         }
     }
 
+    private fun requestIgnoreBatteryOptimizations() {
+        try {
+            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+            intent.setData(Uri.parse("package:$packageName"))
+            startActivity(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun isIgnoringBatteryOptimizations(): Boolean {
+        var isIgnoring = false
+        val powerManager: PowerManager? =
+            getSystemService(Context.POWER_SERVICE) as PowerManager?
+        if (powerManager != null) {
+            isIgnoring = powerManager.isIgnoringBatteryOptimizations(getPackageName())
+        }
+        return isIgnoring
+    }
+
+    /**
+     * 初始化通用channel
+     */
     private fun initCommonChannel() {
         commonChannel.setMethodCallHandler { call, result ->
             when (call.method) {

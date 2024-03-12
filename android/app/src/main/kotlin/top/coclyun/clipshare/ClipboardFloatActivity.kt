@@ -40,7 +40,9 @@ class ClipboardFloatActivity : AppCompatActivity() {
             finish()
         }
     }
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
+        super.onBackPressed()
         moveTaskToBack(true)
     }
 }

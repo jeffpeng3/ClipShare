@@ -58,7 +58,7 @@ class BackgroundService : Service(),
         Log.d("backgroundService", "onStartCommand")
         // 在这里执行服务的逻辑
         ClipboardListener.instance(this)!!.registerObserver(this)
-        clipChannel = MethodChannel(MainActivity.engine.dartExecutor.binaryMessenger, "clip")
+        clipChannel = MethodChannel(MainActivity.engine.dartExecutor.binaryMessenger, "top.coclyun.clipshare/clip")
         // 在 Android 8.0 及以上版本，需要创建通知渠道
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()

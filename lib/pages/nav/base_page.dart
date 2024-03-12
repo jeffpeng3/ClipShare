@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:clipshare/dao/device_dao.dart';
 import 'package:clipshare/handler/history_top_syncer.dart';
+import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/handler/tag_syncer.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/pages/nav/debug_page.dart';
@@ -178,50 +179,34 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   ///初始化 initAndroid 平台
   void initAndroid() {
     //检查悬浮窗权限
-    App.androidChannel
-        .invokeMethod("checkAlertWindowPermission")
-        .then((hasPermission) {
-      Log.debug("checkAlarm", hasPermission);
-      if (hasPermission == false) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('悬浮窗权限申请'),
-              content: const Text(
-                '由于 Android 10 及以上版本的系统不允许后台读取剪贴板，当剪贴板发生变化时应用需要通过读取系统日志以及悬浮窗权限间接进行剪贴板读取。\n\n点击确定跳转页面授权悬浮窗权限',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    // 关闭弹窗
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('请授予悬浮窗权限，否则无法后台读取剪贴板'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  },
-                  child: const Text('取消'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    App.androidChannel
-                        .invokeMethod("grantAlertWindowPermission");
-                    // 关闭弹窗
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('去授权'),
-                ),
-              ],
-            );
-          },
-        );
+    var floatHandler = FloatPermHandler();
+    floatHandler.hasPermission().then((v) {
+      if (!v) {
+        floatHandler.request();
+      }
+    });
+    //检查Shizuku权限
+    var shizukuHandler = ShizukuPermHandler();
+    shizukuHandler.hasPermission().then((v) {
+      if (!v) {
+        shizukuHandler.request();
+      }
+    });
+    //检查通知权限
+    var notifyPerHandler = NotifyPermHandler();
+    notifyPerHandler.hasPermission().then((v) {
+      if (!v) {
+        notifyPerHandler.request();
+      }
+    });
+    //检查电池优化
+    var ignoreBatteryHandler = IgnoreBatteryHandler();
+    ignoreBatteryHandler.hasPermission().then((value) {
+      if (!value) {
+        ignoreBatteryHandler.request();
       }
     });
     App.androidChannel.setMethodCallHandler((call) {
-      Log.debug("androidChannel", call.method);
       switch (call.method) {
         case "onScreenOpened":
           //此处应该发送socket通知同步剪贴板到本机

@@ -79,6 +79,7 @@ class _SplashScreenState extends State<SplashScreen> {
       launchAtStartup: launchAtStartup?.toBool() ?? false,
       allowDiscover: allowDiscover?.toBool() ?? false,
     );
+    App.devInfo.name = App.settings.localName;
     if (!App.settings.startMini && PlatformExt.isPC) {
       await windowManager.show();
       await windowManager.focus();

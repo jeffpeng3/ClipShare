@@ -64,6 +64,7 @@ class SettingProvider extends Notifier<Settings> {
 
   Future<void> setLocalName(String localName) async {
     await _addOrUpdate("localName", localName);
+    App.devInfo.name = localName;
     state = state.copyWith(
       localName: localName,
     );

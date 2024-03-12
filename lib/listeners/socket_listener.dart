@@ -61,7 +61,6 @@ class DevSocket {
 
 class SocketListener {
   static late Ref _ref;
-  static late Settings settings;
   static const String tag = "SocketListener";
   late DeviceDao _deviceDao;
   final Map<Module, List<SyncListener>> _syncListeners = {};
@@ -83,10 +82,11 @@ class SocketListener {
   static bool _isInit = false;
   Future<void> _linkQueue = Future.value();
 
+  Settings get settings => _ref.read(settingProvider);
+
   Future<SocketListener> init(Ref ref) async {
     if (_isInit) throw Exception("已初始化");
     _ref = ref;
-    settings = _ref.read(settingProvider);
     _deviceDao = DBUtil.inst.deviceDao;
     // 初始化，创建socket监听
     _runSocketServer();
@@ -123,7 +123,7 @@ class SocketListener {
   void _onReceivedBroadcastInfo(MessageData msg, Datagram datagram) {
     DevInfo dev = msg.send;
     //设备已连接，跳过
-    if (_devSockets.keys.contains(dev.guid)) {
+    if (_devSockets.keys.contains(dev.guid) || !settings.allowDiscover) {
       return;
     }
     //建立连接
@@ -230,6 +230,10 @@ class SocketListener {
     switch (msg.key) {
       ///客户端连接
       case MsgType.connect:
+        if (!settings.allowDiscover) {
+          client.close();
+          return;
+        }
         //是否服务器反向连接
         var isReverse = msg.data.containsKey('reverse');
         if (_devSockets.containsKey(dev.guid) && !isReverse) {
