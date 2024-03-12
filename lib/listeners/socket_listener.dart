@@ -120,10 +120,17 @@ class SocketListener {
   }
 
   ///接收广播设备信息
-  void _onReceivedBroadcastInfo(MessageData msg, Datagram datagram) {
+  Future<void> _onReceivedBroadcastInfo(
+      MessageData msg, Datagram datagram) async {
     DevInfo dev = msg.send;
     //设备已连接，跳过
     if (_devSockets.keys.contains(dev.guid) || !settings.allowDiscover) {
+      return;
+    }
+    var device = await _deviceDao.getById(dev.guid, App.userId);
+    var isPaired = device != null && device.isPaired;
+    //未配对且不允许被发现，结束
+    if (!settings.allowDiscover && !isPaired) {
       return;
     }
     //建立连接
@@ -230,8 +237,11 @@ class SocketListener {
     switch (msg.key) {
       ///客户端连接
       case MsgType.connect:
-        if (!settings.allowDiscover) {
-          client.close();
+        var device = await _deviceDao.getById(dev.guid, App.userId);
+        var isPaired = device != null && device.isPaired;
+        //未配对且不允许被发现，关闭链接
+        if (!settings.allowDiscover && !isPaired) {
+          client.destroy();
           return;
         }
         //是否服务器反向连接
