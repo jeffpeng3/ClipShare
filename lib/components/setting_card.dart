@@ -8,7 +8,7 @@ class SettingCard<T> extends StatefulWidget {
   bool separate;
   final bool showValueInSub;
   late BorderRadius borderRadius;
-  final bool Function()? show;
+  final bool Function(T)? show;
   final void Function()? onTap;
 
   SettingCard({
@@ -34,7 +34,7 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
   @override
   Widget build(BuildContext context) {
     //不显示内容
-    if (widget.show != null && !widget.show!.call()) {
+    if (widget.show != null && !widget.show!.call(widget.value)) {
       return const SizedBox.shrink();
     }
     Widget? sub = widget.sub;

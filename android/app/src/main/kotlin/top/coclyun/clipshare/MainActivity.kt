@@ -4,6 +4,7 @@ import android.R
 import android.app.Activity
 import android.app.ActivityManager
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -25,6 +26,7 @@ import io.flutter.plugins.GeneratedPluginRegistrant
 import rikka.shizuku.Shizuku
 import top.coclyun.clipshare.broadcast.ScreenReceiver
 import top.coclyun.clipshare.service.BackgroundService
+import top.coclyun.clipshare.service.HistoryFloatService
 
 
 class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListener {
@@ -41,7 +43,6 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
 
     override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
         super.onCreate(savedInstanceState, persistentState)
-
     }
 
     private fun initService() {
@@ -114,6 +115,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setSmallIcon(R.drawable.btn_star_big_on)
                 .setOngoing(true)
+                .setContentIntent(createPendingIntent())
                 .setSound(null)
                 .setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
                 .setContentText(content)
@@ -245,7 +247,16 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
                     notify(content)
                     result.success(true);
                 }
-
+                //显示历史浮窗
+                "showHistoryFloatWindow" -> {
+                    if (!isServiceRunning(this, HistoryFloatService::class.java)) {
+                        startService(Intent(this, HistoryFloatService::class.java))
+                    }
+                }
+                //关闭历史浮窗
+                "closeHistoryFloatWindow" -> {
+                    stopService(Intent(this, HistoryFloatService::class.java))
+                }
                 "toast" -> {
                     val content = args["content"].toString();
                     Toast.makeText(this, content, Toast.LENGTH_LONG).show();
@@ -332,5 +343,12 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         unregisterReceiver(screenReceiver)
         //MainActivity被销毁时停止服务运行
         stopService(Intent(this, BackgroundService::class.java))
+        stopService(Intent(this, HistoryFloatService::class.java))
+    }
+
+    private fun createPendingIntent(): PendingIntent? {
+        val intent = Intent(this, this::class.java)
+        intent.putExtra("fromNotification", true)
+        return PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
     }
 }

@@ -4,6 +4,7 @@ import 'package:clipshare/components/setting_card.dart';
 import 'package:clipshare/components/setting_card_group.dart';
 import 'package:clipshare/components/text_edit_dialog.dart';
 import 'package:clipshare/handler/permission_handler.dart';
+import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
@@ -120,7 +121,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                         }
                       },
                     ),
-                    show: () => PlatformExt.isPC,
+                    show: (v) => PlatformExt.isPC,
                   ),
                   SettingCard(
                     main: const Text("启动时最小化窗口"),
@@ -131,7 +132,28 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                         ref.notifier(settingProvider).setStartMini(checked);
                       },
                     ),
-                    show: () => PlatformExt.isPC,
+                    show: (v) => PlatformExt.isPC,
+                  ),
+                  SettingCard(
+                    main: const Text("显示历史记录悬浮窗"),
+                    value: true,
+                    action: (v) => Switch(
+                      value: vm.showHistoryFloat,
+                      onChanged: (checked) {
+                        if (checked) {
+                          App.androidChannel
+                              .invokeMethod("showHistoryFloatWindow");
+                        } else {
+                          App.androidChannel
+                              .invokeMethod("closeHistoryFloatWindow");
+                        }
+                        HapticFeedback.mediumImpact();
+                        ref
+                            .notifier(settingProvider)
+                            .setShowHistoryFloat(checked);
+                      },
+                    ),
+                    show: (v) => Platform.isAndroid,
                   ),
                 ],
               ),
@@ -149,7 +171,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
-                    show: () => Platform.isAndroid && !hasNotifyPerm,
+                    show: (v) => Platform.isAndroid && !v,
                     onTap: () {
                       if (!hasNotifyPerm) {
                         notifyHandler.request();
@@ -164,7 +186,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
-                    show: () => Platform.isAndroid && !hasFloatPerm,
+                    show: (v) => Platform.isAndroid && !v,
                     onTap: () {
                       if (!hasFloatPerm) {
                         floatHandler.request();
@@ -179,7 +201,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
-                    show: () => Platform.isAndroid && !hasShizukuPerm,
+                    show: (v) => Platform.isAndroid && !v,
                     onTap: () {
                       if (!hasShizukuPerm) {
                         shizukuHandler.request();
@@ -194,7 +216,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
-                    show: () => Platform.isAndroid && !hasIgnoreBattery,
+                    show: (v) => Platform.isAndroid && !v,
                     onTap: () {
                       if (!hasIgnoreBattery) {
                         ignoreBatteryHandler.request();

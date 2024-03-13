@@ -21,6 +21,7 @@ class SettingProvider extends Notifier<Settings> {
       launchAtStartup: settings.launchAtStartup,
       startMini: settings.startMini,
       allowDiscover: settings.allowDiscover,
+      showHistoryFloat: settings.showHistoryFloat,
     );
   }
 
@@ -67,6 +68,13 @@ class SettingProvider extends Notifier<Settings> {
     App.devInfo.name = localName;
     state = state.copyWith(
       localName: localName,
+    );
+  }
+
+  Future<void> setShowHistoryFloat(bool showHistoryFloat) async {
+    await _addOrUpdate("showHistoryFloat", showHistoryFloat.toString());
+    state = state.copyWith(
+      showHistoryFloat: showHistoryFloat,
     );
   }
 }

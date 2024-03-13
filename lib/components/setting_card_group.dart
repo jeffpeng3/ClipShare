@@ -27,22 +27,23 @@ class SettingCardGroup extends StatelessWidget {
       bottomRight: Radius.circular(radius),
     );
     var allBorder = BorderRadius.all(Radius.circular(radius));
-    var empty = cardList.where((card) => card.show?.call() != false).isEmpty;
-    return empty
+    var showList =
+        cardList.where((card) => card.show?.call(card.value) != false).toList();
+    return showList.isEmpty
         ? const SizedBox.shrink()
         : Column(
             children: [
               SettingHeader(title: groupName, icon: icon),
-              for (var i = 0; i < cardList.length; i++)
-                cardList[i]
-                  ..borderRadius = cardList.length == 1
+              for (var i = 0; i < showList.length; i++)
+                showList[i]
+                  ..borderRadius = showList.length == 1
                       ? allBorder
                       : (i == 0
                           ? topBorder
-                          : i == cardList.length - 1
+                          : i == showList.length - 1
                               ? bottomBorder
                               : BorderRadius.zero)
-                  ..separate = cardList.length != 1 && i != cardList.length - 1,
+                  ..separate = showList.length != 1 && i != showList.length - 1,
             ],
           );
   }

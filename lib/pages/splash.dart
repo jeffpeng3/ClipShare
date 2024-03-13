@@ -71,6 +71,10 @@ class _SplashScreenState extends State<SplashScreen> {
       "allowDiscover",
       App.userId,
     );
+    var showHistoryFloat = await cfg.getConfig(
+      "showHistoryFloat",
+      App.userId,
+    );
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
       localName:
@@ -78,7 +82,11 @@ class _SplashScreenState extends State<SplashScreen> {
       startMini: startMini?.toBool() ?? false,
       launchAtStartup: launchAtStartup?.toBool() ?? false,
       allowDiscover: allowDiscover?.toBool() ?? false,
+      showHistoryFloat: showHistoryFloat?.toBool()??false,
     );
+    if(App.settings.showHistoryFloat){
+      App.androidChannel.invokeMethod("showHistoryFloatWindow");
+    }
     App.devInfo.name = App.settings.localName;
     if (!App.settings.startMini && PlatformExt.isPC) {
       await windowManager.show();
