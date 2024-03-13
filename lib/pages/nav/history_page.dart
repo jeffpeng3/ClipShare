@@ -349,7 +349,6 @@ class HistoryPageState extends State<HistoryPage>
       });
     } else {
       f.then((cnt) {
-        if (cnt <= 0) return;
         //发送同步确认
         SocketListener.inst.sendData(send, MsgType.ackSync, {
           "id": opRecord.id,

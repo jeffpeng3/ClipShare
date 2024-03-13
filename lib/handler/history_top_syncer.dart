@@ -52,7 +52,6 @@ class HistoryTopSyncer implements SyncListener {
     }
 
     f.then((cnt) {
-      if (cnt <= 0) return;
       HistoryPage.pageKey.currentState?.updatePage(
         (his) => his.id == history.id,
         (his) => his.top = history.top,

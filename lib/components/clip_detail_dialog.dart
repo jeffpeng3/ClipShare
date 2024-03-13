@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
+import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/tag_edit_page.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
@@ -174,6 +176,29 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                         );
                       },
                       tooltip: "复制内容",
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.sync,
+                        color: Colors.blueGrey,
+                      ),
+                      onPressed: () {
+                        DBUtil.inst.opRecordDao
+                            .getByDataId(
+                          widget.clip.data.id,
+                          Module.history.moduleName,
+                          OpMethod.add.name,
+                          App.userId,
+                        )
+                            .then((op) {
+                          Log.debug(tag, op.toString());
+                          if (op == null) return;
+                          op.data = widget.clip.data.toString();
+                          SocketListener.inst
+                              .sendData(null, MsgType.sync, op.toJson());
+                        });
+                      },
+                      tooltip: "重新同步",
                     ),
                   ],
                 ),

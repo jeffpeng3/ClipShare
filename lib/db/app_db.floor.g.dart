@@ -828,6 +828,19 @@ class _$OperationRecordDao extends OperationRecordDao {
   }
 
   @override
+  Future<OperationRecord?> getByDataId(
+    int id,
+    String module,
+    String opMethod,
+    int uid,
+  ) async {
+    return _queryAdapter.query(
+        'select * from OperationRecord where uid = ?4 and module = ?2 and method = ?3 and data = ?1',
+        mapper: (Map<String, Object?> row) => OperationRecord(id: row['id'] as int, uid: row['uid'] as int, module: _moduleTypeConverter.decode(row['module'] as String), method: _opMethodTypeConverter.decode(row['method'] as String), data: row['data'] as String),
+        arguments: [id, module, opMethod, uid]);
+  }
+
+  @override
   Future<int> add(OperationRecord record) {
     return _operationRecordInsertionAdapter.insertAndReturnId(
         record, OnConflictStrategy.abort);

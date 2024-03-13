@@ -608,7 +608,6 @@ class _DevicesPageState extends State<DevicesPage>
       );
     } else {
       f.then((cnt) {
-        if (cnt <= 0) return;
         //发送同步确认
         SocketListener.inst.sendData(
           send,

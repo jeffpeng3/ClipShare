@@ -149,7 +149,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
-                    show: () => Platform.isAndroid,
+                    show: () => Platform.isAndroid && !hasNotifyPerm,
                     onTap: () {
                       if (!hasNotifyPerm) {
                         notifyHandler.request();
@@ -164,7 +164,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
-                    show: () => Platform.isAndroid,
+                    show: () => Platform.isAndroid && !hasFloatPerm,
                     onTap: () {
                       if (!hasFloatPerm) {
                         floatHandler.request();
@@ -179,7 +179,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
-                    show: () => Platform.isAndroid,
+                    show: () => Platform.isAndroid && !hasShizukuPerm,
                     onTap: () {
                       if (!hasShizukuPerm) {
                         shizukuHandler.request();
@@ -194,7 +194,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       val ? Icons.check_circle : Icons.help,
                       color: val ? Colors.green : Colors.orange,
                     ),
-                    show: () => Platform.isAndroid,
+                    show: () => Platform.isAndroid && !hasIgnoreBattery,
                     onTap: () {
                       if (!hasIgnoreBattery) {
                         ignoreBatteryHandler.request();

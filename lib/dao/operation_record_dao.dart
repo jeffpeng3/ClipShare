@@ -32,4 +32,14 @@ abstract class OperationRecordDao {
   ///删除当前用户的所有操作记录
   @Query("delete from OperationRecord where uid = :uid")
   Future<int?> removeAll(int uid);
+
+  @Query(
+    "select * from OperationRecord where uid = :uid and module = :module and method = :opMethod and data = :id",
+  )
+  Future<OperationRecord?> getByDataId(
+    int id,
+    String module,
+    String opMethod,
+    int uid,
+  );
 }
