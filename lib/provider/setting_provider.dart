@@ -22,6 +22,7 @@ class SettingProvider extends Notifier<Settings> {
       startMini: settings.startMini,
       allowDiscover: settings.allowDiscover,
       showHistoryFloat: settings.showHistoryFloat,
+      firstStartup: settings.firstStartup,
     );
   }
 
@@ -75,6 +76,13 @@ class SettingProvider extends Notifier<Settings> {
     await _addOrUpdate("showHistoryFloat", showHistoryFloat.toString());
     state = state.copyWith(
       showHistoryFloat: showHistoryFloat,
+    );
+  }
+
+  Future<void> setFirstStartup() async {
+    await _addOrUpdate("firstStartup", false.toString());
+    state = state.copyWith(
+      showHistoryFloat: false,
     );
   }
 }

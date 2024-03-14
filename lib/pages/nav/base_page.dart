@@ -10,28 +10,28 @@ import 'package:clipshare/pages/nav/debug_page.dart';
 import 'package:clipshare/pages/nav/devices_page.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/pages/nav/setting_page.dart';
-import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:refena_flutter/refena_flutter.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../db/db_util.dart';
-import '../../listeners/clip_listener.dart';
 import '../../main.dart';
 import '../search_page.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.title});
+class BasePage extends StatefulWidget {
+  const BasePage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<BasePage> createState() => _BasePageState();
 }
 
-class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
+class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   int _index = 0;
   List<Widget> pages = List.from([
     HistoryPage(
@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   late HistoryTopSyncer _historyTopSyncer;
   late StreamSubscription _networkListener;
 
-  String get tag => "HomePage";
+  String get tag => "BasePage";
 
   @override
   void initState() {
@@ -192,58 +192,6 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
         shizukuHandler.request();
       }
     });
-    //检查通知权限
-    var notifyPerHandler = NotifyPermHandler();
-    notifyPerHandler.hasPermission().then((v) {
-      if (!v) {
-        notifyPerHandler.request();
-      }
-    });
-    //检查电池优化
-    var ignoreBatteryHandler = IgnoreBatteryHandler();
-    ignoreBatteryHandler.hasPermission().then((value) {
-      if (!value) {
-        ignoreBatteryHandler.request();
-      }
-    });
-    App.androidChannel.setMethodCallHandler((call) {
-      switch (call.method) {
-        case "onScreenOpened":
-          //此处应该发送socket通知同步剪贴板到本机
-          SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
-          break;
-        case "checkMustPermission":
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('必要权限缺失'),
-                content: const Text(
-                  '请授权必要权限，由于 Android 10 及以上版本的系统不允许后台读取剪贴板，需要依赖 Shizuku 或 Root 权限来提权，否则只能被动接收剪贴板数据而不能发送',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      // 关闭弹窗
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('再也不说了'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // 关闭弹窗
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('确定'),
-                  ),
-                ],
-              );
-            },
-          );
-          break;
-      }
-      return Future(() => false);
-    });
   }
 
   /// 初始化通用行为
@@ -260,19 +208,8 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
     _historyTopSyncer = HistoryTopSyncer();
     //初始化数据库
     deviceDao = DBUtil.inst.deviceDao;
-    //接收平台消息
-    App.clipChannel.setMethodCallHandler((call) {
-      switch (call.method) {
-        case "setClipText":
-          {
-            String text = call.arguments['text'];
-            ClipListener.inst.update(text);
-            debugPrint("clipboard changed: $text");
-            return Future(() => true);
-          }
-      }
-      return Future(() => false);
-    });
+    //进入主页面后标记为不是第一次进入
+    context.ref.notifier(settingProvider).setFirstStartup();
   }
 
   @override
@@ -287,7 +224,6 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
 
   @override
   Widget build(BuildContext context) {
-    App.context = context;
     return PopScope(
       canPop: false,
       onPopInvoked: (bool didPop) {

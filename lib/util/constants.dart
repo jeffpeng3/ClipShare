@@ -1,10 +1,12 @@
 import 'package:clipshare/util/log.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Constants {
   //组播默认端口
   static const int port = 42317;
+
+  //app名称
+  static const String appName = "ClipShare";
 
   //组播地址
   static const String multicastGroup = '224.0.0.128';

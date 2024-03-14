@@ -35,6 +35,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
     private val requestShizukuCode = 5001
     private val requestOverlayResultCode = 5002
     private lateinit var screenReceiver: ScreenReceiver;
+    private val TAG: String = "MainActivity";
 
     companion object {
         @JvmStatic
@@ -132,7 +133,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         if (granted) {
             when (requestCode) {
                 requestShizukuCode -> {
-                    Toast.makeText(this, "shizuku 已授权", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Shizuku 已授权", Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -145,6 +146,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
     private fun checkShizukuPermission(code: Int): Boolean {
         if (Shizuku.isPreV11()) {
             Toast.makeText(this, "Pre-v11 is unsupported", Toast.LENGTH_LONG).show()
+            Log.d(TAG, "Pre-v11 is unsupported")
             return false
         }
         try {
@@ -153,12 +155,11 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
                 true
             } else if (Shizuku.shouldShowRequestPermissionRationale()) {
                 // Users choose "Deny and don't ask again"
-                Toast.makeText(this, "shouldShowRequestPermissionRationale", Toast.LENGTH_LONG)
-                    .show()
+                Log.d(TAG, "shouldShowRequestPermissionRationale")
                 false
             } else {
                 // Request the permission
-                Toast.makeText(this, "else", Toast.LENGTH_LONG).show()
+                Log.d(TAG, "else")
                 false
             }
         } catch (e: Exception) {
@@ -257,6 +258,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
                 "closeHistoryFloatWindow" -> {
                     stopService(Intent(this, HistoryFloatService::class.java))
                 }
+
                 "toast" -> {
                     val content = args["content"].toString();
                     Toast.makeText(this, content, Toast.LENGTH_LONG).show();

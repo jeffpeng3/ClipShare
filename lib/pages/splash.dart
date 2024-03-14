@@ -1,9 +1,18 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:clipshare/components/permission_guide.dart';
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/settings.dart';
+import 'package:clipshare/handler/permission_handler.dart';
+import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/pages/guide/base_guide.dart';
+import 'package:clipshare/pages/guide/battery_perm_guide.dart';
+import 'package:clipshare/pages/guide/float_perm_guide.dart';
+import 'package:clipshare/pages/guide/notify_perm_guide.dart';
+import 'package:clipshare/pages/guide/shizuku_perm_guide.dart';
+import 'package:clipshare/pages/user_guide.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -31,12 +40,17 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     // 在这里执行初始化操作
     init().then((v) {
-      // 初始化完成，导航到下一个页面c
-      gotoHomePage();
+      // 初始化完成，导航到下一个页面
+      if (App.settings.firstStartup && Platform.isAndroid) {
+        gotoUserGuidePage();
+      } else {
+        gotoHomePage();
+      }
     });
   }
 
   Future<void> init() async {
+    App.context = context;
     //初始化数据库
     await DBUtil.inst.init();
     //初始化本机设备信息
@@ -45,6 +59,60 @@ class _SplashScreenState extends State<SplashScreen> {
     await loadConfigs();
     //初始化socket
     SocketListener.inst.init(context.ref);
+    // 初始化channel
+    if (Platform.isAndroid) {
+      //接收平台消息
+      App.clipChannel.setMethodCallHandler((call) {
+        switch (call.method) {
+          case "setClipText":
+            {
+              String text = call.arguments['text'];
+              ClipListener.inst.update(text);
+              debugPrint("clipboard changed: $text");
+              return Future(() => true);
+            }
+        }
+        return Future(() => false);
+      });
+      App.androidChannel.setMethodCallHandler((call) {
+        switch (call.method) {
+          case "onScreenOpened":
+            //此处应该发送socket通知同步剪贴板到本机
+            SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
+            break;
+          case "checkMustPermission":
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('必要权限缺失'),
+                  content: const Text(
+                    '请授权必要权限，由于 Android 10 及以上版本的系统不允许后台读取剪贴板，需要依赖 Shizuku 或 Root 权限来提权，否则只能被动接收剪贴板数据而不能发送',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        // 关闭弹窗
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('再也不说了'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        // 关闭弹窗
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('确定'),
+                    ),
+                  ],
+                );
+              },
+            );
+            break;
+        }
+        return Future(() => false);
+      });
+    }
     return Future.value();
   }
 
@@ -75,16 +143,21 @@ class _SplashScreenState extends State<SplashScreen> {
       "showHistoryFloat",
       App.userId,
     );
+    var firstStartup = await cfg.getConfig(
+      "firstStartup",
+      App.userId,
+    );
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
       localName:
           localName != null && localName != "" ? localName : App.devInfo.name,
       startMini: startMini?.toBool() ?? false,
       launchAtStartup: launchAtStartup?.toBool() ?? false,
-      allowDiscover: allowDiscover?.toBool() ?? false,
-      showHistoryFloat: showHistoryFloat?.toBool()??false,
+      allowDiscover: allowDiscover?.toBool() ?? true,
+      showHistoryFloat: showHistoryFloat?.toBool() ?? false,
+      firstStartup: firstStartup?.toBool() ?? true,
     );
-    if(App.settings.showHistoryFloat){
+    if (App.settings.showHistoryFloat) {
       App.androidChannel.invokeMethod("showHistoryFloatWindow");
     }
     App.devInfo.name = App.settings.localName;
@@ -131,7 +204,23 @@ class _SplashScreenState extends State<SplashScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const HomePage(title: 'ChipShare'),
+        builder: (context) => const BasePage(title: 'ChipShare'),
+      ),
+    );
+  }
+
+  void gotoUserGuidePage() {
+    List<BaseGuide> guides = List.empty(growable: true);
+    guides.add(FloatPermGuide());
+    guides.add(ShizukuPermGuide());
+    guides.add(NotifyPermGuide());
+    guides.add(BatteryPermGuide());
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserGuide(
+          guides: guides,
+        ),
       ),
     );
   }

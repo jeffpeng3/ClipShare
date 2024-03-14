@@ -17,6 +17,9 @@ class Settings {
   //显示历史悬浮窗
   bool showHistoryFloat;
 
+  //是否第一次打开软件
+  bool firstStartup;
+
   Settings({
     required this.port,
     required this.localName,
@@ -24,6 +27,7 @@ class Settings {
     required this.startMini,
     required this.allowDiscover,
     required this.showHistoryFloat,
+    required this.firstStartup,
   });
 
   Settings copyWith({
@@ -33,6 +37,7 @@ class Settings {
     bool? startMini,
     bool? allowDiscover,
     bool? showHistoryFloat,
+    bool? firstStartup,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -41,6 +46,7 @@ class Settings {
       startMini: startMini ?? this.startMini,
       allowDiscover: allowDiscover ?? this.allowDiscover,
       showHistoryFloat: showHistoryFloat ?? this.showHistoryFloat,
+      firstStartup: firstStartup ?? this.firstStartup,
     );
   }
 }

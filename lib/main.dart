@@ -32,8 +32,7 @@ Future<void> initWindowsManager() async {
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.normal,
   );
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-  });
+  windowManager.waitUntilReadyToShow(windowOptions, () async {});
   return Future<void>.value();
 }
 
