@@ -306,7 +306,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                   ),
                   SettingCard(
                     main: const Text("关于软件"),
-                    sub: const Text("V1.0"),
+                    sub: const Text("1.0"),
                     value: false,
                     action: (v) => TextButton(
                       onPressed: () {},

@@ -67,7 +67,7 @@ class HistoryFloatService : Service(), OnTouchListener {
         val metrics = resources.displayMetrics
         val screenWidth = metrics.widthPixels
         val screenHeight = metrics.heightPixels
-        mainParams.flags = LayoutParams.FLAG_NOT_TOUCH_MODAL
+        mainParams.flags = LayoutParams.FLAG_NOT_FOCUSABLE or LayoutParams.FLAG_NOT_TOUCH_MODAL
         mainParams.gravity = Gravity.LEFT or Gravity.TOP
         // 屏幕右侧
         val xPosition: Int = screenWidth - view.width
