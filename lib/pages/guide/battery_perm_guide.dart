@@ -12,6 +12,7 @@ class BatteryPermGuide extends BaseGuide {
       icon: Icons.filter_none_rounded,
       description: "为了保证后台存活需要将其从电池优化中移除",
       grantPerm: permHandler.request,
+      checkPerm: canNext,
     );
   }
 

@@ -7,11 +7,13 @@ abstract class AbstractPermissionHandler {
     required Widget content,
     required bool Function(BuildContext) onConfirm,
     void Function(BuildContext)? onClose,
+    bool allowCloseInBlank = false,
     String closeText = "取消",
     String confirmText = "去授权",
   }) {
     showDialog(
       context: App.context,
+      barrierDismissible: allowCloseInBlank,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(title),
@@ -110,9 +112,9 @@ class ShizukuPermHandler extends AbstractPermissionHandler {
   @override
   void request() {
     AbstractPermissionHandler.showRequestDialog(
-      title: "必要权限缺失",
+      title: "Shizuku权限请求",
       content: const Text(
-        '请授权必要权限，由于 Android 10 及以上版本的系统不允许后台读取剪贴板，需要依赖 Shizuku ，否则只能被动接收剪贴板数据而不能发送',
+        '由于 Android 10 及以上版本的系统不允许后台读取剪贴板，需要依赖 Shizuku ，否则只能被动接收剪贴板数据而不能发送',
       ),
       onClose: (ctx) {
         AbstractPermissionHandler.showCloseDialog(
@@ -154,7 +156,12 @@ class NotifyPermHandler extends AbstractPermissionHandler {
         '用于发送系统通知',
       ),
       onConfirm: (ctx) {
-        App.androidChannel.invokeMethod<bool>("grantNotification");
+        App.androidChannel
+            .invokeMethod<bool>("grantNotification")
+            .then((hasPerm) {
+          //启动服务
+          App.androidChannel.invokeMethod("startService");
+        });
         return true;
       },
     );
@@ -168,7 +175,7 @@ class NotifyPermHandler extends AbstractPermissionHandler {
   }
 }
 
-///通知权限处理请求
+///电池优化权限处理请求
 class IgnoreBatteryHandler extends AbstractPermissionHandler {
   @override
   void request() {

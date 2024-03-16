@@ -178,20 +178,19 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
 
   ///初始化 initAndroid 平台
   void initAndroid() {
-    //检查悬浮窗权限
-    var floatHandler = FloatPermHandler();
-    floatHandler.hasPermission().then((v) {
-      if (!v) {
-        floatHandler.request();
-      }
-    });
-    //检查Shizuku权限
-    var shizukuHandler = ShizukuPermHandler();
-    shizukuHandler.hasPermission().then((v) {
-      if (!v) {
-        shizukuHandler.request();
-      }
-    });
+    //检查权限
+    var permHandlers = [
+      FloatPermHandler(),
+      ShizukuPermHandler(),
+      NotifyPermHandler(),
+    ];
+    for (var handler in permHandlers) {
+      handler.hasPermission().then((v) {
+        if (!v) {
+          handler.request();
+        }
+      });
+    }
   }
 
   /// 初始化通用行为

@@ -50,7 +50,10 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         Log.d("onCreate", "initService")
         Shizuku.addRequestPermissionResultListener(this);
         val serviceRunning = isServiceRunning(this, BackgroundService::class.java)
-        if (checkShizukuPermission(requestShizukuCode) && !serviceRunning) {
+        if(serviceRunning){
+            stopService(Intent(this, BackgroundService::class.java))
+        }
+        if (checkShizukuPermission(requestShizukuCode)) {
             Log.d("onCreate", "start Service")
             // 创建 Intent 对象
             val serviceIntent = Intent(this, BackgroundService::class.java)
@@ -63,7 +66,6 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         } else {
             androidChannel.invokeMethod("checkMustPermission", null)
         }
-        checkNotification()
     }
 
     /**
@@ -99,11 +101,6 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         )
         initCommonChannel()
         initAndroidChannel()
-        val fromNotification = intent.getBooleanExtra("fromNotification", false)
-        if (fromNotification) {
-            notify("fromNotification")
-            return
-        }
         initService()
     }
 
@@ -113,7 +110,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
     private fun notify(content: String) {
         val updatedBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, BackgroundService.notifyChannelId)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setPriority(NotificationCompat.BADGE_ICON_NONE)
                 .setSmallIcon(R.drawable.btn_star_big_on)
                 .setOngoing(true)
                 .setContentIntent(createPendingIntent())
@@ -258,7 +255,11 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
                 "closeHistoryFloatWindow" -> {
                     stopService(Intent(this, HistoryFloatService::class.java))
                 }
-
+                //启动服务
+                "startService" -> {
+                    initService()
+                }
+                //提示
                 "toast" -> {
                     val content = args["content"].toString();
                     Toast.makeText(this, content, Toast.LENGTH_LONG).show();

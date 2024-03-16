@@ -14,6 +14,7 @@ class FloatPermGuide extends BaseGuide {
       description:
           "由于高版本Android系统限制，${Constants.appName}需要通过悬浮窗获取剪贴板焦点，开启悬浮窗后还可以随时从屏幕边缘查看剪贴板历史并进行拖拽选择",
       grantPerm: permHandler.request,
+      checkPerm: canNext,
     );
   }
 

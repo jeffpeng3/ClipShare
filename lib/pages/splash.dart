@@ -1,13 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:clipshare/components/permission_guide.dart';
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/settings.dart';
-import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
-import 'package:clipshare/pages/guide/base_guide.dart';
 import 'package:clipshare/pages/guide/battery_perm_guide.dart';
 import 'package:clipshare/pages/guide/float_perm_guide.dart';
 import 'package:clipshare/pages/guide/notify_perm_guide.dart';
@@ -210,16 +207,16 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void gotoUserGuidePage() {
-    List<BaseGuide> guides = List.empty(growable: true);
-    guides.add(FloatPermGuide());
-    guides.add(ShizukuPermGuide());
-    guides.add(NotifyPermGuide());
-    guides.add(BatteryPermGuide());
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => UserGuide(
-          guides: guides,
+          guides: [
+            FloatPermGuide(),
+            ShizukuPermGuide(),
+            NotifyPermGuide(),
+            BatteryPermGuide(),
+          ],
         ),
       ),
     );

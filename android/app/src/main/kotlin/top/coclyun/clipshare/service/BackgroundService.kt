@@ -58,7 +58,10 @@ class BackgroundService : Service(),
         Log.d("backgroundService", "onStartCommand")
         // 在这里执行服务的逻辑
         ClipboardListener.instance(this)!!.registerObserver(this)
-        clipChannel = MethodChannel(MainActivity.engine.dartExecutor.binaryMessenger, "top.coclyun.clipshare/clip")
+        clipChannel = MethodChannel(
+            MainActivity.engine.dartExecutor.binaryMessenger,
+            "top.coclyun.clipshare/clip"
+        )
         // 在 Android 8.0 及以上版本，需要创建通知渠道
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
@@ -71,9 +74,9 @@ class BackgroundService : Service(),
         ) as NotificationManager
         manger.notify(notificationId, notification)
         startForeground(notificationId, notification)
-        Log.d("notify", "startForeground")
+        notify("服务正在运行")
         readLogByShizuku()
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     private fun readLogByShizuku() {
@@ -99,10 +102,10 @@ class BackgroundService : Service(),
                         mHandler.sendMessage(Message())
                     }
                 }
-                notify("日志服务异常停止：")
+                notify("日志服务异常停止")
                 Log.d("read_logs", "finished")
             } catch (e: Exception) {
-                notify("shizuku服务异常停止：" + e.message)
+                notify("Shizuku服务异常停止：" + e.message)
                 e.printStackTrace()
                 e.message?.let { Log.e("read_logs", it) }
             }
@@ -115,7 +118,7 @@ class BackgroundService : Service(),
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name: CharSequence = "ClipShareMain"
             val description = "ClipShareMainService"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val importance = NotificationManager.IMPORTANCE_MIN
             val channel = NotificationChannel(notifyChannelId, name, importance)
             channel.description = description
             val notificationManager = getSystemService(
@@ -139,6 +142,7 @@ class BackgroundService : Service(),
             .setSmallIcon(R.drawable.btn_star_big_on)
             .setOngoing(true)
             .setSound(null)
+            .setContentIntent(createPendingIntent())
             .setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
             .setContentText("ClipShare 正在运行")
         Log.d("notify", "buildNotification")
@@ -173,7 +177,6 @@ class BackgroundService : Service(),
                 .setContentIntent(createPendingIntent())
                 .setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
                 .setContentText(content)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         val manger = getSystemService(
             NOTIFICATION_SERVICE
         ) as NotificationManager

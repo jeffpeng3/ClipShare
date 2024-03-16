@@ -165,7 +165,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                 cardList: [
                   SettingCard(
                     main: const Text("通知权限"),
-                    sub: const Text("进行相关系统通知"),
+                    sub: const Text("用于启动前台服务"),
                     value: hasNotifyPerm,
                     action: (val) => Icon(
                       val ? Icons.check_circle : Icons.help,
