@@ -82,7 +82,7 @@ class SettingProvider extends Notifier<Settings> {
   Future<void> setFirstStartup() async {
     await _addOrUpdate("firstStartup", false.toString());
     state = state.copyWith(
-      showHistoryFloat: false,
+      firstStartup: false,
     );
   }
 }
