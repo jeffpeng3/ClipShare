@@ -201,7 +201,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const BasePage(title: 'ChipShare'),
+        builder: (context) => const BasePage(),
       ),
     );
   }

@@ -23,9 +23,7 @@ import '../../main.dart';
 import '../search_page.dart';
 
 class BasePage extends StatefulWidget {
-  const BasePage({super.key, required this.title});
-
-  final String title;
+  const BasePage({super.key});
 
   @override
   State<BasePage> createState() => _BasePageState();
@@ -43,11 +41,11 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   List<BottomNavigationBarItem> navBarItems = List.from(const [
     BottomNavigationBarItem(
       icon: Icon(Icons.history),
-      label: '历史',
+      label: '历史记录',
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.devices_rounded),
-      label: '设备',
+      label: '我的设备',
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.settings),
@@ -236,7 +234,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: Row(
             children: [
-              Expanded(child: Text(widget.title)),
+              Expanded(child: Text(navBarItems[_index].label!)),
               IconButton(
                 onPressed: () {
                   //导航至搜索页面

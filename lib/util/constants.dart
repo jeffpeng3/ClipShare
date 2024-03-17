@@ -6,7 +6,7 @@ class Constants {
   static const int port = 42317;
 
   //app名称
-  static const String appName = "ClipShare";
+  static const String appName = "轻贴";
 
   //组播地址
   static const String multicastGroup = '224.0.0.128';
