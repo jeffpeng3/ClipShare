@@ -11,6 +11,7 @@ import 'package:clipshare/pages/nav/devices_page.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/pages/nav/setting_page.dart';
 import 'package:clipshare/provider/setting_provider.dart';
+import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -89,7 +90,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   ///初始化托盘
   void initTrayManager() async {
     trayManager.addListener(this);
-    trayManager.setToolTip("ClipShare");
+    trayManager.setToolTip(Constants.appName);
     await trayManager.setIcon(
       Platform.isWindows
           ? 'assets/images/logo/logo.ico'
@@ -234,7 +235,17 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: Row(
             children: [
-              Expanded(child: Text(navBarItems[_index].label!)),
+              Expanded(
+                  child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  navBarItems[_index].icon,
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  Text(navBarItems[_index].label!),
+                ],
+              )),
               IconButton(
                 onPressed: () {
                   //导航至搜索页面
