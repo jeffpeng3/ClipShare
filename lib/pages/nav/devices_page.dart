@@ -4,12 +4,15 @@ import 'package:clipshare/components/add_device_dialog.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
+import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
+import 'package:refena_flutter/refena_flutter.dart';
 
 import '../../components/device_card.dart';
 import '../../dao/device_dao.dart';
@@ -41,9 +44,11 @@ class _DevicesPageState extends State<DevicesPage>
   var _rotationReverse = false;
   late Animation<double> _animation;
   final String tag = "DevicesPage";
+  late Ref _ref;
 
   @override
   void initState() {
+    super.initState();
     SocketListener.inst.addDevAliveListener(this);
     SocketListener.inst.addDiscoverListener(this);
     SocketListener.inst.addSyncListener(Module.device, this);
@@ -79,7 +84,11 @@ class _DevicesPageState extends State<DevicesPage>
       }
       setState(() {});
     });
-    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      setState(() {
+        _ref = context.ref;
+      });
+    });
   }
 
   @override
@@ -517,24 +526,21 @@ class _DevicesPageState extends State<DevicesPage>
     if (dbDev != null) {
       //之前配对过，只是取消配对了
       dbDev.isPaired = true;
-      _deviceDao.updateDevice(dbDev);
-      _addPairedDevInPage(dbDev);
-    } else {
-      //新设备
-      _deviceDao.add(newDev).then((v) {
-        if (v == 0) {
-          Log.debug(tag, "Device information addition failed");
+      _ref.notifier(deviceInfoProvider).addOrUpdate(dbDev).then((res) {
+        if (res) {
+          _addPairedDevInPage(dbDev);
           return;
         }
-        // DBUtil.inst.opRecordDao.addAndNotify(
-        //   OperationRecord(
-        //     id: App.snowflake.nextId(),
-        //     uid: App.userId,
-        //     module: Module.device,
-        //     method: OpMethod.add,
-        //     data: newDev.guid,
-        //   ),
-        // );
+        Global.snackBarErr("设备添加失败");
+      });
+    } else {
+      //新设备
+      _ref.notifier(deviceInfoProvider).addOrUpdate(newDev).then((res) {
+        if (!res) {
+          Log.debug(tag, "Device information addition failed");
+          Global.snackBarErr("设备添加失败");
+          return;
+        }
         _addPairedDevInPage(newDev);
       });
     }

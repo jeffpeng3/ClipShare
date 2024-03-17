@@ -4,9 +4,11 @@ import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/main.dart';
-import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/pages/search_page.dart';
+import 'package:clipshare/provider/device_info_provider.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:flutter/material.dart';
+import 'package:refena_flutter/refena_flutter.dart';
 
 import 'clip_detail_dialog.dart';
 
@@ -32,7 +34,6 @@ class ClipDataCard extends StatefulWidget {
 
 class ClipDataCardState extends State<ClipDataCard> {
   bool _showSimpleTime = true;
-  var _device = App.device;
   List<String> _tags = List.empty();
 
   @override
@@ -86,70 +87,44 @@ class ClipDataCardState extends State<ClipDataCard> {
   @override
   Widget build(BuildContext context) {
     var history = widget.clip.data;
-    DBUtil.inst.deviceDao.getById(history.devId, App.userId).then((dev) {
-      if (dev == null) return;
-      _device = dev;
-      if (mounted) {
-        setState(() {});
-      }
-    });
     DBUtil.inst.historyTagDao.list(history.id).then((lst) {
       _tags = lst.map((e) => e.tagName).toList(growable: false);
       if (mounted) {
         setState(() {});
       }
     });
-    return Card(
-      elevation: 0,
-      child: InkWell(
-        onTap: () {
-          if (!PlatformExt.isPC) {
-            return;
-          }
-          _showDetail(widget.clip);
-        },
-        onLongPress: () {
-          if (!PlatformExt.isMobile) {
-            return;
-          }
-          _showDetail(widget.clip);
-        },
-        borderRadius: BorderRadius.circular(12.0),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    //来源设备
-                    RoundedChip(
-                      avatar: const Icon(Icons.devices_rounded),
-                      backgroundColor: const Color(0x1a000000),
-                      onPressed: () {
-                        if (widget.routeToSearchOnClickChip) {
-                          //导航至搜索页面
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  SearchPage(devId: _device.guid),
-                            ),
-                          );
-                        }
-                      },
-                      label: Text(
-                        _device.name,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ),
-                    //标签
-                    for (var tagName in _tags)
-                      Container(
-                        margin: const EdgeInsets.only(left: 5),
-                        child: RoundedChip(
+    return ViewModelBuilder(
+      provider: deviceInfoProvider,
+      builder: (context, vm) {
+        return Card(
+          elevation: 0,
+          child: InkWell(
+            onTap: () {
+              if (!PlatformExt.isPC) {
+                return;
+              }
+              _showDetail(widget.clip);
+            },
+            onLongPress: () {
+              if (!PlatformExt.isMobile) {
+                return;
+              }
+              _showDetail(widget.clip);
+            },
+            borderRadius: BorderRadius.circular(12.0),
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        //来源设备
+                        RoundedChip(
+                          avatar: const Icon(Icons.devices_rounded),
+                          backgroundColor: const Color(0x1a000000),
                           onPressed: () {
                             if (widget.routeToSearchOnClickChip) {
                               //导航至搜索页面
@@ -157,80 +132,104 @@ class ClipDataCardState extends State<ClipDataCard> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      SearchPage(tagName: tagName),
+                                      SearchPage(devId: widget.clip.data.devId),
                                 ),
                               );
                             }
                           },
-                          backgroundColor: const Color(0x1a000000),
-                          avatar: const CircleAvatar(
-                            backgroundColor: Colors.blue,
-                            child: Text(
-                              '#',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
                           label: Text(
-                            tagName,
+                            vm.getName(widget.clip.data.devId),
                             style: const TextStyle(fontSize: 12),
                           ),
                         ),
-                      ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  children: [
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        widget.clip.data.content,
-                        textAlign: TextAlign.left,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        //标签
+                        for (var tagName in _tags)
+                          Container(
+                            margin: const EdgeInsets.only(left: 5),
+                            child: RoundedChip(
+                              onPressed: () {
+                                if (widget.routeToSearchOnClickChip) {
+                                  //导航至搜索页面
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          SearchPage(tagName: tagName),
+                                    ),
+                                  );
+                                }
+                              },
+                              backgroundColor: const Color(0x1a000000),
+                              avatar: const CircleAvatar(
+                                backgroundColor: Colors.blue,
+                                child: Text(
+                                  '#',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              label: Text(
+                                tagName,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              Row(
-                children: [
-                  widget.clip.data.top
-                      ? const Icon(Icons.push_pin, size: 16)
-                      : const SizedBox(width: 0),
-                  !widget.clip.data.sync
-                      ? const Icon(
-                          Icons.sync,
-                          size: 16,
-                          color: Colors.red,
-                        )
-                      : const SizedBox(width: 0),
-                  GestureDetector(
-                    child: Text(
-                      _showSimpleTime
-                          ? widget.clip.timeStr
-                          : widget.clip.data.time.substring(0,19),
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Container(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            widget.clip.data.content,
+                            textAlign: TextAlign.left,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
-                    onTap: () {
-                      setState(() {
-                        _showSimpleTime = !_showSimpleTime;
-                      });
-                    },
                   ),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(minWidth: 10),
+                  Row(
+                    children: [
+                      widget.clip.data.top
+                          ? const Icon(Icons.push_pin, size: 16)
+                          : const SizedBox(width: 0),
+                      !widget.clip.data.sync
+                          ? const Icon(
+                              Icons.sync,
+                              size: 16,
+                              color: Colors.red,
+                            )
+                          : const SizedBox(width: 0),
+                      GestureDetector(
+                        child: Text(
+                          _showSimpleTime
+                              ? widget.clip.timeStr
+                              : widget.clip.data.time.substring(0, 19),
+                        ),
+                        onTap: () {
+                          setState(() {
+                            _showSimpleTime = !_showSimpleTime;
+                          });
+                        },
+                      ),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(minWidth: 10),
+                      ),
+                      Text(widget.clip.sizeText),
+                    ],
                   ),
-                  Text(widget.clip.sizeText),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
