@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/tables/device.dart';
-import 'package:clipshare/main.dart';
+import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:refena_flutter/refena_flutter.dart';
 
 import '../entity/tables/operation_record.dart';
 
@@ -31,7 +32,6 @@ class DeviceCard extends StatefulWidget {
   State<StatefulWidget> createState() {
     return _DeviceCardState();
   }
-
 }
 
 class _DeviceCardState extends State<DeviceCard> {
@@ -101,10 +101,11 @@ class _DeviceCardState extends State<DeviceCard> {
             TextButton(
               onPressed: () {
                 var name = textController.text;
-                DBUtil.inst.deviceDao
-                    .rename(dev.guid, name, App.userId)
-                    .then((cnt) {
-                  if (cnt != null && cnt > 0) {
+                context.ref
+                    .notifier(deviceInfoProvider)
+                    .addOrUpdate(dev..customName = name)
+                    .then((res) {
+                  if (res) {
                     widget.dev!.customName = name;
                     var opRecord = OperationRecord.fromSimple(
                       Module.device,
@@ -136,13 +137,15 @@ class _DeviceCardState extends State<DeviceCard> {
           if (_empty) {
             return;
           }
-          widget.onTap?.call(widget.dev!, widget.isConnected,_showRenameDialog);
+          widget.onTap
+              ?.call(widget.dev!, widget.isConnected, _showRenameDialog);
         },
         onLongPress: () {
           if (_empty) {
             return;
           }
-          widget.onLongPress?.call(widget.dev!, widget.isConnected,_showRenameDialog);
+          widget.onLongPress
+              ?.call(widget.dev!, widget.isConnected, _showRenameDialog);
         },
         borderRadius: BorderRadius.circular(12.0),
         child: Padding(
