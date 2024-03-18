@@ -30,16 +30,15 @@ import top.coclyun.clipshare.service.HistoryFloatService
 
 
 class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListener {
-    private lateinit var commonChannel: MethodChannel;
-    private lateinit var androidChannel: MethodChannel;
     private val requestShizukuCode = 5001
     private val requestOverlayResultCode = 5002
     private lateinit var screenReceiver: ScreenReceiver;
     private val TAG: String = "MainActivity";
 
     companion object {
-        @JvmStatic
-        lateinit var engine: FlutterEngine
+        lateinit var commonChannel: MethodChannel;
+        lateinit var androidChannel: MethodChannel;
+        lateinit var clipChannel: MethodChannel
     }
 
     override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
@@ -50,7 +49,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         Log.d("onCreate", "initService")
         Shizuku.addRequestPermissionResultListener(this);
         val serviceRunning = isServiceRunning(this, BackgroundService::class.java)
-        if(serviceRunning){
+        if (serviceRunning) {
             stopService(Intent(this, BackgroundService::class.java))
         }
         if (checkShizukuPermission(requestShizukuCode)) {
@@ -89,7 +88,6 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        engine = flutterEngine
         GeneratedPluginRegistrant.registerWith(flutterEngine)
         commonChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
@@ -98,6 +96,10 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         androidChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             "top.coclyun.clipshare/android"
+        )
+        clipChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "top.coclyun.clipshare/clip"
         )
         initCommonChannel()
         initAndroidChannel()

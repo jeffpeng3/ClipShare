@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/settings.dart';
+import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/pages/guide/battery_perm_guide.dart';
@@ -12,6 +13,7 @@ import 'package:clipshare/pages/guide/shizuku_perm_guide.dart';
 import 'package:clipshare/pages/user_guide.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -59,19 +61,38 @@ class _SplashScreenState extends State<SplashScreen> {
     // 初始化channel
     if (Platform.isAndroid) {
       //接收平台消息
-      App.clipChannel.setMethodCallHandler((call) {
+      App.clipChannel.setMethodCallHandler((call) async {
+        var arguments = call.arguments;
         switch (call.method) {
           case "setClipText":
-            {
-              String text = call.arguments['text'];
-              ClipListener.inst.update(text);
-              debugPrint("clipboard changed: $text");
-              return Future(() => true);
+            String text = arguments['text'];
+            ClipListener.inst.update(text);
+            debugPrint("clipboard changed: $text");
+            return Future(() => true);
+          case "getHistory":
+            int fromId = arguments["fromId"];
+            var historyDao = DBUtil.inst.historyDao;
+            var lst = List<History>.empty();
+            if (fromId == 0) {
+              lst = await historyDao.getHistoriesTop20(App.userId);
+            } else {
+              lst = await historyDao.getHistoriesPage(App.userId, fromId);
             }
+            var contentLst = lst
+                .map(
+                  (e) => {
+                    "id": e.id,
+                    "content": e.content,
+                  },
+                )
+                .toList();
+            Log.debug("contentLst", contentLst);
+            return Future(() => contentLst);
         }
         return Future(() => false);
       });
-      App.androidChannel.setMethodCallHandler((call) {
+      App.androidChannel.setMethodCallHandler((call) async {
+        var arguments = call.arguments;
         switch (call.method) {
           case "onScreenOpened":
             //此处应该发送socket通知同步剪贴板到本机

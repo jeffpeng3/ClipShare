@@ -53,15 +53,10 @@ class BackgroundService : Service(),
 
     //mHandler用于弱引用和主线程更新UI，为什么一定要这样搞呢，简单地说就是不这样就会报错、会内存泄漏。
     private var mHandler = MyHandler(this)
-    private lateinit var clipChannel: MethodChannel
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("backgroundService", "onStartCommand")
         // 在这里执行服务的逻辑
         ClipboardListener.instance(this)!!.registerObserver(this)
-        clipChannel = MethodChannel(
-            MainActivity.engine.dartExecutor.binaryMessenger,
-            "top.coclyun.clipshare/clip"
-        )
         // 在 Android 8.0 及以上版本，需要创建通知渠道
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
@@ -157,7 +152,7 @@ class BackgroundService : Service(),
     override fun clipboardChanged(content: String, same: Boolean) {
         Log.d("clipboardChanged", "is same $same")
         if (same) return
-        clipChannel.invokeMethod("setClipText", mapOf("text" to content))
+        MainActivity.clipChannel.invokeMethod("setClipText", mapOf("text" to content))
         notify(content);
     }
 
