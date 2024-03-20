@@ -1,15 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
-import 'dart:typed_data';
 
+import 'package:basic_utils/basic_utils.dart';
 import 'package:crypto/crypto.dart';
-import 'package:encrypt/encrypt_io.dart';
-import 'package:pointycastle/asn1/primitives/asn1_sequence.dart';
-import 'package:pointycastle/asymmetric/api.dart';
-import 'package:pointycastle/export.dart';
-import 'package:pointycastle/key_generators/api.dart';
-import 'package:pointycastle/key_generators/rsa_key_generator.dart';
-import 'package:pointycastle/api.dart' as api;
 import 'package:encrypt/encrypt.dart';
 
 class CryptoUtil {
@@ -33,65 +26,57 @@ class CryptoUtil {
     return decodedString;
   }
 
-  /// 利用公钥进行加密
-  static String encryptString(
-      {required String publicKeyString, required String plainText}) {
-    final publicKey = _parsePublicKeyFromPem(publicKeyString);
-
-    final encrypter = Encrypter(RSA(publicKey: publicKey));
-
-    final encryptedText = encrypter.encrypt(plainText);
-
-    return encryptedText.base64;
+  /// 返回RSA的pem格式的key
+  /// 第一个参数是 privateKey，第二个是 publicKey
+  static List<String> genRSAKey() {
+    AsymmetricKeyPair pair = CryptoUtils.generateRSAKeyPair();
+    var privateKey =
+        CryptoUtils.encodeRSAPrivateKeyToPem(pair.privateKey as RSAPrivateKey);
+    var publicKey =
+        CryptoUtils.encodeRSAPublicKeyToPem(pair.publicKey as RSAPublicKey);
+    return [privateKey, publicKey];
   }
 
-  /// 生成公钥和私钥
-  static generateKeys() {
-    final keyPair = _generateRSAKeyPair();
-    final publicKeyString = keyPair.publicKey.toString();
-    final privateKeyString = keyPair.privateKey.toString();
-    // 将DER格式编码的公钥转换为PEM格式
-    String pemPublicKey = ;
-    print('公钥:\n$publicKeyString');
-    print('私钥:\n$privateKeyString');
-  }
-  String publicKey2Pem(RSAPublicKey publicKey){
-    ASN1Sequence sequence = ASN1Sequence();
-    sequence.add(RSAPublicKeyASN1.encodePublicKey(publicKey));
-    Uint8List derEncodedPublicKey = sequence.encodedBytes;
-    return '''-----BEGIN PUBLIC KEY-----
-${_formatPEM(derEncodedPublicKey)}
------END PUBLIC KEY-----''';
-  }
-  /// 将字节数据格式化为每行64个字符的PEM格式
-  String _formatPEM(Uint8List bytes) {
-    String base64String = base64.encode(bytes);
-    StringBuffer buffer = StringBuffer();
-    for (int i = 0; i < base64String.length; i += 64) {
-      buffer.write(base64String.substring(i, i + 64));
-      buffer.write('\n');
-    }
-    return buffer.toString();
-  }
-  static AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey> _generateRSAKeyPair() {
-    final secureRandom = api.SecureRandom('Fortuna')
-      ..seed(KeyParameter(Uint8List(32)));
-    final rsaParams = RSAKeyGeneratorParameters(BigInt.from(65537), 2048, 64);
-
-    final keyGenerator = RSAKeyGenerator()
-      ..init(ParametersWithRandom(rsaParams, secureRandom));
-
-    final keyPair = keyGenerator.generateKeyPair();
-
-    return AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(
-      keyPair.publicKey as RSAPublicKey,
-      keyPair.privateKey as RSAPrivateKey,
+  ///加密 RSA 数据
+  static String encryptRSA(String publicKey, String data) {
+    return CryptoUtils.rsaEncrypt(
+      data,
+      CryptoUtils.rsaPublicKeyFromPem(publicKey),
     );
   }
 
-  /// 通过PEM字符串解析公钥字符串
-  static RSAPublicKey _parsePublicKeyFromPem(String pemString) {
-    final key = RSAKeyParser().parse(pemString);
-    return key as RSAPublicKey;
+  ///解密 RSA 数据
+  static String decryptRSA(String privateKey, String data) {
+    return CryptoUtils.rsaDecrypt(
+      data,
+      CryptoUtils.rsaPrivateKeyFromPem(privateKey),
+    );
+  }
+
+  static Encrypter getEncrypter(String key, [AESMode mode = AESMode.cbc]) {
+    final aesKey = Key.fromUtf8(key);
+    return Encrypter(AES(aesKey, mode: mode));
+  }
+
+  ///加密 AES 数据
+  static String encryptAES(String key, String data) {
+    final iv = IV.fromUtf8(key);
+    return getEncrypter(key).encrypt(data, iv: iv).base64;
+  }
+
+  ///解密 AES 数据
+  static String decryptAES(String key, String data) {
+    final iv = IV.fromUtf8(key);
+    return getEncrypter(key).decrypt64(data, iv: iv);
+  }
+
+  static String generateRandomKey([
+    int len = 16,
+    String words = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  ]) {
+    final random = Random.secure();
+    // 生成随机密钥
+    var lst = List.generate(len, (_) => words[random.nextInt(words.length)]);
+    return lst.join('');
   }
 }

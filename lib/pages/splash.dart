@@ -165,6 +165,7 @@ class _SplashScreenState extends State<SplashScreen> {
       "firstStartup",
       App.userId,
     );
+    var [privateKeyRSA, publicKeyRSA] = CryptoUtil.genRSAKey();
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
       localName:
@@ -174,6 +175,8 @@ class _SplashScreenState extends State<SplashScreen> {
       allowDiscover: allowDiscover?.toBool() ?? true,
       showHistoryFloat: showHistoryFloat?.toBool() ?? false,
       firstStartup: firstStartup?.toBool() ?? true,
+      privateKeyRSA: privateKeyRSA,
+      publicKeyRSA: publicKeyRSA,
     );
     if (App.settings.showHistoryFloat) {
       App.androidChannel.invokeMethod("showHistoryFloatWindow");

@@ -23,6 +23,8 @@ class SettingProvider extends Notifier<Settings> {
       allowDiscover: settings.allowDiscover,
       showHistoryFloat: settings.showHistoryFloat,
       firstStartup: settings.firstStartup,
+      privateKeyRSA: settings.privateKeyRSA,
+      publicKeyRSA: settings.publicKeyRSA,
     );
   }
 
@@ -38,28 +40,28 @@ class SettingProvider extends Notifier<Settings> {
 
   Future<void> setAllowDiscover(bool allowDiscover) async {
     await _addOrUpdate("allowDiscover", allowDiscover.toString());
-    state = state.copyWith(
+    App.settings = state = state.copyWith(
       allowDiscover: allowDiscover,
     );
   }
 
   Future<void> setStartMini(bool startMini) async {
     await _addOrUpdate("startMini", startMini.toString());
-    state = state.copyWith(
+    App.settings = state = state.copyWith(
       startMini: startMini,
     );
   }
 
   Future<void> setLaunchAtStartup(bool launchAtStartup) async {
     await _addOrUpdate("launchAtStartup", launchAtStartup.toString());
-    state = state.copyWith(
+    App.settings = state = state.copyWith(
       launchAtStartup: launchAtStartup,
     );
   }
 
   Future<void> setPort(int port) async {
     await _addOrUpdate("port", port.toString());
-    state = state.copyWith(
+    App.settings = state = state.copyWith(
       port: port,
     );
   }
@@ -67,21 +69,21 @@ class SettingProvider extends Notifier<Settings> {
   Future<void> setLocalName(String localName) async {
     await _addOrUpdate("localName", localName);
     App.devInfo.name = localName;
-    state = state.copyWith(
+    App.settings = state = state.copyWith(
       localName: localName,
     );
   }
 
   Future<void> setShowHistoryFloat(bool showHistoryFloat) async {
     await _addOrUpdate("showHistoryFloat", showHistoryFloat.toString());
-    state = state.copyWith(
+    App.settings = state = state.copyWith(
       showHistoryFloat: showHistoryFloat,
     );
   }
 
   Future<void> setFirstStartup() async {
     await _addOrUpdate("firstStartup", false.toString());
-    state = state.copyWith(
+    App.settings = state = state.copyWith(
       firstStartup: false,
     );
   }

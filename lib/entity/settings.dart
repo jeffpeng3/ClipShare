@@ -20,6 +20,12 @@ class Settings {
   //是否第一次打开软件
   bool firstStartup;
 
+  //RSA私钥
+  final String privateKeyRSA;
+
+  //RSA公钥
+  final String publicKeyRSA;
+
   Settings({
     required this.port,
     required this.localName,
@@ -28,6 +34,8 @@ class Settings {
     required this.allowDiscover,
     required this.showHistoryFloat,
     required this.firstStartup,
+    required this.privateKeyRSA,
+    required this.publicKeyRSA,
   });
 
   Settings copyWith({
@@ -47,6 +55,8 @@ class Settings {
       allowDiscover: allowDiscover ?? this.allowDiscover,
       showHistoryFloat: showHistoryFloat ?? this.showHistoryFloat,
       firstStartup: firstStartup ?? this.firstStartup,
+      privateKeyRSA: privateKeyRSA,
+      publicKeyRSA: publicKeyRSA,
     );
   }
 }
