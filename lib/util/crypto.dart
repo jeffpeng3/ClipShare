@@ -59,15 +59,23 @@ class CryptoUtil {
   }
 
   ///加密 AES 数据
-  static String encryptAES(String key, String data) {
+  static String encryptAES({
+    required String key,
+    required String data,
+    Encrypter? encrypter,
+  }) {
     final iv = IV.fromUtf8(key);
-    return getEncrypter(key).encrypt(data, iv: iv).base64;
+    return (encrypter ?? getEncrypter(key)).encrypt(data, iv: iv).base64;
   }
 
   ///解密 AES 数据
-  static String decryptAES(String key, String data) {
+  static String decryptAES({
+    required String key,
+    required String data,
+    Encrypter? encrypter,
+  }) {
     final iv = IV.fromUtf8(key);
-    return getEncrypter(key).decrypt64(data, iv: iv);
+    return (encrypter ?? getEncrypter(key)).decrypt64(data, iv: iv);
   }
 
   static String generateRandomKey([
