@@ -1,4 +1,4 @@
-import 'package:clipshare/util/constants.dart';
+// import 'package:clipshare/util/constants.dart';
 import 'package:logger/logger.dart';
 
 class Log {
@@ -12,7 +12,7 @@ class Log {
 ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
   ''';
 
-  static toDb(String module, Option option, dynamic data) {}
+  // static toDb(String module, Option option, dynamic data) {}
 
   static void debug(String tag, dynamic) {
     var log = "$tag ${DateTime.now()}\n"
