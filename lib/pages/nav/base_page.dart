@@ -106,7 +106,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
     await trayManager.setIcon(
       Platform.isWindows
           ? 'assets/images/logo/logo.ico'
-          : 'assets/images/logo/logo.jpg',
+          : 'assets/images/logo/logo.png',
     );
     List<MenuItem> items = [
       MenuItem(

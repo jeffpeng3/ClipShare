@@ -1,6 +1,5 @@
 package top.coclyun.clipshare.service
 
-import android.R
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -26,6 +25,8 @@ import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.graphics.BitmapFactory
+import top.coclyun.clipshare.R
 
 
 class BackgroundService : Service(),
@@ -134,7 +135,7 @@ class BackgroundService : Service(),
 
         // 设置通知的标题、内容等
         builder.setContentTitle("ClipShare")
-            .setSmallIcon(R.drawable.btn_star_big_on)
+            .setSmallIcon(R.mipmap.launcher_icon)
             .setOngoing(true)
             .setSound(null)
             .setContentIntent(createPendingIntent())
@@ -165,7 +166,7 @@ class BackgroundService : Service(),
     private fun notify(content: String) {
         val updatedBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, notifyChannelId)
-                .setSmallIcon(R.drawable.btn_star_big_on)
+                .setSmallIcon(R.drawable.launcher_icon)
                 .setContentTitle("ClipShare")
                 .setOngoing(true)
                 .setSound(null)

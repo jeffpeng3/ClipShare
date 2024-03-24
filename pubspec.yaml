@@ -73,6 +73,7 @@ dev_dependencies:
     sdk: flutter
   floor_generator: ^1.4.2
   build_runner: ^2.1.2
+  flutter_launcher_icons: ^0.13.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -80,7 +81,14 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
-
+flutter_launcher_icons:
+  android: "launcher_icon"
+  image_path: "assets/images/logo/logo.png"
+  min_sdk_android: 24 # android min sdk min:16, default 21
+  windows:
+    generate: true
+    image_path: "assets/images/logo/logo.png"
+    icon_size: 48 # min:48, max:256, default: 48
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

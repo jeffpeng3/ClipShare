@@ -1,6 +1,5 @@
 package top.coclyun.clipshare
 
-import android.R
 import android.app.Activity
 import android.app.ActivityManager
 import android.app.NotificationManager
@@ -9,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -113,7 +113,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         val updatedBuilder: NotificationCompat.Builder =
             NotificationCompat.Builder(this, BackgroundService.notifyChannelId)
                 .setPriority(NotificationCompat.BADGE_ICON_NONE)
-                .setSmallIcon(R.drawable.btn_star_big_on)
+                .setSmallIcon(R.mipmap.launcher_icon)
                 .setOngoing(true)
                 .setContentIntent(createPendingIntent())
                 .setSound(null)

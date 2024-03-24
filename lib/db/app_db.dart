@@ -30,7 +30,7 @@ part 'app_db.floor.g.dart';
 ///    下面这行放在 app_db.floor.g.dart 文件里，使其变成 app_database.dart 文件的一部分
 ///    part of 'app_db.dart';
 ///
-/// 2. 直接执行 /scripts/gen_db.bat 一键完成
+/// 2. 直接执行 /scripts/db_gen.bat 一键完成
 @Database(
   version: 1,
   entities: [
