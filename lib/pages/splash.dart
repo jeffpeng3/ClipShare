@@ -56,8 +56,6 @@ class _SplashScreenState extends State<SplashScreen> {
     await initDevInfo();
     //加载配置信息
     await loadConfigs();
-    //初始化socket
-    SocketListener.inst.init(context.ref);
     // 初始化channel
     App.clipChannel.setMethodCallHandler((call) async {
       var arguments = call.arguments;

@@ -194,12 +194,14 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
 
   /// 初始化通用行为
   void initCommon() async {
+    //初始化socket
+    SocketListener.inst.init(context.ref);
     _networkListener = Connectivity()
         .onConnectivityChanged
         .listen((ConnectivityResult result) {
       Log.debug(tag, "网络变化 -> ${result.name}");
       if (result != ConnectivityResult.none) {
-        SocketListener.inst.startDiscoverDevice();
+        SocketListener.inst.restartDiscoverDevice();
       }
     });
     _tagSyncer = TagSyncer();

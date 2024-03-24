@@ -49,10 +49,17 @@ class _DebugPageState extends State<DebugPage> {
             DBUtil.inst.opRecordDao.removeAll(App.userId);
             DBUtil.inst.opSyncDao.removeAll(App.userId);
           },
-          child: const Text("删除所有操作记录"),
+          child: const Text("删除所有操作和同步记录"),
         ),
         Container(
           height: 10,
+        ),
+        ElevatedButton(
+          onPressed: () {
+            DBUtil.inst.opSyncDao.resetSyncStatus(App.device.guid);
+            DBUtil.inst.opSyncDao.removeAll(App.userId);
+          },
+          child: const Text("重置所有记录为未同步"),
         ),
       ],
     );

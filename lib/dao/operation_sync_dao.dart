@@ -11,4 +11,8 @@ abstract class OperationSyncDao {
   ///删除当前用户的所有操作同步记录
   @Query("delete OperationSync where uid = :uid")
   Future<int?> removeAll(int uid);
+
+  ///重置设备所有记录为未同步
+  @Query("update history set sync = 0 where devId = :devId")
+  Future<int?> resetSyncStatus(String devId);
 }

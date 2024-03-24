@@ -655,6 +655,13 @@ class _$OperationSyncDao extends OperationSyncDao {
   }
 
   @override
+  Future<int?> resetSyncStatus(String devId) async {
+    return _queryAdapter.query('update history set sync = 0 where devId = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [devId]);
+  }
+
+  @override
   Future<int> add(OperationSync syncHistory) {
     return _operationSyncInsertionAdapter.insertAndReturnId(
         syncHistory, OnConflictStrategy.abort);
