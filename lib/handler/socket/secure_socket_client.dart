@@ -134,7 +134,12 @@ class SecureSocketClient {
 
   ///发送数据
   void send(String data) {
-    _socket.writeln(CryptoUtil.base64Encode(data));
+    if(_ready) {
+      data = CryptoUtil.encryptAES(key: _aesKey, input: data,encrypter: _encrypter);
+    }else{
+      data = CryptoUtil.base64Encode(data);
+    }
+    _socket.writeln(data);
   }
 
   ///DH 算法发送 key 和 素数、底数

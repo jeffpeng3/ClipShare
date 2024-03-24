@@ -163,7 +163,13 @@ class SecureSocketServer {
 
   ///发送数据
   void send(Socket socket, String data) {
-    socket.writeln(CryptoUtil.base64Encode(data));
+    var sktData = _sktData[socket]!;
+    if(sktData.ready) {
+      data = CryptoUtil.encryptAES(key: sktData._aesKey, input: data,encrypter: sktData._encrypter);
+    }else{
+      data = CryptoUtil.base64Encode(data);
+    }
+    socket.writeln(data);
   }
 
   ///关闭连接
