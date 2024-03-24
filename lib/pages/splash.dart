@@ -59,38 +59,37 @@ class _SplashScreenState extends State<SplashScreen> {
     //初始化socket
     SocketListener.inst.init(context.ref);
     // 初始化channel
+    App.clipChannel.setMethodCallHandler((call) async {
+      var arguments = call.arguments;
+      switch (call.method) {
+        case "setClipText":
+          String text = arguments['text'];
+          ClipListener.inst.update(text);
+          debugPrint("clipboard changed: $text");
+          return Future(() => true);
+        case "getHistory":
+          int fromId = arguments["fromId"];
+          var historyDao = DBUtil.inst.historyDao;
+          var lst = List<History>.empty();
+          if (fromId == 0) {
+            lst = await historyDao.getHistoriesTop20(App.userId);
+          } else {
+            lst = await historyDao.getHistoriesPage(App.userId, fromId);
+          }
+          var contentLst = lst
+              .map(
+                (e) => {
+              "id": e.id,
+              "content": e.content,
+            },
+          )
+              .toList();
+          Log.debug("contentLst", contentLst);
+          return Future(() => contentLst);
+      }
+      return Future(() => false);
+    });
     if (Platform.isAndroid) {
-      //接收平台消息
-      App.clipChannel.setMethodCallHandler((call) async {
-        var arguments = call.arguments;
-        switch (call.method) {
-          case "setClipText":
-            String text = arguments['text'];
-            ClipListener.inst.update(text);
-            debugPrint("clipboard changed: $text");
-            return Future(() => true);
-          case "getHistory":
-            int fromId = arguments["fromId"];
-            var historyDao = DBUtil.inst.historyDao;
-            var lst = List<History>.empty();
-            if (fromId == 0) {
-              lst = await historyDao.getHistoriesTop20(App.userId);
-            } else {
-              lst = await historyDao.getHistoriesPage(App.userId, fromId);
-            }
-            var contentLst = lst
-                .map(
-                  (e) => {
-                    "id": e.id,
-                    "content": e.content,
-                  },
-                )
-                .toList();
-            Log.debug("contentLst", contentLst);
-            return Future(() => contentLst);
-        }
-        return Future(() => false);
-      });
       App.androidChannel.setMethodCallHandler((call) async {
         var arguments = call.arguments;
         switch (call.method) {

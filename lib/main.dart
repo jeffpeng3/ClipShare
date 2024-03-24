@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:basic_utils/basic_utils.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/pages/splash.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -57,6 +59,8 @@ class App extends StatelessWidget {
 
   //Android平台通道
   static const androidChannel = MethodChannel(Constants.channelAndroid);
+  static final prime = CryptoUtil.getPrim();
+  static final keyPair = CryptoUtils.generateRSAKeyPair();
 
   //当前设备id
   static late final DevInfo devInfo;

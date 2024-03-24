@@ -14,8 +14,8 @@ class SecureSocketClient {
   bool _listening = false;
   String _data = "";
   bool _ready = false;
-  late final void Function() _onConnected;
-  late final void Function(String data) _onMessage;
+  late final void Function(SecureSocketClient)? _onConnected;
+  late final void Function(SecureSocketClient client, String data)? _onMessage;
   Function? _onError;
   void Function()? _onDone;
   bool? _cancelOnError;
@@ -23,35 +23,32 @@ class SecureSocketClient {
   late final Encrypter _encrypter;
   late final DiffieHellman _dh;
   late final String _aesKey;
+  late final BigInt _prime;
+  late final AsymmetricKeyPair _keyPair;
 
   bool get isReady => _ready;
 
   SecureSocketClient._private(this.ip, this.port);
 
+  static SecureSocketClient empty = SecureSocketClient._private("127.0.0.1", 0);
+
   ///连接 socket
   static Future<SecureSocketClient> connect({
     required String ip,
     required int port,
-    required void Function() onConnected,
-    required void Function(String data) onMessage,
+    required BigInt prime,
+    required AsymmetricKeyPair keyPair,
+    void Function(SecureSocketClient)? onConnected,
+    void Function(SecureSocketClient client, String data)? onMessage,
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
   }) async {
-    // var ssc = SecureSocketClient._private(ip, port);
-    // ssc._socket = await Socket.connect(ip, port);
-    // ssc._onMessage = onMessage;
-    // ssc._onConnected = onConnected;
-    // ssc._onError = onError;
-    // ssc._onDone = onDone;
-    // ssc._cancelOnError = cancelOnError;
-    // //主动连接，发送素数，底数，公钥
-    // ssc._sendKey();
-    // ssc._listen();
-    // return ssc;
     var socket = await Socket.connect(ip, port);
     var ssc = SecureSocketClient.fromSocket(
       socket: socket,
+      prime: prime,
+      keyPair: keyPair,
       onConnected: onConnected,
       onMessage: onMessage,
       onError: onError,
@@ -65,8 +62,10 @@ class SecureSocketClient {
 
   factory SecureSocketClient.fromSocket({
     required Socket socket,
-    required void Function() onConnected,
-    required void Function(String data) onMessage,
+    required BigInt prime,
+    required AsymmetricKeyPair keyPair,
+    void Function(SecureSocketClient)? onConnected,
+    required void Function(SecureSocketClient client, String data)? onMessage,
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
@@ -75,6 +74,8 @@ class SecureSocketClient {
       socket.remoteAddress.address,
       socket.remotePort,
     );
+    ssc._prime=prime;
+    ssc._keyPair=keyPair;
     ssc._socket = socket;
     ssc._onMessage = onMessage;
     ssc._onConnected = onConnected;
@@ -117,12 +118,12 @@ class SecureSocketClient {
                   encoded: _data,
                   encrypter: _encrypter,
                 );
-                _onMessage(decrypt);
+                if (_onMessage != null) {
+                  _onMessage(this, decrypt);
+                }
               } catch (ex, stack) {
-                print(_data);
-                print(stack);
                 //解析出错
-                Log.error("SecureSocketClient", "解析出错：$ex");
+                Log.error("SecureSocketClient", "解析出错：$ex\n$stack");
               } finally {
                 _data = "";
               }
@@ -165,8 +166,7 @@ class SecureSocketClient {
       var g = BigInt.parse(data["g"]);
       var prime = BigInt.parse(data["prime"]);
       //生成自己的RSA私钥
-      var pairKey = CryptoUtils.generateRSAKeyPair();
-      var privateKey = pairKey.privateKey as RSAPrivateKey;
+      var privateKey = _keyPair.privateKey as RSAPrivateKey;
       //使用素数，底数，自己的私钥创
       //建一个DH对象
       _dh = DiffieHellman(prime, g, privateKey.n!);
@@ -205,7 +205,9 @@ class SecureSocketClient {
       throw Exception("already ready");
     }
     _ready = true;
-    _onConnected();
+    if (_onConnected != null) {
+      _onConnected(this);
+    }
   }
 
   ///发送数据
@@ -228,19 +230,15 @@ class SecureSocketClient {
     if (_ready) {
       throw Exception("already ready");
     }
-    //创建自己的RSA秘钥
-    var pair = CryptoUtils.generateRSAKeyPair();
-    var privateKey = pair.privateKey as RSAPrivateKey;
-    //生成素数
-    var prim = CryptoUtil.getPrim();
+    var privateKey = _keyPair.privateKey as RSAPrivateKey;
     //底数g
     var g = BigInt.from(65537);
     //创建DH对象
-    _dh = DiffieHellman(prim, g, privateKey.n!);
+    _dh = DiffieHellman(_prime, g, privateKey.n!);
     //发送素数，底数，公钥
     Map<String, dynamic> map = {
       "seq": 1,
-      "prime": prim.toString(),
+      "prime": _prime.toString(),
       "g": g.toString(),
       "key": _dh.publicKey.toString(),
     };

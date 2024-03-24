@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:basic_utils/basic_utils.dart';
 import 'package:clipshare/handler/socket/secure_socket_client.dart';
-import 'package:clipshare/util/crypto.dart';
+import 'package:clipshare/main.dart';
 import 'package:clipshare/util/log.dart';
-import 'package:encrypt/encrypt.dart';
 
 class SecureSocketServer {
   final String ip;
@@ -14,7 +11,7 @@ class SecureSocketServer {
   late final ServerSocket _server;
   bool _listening = false;
   late final void Function(String ip, int port) _onConnected;
-  late final void Function(String data) _onMessage;
+  late final void Function(SecureSocketClient client, String data) _onMessage;
   Function? _onError;
   void Function()? _onDone;
   bool? _cancelOnError;
@@ -28,7 +25,7 @@ class SecureSocketServer {
     required String ip,
     required int port,
     required void Function(String ip, int port) onConnected,
-    required void Function(String data) onMessage,
+    required void Function(SecureSocketClient client, String data) onMessage,
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
@@ -52,10 +49,11 @@ class SecureSocketServer {
     try {
       _stream = _server.listen(
         (client) {
-          // _sktList[client] = _SocketClientData(false, "");
           var ssc = SecureSocketClient.fromSocket(
             socket: client,
-            onConnected: () {
+            prime: App.prime,
+            keyPair: App.keyPair,
+            onConnected: (SecureSocketClient ssc) {
               _onConnected(client.remoteAddress.address, client.remotePort);
             },
             onMessage: _onMessage,
@@ -68,7 +66,7 @@ class SecureSocketServer {
           );
           _sktList.add(ssc);
         },
-        onError: (e,stack) {
+        onError: (e, stack) {
           Log.error("SecureSocketServer", "error:$e");
           if (_onError != null) {
             _onError!(e);
