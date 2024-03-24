@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 import '../db/db_util.dart';
+import '../handler/socket/secure_socket_server.dart';
 import '../util/crypto.dart';
 
 abstract class DevAliveListener {
@@ -68,7 +69,7 @@ class SocketListener {
   final List<DiscoverListener> _discoverListeners = List.empty(growable: true);
 
   final Map<String, DevSocket> _devSockets = {};
-  late ServerSocket _server;
+  late SecureSocketServer _server;
 
   //临时记录链接配对自定义ip设备记录
   final Set<String> customIpSetTemp = {};
@@ -197,31 +198,30 @@ class SocketListener {
 
   ///运行服务端 socket 监听消息同步
   void _runSocketServer() async {
-    _server = await ServerSocket.bind('0.0.0.0', settings.port);
+    _server = await SecureSocketServer.bind(
+      ip: '0.0.0.0',
+      port: settings.port,
+      onConnected: (ip, port) {
+        Log.debug(
+          tag,
+          "新连接来自 ip:$ip port:$port",
+        );
+      },
+      onMessage: (data) {
+        Map<String, dynamic> json = jsonDecode(data);
+        var msg = MessageData.fromJson(json);
+        _onSocketReceived(clientSkt, msg);
+      },
+      onError: (err) {},
+      onDone: () {
+        Log.debug(tag, "服务端连接关闭");
+      },
+      cancelOnError: false,
+    );
     Log.debug(
       tag,
-      '服务器已启动，监听所有网络接口 ${_server.address.address} ${_server.port}',
+      '服务端已启动，监听所有网络接口 ${_server.ip} ${_server.port}',
     );
-    _server.listen((Socket client) {
-      Log.debug(
-        tag,
-        '新连接来自 ${client.remoteAddress.address}:${client.remotePort}',
-      );
-      var clientSkt = MySocket(client);
-      clientSkt.listen(
-        (data) {
-          Map<String, dynamic> json = jsonDecode(data);
-          var msg = MessageData.fromJson(json);
-          _onSocketReceived(clientSkt, msg);
-        },
-        onError: (error) {
-          Log.debug(tag, '服务端发生错误: $error');
-          // for (var devId in _devSockets.keys) {
-          //   _onDevDisConnected(devId);
-          // }
-        },
-      );
-    });
   }
 
   ///socket 监听消息处理

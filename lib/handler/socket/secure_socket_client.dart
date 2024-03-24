@@ -24,25 +24,63 @@ class SecureSocketClient {
   late final DiffieHellman _dh;
   late final String _aesKey;
 
+  bool get isReady => _ready;
+
   SecureSocketClient._private(this.ip, this.port);
 
   ///连接 socket
-  static Future<SecureSocketClient> connect(
-    String ip,
-    int port,
-    void Function() onConnected,
-    void Function(String data) onMessage,
+  static Future<SecureSocketClient> connect({
+    required String ip,
+    required int port,
+    required void Function() onConnected,
+    required void Function(String data) onMessage,
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
-  ) async {
-    var ssc = SecureSocketClient._private(ip, port);
-    ssc._socket = await Socket.connect(ip, port);
+  }) async {
+    // var ssc = SecureSocketClient._private(ip, port);
+    // ssc._socket = await Socket.connect(ip, port);
+    // ssc._onMessage = onMessage;
+    // ssc._onConnected = onConnected;
+    // ssc._onError = onError;
+    // ssc._onDone = onDone;
+    // ssc._cancelOnError = cancelOnError;
+    // //主动连接，发送素数，底数，公钥
+    // ssc._sendKey();
+    // ssc._listen();
+    // return ssc;
+    var socket = await Socket.connect(ip, port);
+    var ssc = SecureSocketClient.fromSocket(
+      socket: socket,
+      onConnected: onConnected,
+      onMessage: onMessage,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
+    //主动连接，发送素数，底数，公钥
+    ssc._sendKey();
+    return ssc;
+  }
+
+  factory SecureSocketClient.fromSocket({
+    required Socket socket,
+    required void Function() onConnected,
+    required void Function(String data) onMessage,
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
+    var ssc = SecureSocketClient._private(
+      socket.remoteAddress.address,
+      socket.remotePort,
+    );
+    ssc._socket = socket;
     ssc._onMessage = onMessage;
     ssc._onConnected = onConnected;
     ssc._onError = onError;
     ssc._onDone = onDone;
-    ssc._sendKey();
+    ssc._cancelOnError = cancelOnError;
     ssc._listen();
     return ssc;
   }
@@ -57,38 +95,46 @@ class SecureSocketClient {
       _stream = _socket.listen(
         (e) {
           var rec = utf8.decode(e);
-          var lastIdx = rec.length - 1;
-          //未接收到结束符，继续等待
-          if (rec[lastIdx] != "\n") {
-            _data += rec;
-            return;
-          }
-          //去除结束符
-          _data += rec.substring(0, lastIdx);
-          //接收完成，进行解码
-          if (_ready) {
-            //密钥已交换
-            try {
-              //此处需要解密
-              var decrypt = CryptoUtil.decryptAES(
-                key: _aesKey,
-                encoded: _data,
-                encrypter: _encrypter,
-              );
-              _onMessage(decrypt);
-            } catch (ex) {
-              //解析出错
-              Log.error("SecureSocketClient", "解析出错：$ex");
-            } finally {
+          for (var s in rec.split("\n")) {
+            if (s.isEmpty) {
+              continue;
+            }
+            var lastIdx = s.length - 1;
+            //未接收到结束符，继续等待
+            if (s[lastIdx] != ",") {
+              _data += rec;
+              return;
+            }
+            //去除结束符
+            _data += s.substring(0, lastIdx);
+            //接收完成，进行解码
+            if (_ready) {
+              //密钥已交换
+              try {
+                //此处需要解密
+                var decrypt = CryptoUtil.decryptAES(
+                  key: _aesKey,
+                  encoded: _data,
+                  encrypter: _encrypter,
+                );
+                _onMessage(decrypt);
+              } catch (ex, stack) {
+                print(_data);
+                print(stack);
+                //解析出错
+                Log.error("SecureSocketClient", "解析出错：$ex");
+              } finally {
+                _data = "";
+              }
+            } else {
+              //密钥未交换
+              var decodeB64 = CryptoUtil.base64Decode(_data);
+              _exchange(decodeB64);
               _data = "";
             }
-          } else {
-            //密钥未交换
-            var decodeB64 = CryptoUtil.base64Decode(_data);
-            _exchange(decodeB64);
           }
         },
-        onError: (e) {
+        onError: (e, stack) {
           _data = "";
           Log.error("SecureSocketClient", "error:$e");
           if (_onError != null) {
@@ -112,14 +158,44 @@ class SecureSocketClient {
   ///密钥交换
   void _exchange(String msg) {
     var data = jsonDecode(msg);
-    //接收公钥
-    var key = data["key"];
-    var otherPublicKey = BigInt.parse(key);
-    //SharedSecretKey
-    var ssk = _dh.generateSharedSecret(otherPublicKey);
-    //计算 aesKey 完成密钥交换
-    _aesKey = ssk.toString().substring(0, 32);
-    _encrypter = CryptoUtil.getEncrypter(_aesKey);
+    //A -------> B
+    if (data["seq"] == 1) {
+      //接收公钥，素数和底数g
+      var key = data["key"];
+      var g = BigInt.parse(data["g"]);
+      var prime = BigInt.parse(data["prime"]);
+      //生成自己的RSA私钥
+      var pairKey = CryptoUtils.generateRSAKeyPair();
+      var privateKey = pairKey.privateKey as RSAPrivateKey;
+      //使用素数，底数，自己的私钥创
+      //建一个DH对象
+      _dh = DiffieHellman(prime, g, privateKey.n!);
+      //根据接收的公钥使用dh算法生成共享秘钥
+      var otherPublicKey = BigInt.parse(key);
+      //SharedSecretKey
+      var ssk = _dh.generateSharedSecret(otherPublicKey);
+      //计算 aesKey 完成密钥交换
+      _aesKey = ssk.toString().substring(0, 32);
+      _encrypter = CryptoUtil.getEncrypter(_aesKey);
+      //发送自己的publicKey
+      Map<String, dynamic> map = {
+        "seq": 2,
+        "key": _dh.publicKey.toString(),
+      };
+      //发送
+      send(map);
+    }
+    //A <------- B
+    if (data["seq"] == 2) {
+      //接收公钥
+      var key = data["key"];
+      var otherPublicKey = BigInt.parse(key);
+      //SharedSecretKey
+      var ssk = _dh.generateSharedSecret(otherPublicKey);
+      //计算 aesKey 完成密钥交换
+      _aesKey = ssk.toString().substring(0, 32);
+      _encrypter = CryptoUtil.getEncrypter(_aesKey);
+    }
     _setReady();
   }
 
@@ -133,13 +209,18 @@ class SecureSocketClient {
   }
 
   ///发送数据
-  void send(String data) {
-    if(_ready) {
-      data = CryptoUtil.encryptAES(key: _aesKey, input: data,encrypter: _encrypter);
-    }else{
+  void send(Map map) {
+    var data = jsonEncode(map);
+    if (_ready) {
+      data = CryptoUtil.encryptAES(
+        key: _aesKey,
+        input: data,
+        encrypter: _encrypter,
+      );
+    } else {
       data = CryptoUtil.base64Encode(data);
     }
-    _socket.writeln(data);
+    _socket.writeln("$data,");
   }
 
   ///DH 算法发送 key 和 素数、底数
@@ -157,12 +238,13 @@ class SecureSocketClient {
     //创建DH对象
     _dh = DiffieHellman(prim, g, privateKey.n!);
     //发送素数，底数，公钥
-    Map<String, String> map = {
+    Map<String, dynamic> map = {
+      "seq": 1,
       "prime": prim.toString(),
       "g": g.toString(),
       "key": _dh.publicKey.toString(),
     };
-    send(jsonEncode(map));
+    send(map);
   }
 
   ///关闭连接
