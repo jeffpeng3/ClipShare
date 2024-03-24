@@ -52,6 +52,7 @@ dependencies:
   uuid: ^3.0.0
   # 验证码
   pinput: ^3.0.1
+  # 日志
   logger: ^2.0.2+1
   # 检测网络变化
   connectivity_plus: ^5.0.2
@@ -63,6 +64,8 @@ dependencies:
   package_info_plus: 5.0.1
   # 链接可点击
   flutter_linkify: ^6.0.0
+  # 右键菜单
+  contextmenu: ^3.0.0
   # 打开链接
   url_launcher: ^6.2.5
 dev_dependencies:

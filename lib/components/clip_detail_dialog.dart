@@ -162,7 +162,10 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                               Icons.check,
                               color: Colors.blueGrey,
                             )
-                          : const Icon(Icons.copy, color: Colors.blueGrey),
+                          : const Icon(
+                              Icons.copy,
+                              color: Colors.blueGrey,
+                            ),
                       onPressed: () {
                         _copy = true;
                         setState(() {});
@@ -198,7 +201,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                               .sendData(null, MsgType.sync, op.toJson());
                         });
                       },
-                      tooltip: "重新同步",
+                      tooltip: widget.clip.data.top?"重新同步":"同步记录",
                     ),
                   ],
                 ),
@@ -280,7 +283,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
