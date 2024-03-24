@@ -105,6 +105,7 @@ class ClipDataCardState extends State<ClipDataCard> {
           child: Card(
             elevation: 0,
             child: InkWell(
+              mouseCursor: SystemMouseCursors.basic,
               onTap: () {
                 if (!PlatformExt.isPC) {
                   return;

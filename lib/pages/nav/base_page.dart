@@ -53,6 +53,18 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
       label: '设置',
     ),
   ]);
+
+  List<NavigationRailDestination> get leftBarItems => navBarItems
+      .map(
+        (item) => NavigationRailDestination(
+          icon: item.icon,
+          label: Text(item.label ?? ""),
+        ),
+      )
+      .toList();
+  bool leftMenuExtend = true;
+
+  bool get showLeftBar => MediaQuery.of(context).size.width >= 640;
   late DeviceDao deviceDao;
   bool trayClick = false;
   late TagSyncer _tagSyncer;
@@ -233,50 +245,93 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
       },
       child: Scaffold(
         backgroundColor: const Color.fromARGB(255, 238, 238, 238),
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Row(
-            children: [
-              Expanded(
-                  child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  navBarItems[_index].icon,
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  Text(navBarItems[_index].label!),
-                ],
-              )),
-              IconButton(
-                onPressed: () {
-                  //导航至搜索页面
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SearchPage(),
+        appBar: !showLeftBar
+            ? AppBar(
+                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+                title: Row(
+                  children: [
+                    Expanded(
+                        child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        navBarItems[_index].icon,
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        Text(navBarItems[_index].label!),
+                      ],
+                    )),
+                    IconButton(
+                      onPressed: () {
+                        //导航至搜索页面
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SearchPage(),
+                          ),
+                        );
+                      },
+                      tooltip: "搜索",
+                      icon: const Icon(
+                        Icons.search_rounded,
+                      ),
                     ),
-                  );
-                },
-                tooltip: "搜索",
-                icon: const Icon(
-                  Icons.search_rounded,
+                  ],
                 ),
+                automaticallyImplyLeading: false,
+              )
+            : null,
+        body: Row(
+          children: [
+            showLeftBar
+                ? NavigationRail(
+                    leading: const Text(Constants.appName),
+                    extended: leftMenuExtend,
+                    onDestinationSelected: (i) {
+                      _index = i;
+                      setState(() {});
+                    },
+                    destinations: leftBarItems,
+                    selectedIndex: _index,
+                    trailing: Expanded(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: IconButton(
+                            icon: Icon(
+                              leftMenuExtend
+                                  ? Icons.keyboard_double_arrow_left_outlined
+                                  : Icons.keyboard_double_arrow_right_outlined,
+                              color: Colors.blueGrey,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                leftMenuExtend = !leftMenuExtend;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            Expanded(
+              child: IndexedStack(
+                index: _index,
+                children: pages,
               ),
-            ],
-          ),
-          automaticallyImplyLeading: false,
+            ),
+          ],
         ),
-        body: IndexedStack(
-          index: _index,
-          children: pages,
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          currentIndex: _index,
-          onTap: (i) => {_index = i, setState(() {})},
-          items: navBarItems,
-        ),
+        bottomNavigationBar: !showLeftBar
+            ? BottomNavigationBar(
+                type: BottomNavigationBarType.fixed,
+                currentIndex: _index,
+                onTap: (i) => {_index = i, setState(() {})},
+                items: navBarItems,
+              )
+            : null,
       ),
     );
   }

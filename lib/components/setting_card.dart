@@ -49,6 +49,7 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
           onTap: () {
             widget.onTap?.call();
           },
+          mouseCursor: SystemMouseCursors.basic,
           child: Column(
             children: [
               Padding(

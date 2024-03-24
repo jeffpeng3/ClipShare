@@ -130,9 +130,10 @@ class _DeviceCardState extends State<DeviceCard> {
   Widget build(BuildContext context) {
     const chipColor = Color.fromARGB(255, 213, 222, 232);
     return Card(
-      elevation: 1,
+      elevation: 0,
       margin: const EdgeInsets.all(8),
       child: InkWell(
+        mouseCursor: SystemMouseCursors.basic,
         onTap: () {
           if (_empty) {
             return;

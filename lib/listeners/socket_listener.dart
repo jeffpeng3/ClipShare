@@ -179,6 +179,7 @@ class SocketListener {
               //已配对，获取该设备未同步记录
               _devSockets[dev.guid]!.isPaired = true;
               sendData(dev, MsgType.reqMissingData, {});
+              Log.debug(tag, "_linkAliveSocket ${dev.name} connected 1");
               _onDevConnected(dev);
             } else {
               Log.debug(tag, "pairedStatusLog _linkAliveSocket notPaired");
@@ -186,6 +187,7 @@ class SocketListener {
                 onDevForget(dev, App.userId);
                 _deviceDao.updateDevice(localDevice..isPaired = false);
               }
+              Log.debug(tag, "_linkAliveSocket ${dev.name} connected 2");
               _onDevConnected(dev);
             }
             break;
@@ -316,6 +318,7 @@ class SocketListener {
                   //已配对，获取该设备未同步记录
                   _devSockets[dev.guid]!.isPaired = true;
                   sendData(dev, MsgType.reqMissingData, {});
+                  Log.debug(tag, "_onSocketReceived ${dev.name} connected 1");
                   _onDevConnected(dev);
                 } else {
                   if (localDevice != null) {
@@ -323,6 +326,7 @@ class SocketListener {
                     onDevForget(dev, App.userId);
                     _deviceDao.updateDevice(localDevice..isPaired = false);
                   }
+                  Log.debug(tag, "_onSocketReceived ${dev.name} connected 2");
                   _onDevConnected(dev);
                 }
                 break;
@@ -583,7 +587,6 @@ class SocketListener {
 
   ///设备连接成功
   void _onDevConnected(DevInfo dev) {
-    Log.debug(tag, "${dev.name} connected");
     for (var listener in _devAliveListeners) {
       try {
         listener.onConnected(dev);
