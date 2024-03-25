@@ -37,7 +37,6 @@ class ClipDetailDialog extends StatefulWidget {
 }
 
 class ClipDetailDialogState extends State<ClipDetailDialog> {
-  bool _copy = false;
   List<HistoryTag> _tags = List.empty(growable: true);
 
   String get tag => "ClipDetailDialog";
@@ -157,7 +156,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                       tooltip: widget.clip.data.top ? "取消置顶" : "置顶",
                     ),
                     IconButton(
-                      icon: _copy
+                      icon: App.innerCopy
                           ? const Icon(
                               Icons.check,
                               color: Colors.blueGrey,
@@ -167,11 +166,11 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                               color: Colors.blueGrey,
                             ),
                       onPressed: () {
-                        _copy = true;
+                        App.innerCopy = true;
                         setState(() {});
                         // 创建一个延迟0.5秒执行一次的定时器
                         Future.delayed(const Duration(milliseconds: 500), () {
-                          _copy = false;
+                          App.innerCopy = false;
                           setState(() {});
                         });
                         Clipboard.setData(

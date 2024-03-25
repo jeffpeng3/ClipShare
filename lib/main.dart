@@ -69,6 +69,7 @@ class App extends StatelessWidget {
   static late final Snowflake snowflake;
   static late BuildContext context;
   static late Settings settings;
+  static bool innerCopy = false;
 
   const App({super.key});
 

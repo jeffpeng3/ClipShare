@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:clipshare/components/clip_data_card.dart';
 import 'package:clipshare/dao/history_dao.dart';
+import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
@@ -10,15 +11,13 @@ import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/entity/tables/operation_sync.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
+import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import '../../db/db_util.dart';
-import '../../listeners/socket_listener.dart';
-import '../../main.dart';
 
 class HistoryPage extends StatefulWidget {
   static final GlobalKey<HistoryPageState> pageKey =
@@ -35,7 +34,6 @@ class HistoryPageState extends State<HistoryPage>
     implements ClipObserver, SyncListener {
   final ScrollController _scrollController = ScrollController();
   final List<ClipData> _list = List.empty(growable: true);
-  bool _copyInThisCopy = false;
   int? _minId;
   late HistoryDao _historyDao;
   History? _last;
@@ -189,8 +187,8 @@ class HistoryPageState extends State<HistoryPage>
 
   @override
   void onChanged(String content) {
-    if (_copyInThisCopy) {
-      _copyInThisCopy = false;
+    if (App.innerCopy) {
+      App.innerCopy = false;
       return;
     }
     //和上次复制的内容相同
@@ -305,7 +303,7 @@ class HistoryPageState extends State<HistoryPage>
         f = addData(history, false);
         //不是批量同步时放入本地剪贴板
         if (msg.key != MsgType.missingData) {
-          _copyInThisCopy = true;
+          App.innerCopy = true;
           Clipboard.setData(ClipboardData(text: history.content));
         }
         break;
