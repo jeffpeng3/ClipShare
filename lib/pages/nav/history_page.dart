@@ -299,7 +299,7 @@ class HistoryPageState extends State<HistoryPage>
       });
       return;
     }
-    Future? f;
+    Future f = Future.value();
     switch (opRecord.method) {
       case OpMethod.add:
         f = addData(history, false);
@@ -340,22 +340,13 @@ class HistoryPageState extends State<HistoryPage>
       default:
         return;
     }
-    if (f == null) {
+    f.then((cnt) {
       //发送同步确认
       SocketListener.inst.sendData(send, MsgType.ackSync, {
         "id": opRecord.id,
         "hisId": history.id,
         "module": Module.history.moduleName,
       });
-    } else {
-      f.then((cnt) {
-        //发送同步确认
-        SocketListener.inst.sendData(send, MsgType.ackSync, {
-          "id": opRecord.id,
-          "hisId": history.id,
-          "module": Module.history.moduleName,
-        });
-      });
-    }
+    });
   }
 }

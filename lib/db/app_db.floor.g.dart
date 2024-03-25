@@ -498,7 +498,7 @@ class _$HistoryDao extends HistoryDao {
   @override
   Future<int> add(History history) {
     return _historyInsertionAdapter.insertAndReturnId(
-        history, OnConflictStrategy.abort);
+        history, OnConflictStrategy.replace);
   }
 
   @override
@@ -664,7 +664,7 @@ class _$OperationSyncDao extends OperationSyncDao {
   @override
   Future<int> add(OperationSync syncHistory) {
     return _operationSyncInsertionAdapter.insertAndReturnId(
-        syncHistory, OnConflictStrategy.abort);
+        syncHistory, OnConflictStrategy.ignore);
   }
 }
 

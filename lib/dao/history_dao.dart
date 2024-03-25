@@ -95,7 +95,7 @@ abstract class HistoryDao {
   Future<int?> setSync(int id, bool sync);
 
   ///添加一条历史记录
-  @insert
+  @Insert(onConflict: OnConflictStrategy.replace)
   Future<int> add(History history);
 
   ///删除某条记录

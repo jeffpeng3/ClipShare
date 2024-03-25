@@ -1,4 +1,6 @@
+import 'package:clipshare/handler/sync_data_handler.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/util/constants.dart';
 import 'package:floor/floor.dart';
 
 import '../entity/tables/operation_record.dart';
@@ -11,10 +13,13 @@ abstract class OperationRecordDao {
 
   ///添加操作记录并发送通知设备更改
   Future<int> addAndNotify(OperationRecord record) {
-    return add(record).then((v) {
+    return add(record).then((cnt) {
+      if (cnt == 0) return cnt;
       //发送变更至已连接的所有设备
-      SocketListener.inst.sendMissingData();
-      return v;
+      SyncDataHandler.process(record, []).then((v) {
+        SocketListener.inst.sendData(null, MsgType.sync,record.toJson());
+      });
+      return cnt;
     });
   }
 

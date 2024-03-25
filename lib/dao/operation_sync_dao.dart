@@ -5,7 +5,7 @@ import '../entity/tables/operation_sync.dart';
 @dao
 abstract class OperationSyncDao {
   ///添加同步记录
-  @insert
+  @Insert(onConflict: OnConflictStrategy.ignore)
   Future<int> add(OperationSync syncHistory);
 
   ///删除当前用户的所有操作同步记录

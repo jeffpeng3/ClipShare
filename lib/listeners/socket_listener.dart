@@ -8,7 +8,7 @@ import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/handler/dev_pairing_handler.dart';
-import 'package:clipshare/handler/req_missing_data_handler.dart';
+import 'package:clipshare/handler/sync_data_handler.dart';
 import 'package:clipshare/handler/socket/secure_socket_client.dart';
 import 'package:clipshare/handler/task_runner.dart';
 import 'package:clipshare/main.dart';
@@ -368,7 +368,7 @@ class SocketListener {
 
       ///请求批量同步
       case MsgType.reqMissingData:
-        ReqMissingDataHandler.sendMissingData(dev);
+        SyncDataHandler.sendMissingData(dev);
         break;
 
       ///请求配对我方，生成四位配对码
@@ -719,7 +719,7 @@ class SocketListener {
   void sendMissingData() {
     var lst = _devSockets.values.where((element) => element.isPaired);
     for (var ds in lst) {
-      ReqMissingDataHandler.sendMissingData(ds.dev);
+      SyncDataHandler.sendMissingData(ds.dev);
     }
   }
 
