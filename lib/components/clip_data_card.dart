@@ -41,7 +41,6 @@ class ClipDataCard extends StatefulWidget {
 class ClipDataCardState extends State<ClipDataCard> {
   bool _showSimpleTime = true;
   List<String> _tags = List.empty();
-  bool _copy = false;
 
   @override
   void initState() {
@@ -96,7 +95,7 @@ class ClipDataCardState extends State<ClipDataCard> {
     var history = widget.clip.data;
     DBUtil.inst.historyTagDao.list(history.id).then((lst) {
       _tags = lst.map((e) => e.tagName).toList(growable: false);
-      if (mounted) {
+      if (mounted && _tags.isNotEmpty) {
         setState(() {});
       }
     });
@@ -265,28 +264,17 @@ class ClipDataCardState extends State<ClipDataCard> {
               },
             ),
             ListTile(
-              leading: _copy
-                  ? const Icon(
-                      Icons.check,
-                      color: Colors.blueGrey,
-                    )
-                  : const Icon(
-                      Icons.copy,
-                      color: Colors.blueGrey,
-                    ),
+              leading: const Icon(
+                Icons.copy,
+                color: Colors.blueGrey,
+              ),
               title: const Text("复制内容"),
               onTap: () {
-                _copy = true;
-                setState(() {});
-                // 创建一个延迟0.5秒执行一次的定时器
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  _copy = false;
-                  setState(() {});
-                  Navigator.of(context).pop();
-                });
+                App.innerCopy = true;
                 Clipboard.setData(
                   ClipboardData(text: widget.clip.data.content),
                 );
+                Navigator.of(context).pop();
               },
             ),
             ListTile(

@@ -1,10 +1,7 @@
 import 'dart:convert';
-import 'dart:math';
 
-import 'package:clipshare/components/clip_content_view.dart';
-import 'package:clipshare/components/clip_data_card.dart';
-import 'package:clipshare/components/clip_tag_row_view.dart';
-import 'package:clipshare/components/rounded_chip.dart';
+import 'package:clipshare/components/clip_list_view.dart';
+import 'package:clipshare/components/loading.dart';
 import 'package:clipshare/dao/history_dao.dart';
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/clip_data.dart';
@@ -16,17 +13,15 @@ import 'package:clipshare/entity/tables/operation_sync.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
-import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:refena_flutter/refena_flutter.dart';
 
 class HistoryPage extends StatefulWidget {
   static final GlobalKey<HistoryPageState> pageKey =
-  GlobalKey<HistoryPageState>();
+      GlobalKey<HistoryPageState>();
 
   const HistoryPage({super.key});
 
@@ -37,39 +32,30 @@ class HistoryPage extends StatefulWidget {
 class HistoryPageState extends State<HistoryPage>
     with WidgetsBindingObserver
     implements ClipObserver, SyncListener {
-  final ScrollController _scrollController = ScrollController();
-  List<ClipData> _list = List.empty(growable: true);
-  int? _minId;
+  final List<ClipData> _list = List.empty(growable: true);
   late HistoryDao _historyDao;
   History? _last;
-  var updating = false;
-  var _showBackToTopButton = false;
+  static bool updating = false;
   final String tag = "HistoryPage";
-  Key? _clipTagRowKey;
-  ClipData? showHistoryData;
+  Key? _clipListKey;
+  bool _loading = true;
 
-  bool get showLeftBar =>
-      MediaQuery.of(context).size.width >= Constants.showLeftBarWidth;
-
-  bool get showHistoryRight =>
-      MediaQuery.of(context).size.width >= Constants.showHistoryRightWidth;
-
-  void debounceSetState(void Function()? func) {
+  void debounceSetState() {
     if (updating) {
       return;
     }
-    setState(() {
-      updating = true;
-    });
+    updating = true;
     Future.delayed(const Duration(milliseconds: 500)).then((value) {
       updating = false;
-      setState(func ?? () {});
+      _clipListKey = UniqueKey();
+      setState(() {});
     });
   }
 
   @override
   void initState() {
     super.initState();
+    updating = false;
     _historyDao = DBUtil.inst.historyDao;
     //更新上次复制的记录
     _historyDao.getLatestLocalClip(App.userId).then((his) {
@@ -77,21 +63,20 @@ class HistoryPageState extends State<HistoryPage>
       //添加同步监听
       SocketListener.inst.addSyncListener(Module.history, this);
       //刷新列表
-      refreshData();
+      refreshData().then((val) {
+        _loading = false;
+        debounceSetState();
+      });
       //剪贴板监听注册
       ClipListener.inst.register(this);
     });
     //监听生命周期
     WidgetsBinding.instance.addObserver(this);
-    // 监听滚动事件
-    _scrollController.addListener(_scrollListener);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    // 释放资源
-    _scrollController.dispose();
     SocketListener.inst.removeSyncListener(Module.history, this);
     super.dispose();
   }
@@ -101,14 +86,14 @@ class HistoryPageState extends State<HistoryPage>
     super.didChangeAppLifecycleState(state);
 
     if (state == AppLifecycleState.resumed) {
-      setState(() {});
+      debounceSetState();
     }
   }
 
   void updatePage(
-      bool Function(History history) where,
-      void Function(History history) cb,
-      ) {
+    bool Function(History history) where,
+    void Function(History history) cb,
+  ) {
     for (var item in _list) {
       //查找符合条件的数据
       if (where(item.data)) {
@@ -119,239 +104,33 @@ class HistoryPageState extends State<HistoryPage>
     }
   }
 
-  void _scrollListener() {
-    // 判断是否快要滑动到底部
-    if (_scrollController.position.extentAfter <= 200) {
-      // 滑动到底部的处理逻辑
-      if (_minId == null) return;
-      _historyDao.getHistoriesPage(App.userId, _minId!).then((list) {
-        if (list.isEmpty) return;
-        _minId = list[list.length - 1].id;
-        _list.addAll(ClipData.fromList(list));
-        _sortList();
-        debounceSetState(null);
-      });
-    }
-    if (_scrollController.offset >= 300) {
-      if (!_showBackToTopButton) {
-        setState(() {
-          _showBackToTopButton = true;
-        });
-      }
-    } else {
-      if (_showBackToTopButton) {
-        setState(() {
-          _showBackToTopButton = false;
-        });
-      }
-    }
-  }
-
   ///重新加载列表
-  void refreshData() {
-    _minId = null;
+  Future<void> refreshData() {
     _list.clear();
-    _historyDao.getHistoriesTop20(App.userId).then((list) {
+    return _historyDao.getHistoriesTop20(App.userId).then((list) {
       _list.addAll(ClipData.fromList(list));
       for (int i = 0; i < _list.length; i++) {
         ClipData item = _list[i];
-        if (_minId == null) {
-          _minId = item.data.id;
-        } else {
-          _minId = min(_minId!, item.data.id);
-        }
         _last = item.data;
       }
-      debounceSetState(null);
+      debounceSetState();
     });
   }
 
   void _sortList() {
     _list.sort((a, b) => b.data.compareTo(a.data));
-    debounceSetState(null);
+    debounceSetState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: App.bgColor,
-      body: Row(
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                RefreshIndicator(
-                  onRefresh: () async {
-                    return Future.delayed(
-                      const Duration(milliseconds: 500),
-                      refreshData,
-                    );
-                  },
-                  child: ListView.builder(
-                    itemCount: _list.length,
-                    controller: _scrollController,
-                    itemBuilder: (context, i) {
-                      return Container(
-                        padding: const EdgeInsets.only(left: 2, right: 2),
-                        constraints:
-                        const BoxConstraints(maxHeight: 150, minHeight: 80),
-                        child: ClipDataCard(
-                          clip: _list[i],
-                          routeToSearchOnClickChip: true,
-                          onTap: () {
-                            var data = _list[i];
-                            if (data.data.id != showHistoryData?.data.id) {
-                              showHistoryData = data;
-                              _clipTagRowKey = UniqueKey();
-                              debounceSetState(() {});
-                            } else {}
-                          },
-                          onUpdate: () {
-                            _sortList();
-                          },
-                          onRemove: (int id) {
-                            _list.removeWhere(
-                                    (element) => element.data.id == id);
-                            debounceSetState(null);
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                _showBackToTopButton
-                    ? Positioned(
-                  bottom: 16,
-                  right: 16,
-                  child: FloatingActionButton(
-                    onPressed: () {
-                      _scrollController.animateTo(
-                        0,
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.easeInOut,
-                      );
-                      _list = _list.sublist(0, 20);
-                      debounceSetState(() {});
-                    },
-                    child: const Icon(Icons.arrow_upward), // 可以选择其他图标
-                  ),
-                )
-                    : const SizedBox.shrink()
-              ],
-            ),
-          ),
-          showHistoryRight && showLeftBar && showHistoryData != null
-              ? Container(
-            color: Colors.white,
-            width: 350,
-            child: Padding(
-              padding: const EdgeInsets.all(5),
-              child: Column(
-                children: [
-                  ///关闭按钮
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(left: 5),
-                        child: Text(
-                          "剪贴板详情",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () {
-                          setState(() {
-                            setState(() {
-                              showHistoryData = null;
-                            });
-                          });
-                        },
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-
-                  ///标签栏
-                  Padding(
-                    padding: const EdgeInsets.only(top: 5, bottom: 5),
-                    child: Row(
-                      children: [
-                        ///来源设备
-                        ViewModelBuilder(
-                          provider: deviceInfoProvider,
-                          builder: (context, vm) {
-                            return RoundedChip(
-                              avatar: const Icon(Icons.devices_rounded),
-                              backgroundColor: const Color(0x1a000000),
-                              label: Text(
-                                vm.getName(showHistoryData!.data.devId),
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(
-                          width: 5,
-                        ),
-
-                        ///持有标签
-                        Expanded(
-                          child: ClipTagRowView(
-                            key: _clipTagRowKey,
-                            hisId: showHistoryData!.data.id,
-                            clipBgColor: const Color(0x1a000000),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(
-                    height: 0.1,
-                    color: Color(0xE1E1E0FF),
-                  ),
-
-                  ///剪贴板内容
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 5, bottom: 5),
-                      child: ClipContentView(
-                        content: showHistoryData!.data.content,
-                      ),
-                    ),
-                  ),
-                  const Divider(
-                    height: 0.1,
-                    color: Color(0xE1E1E0FF),
-                  ),
-
-                  ///底部操作栏
-                  Padding(
-                    padding: const EdgeInsets.only(top: 5),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                            onPressed: () {},
-                            icon: const Icon(
-                                Icons.keyboard_double_arrow_left)),
-                        Text(showHistoryData!.timeStr),
-                        Text(showHistoryData!.sizeText),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-              : const SizedBox.shrink(),
-        ],
-      ),
-    );
+    return _loading
+        ? const Loading()
+        : ClipListView(
+            key: _clipListKey,
+            list: _list,
+            onRefreshData: refreshData,
+          );
   }
 
   @override
@@ -382,15 +161,9 @@ class HistoryPageState extends State<HistoryPage>
     return _historyDao.add(clip.data).then((cnt) {
       if (cnt <= 0) return cnt;
       _last = history;
-      //更新页面
-      if (_minId == null) {
-        _minId = clip.data.id;
-      } else {
-        _minId = min(_minId!, clip.data.id);
-      }
       _list.add(clip);
       _list.sort((a, b) => b.data.compareTo(a.data));
-      debounceSetState(null);
+      debounceSetState();
       if (!shouldSync) return cnt;
       //添加历史操作记录
       var opRecord = OperationRecord.fromSimple(
@@ -426,7 +199,7 @@ class HistoryPageState extends State<HistoryPage>
     var send = msg.send;
     var data = msg.data;
     var opSync =
-    OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
+        OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
     //记录同步记录
     DBUtil.inst.opSyncDao.add(opSync);
     //更新本地历史记录为已同步
@@ -436,7 +209,7 @@ class HistoryPageState extends State<HistoryPage>
     for (var clip in _list) {
       if (clip.data.id.toString() == hisId.toString()) {
         clip.data.sync = true;
-        debounceSetState(null);
+        debounceSetState();
         break;
       }
     }
@@ -454,8 +227,8 @@ class HistoryPageState extends State<HistoryPage>
       DBUtil.inst.historyDao.setTop(history.id, history.top).then((v) {
         //更新页面
         updatePage(
-              (h) => h.id == history.id,
-              (his) => his.top = history.top,
+          (h) => h.id == history.id,
+          (his) => his.top = history.top,
         );
       });
       //发送同步确认
@@ -488,11 +261,11 @@ class HistoryPageState extends State<HistoryPage>
               _last = _list
                   .reduce(
                     (curr, next) => curr.data.id > next.data.id ? curr : next,
-              )
+                  )
                   .data;
             }
           }
-          debounceSetState(null);
+          debounceSetState();
         });
         break;
       case OpMethod.update:
@@ -501,7 +274,7 @@ class HistoryPageState extends State<HistoryPage>
           var i = _list.indexWhere((element) => element.data.id == history.id);
           if (i == -1) return;
           _list[i] = ClipData(history);
-          debounceSetState(null);
+          debounceSetState();
         });
         break;
       default:

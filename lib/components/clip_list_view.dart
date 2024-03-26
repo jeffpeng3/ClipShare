@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:clipshare/components/clip_content_view.dart';
 import 'package:clipshare/components/clip_data_card.dart';
 import 'package:clipshare/components/clip_tag_row_view.dart';
@@ -15,9 +13,18 @@ import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 class ClipListView extends StatefulWidget {
-  List<ClipData> list;
+  final List<ClipData> list;
+  final void Function() onRefreshData;
+  final BorderRadiusGeometry? detailBorderRadius;
+  final Future<List<ClipData>> Function(int minId)? onLoadMoreData;
 
-  ClipListView({super.key, required this.list});
+  const ClipListView({
+    super.key,
+    required this.list,
+    required this.onRefreshData,
+    this.onLoadMoreData,
+    this.detailBorderRadius,
+  });
 
   @override
   State<ClipListView> createState() => ClipListViewState();
@@ -26,12 +33,15 @@ class ClipListView extends StatefulWidget {
 class ClipListViewState extends State<ClipListView>
     with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
+  final List<ClipData> _list = List.empty(growable: true);
   int? _minId;
   late HistoryDao _historyDao;
+  static bool _loadNewData = false;
   var _showBackToTopButton = false;
   final String tag = "ClipListView";
   Key? _clipTagRowKey;
-  ClipData? showHistoryData;
+  bool _rightShowFullPage = false;
+  ClipData? _showHistoryData;
 
   bool get showLeftBar =>
       MediaQuery.of(context).size.width >= Constants.showLeftBarWidth;
@@ -42,7 +52,12 @@ class ClipListViewState extends State<ClipListView>
   @override
   void initState() {
     super.initState();
+    _loadNewData = false;
+    _list.addAll(widget.list);
     _historyDao = DBUtil.inst.historyDao;
+    if (_list.isNotEmpty) {
+      _minId = _list.last.data.id;
+    }
     //监听生命周期
     WidgetsBinding.instance.addObserver(this);
     // 监听滚动事件
@@ -60,7 +75,6 @@ class ClipListViewState extends State<ClipListView>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-
     if (state == AppLifecycleState.resumed) {
       setState(() {});
     }
@@ -70,7 +84,7 @@ class ClipListViewState extends State<ClipListView>
     bool Function(History history) where,
     void Function(History history) cb,
   ) {
-    for (var item in widget.list) {
+    for (var item in _list) {
       //查找符合条件的数据
       if (where(item.data)) {
         //更新数据
@@ -80,18 +94,35 @@ class ClipListViewState extends State<ClipListView>
     }
   }
 
+  void _loadMoreData() {
+    if (_loadNewData || _minId == null) {
+      return;
+    }
+    _loadNewData = true;
+    Future<List<ClipData>> f;
+    if (widget.onLoadMoreData == null) {
+      f = _historyDao
+          .getHistoriesPage(App.userId, _minId!)
+          .then((lst) => ClipData.fromList(lst));
+    } else {
+      f = widget.onLoadMoreData!.call(_minId!);
+    }
+    f.then((List<ClipData> list) {
+      if (list.isNotEmpty) {
+        _minId = list[list.length - 1].data.id;
+        _list.addAll(list);
+        _sortList();
+      }
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _loadNewData = false;
+      });
+    });
+  }
+
   void _scrollListener() {
     // 判断是否快要滑动到底部
-    if (_scrollController.position.extentAfter <= 200) {
-      // 滑动到底部的处理逻辑
-      if (_minId == null) return;
-      _historyDao.getHistoriesPage(App.userId, _minId!).then((list) {
-        if (list.isEmpty) return;
-        _minId = list[list.length - 1].id;
-        widget.list.addAll(ClipData.fromList(list));
-        _sortList();
-        setState(() {});
-      });
+    if (_scrollController.position.extentAfter <= 200 && !_loadNewData) {
+      _loadMoreData();
     }
     if (_scrollController.offset >= 300) {
       if (!_showBackToTopButton) {
@@ -108,204 +139,227 @@ class ClipListViewState extends State<ClipListView>
     }
   }
 
-  ///重新加载列表
-  void refreshData() {
-    _minId = null;
-    widget.list.clear();
-    _historyDao.getHistoriesTop20(App.userId).then((list) {
-      widget.list.addAll(ClipData.fromList(list));
-      for (int i = 0; i < widget.list.length; i++) {
-        ClipData item = widget.list[i];
-        if (_minId == null) {
-          _minId = item.data.id;
-        } else {
-          _minId = min(_minId!, item.data.id);
-        }
-      }
-      setState(() {});
-    });
-  }
-
   void _sortList() {
-    widget.list.sort((a, b) => b.data.compareTo(a.data));
+    _list.sort((a, b) => b.data.compareTo(a.data));
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: App.bgColor,
-      body: Row(
+    return Container(
+      color: App.bgColor,
+      child: Row(
         children: [
           Expanded(
-            child: Stack(
-              children: [
-                RefreshIndicator(
-                  onRefresh: () async {
-                    return Future.delayed(
-                      const Duration(milliseconds: 500),
-                      refreshData,
-                    );
-                  },
-                  child: ListView.builder(
-                    itemCount: widget.list.length,
-                    controller: _scrollController,
-                    itemBuilder: (context, i) {
-                      return Container(
-                        padding: const EdgeInsets.only(left: 2, right: 2),
-                        constraints:
-                            const BoxConstraints(maxHeight: 150, minHeight: 80),
-                        child: ClipDataCard(
-                          clip: widget.list[i],
-                          routeToSearchOnClickChip: true,
-                          onTap: () {
-                            var data = widget.list[i];
-                            if (data.data.id != showHistoryData?.data.id) {
-                              showHistoryData = data;
-                              _clipTagRowKey = UniqueKey();
-                              setState(() {});
-                            } else {}
-                          },
-                          onUpdate: () {
-                            _sortList();
-                          },
-                          onRemove: (int id) {
-                            widget.list.removeWhere(
-                              (element) => element.data.id == id,
-                            );
-                            setState(() {});
-                          },
-                        ),
+            flex: showHistoryRight && _rightShowFullPage ? 0 : 1,
+            child: SizedBox(
+              width: showHistoryRight && _rightShowFullPage ? 0 : null,
+              child: Stack(
+                children: [
+                  RefreshIndicator(
+                    onRefresh: () async {
+                      return Future.delayed(
+                        const Duration(milliseconds: 500),
+                        widget.onRefreshData,
                       );
                     },
+                    child: ListView.builder(
+                      itemCount: _list.length,
+                      controller: _scrollController,
+                      itemBuilder: (context, i) {
+                        return Container(
+                          padding: const EdgeInsets.only(left: 2, right: 2),
+                          constraints: const BoxConstraints(
+                              maxHeight: 150, minHeight: 80),
+                          child: ClipDataCard(
+                            clip: _list[i],
+                            routeToSearchOnClickChip: true,
+                            onTap: () {
+                              var data = _list[i];
+                              if (data.data.id != _showHistoryData?.data.id) {
+                                _showHistoryData = data;
+                                _clipTagRowKey = UniqueKey();
+                                setState(() {});
+                              } else {}
+                            },
+                            onUpdate: () {
+                              _sortList();
+                            },
+                            onRemove: (int id) {
+                              _list.removeWhere(
+                                (element) => element.data.id == id,
+                              );
+                              setState(() {});
+                            },
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
-                _showBackToTopButton
-                    ? Positioned(
-                        bottom: 16,
-                        right: 16,
-                        child: FloatingActionButton(
-                          onPressed: () {
-                            _scrollController.animateTo(
-                              0,
-                              duration: const Duration(milliseconds: 500),
-                              curve: Curves.easeInOut,
-                            );
-                            widget.list = widget.list.sublist(0, 20);
-                            setState(() {});
-                          },
-                          child: const Icon(Icons.arrow_upward), // 可以选择其他图标
-                        ),
-                      )
-                    : const SizedBox.shrink()
-              ],
+                  _showBackToTopButton
+                      ? Positioned(
+                          bottom: 16,
+                          right: 16,
+                          child: FloatingActionButton(
+                            onPressed: () {
+                              Future.delayed(const Duration(milliseconds: 100),
+                                  () {
+                                _scrollController.animateTo(
+                                  0,
+                                  duration: const Duration(milliseconds: 500),
+                                  curve: Curves.easeInOut,
+                                );
+                                Future.delayed(
+                                    const Duration(milliseconds: 600), () {
+                                  var tmpList = _list.sublist(0, 20);
+                                  _list.clear();
+                                  _list.addAll(tmpList);
+                                  setState(() {});
+                                });
+                              });
+                            },
+                            child: const Icon(Icons.arrow_upward), // 可以选择其他图标
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ],
+              ),
             ),
           ),
-          showHistoryRight && showLeftBar && showHistoryData != null
-              ? Container(
-                  color: Colors.white,
-                  width: 350,
-                  child: Padding(
-                    padding: const EdgeInsets.all(5),
-                    child: Column(
-                      children: [
-                        ///关闭按钮
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          showHistoryRight && showLeftBar && _showHistoryData != null
+              ? Expanded(
+                  flex: _rightShowFullPage ? 1 : 0,
+                  child: SizedBox(
+                    width: _rightShowFullPage ? null : 350,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: widget.detailBorderRadius,
+                        color: Colors.white,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(5),
+                        child: Column(
                           children: [
-                            const Padding(
-                              padding: EdgeInsets.only(left: 5),
-                              child: Text(
-                                "剪贴板详情",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
+                            ///标题
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.only(left: 5),
+                                  child: Text(
+                                    "剪贴板详情",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ),
+                                Tooltip(
+                                  message: "关闭",
+                                  child: IconButton(
+                                    visualDensity: VisualDensity.compact,
+                                    onPressed: () {
+                                      setState(() {
+                                        setState(() {
+                                          _rightShowFullPage = false;
+                                          _showHistoryData = null;
+                                        });
+                                      });
+                                    },
+                                    icon: const Icon(Icons.close),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            ///标签栏
+                            Padding(
+                              padding: const EdgeInsets.only(top: 5, bottom: 5),
+                              child: Row(
+                                children: [
+                                  ///来源设备
+                                  ViewModelBuilder(
+                                    provider: deviceInfoProvider,
+                                    builder: (context, vm) {
+                                      return RoundedChip(
+                                        avatar:
+                                            const Icon(Icons.devices_rounded),
+                                        backgroundColor:
+                                            const Color(0x1a000000),
+                                        label: Text(
+                                          vm.getName(
+                                              _showHistoryData!.data.devId),
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
+
+                                  ///持有标签
+                                  Expanded(
+                                    child: ClipTagRowView(
+                                      key: _clipTagRowKey,
+                                      hisId: _showHistoryData!.data.id,
+                                      clipBgColor: const Color(0x1a000000),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Divider(
+                              height: 0.1,
+                              color: Color(0xE1E1E0FF),
+                            ),
+
+                            ///剪贴板内容
+                            Expanded(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.only(top: 5, bottom: 5),
+                                child: ClipContentView(
+                                  content: _showHistoryData!.data.content,
                                 ),
                               ),
                             ),
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              onPressed: () {
-                                setState(() {
-                                  setState(() {
-                                    showHistoryData = null;
-                                  });
-                                });
-                              },
-                              icon: const Icon(Icons.close),
+                            const Divider(
+                              height: 0.1,
+                              color: Color(0xE1E1E0FF),
+                            ),
+
+                            ///底部操作栏
+                            Padding(
+                              padding: const EdgeInsets.only(top: 5),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Tooltip(
+                                    message: _rightShowFullPage ? "收缩" : "展开",
+                                    child: IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _rightShowFullPage =
+                                              !_rightShowFullPage;
+                                        });
+                                      },
+                                      icon: Icon(
+                                        _rightShowFullPage
+                                            ? Icons.keyboard_double_arrow_right
+                                            : Icons.keyboard_double_arrow_left,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(_showHistoryData!.timeStr),
+                                  Text(_showHistoryData!.sizeText),
+                                ],
+                              ),
                             ),
                           ],
                         ),
-
-                        ///标签栏
-                        Padding(
-                          padding: const EdgeInsets.only(top: 5, bottom: 5),
-                          child: Row(
-                            children: [
-                              ///来源设备
-                              ViewModelBuilder(
-                                provider: deviceInfoProvider,
-                                builder: (context, vm) {
-                                  return RoundedChip(
-                                    avatar: const Icon(Icons.devices_rounded),
-                                    backgroundColor: const Color(0x1a000000),
-                                    label: Text(
-                                      vm.getName(showHistoryData!.data.devId),
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                  );
-                                },
-                              ),
-                              const SizedBox(
-                                width: 5,
-                              ),
-
-                              ///持有标签
-                              Expanded(
-                                child: ClipTagRowView(
-                                  key: _clipTagRowKey,
-                                  hisId: showHistoryData!.data.id,
-                                  clipBgColor: const Color(0x1a000000),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Divider(
-                          height: 0.1,
-                          color: Color(0xE1E1E0FF),
-                        ),
-
-                        ///剪贴板内容
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 5, bottom: 5),
-                            child: ClipContentView(
-                              content: showHistoryData!.data.content,
-                            ),
-                          ),
-                        ),
-                        const Divider(
-                          height: 0.1,
-                          color: Color(0xE1E1E0FF),
-                        ),
-
-                        ///底部操作栏
-                        Padding(
-                          padding: const EdgeInsets.only(top: 5),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                      Icons.keyboard_double_arrow_left)),
-                              Text(showHistoryData!.timeStr),
-                              Text(showHistoryData!.sizeText),
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 )

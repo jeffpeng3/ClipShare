@@ -1,5 +1,5 @@
-import 'dart:math';
-
+import 'package:clipshare/components/clip_list_view.dart';
+import 'package:clipshare/components/loading.dart';
 import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/clip_data.dart';
@@ -7,8 +7,6 @@ import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:flutter/material.dart';
-
-import '../components/clip_data_card.dart';
 
 class SearchPage extends StatefulWidget {
   final String? devId;
@@ -28,13 +26,14 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
   static const tag = "SearchPage";
 
   final TextEditingController _textController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
   List<ClipData> _list = List.empty(growable: true);
   List<Device> _allDevices = List.empty();
   List<String> _allTagNames = List.empty();
   int? _minId;
   final _searchFocus = FocusNode();
-  var _showBackToTopButton = false;
+  Key? _clipListKey;
+  static bool updating = false;
+  bool _loading = true;
 
   ///搜索相关
   final Set<String> _selectedTags = {};
@@ -58,8 +57,6 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
     super.initState();
     //监听生命周期
     WidgetsBinding.instance.addObserver(this);
-    // 监听滚动事件
-    _scrollController.addListener(_scrollListener);
     //初始化搜索参数
     if (widget.devId != null) {
       _selectedDevIds.add(widget.devId!);
@@ -67,30 +64,21 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
     if (widget.tagName != null) {
       _selectedTags.add(widget.tagName!);
     }
+    updating = false;
     //加载数据
     refreshData();
   }
 
-  void _scrollListener() {
-    // 判断是否快要滑动到底部
-    if (_scrollController.position.extentAfter <= 200) {
-      // 滑动到底部的处理逻辑
-      if (_minId == null) return;
-      _loadData();
+  void debounceSetState() {
+    if (updating) {
+      return;
     }
-    if (_scrollController.offset >= 300) {
-      if (!_showBackToTopButton) {
-        setState(() {
-          _showBackToTopButton = true;
-        });
-      }
-    } else {
-      if (_showBackToTopButton) {
-        setState(() {
-          _showBackToTopButton = false;
-        });
-      }
-    }
+    updating = true;
+    Future.delayed(const Duration(milliseconds: 500)).then((value) {
+      updating = false;
+      _clipListKey = UniqueKey();
+      setState(() {});
+    });
   }
 
   ///重新加载列表
@@ -99,28 +87,30 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
     _minId = null;
     //加载所有标签名
     DBUtil.inst.historyTagDao.getAllTagNames().then((lst) {
-      setState(() {
-        _allTagNames = lst;
-      });
+      _allTagNames = lst;
+      debounceSetState();
     });
     //加载所有设备名
     DBUtil.inst.deviceDao.getAllDevices(App.userId).then((lst) {
       var tmpLst = List<Device>.empty(growable: true);
       tmpLst.add(App.device);
       tmpLst.addAll(lst);
-      setState(() {
-        _allDevices = tmpLst;
-      });
+      _allDevices = tmpLst;
+      debounceSetState();
     });
-    _loadData();
+    _loadData(_minId).then((lst) {
+      _list = lst;
+      _loading = false;
+      debounceSetState();
+    });
   }
 
-  void _loadData() {
+  Future<List<ClipData>> _loadData(int? minId) {
     //加载搜索结果的前20条
-    DBUtil.inst.historyDao
+    return DBUtil.inst.historyDao
         .getHistoriesPageByWhere(
       App.userId,
-      _minId ?? 0,
+      minId ?? 0,
       _textController.text,
       typeValue,
       _selectedTags.toList(),
@@ -129,19 +119,10 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
       searchEndDate,
     )
         .then((list) {
-      _list.addAll(ClipData.fromList(list));
-      for (int i = 0; i < _list.length; i++) {
-        ClipData item = _list[i];
-        if (_minId == null) {
-          _minId = item.data.id;
-        } else {
-          _minId = min(_minId!, item.data.id);
-        }
-      }
-      setState(() {});
       if (PlatformExt.isPC) {
         _searchFocus.requestFocus();
       }
+      return ClipData.fromList(list);
     });
   }
 
@@ -507,9 +488,13 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                               return;
                             }
                             setState(() {
+                              _loading = true;
                               searchType = type;
                             });
-                            refreshData();
+                            Future.delayed(
+                              const Duration(milliseconds: 500),
+                              refreshData,
+                            );
                           },
                           selectedColor:
                               searchType == type ? Colors.blue[100] : null,
@@ -527,74 +512,38 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
               height: 5,
             ),
             Expanded(
-              child: RefreshIndicator(
-                onRefresh: () async {
-                  return Future.delayed(
-                    const Duration(milliseconds: 500),
-                    refreshData,
-                  );
-                },
-                child: ListView.builder(
-                  itemCount: _list.length,
-                  controller: _scrollController,
-                  itemBuilder: (context, i) {
-                    return Container(
-                      padding: const EdgeInsets.only(left: 2, right: 2),
-                      constraints:
-                          const BoxConstraints(maxHeight: 150, minHeight: 80),
-                      child: ClipDataCard(
-                        clip: _list[i],
-                        onUpdate: () {
-                          _list.sort((a, b) => b.data.compareTo(a.data));
-                          setState(() {});
-                        },
-                        onRemove: (int id) {
-                          _list.removeWhere((element) => element.data.id == id);
-                          setState(() {});
-                        },
+              child: _loading
+                  ? const Loading()
+                  : ClipListView(
+                      key: _clipListKey,
+                      list: _list,
+                      onRefreshData: refreshData,
+                      onLoadMoreData: (minId) {
+                        return _loadData(minId);
+                      },
+                      detailBorderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(4),
+                        topRight: Radius.circular(4),
                       ),
-                    );
-                  },
-                ),
-              ),
+                    ),
             ),
           ],
         ),
       ),
-      floatingActionButton: _showBackToTopButton
-          ? FloatingActionButton(
-              onPressed: () {
-                _scrollController.animateTo(
-                  0,
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeInOut,
-                );
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  setState(() {
-                    _list = _list.sublist(0, 20);
-                  });
-                });
-              },
-              child: const Icon(Icons.arrow_upward), // 可以选择其他图标
-            )
-          : null,
     );
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    // 释放资源
-    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-
     if (state == AppLifecycleState.resumed) {
-      setState(() {});
+      debounceSetState();
     }
   }
 }
