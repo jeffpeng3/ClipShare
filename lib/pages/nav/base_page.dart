@@ -35,7 +35,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   int _index = 0;
   List<Widget> pages = List.from([
     HistoryPage(
-      key: ClipListView.pageKey,
+      key: HistoryPage.pageKey,
     ),
     const DevicesPage(),
     const SettingPage(),

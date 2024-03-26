@@ -117,7 +117,7 @@ class _TagEditPageState extends State<TagEditPage> {
                   setState(() {
                     saving = false;
                   });
-                  ClipListView.pageKey.currentState?.updatePage(
+                  HistoryPage.pageKey.currentState?.updatePage(
                     (history) => true,
                     (history) {},
                   );

@@ -53,7 +53,7 @@ class HistoryTopSyncer implements SyncListener {
     }
 
     f.then((cnt) {
-      ClipListView.pageKey.currentState?.updatePage(
+      HistoryPage.pageKey.currentState?.updatePage(
         (his) => his.id == history.id,
         (his) => his.top = history.top,
       );
