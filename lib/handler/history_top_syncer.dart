@@ -7,6 +7,7 @@ import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:flutter/cupertino.dart';
 
+import '../components/clip_list_view.dart';
 import '../db/db_util.dart';
 import '../entity/tables/operation_record.dart';
 import '../entity/tables/operation_sync.dart';
@@ -52,7 +53,7 @@ class HistoryTopSyncer implements SyncListener {
     }
 
     f.then((cnt) {
-      HistoryPage.pageKey.currentState?.updatePage(
+      ClipListView.pageKey.currentState?.updatePage(
         (his) => his.id == history.id,
         (his) => his.top = history.top,
       );

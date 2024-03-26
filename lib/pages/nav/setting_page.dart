@@ -8,7 +8,6 @@ import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
-import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
@@ -60,13 +59,11 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
   void checkPermissions() {
     if (Platform.isAndroid) {
       notifyHandler.hasPermission().then((v) {
-        Log.debug(tag, "hasNotifyPerm: $v");
         setState(() {
           hasNotifyPerm = v;
         });
       });
       shizukuHandler.hasPermission().then((v) {
-        Log.debug(tag, "hasShizukuPerm: $v");
         setState(() {
           hasShizukuPerm = v;
         });
@@ -136,7 +133,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                   ),
                   SettingCard(
                     main: const Text("显示历史记录悬浮窗"),
-                    value: true,
+                    value: vm.showHistoryFloat,
                     action: (v) => Switch(
                       value: vm.showHistoryFloat,
                       onChanged: (checked) {
@@ -154,6 +151,20 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       },
                     ),
                     show: (v) => Platform.isAndroid,
+                  ),
+                  SettingCard(
+                    main: const Text("记住上次窗口大小"),
+                    value: true,
+                    action: (v) => Switch(
+                      value: vm.showHistoryFloat,
+                      onChanged: (checked) {
+                        HapticFeedback.mediumImpact();
+                        ref
+                            .notifier(settingProvider)
+                            .setShowHistoryFloat(checked);
+                      },
+                    ),
+                    show: (v) => PlatformExt.isPC,
                   ),
                 ],
               ),

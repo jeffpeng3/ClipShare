@@ -1,20 +1,17 @@
 import 'dart:async';
 
-import 'package:clipshare/components/rounded_chip.dart';
+import 'package:clipshare/components/clip_content_view.dart';
+import 'package:clipshare/components/clip_tag_row_view.dart';
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
-import 'package:clipshare/pages/tag_edit_page.dart';
 import 'package:clipshare/util/constants.dart';
-import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_linkify/flutter_linkify.dart';
 
 import '../entity/clip_data.dart';
-import '../entity/tables/history_tag.dart';
 
 class ClipDetailDialog extends StatefulWidget {
   final ClipData clip;
@@ -37,49 +34,15 @@ class ClipDetailDialog extends StatefulWidget {
 }
 
 class ClipDetailDialogState extends State<ClipDetailDialog> {
-  List<HistoryTag> _tags = List.empty(growable: true);
-
   String get tag => "ClipDetailDialog";
 
   @override
   void initState() {
     super.initState();
-    initTags();
-  }
-
-  void initTags() {
-    DBUtil.inst.historyTagDao.list(widget.clip.data.id).then((lst) {
-      _tags = lst;
-      setState(() {});
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> tagChips = List.empty(growable: true);
-    for (var tag in _tags) {
-      tagChips.add(
-        Container(
-          margin: const EdgeInsets.only(left: 5),
-          child: RoundedChip(
-            avatar: const CircleAvatar(
-              backgroundColor: Colors.blue,
-              child: Text(
-                '#',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            label: Text(
-              tag.tagName,
-              style: const TextStyle(fontSize: 12),
-            ),
-          ),
-        ),
-      );
-    }
     return Container(
       constraints: const BoxConstraints(minWidth: 500),
       padding: const EdgeInsets.only(bottom: 30),
@@ -200,87 +163,22 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                               .sendData(null, MsgType.sync, op.toJson());
                         });
                       },
-                      tooltip: widget.clip.data.top?"重新同步":"同步记录",
+                      tooltip: widget.clip.data.top ? "重新同步" : "同步记录",
                     ),
                   ],
                 ),
               ],
             ),
-            // 标签栏
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  ...tagChips,
-                  IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              TagEditPage(widget.clip.data.id),
-                        ),
-                      ).then((value) {
-                        initTags();
-                      });
-                    },
-                    icon: const Row(
-                      children: [
-                        Text("标签"),
-                        Icon(
-                          Icons.add,
-                          size: 22,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            //剪贴板内容部分
+
+            /// 标签栏
+            ClipTagRowView(hisId: widget.clip.data.id),
+
+            ///剪贴板内容部分
             Container(
               constraints: const BoxConstraints(maxHeight: 300),
               margin: const EdgeInsets.only(top: 10),
-              child: SingleChildScrollView(
-                clipBehavior: Clip.antiAlias,
-                child: Container(
-                  alignment: Alignment.topLeft,
-                  child: SelectableLinkify(
-                    textAlign: TextAlign.left,
-                    text: widget.clip.data.content,
-                    options: const LinkifyOptions(humanize: false),
-                    linkStyle: const TextStyle(
-                      decoration: TextDecoration.none,
-                    ),
-                    onOpen: (link) async {
-                      Log.debug(tag, link.url);
-                      link.url.askOpenUrl();
-                    },
-                    contextMenuBuilder: (context, editableTextState) {
-                      return AdaptiveTextSelectionToolbar.buttonItems(
-                        anchors: editableTextState.contextMenuAnchors,
-                        buttonItems: <ContextMenuButtonItem>[
-                          ContextMenuButtonItem(
-                            onPressed: () {
-                              editableTextState.copySelection(
-                                SelectionChangedCause.toolbar,
-                              );
-                            },
-                            type: ContextMenuButtonType.copy,
-                          ),
-                          ContextMenuButtonItem(
-                            onPressed: () {
-                              editableTextState.selectAll(
-                                SelectionChangedCause.toolbar,
-                              );
-                            },
-                            type: ContextMenuButtonType.selectAll,
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
+              child: ClipContentView(
+                content: widget.clip.data.content,
               ),
             ),
           ],

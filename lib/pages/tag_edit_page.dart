@@ -1,3 +1,4 @@
+import 'package:clipshare/components/clip_list_view.dart';
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/views/v_history_tag_hold.dart';
@@ -116,7 +117,7 @@ class _TagEditPageState extends State<TagEditPage> {
                   setState(() {
                     saving = false;
                   });
-                  HistoryPage.pageKey.currentState?.updatePage(
+                  ClipListView.pageKey.currentState?.updatePage(
                     (history) => true,
                     (history) {},
                   );

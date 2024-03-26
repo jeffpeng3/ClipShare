@@ -19,6 +19,7 @@ import 'clip_detail_dialog.dart';
 class ClipDataCard extends StatefulWidget {
   final ClipData clip;
   final void Function() onUpdate;
+  final void Function()? onTap;
   final void Function(int id) onRemove;
   final bool routeToSearchOnClickChip;
 
@@ -28,6 +29,7 @@ class ClipDataCard extends StatefulWidget {
     required this.onRemove,
     super.key,
     this.routeToSearchOnClickChip = false,
+    this.onTap,
   });
 
   @override
@@ -110,7 +112,7 @@ class ClipDataCardState extends State<ClipDataCard> {
                 if (!PlatformExt.isPC) {
                   return;
                 }
-                _showDetail(widget.clip);
+                widget.onTap?.call();
               },
               onLongPress: () {
                 if (!PlatformExt.isMobile) {

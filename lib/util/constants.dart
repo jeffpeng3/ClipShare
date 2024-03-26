@@ -20,6 +20,9 @@ class Constants {
   static const channelClip = "top.coclyun.clipshare/clip";
   static const channelAndroid = "top.coclyun.clipshare/android";
 
+  static const showLeftBarWidth = 640;
+  static const showHistoryRightWidth = 840;
+
   //设备类型图片
   static Map<String, Icon> devTypeIcons = const {
     'Windows': Icon(

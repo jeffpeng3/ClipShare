@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/components/rounded_chip.dart';
@@ -30,12 +29,12 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
 
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<ClipData> _list = List.empty(growable: true);
+  List<ClipData> _list = List.empty(growable: true);
   List<Device> _allDevices = List.empty();
   List<String> _allTagNames = List.empty();
-  bool _copyInThisCopy = false;
   int? _minId;
   final _searchFocus = FocusNode();
+  var _showBackToTopButton = false;
 
   ///搜索相关
   final Set<String> _selectedTags = {};
@@ -78,6 +77,19 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
       // 滑动到底部的处理逻辑
       if (_minId == null) return;
       _loadData();
+    }
+    if (_scrollController.offset >= 300) {
+      if (!_showBackToTopButton) {
+        setState(() {
+          _showBackToTopButton = true;
+        });
+      }
+    } else {
+      if (_showBackToTopButton) {
+        setState(() {
+          _showBackToTopButton = false;
+        });
+      }
     }
   }
 
@@ -421,6 +433,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: App.bgColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Row(
@@ -473,7 +486,6 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
           ],
         ),
       ),
-      backgroundColor: const Color.fromARGB(255, 238, 238, 238),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(5, 5, 5, 0),
         child: Column(
@@ -549,6 +561,23 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
           ],
         ),
       ),
+      floatingActionButton: _showBackToTopButton
+          ? FloatingActionButton(
+              onPressed: () {
+                _scrollController.animateTo(
+                  0,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                );
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  setState(() {
+                    _list = _list.sublist(0, 20);
+                  });
+                });
+              },
+              child: const Icon(Icons.arrow_upward), // 可以选择其他图标
+            )
+          : null,
     );
   }
 

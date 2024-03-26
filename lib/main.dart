@@ -59,8 +59,10 @@ class App extends StatelessWidget {
 
   //Android平台通道
   static const androidChannel = MethodChannel(Constants.channelAndroid);
+
   static final prime = CryptoUtil.getPrim();
   static final keyPair = CryptoUtils.generateRSAKeyPair();
+  static const bgColor = Color.fromARGB(255, 238, 238, 238);
 
   //当前设备id
   static late final DevInfo devInfo;

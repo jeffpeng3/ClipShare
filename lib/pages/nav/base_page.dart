@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:clipshare/components/clip_list_view.dart';
 import 'package:clipshare/dao/device_dao.dart';
 import 'package:clipshare/handler/history_top_syncer.dart';
 import 'package:clipshare/handler/permission_handler.dart';
@@ -34,7 +35,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   int _index = 0;
   List<Widget> pages = List.from([
     HistoryPage(
-      key: HistoryPage.pageKey,
+      key: ClipListView.pageKey,
     ),
     const DevicesPage(),
     const SettingPage(),
@@ -64,7 +65,6 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
       .toList();
   bool leftMenuExtend = true;
 
-  bool get showLeftBar => MediaQuery.of(context).size.width >= 640;
   late DeviceDao deviceDao;
   bool trayClick = false;
   late TagSyncer _tagSyncer;
@@ -72,6 +72,9 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   late StreamSubscription _networkListener;
 
   String get tag => "BasePage";
+
+  bool get showLeftBar =>
+      MediaQuery.of(context).size.width >= Constants.showLeftBarWidth;
 
   @override
   void initState() {
@@ -236,6 +239,11 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
 
   @override
   Widget build(BuildContext context) {
+    var logoImg = Image.asset(
+      'assets/images/logo/logo.png',
+      width: 24,
+      height: 24,
+    );
     return PopScope(
       canPop: false,
       onPopInvoked: (bool didPop) {
@@ -244,7 +252,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color.fromARGB(255, 238, 238, 238),
+        backgroundColor: App.bgColor,
         appBar: !showLeftBar
             ? AppBar(
                 backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -285,12 +293,23 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
           children: [
             showLeftBar
                 ? NavigationRail(
-                    leading: const Text(Constants.appName),
+                    leading: leftMenuExtend
+                        ? Row(
+                            children: [
+                              logoImg,
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              const Text(Constants.appName),
+                            ],
+                          )
+                        : logoImg,
                     extended: leftMenuExtend,
                     onDestinationSelected: (i) {
                       _index = i;
                       setState(() {});
                     },
+                    minExtendedWidth: 200,
                     destinations: leftBarItems,
                     selectedIndex: _index,
                     trailing: Expanded(
