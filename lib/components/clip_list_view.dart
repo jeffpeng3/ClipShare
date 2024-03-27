@@ -10,6 +10,7 @@ import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:highlighting/languages/all.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 class ClipListView extends StatefulWidget {
@@ -36,6 +37,7 @@ class ClipListViewState extends State<ClipListView>
     with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final List<ClipData> _list = List.empty(growable: true);
+  String? language;
   int? _minId;
   late HistoryDao _historyDao;
   static bool _loadNewData = false;
@@ -44,6 +46,7 @@ class ClipListViewState extends State<ClipListView>
   Key? _clipTagRowKey;
   bool _rightShowFullPage = false;
   ClipData? _showHistoryData;
+  MenuController codeMenuController = MenuController();
 
   bool get showLeftBar =>
       MediaQuery.of(context).size.width >= Constants.showLeftBarWidth;
@@ -182,7 +185,12 @@ class ClipListViewState extends State<ClipListView>
                                 _showHistoryData = data;
                                 _clipTagRowKey = UniqueKey();
                                 setState(() {});
-                              } else {}
+                              } else {
+                                setState(() {
+                                  _showHistoryData = null;
+                                  _rightShowFullPage = false;
+                                });
+                              }
                             },
                             onUpdate: () {
                               _sortList();
@@ -254,6 +262,7 @@ class ClipListViewState extends State<ClipListView>
                                     onPressed: () {
                                       setState(() {
                                         _showHistoryData = null;
+                                        _rightShowFullPage = false;
                                       });
                                     },
                                     icon: const Icon(
@@ -269,7 +278,84 @@ class ClipListViewState extends State<ClipListView>
                                       fontSize: 15,
                                     ),
                                   ),
-                                )
+                                ),
+                                const SizedBox(
+                                  width: 5,
+                                ),
+                                MenuAnchor(
+                                  controller: codeMenuController,
+                                  menuChildren: [
+                                    for (var language in allLanguages.keys)
+                                      SizedBox(
+                                        width: 200,
+                                        child: InkWell(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(7),
+                                            child: Text(
+                                              language,
+                                              style: TextStyle(
+                                                color: this.language == language
+                                                    ? Colors.blue
+                                                    : null,
+                                              ),
+                                            ),
+                                          ),
+                                          onTap: () {
+                                            setState(() {
+                                              codeMenuController.close();
+                                              this.language =
+                                                  this.language == language
+                                                      ? null
+                                                      : language;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                  ],
+                                  style: MenuStyle(
+                                    maximumSize: MaterialStateProperty
+                                        .resolveWith<Size?>(
+                                      (Set<MaterialState> states) {
+                                        return const Size(150, 200);
+                                      },
+                                    ),
+                                  ),
+                                  crossAxisUnconstrained: false,
+                                  consumeOutsideTap: true,
+                                  builder: (context, controller, child) {
+                                    onPressed() {
+                                      if (controller.isOpen) {
+                                        controller.close();
+                                      } else {
+                                        controller.open();
+                                      }
+                                    }
+
+                                    return language != null
+                                        ? RoundedChip(
+                                            padding: const EdgeInsets.only(
+                                              left: 2,
+                                              right: 2,
+                                            ),
+                                            label: Text(
+                                              language!,
+                                              style: const TextStyle(
+                                                color: Colors.blue,
+                                              ),
+                                            ),
+                                            onPressed: onPressed,
+                                          )
+                                        : Tooltip(
+                                            message: "源代码模式",
+                                            child: IconButton(
+                                              visualDensity:
+                                                  VisualDensity.compact,
+                                              onPressed: onPressed,
+                                              icon: const Icon(Icons.code,size: 20,),
+                                            ),
+                                          );
+                                  },
+                                ),
                               ],
                             ),
                             Tooltip(
@@ -335,6 +421,7 @@ class ClipListViewState extends State<ClipListView>
                             padding: const EdgeInsets.only(top: 5, bottom: 5),
                             child: ClipContentView(
                               content: _showHistoryData!.data.content,
+                              language: language,
                             ),
                           ),
                         ),
@@ -350,7 +437,7 @@ class ClipListViewState extends State<ClipListView>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Tooltip(
-                                message: _rightShowFullPage ? "收缩" : "展开",
+                                message: _rightShowFullPage ? "收起" : "展开",
                                 child: IconButton(
                                   onPressed: () {
                                     setState(() {

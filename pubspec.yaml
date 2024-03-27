@@ -68,6 +68,8 @@ dependencies:
   contextmenu: ^3.0.0
   # 打开链接
   url_launcher: ^6.2.5
+  # 代码高亮
+  flutter_highlighting: ^0.9.0+11.8.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
