@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:clipshare/components/clip_list_view.dart';
 import 'package:clipshare/components/loading.dart';
@@ -85,7 +86,7 @@ class HistoryPageState extends State<HistoryPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.resumed && Platform.isAndroid) {
       debounceSetState();
     }
   }

@@ -228,158 +228,155 @@ class ClipListViewState extends State<ClipListView>
               ),
             ),
           ),
-          if (showHistoryRight && showLeftBar && _showHistoryData != null) Expanded(
-                  flex: _rightShowFullPage ? 1 : 0,
-                  child: SizedBox(
-                    width: _rightShowFullPage ? null : 350,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: widget.detailBorderRadius,
-                        color: Colors.white,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(5),
-                        child: Column(
+          if (showHistoryRight && showLeftBar && _showHistoryData != null)
+            Expanded(
+              flex: _rightShowFullPage ? 1 : 0,
+              child: SizedBox(
+                width: _rightShowFullPage ? null : 350,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: widget.detailBorderRadius,
+                    color: Colors.white,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(5),
+                    child: Column(
+                      children: [
+                        ///标题
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            ///标题
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  children: [
-                                    Tooltip(
-                                      message: "收起",
-                                      child: IconButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            _showHistoryData = null;
-                                          });
-                                        },
-                                        icon: const Icon(Icons.keyboard_double_arrow_right),
-                                      ),
-                                    )
-                                    ,
-                                    const Padding(
-                                      padding: EdgeInsets.only(left: 5),
-                                      child: Text(
-                                        "剪贴板详情",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                    )
-                                  ],
-                                ),
                                 Tooltip(
-                                  message: "关闭",
+                                  message: "收起",
                                   child: IconButton(
-                                    visualDensity: VisualDensity.compact,
                                     onPressed: () {
                                       setState(() {
-                                        setState(() {
-                                          _rightShowFullPage = false;
-                                          _showHistoryData = null;
-                                        });
+                                        _showHistoryData = null;
                                       });
                                     },
-                                    icon: const Icon(Icons.close),
+                                    icon: const Icon(
+                                        Icons.keyboard_double_arrow_right),
                                   ),
                                 ),
+                                const Padding(
+                                  padding: EdgeInsets.only(left: 5),
+                                  child: Text(
+                                    "剪贴板详情",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                )
                               ],
                             ),
-
-                            ///标签栏
-                            Padding(
-                              padding: const EdgeInsets.only(top: 5, bottom: 5),
-                              child: Row(
-                                children: [
-                                  ///来源设备
-                                  ViewModelBuilder(
-                                    provider: deviceInfoProvider,
-                                    builder: (context, vm) {
-                                      return RoundedChip(
-                                        avatar:
-                                            const Icon(Icons.devices_rounded),
-                                        backgroundColor:
-                                            const Color(0x1a000000),
-                                        label: Text(
-                                          vm.getName(
-                                              _showHistoryData!.data.devId),
-                                          style: const TextStyle(fontSize: 12),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(
-                                    width: 5,
-                                  ),
-
-                                  ///持有标签
-                                  Expanded(
-                                    child: ClipTagRowView(
-                                      key: _clipTagRowKey,
-                                      hisId: _showHistoryData!.data.id,
-                                      clipBgColor: const Color(0x1a000000),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Divider(
-                              height: 0.1,
-                              color: Color(0xE1E1E0FF),
-                            ),
-
-                            ///剪贴板内容
-                            Expanded(
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.only(top: 5, bottom: 5),
-                                child: ClipContentView(
-                                  content: _showHistoryData!.data.content,
-                                ),
-                              ),
-                            ),
-                            const Divider(
-                              height: 0.1,
-                              color: Color(0xE1E1E0FF),
-                            ),
-
-                            ///底部操作栏
-                            Padding(
-                              padding: const EdgeInsets.only(top: 5),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Tooltip(
-                                    message: _rightShowFullPage ? "收缩" : "展开",
-                                    child: IconButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          _rightShowFullPage =
-                                              !_rightShowFullPage;
-                                        });
-                                      },
-                                      icon: Icon(
-                                        _rightShowFullPage
-                                            ? Icons.keyboard_double_arrow_right
-                                            : Icons.keyboard_double_arrow_left,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(_showHistoryData!.timeStr),
-                                  Text(_showHistoryData!.sizeText),
-                                ],
+                            Tooltip(
+                              message: "关闭",
+                              child: IconButton(
+                                visualDensity: VisualDensity.compact,
+                                onPressed: () {
+                                  setState(() {
+                                    setState(() {
+                                      _rightShowFullPage = false;
+                                      _showHistoryData = null;
+                                    });
+                                  });
+                                },
+                                icon: const Icon(Icons.close),
                               ),
                             ),
                           ],
                         ),
-                      ),
+
+                        ///标签栏
+                        Padding(
+                          padding: const EdgeInsets.only(top: 5, bottom: 5),
+                          child: Row(
+                            children: [
+                              ///来源设备
+                              ViewModelBuilder(
+                                provider: deviceInfoProvider,
+                                builder: (context, vm) {
+                                  return RoundedChip(
+                                    avatar: const Icon(Icons.devices_rounded),
+                                    backgroundColor: const Color(0x1a000000),
+                                    label: Text(
+                                      vm.getName(_showHistoryData!.data.devId),
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(
+                                width: 5,
+                              ),
+
+                              ///持有标签
+                              Expanded(
+                                child: ClipTagRowView(
+                                  key: _clipTagRowKey,
+                                  hisId: _showHistoryData!.data.id,
+                                  clipBgColor: const Color(0x1a000000),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Divider(
+                          height: 0.1,
+                          color: Color(0xE1E1E0FF),
+                        ),
+
+                        ///剪贴板内容
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 5, bottom: 5),
+                            child: ClipContentView(
+                              content: _showHistoryData!.data.content,
+                            ),
+                          ),
+                        ),
+                        const Divider(
+                          height: 0.1,
+                          color: Color(0xE1E1E0FF),
+                        ),
+
+                        ///底部操作栏
+                        Padding(
+                          padding: const EdgeInsets.only(top: 5),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Tooltip(
+                                message: _rightShowFullPage ? "收缩" : "展开",
+                                child: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _rightShowFullPage = !_rightShowFullPage;
+                                    });
+                                  },
+                                  icon: Icon(
+                                    _rightShowFullPage
+                                        ? Icons.keyboard_double_arrow_right
+                                        : Icons.keyboard_double_arrow_left,
+                                  ),
+                                ),
+                              ),
+                              Text(_showHistoryData!.timeStr),
+                              Text(_showHistoryData!.sizeText),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ) else const SizedBox.shrink(),
+                ),
+              ),
+            )
+          else
+            const SizedBox.shrink(),
         ],
       ),
     );

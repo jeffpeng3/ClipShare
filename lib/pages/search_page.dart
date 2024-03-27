@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:clipshare/components/clip_list_view.dart';
 import 'package:clipshare/components/loading.dart';
 import 'package:clipshare/components/rounded_chip.dart';
@@ -558,7 +560,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.resumed && Platform.isAndroid) {
       debounceSetState();
     }
   }
