@@ -15,6 +15,7 @@ import 'package:refena_flutter/refena_flutter.dart';
 class ClipListView extends StatefulWidget {
   final List<ClipData> list;
   final void Function() onRefreshData;
+  final bool enableRouteSearch;
   final BorderRadiusGeometry? detailBorderRadius;
   final Future<List<ClipData>> Function(int minId)? onLoadMoreData;
 
@@ -24,6 +25,7 @@ class ClipListView extends StatefulWidget {
     required this.onRefreshData,
     this.onLoadMoreData,
     this.detailBorderRadius,
+    this.enableRouteSearch=false,
   });
 
   @override
@@ -173,7 +175,7 @@ class ClipListViewState extends State<ClipListView>
                               maxHeight: 150, minHeight: 80),
                           child: ClipDataCard(
                             clip: _list[i],
-                            routeToSearchOnClickChip: true,
+                            routeToSearchOnClickChip: widget.enableRouteSearch,
                             onTap: () {
                               var data = _list[i];
                               if (data.data.id != _showHistoryData?.data.id) {

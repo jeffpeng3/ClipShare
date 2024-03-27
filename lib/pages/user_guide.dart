@@ -1,6 +1,5 @@
 import 'package:clipshare/pages/guide/base_guide.dart';
 import 'package:clipshare/pages/nav/base_page.dart';
-import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 
@@ -193,7 +192,9 @@ class _UserGuideState extends State<UserGuide> with WidgetsBindingObserver {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const BasePage(),
+        builder: (context) => BasePage(
+          key: BasePage.pageKey,
+        ),
       ),
     );
   }

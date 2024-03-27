@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:clipshare/components/clip_list_view.dart';
-import 'package:clipshare/dao/device_dao.dart';
 import 'package:clipshare/handler/history_top_syncer.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/handler/tag_syncer.dart';
@@ -20,12 +18,13 @@ import 'package:refena_flutter/refena_flutter.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../../db/db_util.dart';
 import '../../main.dart';
 import '../search_page.dart';
 
 class BasePage extends StatefulWidget {
   const BasePage({super.key});
+
+  static final GlobalKey<_BasePageState> pageKey = GlobalKey<_BasePageState>();
 
   @override
   State<BasePage> createState() => _BasePageState();
@@ -33,14 +32,14 @@ class BasePage extends StatefulWidget {
 
 class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   int _index = 0;
-  List<Widget> pages = List.from([
+  final List<Widget> _pages = List.from([
     HistoryPage(
       key: HistoryPage.pageKey,
     ),
     const DevicesPage(),
     const SettingPage(),
   ]);
-  List<BottomNavigationBarItem> navBarItems = List.from(const [
+  final List<BottomNavigationBarItem> _navBarItems = List.from(const [
     BottomNavigationBarItem(
       icon: Icon(Icons.history),
       label: '历史记录',
@@ -55,7 +54,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
     ),
   ]);
 
-  List<NavigationRailDestination> get leftBarItems => navBarItems
+  List<NavigationRailDestination> get _leftBarItems => _navBarItems
       .map(
         (item) => NavigationRailDestination(
           icon: item.icon,
@@ -63,47 +62,76 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
         ),
       )
       .toList();
-  bool leftMenuExtend = true;
-
-  late DeviceDao deviceDao;
-  bool trayClick = false;
+  bool _leftMenuExtend = true;
+  bool _trayClick = false;
   late TagSyncer _tagSyncer;
   late HistoryTopSyncer _historyTopSyncer;
   late StreamSubscription _networkListener;
+  final _logoImg = Image.asset(
+    'assets/images/logo/logo.png',
+    width: 24,
+    height: 24,
+  );
 
   String get tag => "BasePage";
 
-  bool get showLeftBar =>
+  bool get _showLeftBar =>
       MediaQuery.of(context).size.width >= Constants.showLeftBarWidth;
+
+  ///导航至搜索页面
+  void gotoSearchPage(String? devId, String? tagName) {
+    if (_showLeftBar) {
+      var i = _navBarItems
+          .indexWhere((element) => (element.icon as Icon).icon == Icons.search);
+      setState(() {
+        _index = i;
+        _pages[i] = SearchPage(
+          key: UniqueKey(),
+          devId: devId,
+          tagName: tagName,
+        );
+      });
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SearchPage(
+            key: UniqueKey(),
+            tagName: tagName,
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     assert(() {
-      navBarItems.add(
+      _navBarItems.add(
         const BottomNavigationBarItem(
           icon: Icon(Icons.bug_report_outlined),
           label: "Debug",
         ),
       );
-      pages.add(const DebugPage());
+      _pages.add(const DebugPage());
       return true;
     }());
     // 在构建完成后初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Log.debug(tag, "main created");
-      initCommon();
+      _initCommon();
       if (Platform.isAndroid) {
-        initAndroid();
+        _initAndroid();
       }
       if (Platform.isWindows) {
-        initWindows();
+        _initWindows();
       }
     });
   }
 
   ///初始化托盘
-  void initTrayManager() async {
+  void _initTrayManager() async {
     trayManager.addListener(this);
     trayManager.setToolTip(Constants.appName);
     await trayManager.setIcon(
@@ -140,17 +168,17 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   @override
   void onTrayIconMouseDown() async {
     //记录是否双击，如果点击了一次，设置trayClick为true，再次点击时验证
-    if (trayClick) {
-      trayClick = false;
+    if (_trayClick) {
+      _trayClick = false;
       setState(() {});
       showApp();
       return;
     }
-    trayClick = true;
+    _trayClick = true;
     setState(() {});
     // 创建一个延迟0.2秒执行一次的定时器重置点击为false
     Timer(const Duration(milliseconds: 200), () {
-      trayClick = false;
+      _trayClick = false;
       setState(() {});
     });
   }
@@ -182,8 +210,8 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   }
 
   ///初始化 Windows 平台
-  void initWindows() async {
-    initTrayManager();
+  void _initWindows() async {
+    _initTrayManager();
     windowManager.addListener(this);
     // 添加此行以覆盖默认关闭处理程序
     await windowManager.setPreventClose(true);
@@ -191,7 +219,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   }
 
   ///初始化 initAndroid 平台
-  void initAndroid() {
+  void _initAndroid() {
     //检查权限
     var permHandlers = [
       FloatPermHandler(),
@@ -208,7 +236,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   }
 
   /// 初始化通用行为
-  void initCommon() async {
+  void _initCommon() async {
     //初始化socket
     SocketListener.inst.init(context.ref);
     _networkListener = Connectivity()
@@ -221,8 +249,6 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
     });
     _tagSyncer = TagSyncer();
     _historyTopSyncer = HistoryTopSyncer();
-    //初始化数据库
-    deviceDao = DBUtil.inst.deviceDao;
     //进入主页面后标记为不是第一次进入
     context.ref.notifier(settingProvider).setFirstStartup();
   }
@@ -237,13 +263,42 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
     super.dispose();
   }
 
+  void _initSearchPageShow() {
+    var i = _navBarItems
+        .indexWhere((element) => (element.icon as Icon).icon == Icons.search);
+    var hasSearchPage = i != -1;
+    if (!hasSearchPage && _showLeftBar) {
+      var i = _navBarItems
+          .indexWhere((e) => (e.icon as Icon).icon == Icons.settings);
+      setState(() {
+        _navBarItems.insert(
+          i,
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: "搜索",
+          ),
+        );
+        _pages.insert(
+          i,
+          SearchPage(
+            key: UniqueKey(),
+            devId: null,
+            tagName: null,
+          ),
+        );
+      });
+    }
+    if (hasSearchPage && !_showLeftBar) {
+      setState(() {
+        _pages.removeAt(i);
+        _navBarItems.removeAt(i);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    var logoImg = Image.asset(
-      'assets/images/logo/logo.png',
-      width: 24,
-      height: 24,
-    );
+    _initSearchPageShow();
     return PopScope(
       canPop: false,
       onPopInvoked: (bool didPop) {
@@ -253,31 +308,28 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
       },
       child: Scaffold(
         backgroundColor: App.bgColor,
-        appBar: !showLeftBar
+        appBar: !_showLeftBar
             ? AppBar(
                 backgroundColor: Theme.of(context).colorScheme.inversePrimary,
                 title: Row(
                   children: [
                     Expanded(
-                        child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        navBarItems[_index].icon,
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        Text(navBarItems[_index].label!),
-                      ],
-                    )),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          _navBarItems[_index].icon,
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Text(_navBarItems[_index].label!),
+                        ],
+                      ),
+                    ),
                     IconButton(
                       onPressed: () {
                         //导航至搜索页面
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SearchPage(),
-                          ),
-                        );
+                        BasePage.pageKey.currentState
+                            ?.gotoSearchPage(null, null);
                       },
                       tooltip: "搜索",
                       icon: const Icon(
@@ -291,26 +343,26 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
             : null,
         body: Row(
           children: [
-            showLeftBar
+            _showLeftBar
                 ? NavigationRail(
-                    leading: leftMenuExtend
+                    leading: _leftMenuExtend
                         ? Row(
                             children: [
-                              logoImg,
+                              _logoImg,
                               const SizedBox(
                                 width: 10,
                               ),
                               const Text(Constants.appName),
                             ],
                           )
-                        : logoImg,
-                    extended: leftMenuExtend,
+                        : _logoImg,
+                    extended: _leftMenuExtend,
                     onDestinationSelected: (i) {
                       _index = i;
                       setState(() {});
                     },
                     minExtendedWidth: 200,
-                    destinations: leftBarItems,
+                    destinations: _leftBarItems,
                     selectedIndex: _index,
                     trailing: Expanded(
                       child: Align(
@@ -319,14 +371,14 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
                           padding: const EdgeInsets.only(bottom: 10),
                           child: IconButton(
                             icon: Icon(
-                              leftMenuExtend
+                              _leftMenuExtend
                                   ? Icons.keyboard_double_arrow_left_outlined
                                   : Icons.keyboard_double_arrow_right_outlined,
                               color: Colors.blueGrey,
                             ),
                             onPressed: () {
                               setState(() {
-                                leftMenuExtend = !leftMenuExtend;
+                                _leftMenuExtend = !_leftMenuExtend;
                               });
                             },
                           ),
@@ -338,17 +390,17 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
             Expanded(
               child: IndexedStack(
                 index: _index,
-                children: pages,
+                children: _pages,
               ),
             ),
           ],
         ),
-        bottomNavigationBar: !showLeftBar
+        bottomNavigationBar: !_showLeftBar
             ? BottomNavigationBar(
                 type: BottomNavigationBarType.fixed,
                 currentIndex: _index,
                 onTap: (i) => {_index = i, setState(() {})},
-                items: navBarItems,
+                items: _navBarItems,
               )
             : null,
       ),

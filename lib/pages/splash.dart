@@ -16,7 +16,6 @@ import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:refena_flutter/refena_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../entity/dev_info.dart';
@@ -77,10 +76,10 @@ class _SplashScreenState extends State<SplashScreen> {
           var contentLst = lst
               .map(
                 (e) => {
-              "id": e.id,
-              "content": e.content,
-            },
-          )
+                  "id": e.id,
+                  "content": e.content,
+                },
+              )
               .toList();
           Log.debug("contentLst", contentLst);
           return Future(() => contentLst);
@@ -222,7 +221,9 @@ class _SplashScreenState extends State<SplashScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const BasePage(),
+        builder: (context) => BasePage(
+          key: BasePage.pageKey,
+        ),
       ),
     );
   }

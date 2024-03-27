@@ -130,6 +130,7 @@ class HistoryPageState extends State<HistoryPage>
             key: _clipListKey,
             list: _list,
             onRefreshData: refreshData,
+            enableRouteSearch: true,
           );
   }
 

@@ -5,6 +5,7 @@ import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:flutter/material.dart';
 
@@ -125,6 +126,9 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
       return ClipData.fromList(list);
     });
   }
+
+  bool get showLeftBar =>
+      MediaQuery.of(context).size.width >= Constants.showLeftBarWidth;
 
   ///加载扩展搜索底部弹窗
   void _showExtendSearchDialog() {
@@ -416,7 +420,11 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
     return Scaffold(
       backgroundColor: App.bgColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        scrolledUnderElevation: showLeftBar?0:null,
+        automaticallyImplyLeading: !showLeftBar,
+        backgroundColor: showLeftBar
+            ? Colors.transparent
+            : Theme.of(context).colorScheme.inversePrimary,
         title: Row(
           children: [
             Expanded(
@@ -426,29 +434,37 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                 autofocus: true,
                 textAlignVertical: TextAlignVertical.center,
                 decoration: InputDecoration(
-                    isDense: true,
-                    // isCollapsed:true,
-                    contentPadding: const EdgeInsets.only(
-                      left: 8,
-                      right: 8,
-                    ),
-                    hintText: "搜索",
-                    border: InputBorder.none,
-                    suffixIcon: InkWell(
-                      onTap: () {
-                        refreshData();
-                      },
-                      splashColor: Colors.black12,
-                      highlightColor: Colors.black12,
-                      borderRadius: BorderRadius.circular(50),
-                      child: const Tooltip(
-                        message: "搜索",
-                        child: Icon(
-                          Icons.search_rounded,
-                          size: 25,
-                        ),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.only(
+                    left: 8,
+                    right: 8,
+                  ),
+                  hintText: "搜索",
+                  border: showLeftBar
+                      ? OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(4), // 边框圆角
+                          borderSide: const BorderSide(
+                            color: Colors.blue,
+                            width: 1.0,
+                          ), // 边框样式
+                        )
+                      : InputBorder.none,
+                  suffixIcon: InkWell(
+                    onTap: () {
+                      refreshData();
+                    },
+                    splashColor: Colors.black12,
+                    highlightColor: Colors.black12,
+                    borderRadius: BorderRadius.circular(50),
+                    child: const Tooltip(
+                      message: "搜索",
+                      child: Icon(
+                        Icons.search_rounded,
+                        size: 25,
                       ),
-                    )),
+                    ),
+                  ),
+                ),
                 onSubmitted: (value) {
                   refreshData();
                 },

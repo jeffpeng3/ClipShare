@@ -4,7 +4,7 @@ import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
-import 'package:clipshare/pages/search_page.dart';
+import 'package:clipshare/pages/nav/base_page.dart';
 import 'package:clipshare/pages/tag_edit_page.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
@@ -136,12 +136,9 @@ class ClipDataCardState extends State<ClipDataCard> {
                             onPressed: () {
                               if (widget.routeToSearchOnClickChip) {
                                 //导航至搜索页面
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => SearchPage(
-                                        devId: widget.clip.data.devId),
-                                  ),
+                                BasePage.pageKey.currentState?.gotoSearchPage(
+                                  widget.clip.data.devId,
+                                  null,
                                 );
                               }
                             },
@@ -158,13 +155,8 @@ class ClipDataCardState extends State<ClipDataCard> {
                                 onPressed: () {
                                   if (widget.routeToSearchOnClickChip) {
                                     //导航至搜索页面
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            SearchPage(tagName: tagName),
-                                      ),
-                                    );
+                                    BasePage.pageKey.currentState
+                                        ?.gotoSearchPage(null, tagName);
                                   }
                                 },
                                 backgroundColor: const Color(0x1a000000),
