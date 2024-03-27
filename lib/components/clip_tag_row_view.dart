@@ -7,7 +7,8 @@ import '../pages/tag_edit_page.dart';
 class ClipTagRowView extends StatefulWidget {
   final int hisId;
   final Color? clipBgColor;
-  const ClipTagRowView({super.key, required this.hisId,this.clipBgColor});
+
+  const ClipTagRowView({super.key, required this.hisId, this.clipBgColor});
 
   @override
   State<StatefulWidget> createState() {
@@ -21,7 +22,9 @@ class _ClipTagRowViewState extends State<ClipTagRowView> {
   void initTags() {
     DBUtil.inst.historyTagDao.list(widget.hisId).then((lst) {
       _tags = lst.map((e) => e.tagName).toList();
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
@@ -61,12 +64,7 @@ class _ClipTagRowViewState extends State<ClipTagRowView> {
           IconButton(
             visualDensity: VisualDensity.compact,
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => TagEditPage(widget.hisId),
-                ),
-              ).then((value) {
+              TagEditPage.goto(widget.hisId).then((value) {
                 initTags();
               });
             },

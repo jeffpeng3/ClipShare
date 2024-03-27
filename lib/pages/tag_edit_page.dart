@@ -1,9 +1,12 @@
-import 'package:clipshare/components/clip_list_view.dart';
+import 'dart:io';
+import 'dart:math';
+
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/views/v_history_tag_hold.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +17,39 @@ class TagEditPage extends StatefulWidget {
   final int hisId;
 
   const TagEditPage(this.hisId, {super.key});
+
+  static Future<dynamic> goto(int hisId) {
+    var showLeftBar =
+        MediaQuery.of(App.context).size.width >= Constants.showLeftBarWidth;
+    if (showLeftBar || PlatformExt.isPC) {
+      return showDialog(
+        context: App.context,
+        builder: (context) {
+          var h = MediaQuery.of(context).size.height;
+          return Center(
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: 350,
+                maxHeight: min(h * 0.7, 350 * 1.618),
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: Colors.white,
+              ),
+              child: TagEditPage(hisId),
+            ),
+          );
+        },
+      );
+    } else {
+      return Navigator.push(
+        App.context,
+        MaterialPageRoute(
+          builder: (context) => TagEditPage(hisId),
+        ),
+      );
+    }
+  }
 
   @override
   State<TagEditPage> createState() => _TagEditPageState();
@@ -28,6 +64,9 @@ class _TagEditPageState extends State<TagEditPage> {
   final List<VHistoryTagHold> _selected = List.empty(growable: true);
   bool saving = false;
   bool exists = false;
+
+  bool get showLeftBar =>
+      MediaQuery.of(App.context).size.width >= Constants.showLeftBarWidth;
 
   @override
   void initState() {
@@ -46,193 +85,238 @@ class _TagEditPageState extends State<TagEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("编辑标签"),
-        actions: [
-          TextButton(
-            onPressed: () {
-              setState(() {
-                saving = true;
-              });
-              try {
-                var originSet = _origin.toSet();
-                var selectedSet = _selected.toSet();
-                //原始值 - 选择的值，找出被删除的tag
-                var willRmList = originSet.difference(selectedSet);
-                //选择的值 - 原始值，找出应增加的tag
-                var willAddList = selectedSet.difference(originSet);
+    var appBarTitle = Row(
+      children: [
+        if (showLeftBar || PlatformExt.isPC)
+          const Icon(Icons.tag)
+        else
+          Container(),
+        const Text("编辑标签"),
+      ],
+    );
+    var appBarActions = [
+      TextButton(
+        onPressed: () {
+          setState(() {
+            saving = true;
+          });
+          try {
+            var originSet = _origin.toSet();
+            var selectedSet = _selected.toSet();
+            //原始值 - 选择的值，找出被删除的tag
+            var willRmList = originSet.difference(selectedSet);
+            //选择的值 - 原始值，找出应增加的tag
+            var willAddList = selectedSet.difference(originSet);
 
-                ///增加
-                Future<int?> link = Future.value(0);
-                for (var v in willAddList) {
-                  var id = App.snowflake.nextId();
-                  var t = HistoryTag(id, v.tagName, widget.hisId);
-                  //链式处理
-                  link = link.then((value) {
-                    return DBUtil.inst.historyTagDao.add(t).then((res) {
-                      if (res <= 0) return Future.value();
-                      var opRecord = OperationRecord(
-                        id: App.snowflake.nextId(),
-                        uid: App.userId,
-                        module: Module.tag,
-                        method: OpMethod.add,
-                        data: t.id.toString(),
-                      );
-                      //添加操作记录
-                      return DBUtil.inst.opRecordDao.addAndNotify(opRecord);
-                    });
-                  });
-                }
-
-                ///删除
-                for (var v in willRmList) {
-                  var id = widget.hisId;
-                  link = link.then((value) {
-                    //获取原 hisTagId
-                    return DBUtil.inst.historyTagDao
-                        .get(id, v.tagName)
-                        .then((ht) {
-                      if (ht == null) return Future.value();
-                      //删除tag
-                      return DBUtil.inst.historyTagDao
-                          .remove(id, v.tagName)
-                          .then((res) {
-                        if (res == null || res <= 0) return Future.value();
-                        var opRecord = OperationRecord(
-                          id: App.snowflake.nextId(),
-                          uid: App.userId,
-                          module: Module.tag,
-                          method: OpMethod.delete,
-                          data: ht.id.toString(),
-                        );
-                        //添加操作记录
-                        return DBUtil.inst.opRecordDao.addAndNotify(opRecord);
-                      });
-                    });
-                  });
-                }
-                link.then((value) {
-                  setState(() {
-                    saving = false;
-                  });
-                  HistoryPage.pageKey.currentState?.updatePage(
-                    (history) => true,
-                    (history) {},
+            ///增加
+            Future<int?> link = Future.value(0);
+            for (var v in willAddList) {
+              var id = App.snowflake.nextId();
+              var t = HistoryTag(id, v.tagName, widget.hisId);
+              //链式处理
+              link = link.then((value) {
+                return DBUtil.inst.historyTagDao.add(t).then((res) {
+                  if (res <= 0) return Future.value();
+                  var opRecord = OperationRecord(
+                    id: App.snowflake.nextId(),
+                    uid: App.userId,
+                    module: Module.tag,
+                    method: OpMethod.add,
+                    data: t.id.toString(),
                   );
-                  Navigator.pop(context);
+                  //添加操作记录
+                  return DBUtil.inst.opRecordDao.addAndNotify(opRecord);
                 });
-              } catch (e, t) {
-                setState(() {
-                  saving = false;
+              });
+            }
+
+            ///删除
+            for (var v in willRmList) {
+              var id = widget.hisId;
+              link = link.then((value) {
+                //获取原 hisTagId
+                return DBUtil.inst.historyTagDao.get(id, v.tagName).then((ht) {
+                  if (ht == null) return Future.value();
+                  //删除tag
+                  return DBUtil.inst.historyTagDao
+                      .remove(id, v.tagName)
+                      .then((res) {
+                    if (res == null || res <= 0) return Future.value();
+                    var opRecord = OperationRecord(
+                      id: App.snowflake.nextId(),
+                      uid: App.userId,
+                      module: Module.tag,
+                      method: OpMethod.delete,
+                      data: ht.id.toString(),
+                    );
+                    //添加操作记录
+                    return DBUtil.inst.opRecordDao.addAndNotify(opRecord);
+                  });
                 });
-                Log.debug(tag, e);
-                Log.debug(tag, t);
-              }
-            },
-            child: saving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.0,
-                    ),
-                  )
-                : const Text("保存"),
-          ),
-        ],
+              });
+            }
+            link.then((value) {
+              setState(() {
+                saving = false;
+              });
+              HistoryPage.pageKey.currentState?.updatePage(
+                (history) => true,
+                (history) {},
+              );
+              Navigator.pop(context);
+            });
+          } catch (e, t) {
+            setState(() {
+              saving = false;
+            });
+            Log.debug(tag, e);
+            Log.debug(tag, t);
+          }
+        },
+        child: saving
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.0,
+                ),
+              )
+            : const Text("保存"),
       ),
-      body: Container(
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 0),
-        child: ListView(
-          children: [
-            TextField(
-              controller: _textController,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _textController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _textController.clear();
-                          setState(() {});
-                        },
-                      )
-                    : null,
-                hintText: "搜索或创建标签",
-                hintStyle: const TextStyle(color: Colors.grey),
-                border: InputBorder.none,
-              ),
-              onChanged: (text) {
-                Log.debug(tag, text);
-                for (var t in _tags) {
-                  if (t.tagName == text) {
-                    setState(() {
-                      exists = true;
-                    });
-                    return;
-                  }
-                }
-                setState(() {
-                  exists = false;
-                });
-              },
+    ];
+    return Scaffold(
+      backgroundColor:
+          showLeftBar || PlatformExt.isPC ? Colors.transparent : null,
+      appBar: showLeftBar || Platform.isWindows
+          ? null
+          : AppBar(
+              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+              title: appBarTitle,
+              actions: appBarActions,
             ),
-            _textController.text.isNotEmpty && !exists
-                ? TextButton(
-                    onPressed: () {
-                      var text = _textController.text;
-                      var tagHold = VHistoryTagHold(widget.hisId, text, true);
-                      _tags.add(tagHold);
-                      _selected.add(tagHold);
-                      setState(() {
-                        exists = true;
-                      });
-                    },
-                    child: Text("创建 \"${_textController.text}\" 标签"),
-                  )
-                : const SizedBox.shrink(),
-            Column(
-              children: [
-                for (var item in _tags)
-                  Column(
-                    children: [
-                      InkWell(
-                        onTap: () {},
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 10, right: 5),
-                          child: Row(
-                            children: [
-                              Text(item.tagName),
-                              const Expanded(child: SizedBox.shrink()),
-                              Checkbox(
-                                value: item.hasTag,
-                                onChanged: (checked) {
-                                  if (checked!) {
-                                    item.hasTag = true;
-                                    _selected.add(item);
-                                  } else {
-                                    item.hasTag = false;
-                                    _selected.remove(item);
-                                  }
-                                  setState(() {});
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
+      body: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: DefaultTextStyle(
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.black,
+                        fontFamily:
+                            Platform.isWindows ? 'Microsoft YaHei' : null,
                       ),
-                      const Divider(
-                        height: 1,
-                        color: Colors.black12,
-                      ),
-                    ],
+                      child: appBarTitle,
+                    ),
                   ),
+                  ...appBarActions,
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              children: [
+                TextField(
+                  controller: _textController,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _textController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _textController.clear();
+                              setState(() {});
+                            },
+                          )
+                        : null,
+                    hintText: "搜索或创建标签",
+                    hintStyle: const TextStyle(color: Colors.grey),
+                    border: InputBorder.none,
+                  ),
+                  onChanged: (text) {
+                    Log.debug(tag, text);
+                    for (var t in _tags) {
+                      if (t.tagName == text) {
+                        setState(() {
+                          exists = true;
+                        });
+                        return;
+                      }
+                    }
+                    setState(() {
+                      exists = false;
+                    });
+                  },
+                ),
+                _textController.text.isNotEmpty && !exists
+                    ? TextButton(
+                        onPressed: () {
+                          var text = _textController.text;
+                          var tagHold =
+                              VHistoryTagHold(widget.hisId, text, true);
+                          _tags.add(tagHold);
+                          _selected.add(tagHold);
+                          setState(() {
+                            exists = true;
+                          });
+                        },
+                        child: Text("创建 \"${_textController.text}\" 标签"),
+                      )
+                    : const SizedBox.shrink(),
+                Column(
+                  children: [
+                    for (var item in _tags)
+                      Column(
+                        children: [
+                          InkWell(
+                            onTap: () {},
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 10, right: 5),
+                              child: Row(
+                                children: [
+                                  Text(item.tagName),
+                                  const Expanded(child: SizedBox.shrink()),
+                                  Checkbox(
+                                    value: item.hasTag,
+                                    onChanged: (checked) {
+                                      if (checked!) {
+                                        item.hasTag = true;
+                                        _selected.add(item);
+                                      } else {
+                                        item.hasTag = false;
+                                        _selected.remove(item);
+                                      }
+                                      setState(() {});
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const Divider(
+                            height: 1,
+                            color: Colors.black12,
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

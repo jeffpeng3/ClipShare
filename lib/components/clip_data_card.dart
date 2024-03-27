@@ -299,12 +299,7 @@ class ClipDataCardState extends State<ClipDataCard> {
               ),
               onTap: () {
                 Navigator.of(context).pop();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TagEditPage(widget.clip.data.id),
-                  ),
-                ).then((value) {
+                TagEditPage.goto(widget.clip.data.id).then((value) {
                   //重新加载标签
                   DBUtil.inst.historyTagDao
                       .list(widget.clip.data.id)

@@ -25,7 +25,7 @@ class ClipListView extends StatefulWidget {
     required this.onRefreshData,
     this.onLoadMoreData,
     this.detailBorderRadius,
-    this.enableRouteSearch=false,
+    this.enableRouteSearch = false,
   });
 
   @override
@@ -148,9 +148,9 @@ class ClipListViewState extends State<ClipListView>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: App.bgColor,
-      child: Row(
+    return Scaffold(
+      backgroundColor: App.bgColor,
+      body: Row(
         children: [
           Expanded(
             flex: showHistoryRight && _rightShowFullPage ? 0 : 1,
@@ -228,8 +228,7 @@ class ClipListViewState extends State<ClipListView>
               ),
             ),
           ),
-          showHistoryRight && showLeftBar && _showHistoryData != null
-              ? Expanded(
+          if (showHistoryRight && showLeftBar && _showHistoryData != null) Expanded(
                   flex: _rightShowFullPage ? 1 : 0,
                   child: SizedBox(
                     width: _rightShowFullPage ? null : 350,
@@ -246,15 +245,31 @@ class ClipListViewState extends State<ClipListView>
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Padding(
-                                  padding: EdgeInsets.only(left: 5),
-                                  child: Text(
-                                    "剪贴板详情",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                    ),
-                                  ),
+                                Row(
+                                  children: [
+                                    Tooltip(
+                                      message: "收起",
+                                      child: IconButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            _showHistoryData = null;
+                                          });
+                                        },
+                                        icon: const Icon(Icons.keyboard_double_arrow_right),
+                                      ),
+                                    )
+                                    ,
+                                    const Padding(
+                                      padding: EdgeInsets.only(left: 5),
+                                      child: Text(
+                                        "剪贴板详情",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    )
+                                  ],
                                 ),
                                 Tooltip(
                                   message: "关闭",
@@ -364,8 +379,7 @@ class ClipListViewState extends State<ClipListView>
                       ),
                     ),
                   ),
-                )
-              : const SizedBox.shrink(),
+                ) else const SizedBox.shrink(),
         ],
       ),
     );
