@@ -526,7 +526,7 @@ class _DevicesPageState extends State<DevicesPage>
     if (dbDev != null) {
       //之前配对过，只是取消配对了
       dbDev.isPaired = true;
-      _ref.notifier(deviceInfoProvider).addOrUpdate(dbDev).then((res) {
+      _ref.notifier(DeviceInfoProvider.inst).addOrUpdate(dbDev).then((res) {
         if (res) {
           _addPairedDevInPage(dbDev);
           return;
@@ -535,7 +535,7 @@ class _DevicesPageState extends State<DevicesPage>
       });
     } else {
       //新设备
-      _ref.notifier(deviceInfoProvider).addOrUpdate(newDev).then((res) {
+      _ref.notifier(DeviceInfoProvider.inst).addOrUpdate(newDev).then((res) {
         if (!res) {
           Log.debug(tag, "Device information addition failed");
           Global.snackBarErr("设备添加失败");

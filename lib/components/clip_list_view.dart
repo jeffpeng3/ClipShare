@@ -85,6 +85,7 @@ class ClipListViewState extends State<ClipListView>
     }
   }
 
+  @Deprecated('废弃')
   void updatePage(
     bool Function(History history) where,
     void Function(History history) cb,
@@ -125,6 +126,14 @@ class ClipListViewState extends State<ClipListView>
   }
 
   void _scrollListener() {
+    if (_scrollController.offset == 0 && _list.length != 20) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        var tmpList = _list.sublist(0, 20);
+        _list.clear();
+        _list.addAll(tmpList);
+        setState(() {});
+      });
+    }
     // 判断是否快要滑动到底部
     if (_scrollController.position.extentAfter <= 200 && !_loadNewData) {
       _loadMoreData();
@@ -219,13 +228,6 @@ class ClipListViewState extends State<ClipListView>
                                   duration: const Duration(milliseconds: 500),
                                   curve: Curves.easeInOut,
                                 );
-                                Future.delayed(
-                                    const Duration(milliseconds: 600), () {
-                                  var tmpList = _list.sublist(0, 20);
-                                  _list.clear();
-                                  _list.addAll(tmpList);
-                                  setState(() {});
-                                });
                               });
                             },
                             child: const Icon(Icons.arrow_upward), // 可以选择其他图标
@@ -351,7 +353,10 @@ class ClipListViewState extends State<ClipListView>
                                               visualDensity:
                                                   VisualDensity.compact,
                                               onPressed: onPressed,
-                                              icon: const Icon(Icons.code,size: 20,),
+                                              icon: const Icon(
+                                                Icons.code,
+                                                size: 20,
+                                              ),
                                             ),
                                           );
                                   },
@@ -383,7 +388,7 @@ class ClipListViewState extends State<ClipListView>
                             children: [
                               ///来源设备
                               ViewModelBuilder(
-                                provider: deviceInfoProvider,
+                                provider: DeviceInfoProvider.inst,
                                 builder: (context, vm) {
                                   return RoundedChip(
                                     avatar: const Icon(Icons.devices_rounded),

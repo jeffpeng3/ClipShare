@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:clipshare/main.dart';
 import 'package:floor/floor.dart';
 
 @Entity(
@@ -10,7 +11,7 @@ import 'package:floor/floor.dart';
 class HistoryTag {
   ///主键 id
   @PrimaryKey(autoGenerate: true)
-  int id;
+  late int id;
 
   ///标签名称
   late String tagName;
@@ -18,11 +19,9 @@ class HistoryTag {
   /// 历史 id
   late int hisId;
 
-  HistoryTag(
-    this.id,
-    this.tagName,
-    this.hisId,
-  );
+  HistoryTag(this.tagName, this.hisId, [int? id]) {
+    this.id = id ?? App.snowflake.nextId();
+  }
 
   HistoryTag.empty({this.id = 0, this.tagName = "", this.hisId = 0});
 
@@ -42,4 +41,12 @@ class HistoryTag {
   String toString() {
     return jsonEncode(toJson());
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HistoryTag && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

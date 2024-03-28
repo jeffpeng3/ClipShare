@@ -1,6 +1,7 @@
 import 'package:clipshare/components/rounded_chip.dart';
-import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/provider/history_tag_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:refena_flutter/refena_flutter.dart';
 
 import '../pages/tag_edit_page.dart';
 
@@ -17,68 +18,60 @@ class ClipTagRowView extends StatefulWidget {
 }
 
 class _ClipTagRowViewState extends State<ClipTagRowView> {
-  List<String> _tags = [];
-
-  void initTags() {
-    DBUtil.inst.historyTagDao.list(widget.hisId).then((lst) {
-      _tags = lst.map((e) => e.tagName).toList();
-      if (mounted) {
-        setState(() {});
-      }
-    });
-  }
-
   @override
   void initState() {
     super.initState();
-    initTags();
   }
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          for (var tag in _tags)
-            Container(
-              margin: const EdgeInsets.only(left: 5),
-              child: RoundedChip(
-                backgroundColor: widget.clipBgColor,
-                avatar: const CircleAvatar(
-                  backgroundColor: Colors.blue,
-                  child: Text(
-                    '#',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
+      child: ViewModelBuilder(
+        provider: HistoryTagProvider.inst,
+        builder: (context, vm) {
+          var tags = vm.getTagList(widget.hisId);
+          return Row(
+            children: [
+              for (var tag in tags )
+                Container(
+                  margin: const EdgeInsets.only(left: 5),
+                  child: RoundedChip(
+                    backgroundColor: widget.clipBgColor,
+                    avatar: const CircleAvatar(
+                      backgroundColor: Colors.blue,
+                      child: Text(
+                        '#',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    label: Text(
+                      tag,
+                      style: const TextStyle(fontSize: 12),
                     ),
                   ),
                 ),
-                label: Text(
-                  tag,
-                  style: const TextStyle(fontSize: 12),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                onPressed: () {
+                  TagEditPage.goto(widget.hisId);
+                },
+                icon: const Row(
+                  children: [
+                    Text("标签"),
+                    Icon(
+                      Icons.add,
+                      size: 22,
+                    ),
+                  ],
                 ),
               ),
-            ),
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            onPressed: () {
-              TagEditPage.goto(widget.hisId).then((value) {
-                initTags();
-              });
-            },
-            icon: const Row(
-              children: [
-                Text("标签"),
-                Icon(
-                  Icons.add,
-                  size: 22,
-                ),
-              ],
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }

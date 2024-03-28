@@ -712,8 +712,15 @@ class _$HistoryTagDao extends HistoryTagDao {
   Future<List<HistoryTag>> list(int hId) async {
     return _queryAdapter.queryList('select * from HistoryTag where hisId = ?1',
         mapper: (Map<String, Object?> row) => HistoryTag(
-            row['id'] as int, row['tagName'] as String, row['hisId'] as int),
+            row['tagName'] as String, row['hisId'] as int, row['id'] as int?),
         arguments: [hId]);
+  }
+
+  @override
+  Future<List<HistoryTag>> getAll() async {
+    return _queryAdapter.queryList('select * from HistoryTag',
+        mapper: (Map<String, Object?> row) => HistoryTag(
+            row['tagName'] as String, row['hisId'] as int, row['id'] as int?));
   }
 
   @override
@@ -766,7 +773,7 @@ class _$HistoryTagDao extends HistoryTagDao {
     return _queryAdapter.query(
         'select * from HistoryTag where hisId = ?1 and tagName = ?2',
         mapper: (Map<String, Object?> row) => HistoryTag(
-            row['id'] as int, row['tagName'] as String, row['hisId'] as int),
+            row['tagName'] as String, row['hisId'] as int, row['id'] as int?),
         arguments: [hId, tagName]);
   }
 
@@ -774,7 +781,7 @@ class _$HistoryTagDao extends HistoryTagDao {
   Future<HistoryTag?> getById(int id) async {
     return _queryAdapter.query('select * from HistoryTag where id = ?1',
         mapper: (Map<String, Object?> row) => HistoryTag(
-            row['id'] as int, row['tagName'] as String, row['hisId'] as int),
+            row['tagName'] as String, row['hisId'] as int, row['id'] as int?),
         arguments: [id]);
   }
 

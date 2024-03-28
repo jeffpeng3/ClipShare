@@ -13,6 +13,10 @@ abstract class HistoryTagDao {
   @Query("select * from HistoryTag where hisId = :hId")
   Future<List<HistoryTag>> list(int hId);
 
+  ///查询所有标签列表
+  @Query("select * from HistoryTag")
+  Future<List<HistoryTag>> getAll();
+
   ///查询所有标签，返回值含有一个该历史 id 是否持有该标签的标记
   @Query("SELECT * from VHistoryTagHold where hisId = :hId")
   Future<List<VHistoryTagHold>> listWithHold(int hId);

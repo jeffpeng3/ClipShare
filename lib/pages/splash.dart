@@ -11,11 +11,13 @@ import 'package:clipshare/pages/guide/float_perm_guide.dart';
 import 'package:clipshare/pages/guide/notify_perm_guide.dart';
 import 'package:clipshare/pages/guide/shizuku_perm_guide.dart';
 import 'package:clipshare/pages/user_guide.dart';
+import 'package:clipshare/provider/history_tag_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:refena_flutter/refena_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../entity/dev_info.dart';

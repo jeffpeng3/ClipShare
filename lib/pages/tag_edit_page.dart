@@ -5,12 +5,12 @@ import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/views/v_history_tag_hold.dart';
 import 'package:clipshare/main.dart';
-import 'package:clipshare/pages/nav/history_page.dart';
+import 'package:clipshare/provider/history_tag_provider.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
+import 'package:refena_flutter/refena_flutter.dart';
 
-import '../entity/tables/operation_record.dart';
 import '../util/constants.dart';
 
 class TagEditPage extends StatefulWidget {
@@ -18,11 +18,11 @@ class TagEditPage extends StatefulWidget {
 
   const TagEditPage(this.hisId, {super.key});
 
-  static Future<dynamic> goto(int hisId) {
+  static void goto(int hisId) {
     var showLeftBar =
         MediaQuery.of(App.context).size.width >= Constants.showLeftBarWidth;
     if (showLeftBar || PlatformExt.isPC) {
-      return showDialog(
+      showDialog(
         context: App.context,
         builder: (context) {
           var h = MediaQuery.of(context).size.height;
@@ -42,7 +42,7 @@ class TagEditPage extends StatefulWidget {
         },
       );
     } else {
-      return Navigator.push(
+      Navigator.push(
         App.context,
         MaterialPageRoute(
           builder: (context) => TagEditPage(hisId),
@@ -72,7 +72,6 @@ class _TagEditPageState extends State<TagEditPage> {
   void initState() {
     super.initState();
     DBUtil.inst.historyTagDao.listWithHold(widget.hisId).then((lst) {
-      Log.debug(tag, lst);
       _selected.clear();
       _tags.clear();
       _tags.addAll(lst);
@@ -104,67 +103,49 @@ class _TagEditPageState extends State<TagEditPage> {
             var originSet = _origin.toSet();
             var selectedSet = _selected.toSet();
             //原始值 - 选择的值，找出被删除的tag
-            var willRmList = originSet.difference(selectedSet);
+            var willRmSet = originSet.difference(selectedSet);
             //选择的值 - 原始值，找出应增加的tag
-            var willAddList = selectedSet.difference(originSet);
+            var willAddSet = selectedSet.difference(originSet);
 
-            ///增加
+            var willRmList = List<HistoryTag>.empty(growable: true);
+            var willAddList = List<HistoryTag>.empty(growable: true);
+
             Future<int?> link = Future.value(0);
-            for (var v in willAddList) {
-              var id = App.snowflake.nextId();
-              var t = HistoryTag(id, v.tagName, widget.hisId);
-              //链式处理
-              link = link.then((value) {
-                return DBUtil.inst.historyTagDao.add(t).then((res) {
-                  if (res <= 0) return Future.value();
-                  var opRecord = OperationRecord(
-                    id: App.snowflake.nextId(),
-                    uid: App.userId,
-                    module: Module.tag,
-                    method: OpMethod.add,
-                    data: t.id.toString(),
-                  );
-                  //添加操作记录
-                  return DBUtil.inst.opRecordDao.addAndNotify(opRecord);
-                });
-              });
-            }
 
-            ///删除
-            for (var v in willRmList) {
+            ///找出所有需要删除的 tag id
+            for (var v in willRmSet) {
               var id = widget.hisId;
               link = link.then((value) {
                 //获取原 hisTagId
                 return DBUtil.inst.historyTagDao.get(id, v.tagName).then((ht) {
                   if (ht == null) return Future.value();
-                  //删除tag
-                  return DBUtil.inst.historyTagDao
-                      .remove(id, v.tagName)
-                      .then((res) {
-                    if (res == null || res <= 0) return Future.value();
-                    var opRecord = OperationRecord(
-                      id: App.snowflake.nextId(),
-                      uid: App.userId,
-                      module: Module.tag,
-                      method: OpMethod.delete,
-                      data: ht.id.toString(),
-                    );
-                    //添加操作记录
-                    return DBUtil.inst.opRecordDao.addAndNotify(opRecord);
-                  });
+                  willRmList.add(ht);
+                  return Future.value();
                 });
               });
             }
-            link.then((value) {
-              setState(() {
-                saving = false;
-              });
-              HistoryPage.pageKey.currentState?.updatePage(
-                (history) => true,
-                (history) {},
-              );
-              Navigator.pop(context);
-            });
+
+            ///生成所有需要添加的 tag
+            for (var v in willAddSet) {
+              var t = HistoryTag(v.tagName, widget.hisId);
+              willAddList.add(t);
+            }
+
+            ///开始删除
+            var notifier = context.ref.notifier(HistoryTagProvider.inst);
+            link
+                .then((value) => notifier.removeList(willRmList))
+                .then((value) => notifier.addList(willAddList))
+                .then(
+                  (value) => setState(() {
+                    saving = false;
+                    // HistoryPage.pageKey.currentState?.updatePage(
+                    //   (history) => true,
+                    //   (history) {},
+                    // );
+                    Navigator.pop(context);
+                  }),
+                );
           } catch (e, t) {
             setState(() {
               saving = false;

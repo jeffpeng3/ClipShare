@@ -102,7 +102,7 @@ class _DeviceCardState extends State<DeviceCard> {
               onPressed: () {
                 var name = textController.text;
                 context.ref
-                    .notifier(deviceInfoProvider)
+                    .notifier(DeviceInfoProvider.inst)
                     .addOrUpdate(dev..customName = name)
                     .then((res) {
                   if (res) {

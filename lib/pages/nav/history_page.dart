@@ -177,7 +177,6 @@ class HistoryPageState extends State<HistoryPage>
       if (history.content.hasUrl) {
         //添加标签
         var tag = HistoryTag(
-          App.snowflake.nextId(),
           "链接",
           history.id,
         );
