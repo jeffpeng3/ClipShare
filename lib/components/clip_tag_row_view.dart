@@ -27,13 +27,13 @@ class _ClipTagRowViewState extends State<ClipTagRowView> {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: ViewModelBuilder(
-        provider: HistoryTagProvider.inst,
-        builder: (context, vm) {
+      child: Consumer(
+        builder: (context, ref) {
+          var vm = ref.watch(HistoryTagProvider.inst);
           var tags = vm.getTagList(widget.hisId);
           return Row(
             children: [
-              for (var tag in tags )
+              for (var tag in tags)
                 Container(
                   margin: const EdgeInsets.only(left: 5),
                   child: RoundedChip(

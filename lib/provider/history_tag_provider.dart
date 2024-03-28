@@ -17,16 +17,6 @@ class HistoryTagMap {
     return {};
   }
 
-  int get size => _getSize();
-
-  int _getSize() {
-    int sum = 0;
-    for (var set in _map.values) {
-      sum += set.length;
-    }
-    return sum;
-  }
-
   HistoryTagMap copy() {
     return HistoryTagMap(Map.from(_map));
   }
@@ -43,7 +33,6 @@ class HistoryTagProvider extends Notifier<HistoryTagMap> {
   @override
   HistoryTagMap init() {
     if (_tagsMap == null) {
-      print("123");
       //初始化标签列表
       DBUtil.inst.historyTagDao.getAll().then((lst) {
         _initState(lst);
@@ -147,6 +136,6 @@ class HistoryTagProvider extends Notifier<HistoryTagMap> {
         map[tag.hisId] = <String>{}..add(tag.tagName);
       }
     }
-    _tagsMap=state = HistoryTagMap(map);
+    _tagsMap = state = HistoryTagMap(map);
   }
 }
