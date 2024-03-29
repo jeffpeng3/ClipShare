@@ -14,11 +14,13 @@ import 'package:clipshare/entity/tables/operation_sync.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/provider/history_tag_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:refena_flutter/refena_flutter.dart';
 
 class HistoryPage extends StatefulWidget {
   static final GlobalKey<HistoryPageState> pageKey =
@@ -180,16 +182,7 @@ class HistoryPageState extends State<HistoryPage>
           "链接",
           history.id,
         );
-        DBUtil.inst.historyTagDao.add(tag).then((cnt) {
-          if (cnt <= 0) return;
-          //发送操作记录
-          var opRecord = OperationRecord.fromSimple(
-            Module.tag,
-            OpMethod.add,
-            tag.id.toString(),
-          );
-          DBUtil.inst.opRecordDao.addAndNotify(opRecord);
-        });
+        context.ref.notifier(HistoryTagProvider.inst).add(tag);
       }
       return cnt;
     });
