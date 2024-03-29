@@ -177,34 +177,36 @@ class _TagEditPageState extends State<TagEditPage> {
             ),
       body: Column(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-              color: Theme.of(context).colorScheme.inversePrimary,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: DefaultTextStyle(
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.black,
-                        fontFamily:
-                            Platform.isWindows ? 'Microsoft YaHei' : null,
-                      ),
-                      child: appBarTitle,
+          showLeftBar || PlatformExt.isPC
+              ? Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: DefaultTextStyle(
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.black,
+                              fontFamily:
+                                  Platform.isWindows ? 'Microsoft YaHei' : null,
+                            ),
+                            child: appBarTitle,
+                          ),
+                        ),
+                        ...appBarActions,
+                      ],
                     ),
                   ),
-                  ...appBarActions,
-                ],
-              ),
-            ),
-          ),
+                )
+              : const SizedBox.shrink(),
           Expanded(
             child: ListView(
               children: [

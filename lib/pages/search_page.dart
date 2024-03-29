@@ -422,7 +422,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
     return Scaffold(
       backgroundColor: App.bgColor,
       appBar: AppBar(
-        scrolledUnderElevation: showLeftBar?0:null,
+        scrolledUnderElevation: showLeftBar ? 0 : null,
         automaticallyImplyLeading: !showLeftBar,
         backgroundColor: showLeftBar
             ? Colors.transparent

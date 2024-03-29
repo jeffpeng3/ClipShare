@@ -41,7 +41,7 @@ class HistoryTagProvider extends Notifier<HistoryTagMap> {
     return _tagsMap ?? HistoryTagMap({});
   }
 
-  Future<bool> _remove(HistoryTag tag) async {
+  Future<bool> _remove(HistoryTag tag, [bool notify = true]) async {
     var cnt = await _historyTagDao.removeById(tag.id);
     var res = cnt != null && cnt > 0;
     if (!res) return false;
@@ -51,6 +51,9 @@ class HistoryTagProvider extends Notifier<HistoryTagMap> {
       } else {
         state._map[tag.hisId]!.remove(tag.tagName);
       }
+    }
+    if (!notify) {
+      return res;
     }
     var opRecord = OperationRecord.fromSimple(
       Module.tag,
@@ -62,15 +65,16 @@ class HistoryTagProvider extends Notifier<HistoryTagMap> {
     return true;
   }
 
-  Future<bool> _add(HistoryTag tag) async {
-    var v = await _historyTagDao.getById(tag.id);
-    if (v == null) {
-      var res = await _historyTagDao.add(tag) > 0;
-      if (!res) return false;
-      if (state._map.containsKey(tag.hisId)) {
-        state._map[tag.hisId]!.add(tag.tagName);
-      } else {
-        state._map[tag.hisId] = <String>{}..add(tag.tagName);
+  Future<bool> _add(HistoryTag tag, [bool notify = true]) async {
+    var hasTag = state._map.containsKey(tag.hisId)
+        ? state._map[tag.hisId]!.contains(tag.tagName)
+        : false;
+    var res = false;
+    if (hasTag) return false;
+    if (notify) {
+      res = await _historyTagDao.add(tag) > 0;
+      if (!res) {
+        return false;
       }
       var opRecord = OperationRecord.fromSimple(
         Module.tag,
@@ -80,12 +84,19 @@ class HistoryTagProvider extends Notifier<HistoryTagMap> {
       //添加操作记录
       DBUtil.inst.opRecordDao.addAndNotify(opRecord);
     }
-    return false;
+    if (!notify || res) {
+      if (state._map.containsKey(tag.hisId)) {
+        state._map[tag.hisId]!.add(tag.tagName);
+      } else {
+        state._map[tag.hisId] = <String>{}..add(tag.tagName);
+      }
+    }
+    return res;
   }
 
   ///添加
-  Future<bool> add(HistoryTag tag) async {
-    var res = await _add(tag);
+  Future<bool> add(HistoryTag tag, [bool notify = true]) async {
+    var res = await _add(tag, notify);
     if (!res) {
       return false;
     }
@@ -94,9 +105,9 @@ class HistoryTagProvider extends Notifier<HistoryTagMap> {
   }
 
   ///批量添加
-  Future<void> addList(Iterable<HistoryTag> tags) async {
+  Future<void> addList(Iterable<HistoryTag> tags, [bool notify = true]) async {
     for (var tag in tags) {
-      var res = await _add(tag);
+      var res = await _add(tag, notify);
       if (!res) {
         continue;
       }
@@ -105,8 +116,8 @@ class HistoryTagProvider extends Notifier<HistoryTagMap> {
   }
 
   ///删除 tag
-  Future<bool> remove(HistoryTag tag) async {
-    var res = await _remove(tag);
+  Future<bool> remove(HistoryTag tag, [bool notify = true]) async {
+    var res = await _remove(tag, notify);
     if (!res) {
       return false;
     }
@@ -115,10 +126,10 @@ class HistoryTagProvider extends Notifier<HistoryTagMap> {
   }
 
   ///批量删除
-  Future<void> removeList(Iterable<HistoryTag> tags) async {
+  Future<void> removeList(Iterable<HistoryTag> tags,
+      [bool notify = true]) async {
     for (var tag in tags) {
-      var res = await _remove(tag);
-      print(res);
+      var res = await _remove(tag, notify);
       if (!res) {
         continue;
       }

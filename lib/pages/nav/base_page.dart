@@ -97,6 +97,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
         MaterialPageRoute(
           builder: (context) => SearchPage(
             key: UniqueKey(),
+            devId: devId,
             tagName: tagName,
           ),
         ),

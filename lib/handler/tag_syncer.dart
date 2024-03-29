@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/provider/history_tag_provider.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:refena_flutter/refena_flutter.dart';
 
 import '../db/db_util.dart';
 import '../entity/tables/operation_record.dart';
@@ -39,12 +41,17 @@ class TagSyncer implements SyncListener {
     Future? f;
     switch (opRecord.method) {
       case OpMethod.add:
-        f = DBUtil.inst.historyTagDao.add(tag);
+        f = DBUtil.inst.historyTagDao.add(tag).then((cnt) {
+          App.context.notifier(HistoryTagProvider.inst).add(tag, false);
+        });
         break;
       case OpMethod.delete:
-        DBUtil.inst.historyTagDao.removeById(tag.id);
+        DBUtil.inst.historyTagDao.removeById(tag.id).then((cnt) {
+          App.context.notifier(HistoryTagProvider.inst).remove(tag, false);
+        });
         break;
       case OpMethod.update:
+        //todo 应该没有更新操作
         f = DBUtil.inst.historyTagDao.updateTag(tag);
         break;
       default:
