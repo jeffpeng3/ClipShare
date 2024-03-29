@@ -126,9 +126,11 @@ class ClipDataCardState extends State<ClipDataCard> {
                       return Row(
                         children: [
                           //来源设备
-                          ViewModelBuilder(
-                            provider: DeviceInfoProvider.inst,
-                            builder: (context, vm) {
+                          Consumer(
+                            // provider: DeviceInfoProvider.inst,
+                            builder: (context, ref) {
+                              var vm = ref.watch(DeviceInfoProvider.inst);
+                              // print("12");
                               return RoundedChip(
                                 avatar: const Icon(Icons.devices_rounded),
                                 backgroundColor: const Color(0x1a000000),

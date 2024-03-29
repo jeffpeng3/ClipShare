@@ -17,7 +17,7 @@ final class DeviceInfoProvider extends Notifier<Devices> {
   Devices init() {
     if (_devices == null) {
       _deviceDao.getAllDevices(App.userId).then((lst) {
-        _devices =state = Devices(lst);
+        _devices = state = Devices(lst);
       });
     }
     return _devices ?? Devices([]);
