@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:clipshare/components/clip_content_view.dart';
 import 'package:clipshare/components/clip_data_card.dart';
 import 'package:clipshare/components/clip_tag_row_view.dart';
@@ -128,7 +130,7 @@ class ClipListViewState extends State<ClipListView>
   void _scrollListener() {
     if (_scrollController.offset == 0 && _list.length != 20) {
       Future.delayed(const Duration(milliseconds: 100), () {
-        var tmpList = _list.sublist(0, 20);
+        var tmpList = _list.sublist(0, min(_list.length, 20));
         _list.clear();
         _list.addAll(tmpList);
         setState(() {});

@@ -192,8 +192,11 @@ class HistoryPageState extends State<HistoryPage>
   void ackSync(MessageData msg) {
     var send = msg.send;
     var data = msg.data;
-    var opSync =
-        OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
+    var opSync = OperationSync(
+      opId: data["id"],
+      devId: send.guid,
+      uid: App.userId,
+    );
     //记录同步记录
     DBUtil.inst.opSyncDao.add(opSync);
     //更新本地历史记录为已同步
@@ -274,7 +277,7 @@ class HistoryPageState extends State<HistoryPage>
       default:
         return;
     }
-    f.then((cnt) {
+    f.whenComplete(() {
       //发送同步确认
       SocketListener.inst.sendData(send, MsgType.ackSync, {
         "id": opRecord.id,

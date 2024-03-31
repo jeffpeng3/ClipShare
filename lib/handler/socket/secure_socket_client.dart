@@ -16,7 +16,7 @@ class SecureSocketClient {
   bool _ready = false;
   late final void Function(SecureSocketClient)? _onConnected;
   late final void Function(SecureSocketClient client, String data)? _onMessage;
-  Function? _onError;
+  void Function(Exception e)? _onError;
   void Function()? _onDone;
   bool? _cancelOnError;
   late final StreamSubscription _stream;
@@ -40,7 +40,7 @@ class SecureSocketClient {
     required AsymmetricKeyPair keyPair,
     void Function(SecureSocketClient)? onConnected,
     void Function(SecureSocketClient client, String data)? onMessage,
-    Function? onError,
+    void Function(Exception e)? onError,
     void Function()? onDone,
     bool? cancelOnError,
   }) async {
@@ -66,7 +66,7 @@ class SecureSocketClient {
     required AsymmetricKeyPair keyPair,
     void Function(SecureSocketClient)? onConnected,
     required void Function(SecureSocketClient client, String data)? onMessage,
-    Function? onError,
+    void Function(Exception e)? onError,
     void Function()? onDone,
     bool? cancelOnError,
   }) {
@@ -135,7 +135,7 @@ class SecureSocketClient {
             }
           }
         },
-        onError: (e, stack) {
+        onError: (e) {
           _data = "";
           Log.error("SecureSocketClient", "error:$e");
           if (_onError != null) {
@@ -143,10 +143,10 @@ class SecureSocketClient {
           }
         },
         onDone: () {
-          _socket.close();
           if (_ready) {
             _onDone?.call();
           }
+          _socket.close();
         },
         cancelOnError: _cancelOnError,
       );
@@ -222,7 +222,15 @@ class SecureSocketClient {
     } else {
       data = CryptoUtil.base64Encode(data);
     }
-    _socket.writeln("$data,");
+    try{
+      _socket.writeln("$data,");
+    }catch(e,stack){
+      Log.debug("SecureSocketClient", "发送失败：$e");
+      Log.debug("SecureSocketClient", "$stack");
+      if(_onError==null){
+        _onError!.call(e as Exception);
+      }
+    }
   }
 
   ///DH 算法发送 key 和 素数、底数

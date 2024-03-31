@@ -380,8 +380,9 @@ class _$HistoryDao extends HistoryDao {
     List<String> devIds,
     String startTime,
     String endTime,
+    bool onlyNoSync,
   ) async {
-    int offset = 7;
+    int offset = 8;
     final _sqliteVariablesForTags =
         Iterable<String>.generate(tags.length, (i) => '?${i + offset}')
             .join(',');
@@ -398,8 +399,17 @@ class _$HistoryDao extends HistoryDao {
             _sqliteVariablesForTags +
             ')) = 1 then             1           else             id in (               select distinct hisId                from HistoryTag ht                where tagName in (' +
             _sqliteVariablesForTags +
-            ')             )           end   order by top desc,id desc   limit 20',
-        mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as int, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
+            ')             )           end      and case            when ?7 = true then             sync = 0           else             1           end   order by top desc,id desc   limit 20',
+        mapper: (Map<String, Object?> row) => History(
+            id: row['id'] as int,
+            uid: row['uid'] as int,
+            time: row['time'] as String,
+            content: row['content'] as String,
+            type: row['type'] as String,
+            devId: row['devId'] as String,
+            top: (row['top'] as int) != 0,
+            sync: (row['sync'] as int) != 0,
+            size: row['size'] as int),
         arguments: [
           uid,
           fromId,
@@ -407,6 +417,7 @@ class _$HistoryDao extends HistoryDao {
           type,
           startTime,
           endTime,
+          onlyNoSync ? 1 : 0,
           ...tags,
           ...devIds
         ]);

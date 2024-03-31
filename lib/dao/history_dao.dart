@@ -56,6 +56,12 @@ abstract class HistoryDao {
               where tagName in (:tags)
             )
           end
+     and case 
+          when :onlyNoSync = true then
+            sync = 0
+          else
+            1
+          end
   order by top desc,id desc
   limit 20
   """)
@@ -68,6 +74,7 @@ abstract class HistoryDao {
     List<String> devIds,
     String startTime,
     String endTime,
+      bool onlyNoSync,
   );
 
   /// 【废弃】获取某设备未同步的记录

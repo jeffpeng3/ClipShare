@@ -135,37 +135,56 @@ class _DevicesPageState extends State<DevicesPage>
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      fontFamily: "宋体",
                     ),
                   ),
-                  RotationTransition(
-                    turns: _animation,
+                  Tooltip(
+                    message: "重新发现设备",
+                    child: RotationTransition(
+                      turns: _animation,
+                      child: IconButton(
+                        onPressed: () {
+                          if (_discovering) {
+                            _rotationReverse = !_rotationReverse;
+                            _setRotationAnimation();
+                            SocketListener.inst.restartDiscoverDevice();
+                          } else {
+                            SocketListener.inst.startDiscoverDevice();
+                          }
+                          setState(() {});
+                        },
+                        icon: const Icon(
+                          Icons.sync,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Tooltip(
+                    message: "手动添加设备",
                     child: IconButton(
                       onPressed: () {
-                        if (_discovering) {
-                          _rotationReverse = !_rotationReverse;
-                          _setRotationAnimation();
-                          SocketListener.inst.restartDiscoverDevice();
-                        } else {
-                          SocketListener.inst.startDiscoverDevice();
-                        }
-                        setState(() {});
+                        _showAddDeviceDialog();
                       },
                       icon: const Icon(
-                        Icons.sync,
+                        Icons.add,
                         size: 20,
                       ),
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      _showAddDeviceDialog();
-                    },
-                    icon: const Icon(
-                      Icons.add,
-                      size: 20,
-                    ),
-                  ),
+                  _discovering
+                      ? Tooltip(
+                          message: "停止发现",
+                          child: IconButton(
+                            onPressed: () {
+                              SocketListener.inst.stopDiscoverDevice();
+                            },
+                            icon: const Icon(
+                              Icons.stop,
+                              size: 20,
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                 ],
               ),
             ),
@@ -586,42 +605,30 @@ class _DevicesPageState extends State<DevicesPage>
     var opRecord = OperationRecord.fromJson(msg.data);
     Map<String, dynamic> json = jsonDecode(opRecord.data);
     Device dev = Device.fromJson(json);
-    Future? f;
-    switch (opRecord.method) {
-      case OpMethod.add:
-        //是自己，不插入
-        if (dev.guid != App.devInfo.guid) {
+    Future f = Future(() => null);
+    if (dev.guid != App.devInfo.guid) {
+      switch (opRecord.method) {
+        case OpMethod.add:
           f = DBUtil.inst.deviceDao.add(dev);
           break;
-        }
-        f = Future(() => 1);
-        break;
-      case OpMethod.delete:
-        DBUtil.inst.deviceDao.remove(dev.guid, App.userId);
-        break;
-      case OpMethod.update:
-        f = DBUtil.inst.deviceDao.updateDevice(dev);
-        break;
-      default:
-        return;
+        case OpMethod.delete:
+          DBUtil.inst.deviceDao.remove(dev.guid, App.userId);
+          break;
+        case OpMethod.update:
+          f = DBUtil.inst.deviceDao.updateDevice(dev);
+          break;
+        default:
+          return;
+      }
     }
-    if (f == null) {
-      //发送同步确认
-      SocketListener.inst.sendData(
+    //发送同步确认
+    f.then(
+      (v) => SocketListener.inst.sendData(
         send,
         MsgType.ackSync,
         {"id": opRecord.id, "module": Module.device.moduleName},
-      );
-    } else {
-      f.then((cnt) {
-        //发送同步确认
-        SocketListener.inst.sendData(
-          send,
-          MsgType.ackSync,
-          {"id": opRecord.id, "module": Module.device.moduleName},
-        );
-      });
-    }
+      ),
+    );
   }
 
   @override

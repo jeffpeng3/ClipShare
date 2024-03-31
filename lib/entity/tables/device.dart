@@ -51,6 +51,7 @@ class Device {
       "type": type,
       "address": address,
       "customName": customName,
+      "isPaired": isPaired,
     };
   }
 

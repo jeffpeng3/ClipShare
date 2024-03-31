@@ -13,6 +13,8 @@ class SecureSocketServer {
   late final void Function(String ip, int port) _onConnected;
   late final void Function(SecureSocketClient client, String data) _onMessage;
   Function? _onError;
+  void Function(Exception e, String ip, int port)? _onClientError;
+  void Function(String ip, int port)? _onClientDone;
   void Function()? _onDone;
   bool? _cancelOnError;
   late final StreamSubscription _stream;
@@ -29,6 +31,8 @@ class SecureSocketServer {
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
+    void Function(Exception e, String ip, int port)? onClientError,
+    void Function(String ip, int port)? onClientDone,
   }) async {
     var sss = SecureSocketServer._private(ip, port);
     sss._server = await ServerSocket.bind(ip, port);
@@ -36,6 +40,8 @@ class SecureSocketServer {
     sss._onError = onError;
     sss._onConnected = onConnected;
     sss._onDone = onDone;
+    sss._onClientDone = onClientDone;
+    sss._onClientError = onClientError;
     sss._listen();
     return sss;
   }
@@ -49,17 +55,28 @@ class SecureSocketServer {
     try {
       _stream = _server.listen(
         (client) {
+          String ip = client.remoteAddress.address;
+          int port = client.remotePort;
           var ssc = SecureSocketClient.fromSocket(
             socket: client,
             prime: App.prime,
             keyPair: App.keyPair,
             onConnected: (SecureSocketClient ssc) {
-              _onConnected(client.remoteAddress.address, client.remotePort);
+              _onConnected(ip, port);
             },
             onMessage: _onMessage,
             onDone: () {
+              if (_onClientDone != null) {
+                _onClientDone!.call(ip, port);
+              }
               if (_sktList.contains(client)) {
                 _sktList.remove(client);
+              }
+            },
+            onError: (e) {
+              Log.error("SecureSocketClient", "error:$e");
+              if (_onClientError != null) {
+                _onClientError!(e, ip, port);
               }
             },
             cancelOnError: _cancelOnError,

@@ -38,6 +38,7 @@ class TaskRunner<T> {
 
   void stop() {
     _stopped = true;
+    _streamController.close();
   }
 
   Stream<T> get stream => _streamController.stream;
@@ -54,7 +55,7 @@ class TaskRunner<T> {
             _runnerCount--;
             if (_stopped || (_runnerCount == 0 && !_stayAlive)) {
               _streamController.close();
-              if(!_stopped) {
+              if (!_stopped) {
                 onFinish?.call();
               }
             }
@@ -67,6 +68,9 @@ class TaskRunner<T> {
   /// Processes the queue one by one.
   Future<void> _runner({required void Function() onFinish}) async {
     while (_queue.isNotEmpty) {
+      if (_streamController.isClosed || _stopped) {
+        return;
+      }
       final task = _queue.removeFirst();
       try {
         var res = await task();

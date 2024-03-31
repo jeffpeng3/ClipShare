@@ -41,10 +41,11 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
   ///搜索相关
   final Set<String> _selectedTags = {};
   final Set<String> _selectedDevIds = {};
-  var searchStartDate = "";
-  var searchEndDate = "";
-  var searchType = "全部";
-  var typeMap = {
+  var _searchStartDate = "";
+  var _searchEndDate = "";
+  var _searchType = "全部";
+  var _searchOnlyNoSync=false;
+  final _typeMap = {
     "全部": "",
     "文本": "Text",
     "图片": "Img",
@@ -53,7 +54,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
   };
 
   String get typeValue =>
-      typeMap.keys.contains(searchType) ? typeMap[searchType]! : "";
+      _typeMap.keys.contains(_searchType) ? _typeMap[_searchType]! : "";
 
   @override
   void initState() {
@@ -118,8 +119,9 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
       typeValue,
       _selectedTags.toList(),
       _selectedDevIds.toList(),
-      searchStartDate,
-      searchEndDate,
+      _searchStartDate,
+      _searchEndDate,
+      _searchOnlyNoSync,
     )
         .then((list) {
       if (PlatformExt.isPC) {
@@ -140,12 +142,13 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
       context: context,
       elevation: 100,
       builder: (context) {
-        var start = searchStartDate == "" ? "开始日期" : searchStartDate;
-        var end = searchEndDate == "" ? "结束日期" : searchEndDate;
+        var start = _searchStartDate == "" ? "开始日期" : _searchStartDate;
+        var end = _searchEndDate == "" ? "结束日期" : _searchEndDate;
         var now = DateTime.now();
         var nowDayStr = now.toString().substring(0, 10);
         var tags = Set<String>.from(_selectedTags);
         var devs = Set<String>.from(_selectedDevIds);
+        bool searchOnlyNoSync = false;
         onDateRangeClick(state) async {
           //显示时间选择器
           DateTimeRange range = await showDateRangePicker(
@@ -202,16 +205,35 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                               ),
                             ),
                           ),
+                          Row(
+                            children: [
+                              TextButton.icon(
+                                icon: Icon(searchOnlyNoSync
+                                    ? Icons.check_box
+                                    : Icons.check_box_outline_blank_sharp),
+                                label: const Text(
+                                  "仅未同步",
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                                onPressed: () {
+                                  setInnerState(() {
+                                    searchOnlyNoSync = !searchOnlyNoSync;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context);
-                              searchStartDate =
+                              _searchStartDate =
                                   start.contains("日期") ? "" : start;
-                              searchEndDate = end.contains("日期") ? "" : end;
+                              _searchEndDate = end.contains("日期") ? "" : end;
                               _selectedTags.clear();
                               _selectedTags.addAll(tags);
                               _selectedDevIds.clear();
                               _selectedDevIds.addAll(devs);
+                              _searchOnlyNoSync=searchOnlyNoSync;
                               refreshData();
                             },
                             child: const Text("确定"),
@@ -229,7 +251,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                           label: Text(
                             start,
                             style: TextStyle(
-                              color: searchStartDate == "" && start == "开始日期"
+                              color: _searchStartDate == "" && start == "开始日期"
                                   ? Colors.grey
                                   : null,
                             ),
@@ -259,7 +281,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                           label: Text(
                             end,
                             style: TextStyle(
-                              color: searchEndDate == "" && end == "结束日期"
+                              color: _searchEndDate == "" && end == "结束日期"
                                   ? Colors.grey
                                   : null,
                             ),
@@ -500,14 +522,14 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                     Row(
                       children: [
                         RoundedChip(
-                          selected: searchType == type,
+                          selected: _searchType == type,
                           onPressed: () {
-                            if (searchType == type) {
+                            if (_searchType == type) {
                               return;
                             }
                             setState(() {
                               _loading = true;
-                              searchType = type;
+                              _searchType = type;
                             });
                             Future.delayed(
                               const Duration(milliseconds: 500),
@@ -515,7 +537,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                             );
                           },
                           selectedColor:
-                              searchType == type ? Colors.blue[100] : null,
+                              _searchType == type ? Colors.blue[100] : null,
                           label: Text(type),
                         ),
                         const SizedBox(

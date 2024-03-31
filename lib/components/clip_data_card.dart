@@ -1,10 +1,7 @@
-import 'dart:async';
-
 import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/db/db_util.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
-import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/nav/base_page.dart';
 import 'package:clipshare/pages/tag_edit_page.dart';
@@ -276,25 +273,19 @@ class ClipDataCardState extends State<ClipDataCard> {
           },
         ),
         ListTile(
-          title: Text(widget.clip.data.top ? "重新同步" : "同步记录"),
+          title: Text(widget.clip.data.sync ? "重新同步" : "同步记录"),
           leading: const Icon(
             Icons.sync,
             color: Colors.blueGrey,
           ),
           onTap: () {
             Navigator.of(context).pop();
-            DBUtil.inst.opRecordDao
-                .getByDataId(
-              widget.clip.data.id,
-              Module.history.moduleName,
-              OpMethod.add.name,
-              App.userId,
-            )
-                .then((op) {
-              if (op == null) return;
-              op.data = widget.clip.data.toString();
-              SocketListener.inst.sendData(null, MsgType.sync, op.toJson());
-            });
+            var opRecord = OperationRecord.fromSimple(
+              Module.history,
+              OpMethod.add,
+              widget.clip.data.id.toString(),
+            );
+            DBUtil.inst.opRecordDao.addAndNotify(opRecord);
           },
         ),
         ListTile(
