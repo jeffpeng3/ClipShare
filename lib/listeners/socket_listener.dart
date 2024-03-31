@@ -81,9 +81,7 @@ class SocketListener {
 
   static SocketListener get inst => _singleton;
   static bool _isInit = false;
-  Future<void> _linkQueue = Future.value();
-  int _linkQueueLen = 0;
-  Completer<void> _completer = Completer();
+  Map<String, Future> map = {};
 
   Settings get settings => _ref.read(settingProvider);
   List<RawDatagramSocket> multicasts = [];
@@ -124,30 +122,17 @@ class SocketListener {
         }
         switch (msg.key) {
           case MsgType.broadcastInfo:
-            _linkQueue = _linkQueue.then((v) {
-              if (_linkQueueLen <= 0) {
-                _onReceivedBroadcastInfo(msg, datagram);
-              }
-              _linkQueueLen++;
-              Future.delayed(const Duration(seconds: 10), _resetCompleter);
-              return _completer.future.then((value) {
-                _linkQueueLen--;
-                return _onReceivedBroadcastInfo(msg, datagram);
-              });
+            Future.delayed(const Duration(seconds: 5), () {
+              map.remove(dev.guid);
             });
+            if (!map.containsKey(dev.guid)) {
+              map[dev.guid] = _onReceivedBroadcastInfo(msg, datagram);
+            }
             break;
           default:
         }
       });
     }
-  }
-
-  ///重置广播接收的 completer
-  void _resetCompleter() {
-    if (!_completer.isCompleted) {
-      _completer.complete();
-    }
-    _completer = Completer();
   }
 
   ///接收广播设备信息
@@ -157,8 +142,7 @@ class SocketListener {
   ) async {
     DevInfo dev = msg.send;
     //设备已连接，跳过
-    if (_devSockets.keys.contains(dev.guid) || !settings.allowDiscover) {
-      _resetCompleter();
+    if (_devSockets.keys.contains(dev.guid)) {
       return;
     }
 
@@ -166,7 +150,6 @@ class SocketListener {
     var isPaired = device != null && device.isPaired;
     //未配对且不允许被发现，结束
     if (!settings.allowDiscover && !isPaired) {
-      _resetCompleter();
       return;
     }
     //建立连接
@@ -182,20 +165,19 @@ class SocketListener {
       port: port,
       prime: App.prime,
       keyPair: App.keyPair,
-      onConnected: (client) {
+      onConnected: (client) async {
         Log.debug(tag, '已连接到服务器');
-        //发送本机信息给服务器
-        MessageData msg = MessageData(
+        //本地是否已配对
+        var localDevice = await _deviceDao.getById(dev.guid, App.userId);
+        var localIsPaired = localDevice?.isPaired ?? false;
+        var pairedStatusData = MessageData(
           userId: App.userId,
           send: App.devInfo,
-          key: MsgType.connect,
-          data: {},
-          recv: null,
+          key: MsgType.pairedStatus,
+          data: {"isPaired": localIsPaired},
         );
-        client.send(msg.toJson());
-        //保存连接
-        var ds = DevSocket(dev: dev, socket: client);
-        _devSockets[dev.guid] = ds;
+        //告诉服务器配对状态
+        client.send(pairedStatusData.toJson());
       },
       onMessage: (client, data) {
         Map<String, dynamic> json = jsonDecode(data);
@@ -204,12 +186,10 @@ class SocketListener {
       },
       onDone: () {
         _onDevDisConnected(dev.guid);
-        _resetCompleter();
       },
       onError: (error) {
         Log.debug(tag, '发生错误: $error');
         _onDevDisConnected(dev.guid);
-        _resetCompleter();
       },
     );
   }
@@ -302,8 +282,8 @@ class SocketListener {
         //告诉客户端配对状态
         client.send(pairedStatusData.toJson());
         //暂时是未配对，等待对方发送配对状态
-        var ds = DevSocket(dev: dev, socket: client, isPaired: false);
-        _devSockets[dev.guid] = ds;
+        // var ds = DevSocket(dev: dev, socket: client, isPaired: false);
+        // _devSockets[dev.guid] = ds;
         break;
 
       case MsgType.pairedStatus:
@@ -411,7 +391,6 @@ class SocketListener {
 
   ///发现设备
   void startDiscoverDevice([bool restart = false]) async {
-    // if (true) return;
     if (_discovering) {
       Log.debug(tag, "正在发现设备");
       return;
@@ -423,8 +402,9 @@ class SocketListener {
       }
     }
     Log.debug(tag, "开始发现设备");
-    List<Future<void> Function()> tasks = _multicastDiscover();
-    tasks.addAll(await _customDiscover());
+    //先发现自添加设备
+    List<Future<void> Function()> tasks =await _customDiscover();
+    tasks.addAll(_multicastDiscover());
     _taskRunner = TaskRunner<void>(
       initialTasks: tasks,
       onFinish: () async {
@@ -483,7 +463,6 @@ class SocketListener {
   ///发现子网设备
   Future<List<Future<void> Function()>> _subNetDiscover() async {
     List<Future<void> Function()> tasks = List.empty(growable: true);
-    return tasks;
     var interfaces = await NetworkInterface.list();
     var expendAddress = interfaces
         .map((networkInterface) => networkInterface.addresses)
@@ -563,51 +542,53 @@ class SocketListener {
     DevInfo dev,
     MessageData msg,
   ) async {
-    //已连接且已配对，结束
-    if (_devSockets.containsKey(dev.guid) && _devSockets[dev.guid]!.isPaired) {
-      _resetCompleter();
+    //已连接，结束
+    if (_devSockets.containsKey(dev.guid)) {
       return;
     }
-    //本地是否已配对
+    //本地是否存在该设备
     var localDevice = await _deviceDao.getById(dev.guid, App.userId);
-    var localIsPaired = localDevice?.isPaired ?? false;
-    var remoteIsPaired = msg.data["isPaired"];
-    //双方配对信息一致
-    if (remoteIsPaired && localIsPaired) {
-      if (_devSockets.containsKey(dev.guid)) {
-        _devSockets[dev.guid]!.isPaired = true;
+    bool paired = false;
+    if (localDevice != null) {
+      var localIsPaired = localDevice.isPaired;
+      var remoteIsPaired = msg.data["isPaired"];
+      //双方配对信息一致
+      if (remoteIsPaired && localIsPaired) {
+        paired = true;
+        Log.debug(tag, "${dev.name} has paired");
       } else {
-        var ds = DevSocket(dev: dev, socket: client, isPaired: true);
-        _devSockets[dev.guid] = ds;
-      }
-      Log.debug(tag, "${dev.name} has paired");
-    } else {
-      //有一方已取消配对或未配对
-      if (localDevice != null) {
+        //有一方已取消配对或未配对
         //忘记设备
         onDevForget(dev, App.userId);
         _deviceDao.updateDevice(localDevice..isPaired = false);
+        Log.debug(tag, "${dev.name} not paired");
       }
-      Log.debug(tag, "${dev.name} not paired");
     }
-    _onDevConnected(dev);
+    //告诉客户端配对状态
     var pairedStatusData = MessageData(
       userId: App.userId,
       send: App.devInfo,
       key: MsgType.pairedStatus,
-      data: {"isPaired": remoteIsPaired && localIsPaired},
+      data: {"isPaired": paired},
     );
-    //告诉客户端配对状态
     client.send(pairedStatusData.toJson());
-    if (remoteIsPaired && localIsPaired) {
+    //添加到本地
+    if (_devSockets.containsKey(dev.guid)) {
+      _devSockets[dev.guid]!.isPaired = paired;
+    } else {
+      var ds = DevSocket(dev: dev, socket: client, isPaired: paired);
+      _devSockets[dev.guid] = ds;
+    }
+    _onDevConnected(dev);
+    if (paired) {
       //已配对，获取该设备未同步记录
       sendData(dev, MsgType.reqMissingData, {});
     }
-    _resetCompleter();
   }
 
   ///设备连接成功
   void _onDevConnected(DevInfo dev) {
+    map.remove(dev.guid);
     for (var listener in _devAliveListeners) {
       try {
         listener.onConnected(dev);
