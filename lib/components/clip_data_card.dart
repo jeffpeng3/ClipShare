@@ -18,8 +18,8 @@ import 'clip_detail_dialog.dart';
 
 class ClipDataCard extends StatefulWidget {
   final ClipData clip;
-  final void Function() onUpdate;
   final void Function()? onTap;
+  final void Function() onUpdate;
   final void Function(int id) onRemove;
   final bool routeToSearchOnClickChip;
 
@@ -319,7 +319,6 @@ class ClipDataCardState extends State<ClipDataCard> {
                 id,
               );
               widget.onRemove(id);
-              setState(() {});
               Navigator.of(context).pop();
               DBUtil.inst.opRecordDao.addAndNotify(opRecord);
             });

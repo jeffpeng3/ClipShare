@@ -44,7 +44,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
   var _searchStartDate = "";
   var _searchEndDate = "";
   var _searchType = "全部";
-  var _searchOnlyNoSync=false;
+  var _searchOnlyNoSync = false;
   final _typeMap = {
     "全部": "",
     "文本": "Text",
@@ -233,7 +233,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                               _selectedTags.addAll(tags);
                               _selectedDevIds.clear();
                               _selectedDevIds.addAll(devs);
-                              _searchOnlyNoSync=searchOnlyNoSync;
+                              _searchOnlyNoSync = searchOnlyNoSync;
                               refreshData();
                             },
                             child: const Text("确定"),
@@ -439,6 +439,11 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
     );
   }
 
+  void _sortList() {
+    _list.sort((a, b) => b.data.compareTo(a.data));
+    debounceSetState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -558,6 +563,13 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                       key: _clipListKey,
                       list: _list,
                       onRefreshData: refreshData,
+                      onUpdate: _sortList,
+                      onRemove: (id) {
+                        _list.removeWhere(
+                          (element) => element.data.id == id,
+                        );
+                        debounceSetState();
+                      },
                       onLoadMoreData: (minId) {
                         return _loadData(minId);
                       },

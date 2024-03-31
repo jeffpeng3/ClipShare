@@ -21,6 +21,8 @@ class ClipListView extends StatefulWidget {
   final bool enableRouteSearch;
   final BorderRadiusGeometry? detailBorderRadius;
   final Future<List<ClipData>> Function(int minId)? onLoadMoreData;
+  final void Function() onUpdate;
+  final void Function(int id) onRemove;
 
   const ClipListView({
     super.key,
@@ -29,6 +31,8 @@ class ClipListView extends StatefulWidget {
     this.onLoadMoreData,
     this.detailBorderRadius,
     this.enableRouteSearch = false,
+    required this.onUpdate,
+    required this.onRemove,
   });
 
   @override
@@ -203,15 +207,8 @@ class ClipListViewState extends State<ClipListView>
                                 });
                               }
                             },
-                            onUpdate: () {
-                              _sortList();
-                            },
-                            onRemove: (int id) {
-                              _list.removeWhere(
-                                (element) => element.data.id == id,
-                              );
-                              setState(() {});
-                            },
+                            onUpdate: widget.onUpdate,
+                            onRemove:widget.onRemove,
                           ),
                         );
                       },

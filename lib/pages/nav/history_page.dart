@@ -134,6 +134,13 @@ class HistoryPageState extends State<HistoryPage>
             list: _list,
             onRefreshData: refreshData,
             enableRouteSearch: true,
+            onUpdate: _sortList,
+            onRemove: (id) {
+              _list.removeWhere(
+                (element) => element.data.id == id,
+              );
+              debounceSetState();
+            },
           );
   }
 
