@@ -13,10 +13,9 @@ import android.os.IBinder
 import android.os.Message
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import io.flutter.plugin.common.MethodChannel
 import rikka.shizuku.Shizuku
 import top.coclyun.clipshare.BuildConfig
-import top.coclyun.clipshare.ClipboardFloatActivity
+import top.coclyun.clipshare.ClipboardFocusActivity
 import top.coclyun.clipshare.ClipboardListener
 import top.coclyun.clipshare.MainActivity
 import java.io.BufferedReader
@@ -25,7 +24,6 @@ import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import android.graphics.BitmapFactory
 import top.coclyun.clipshare.R
 
 
@@ -47,7 +45,7 @@ class BackgroundService : Service(),
             Log.d("read_logs", "on Msg")
             mOuter.get().let {
                 Log.d("read_logs", it.toString())
-                it?.startActivity(ClipboardFloatActivity.getIntent(it))
+                it?.startActivity(ClipboardFocusActivity.getIntent(it))
             }
         }
     }

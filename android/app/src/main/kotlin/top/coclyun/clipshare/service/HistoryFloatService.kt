@@ -52,7 +52,7 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         val layoutInflater = baseContext.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        view = layoutInflater.inflate(R.layout.activity_clipboard_float, null) as ViewGroup
+        view = layoutInflater.inflate(R.layout.history_clipboard_float, null) as ViewGroup
         mainParams = LayoutParams()
     }
 

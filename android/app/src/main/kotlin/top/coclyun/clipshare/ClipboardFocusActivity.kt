@@ -3,27 +3,28 @@ package top.coclyun.clipshare
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.os.PersistableBundle
+import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 
 
-class ClipboardFloatActivity : AppCompatActivity() {
+class ClipboardFocusActivity : AppCompatActivity() {
+    private val TAG = "ClipboardFloatActivity"
 
     companion object {
         @JvmStatic
         fun getIntent(context: Context): Intent {
             val startIntent =
-                Intent(context.applicationContext, ClipboardFloatActivity::class.java)
+                Intent(context.applicationContext, ClipboardFocusActivity::class.java)
             startIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
             return startIntent
         }
 
     }
 
-    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-        super.onCreate(savedInstanceState, persistentState)
-        setContentView(R.layout.activity_clipboard_float)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_clpboard_focus)
         // WindowManager.LayoutParams
         val wlp = window.attributes
         wlp.dimAmount = 0f
@@ -40,6 +41,7 @@ class ClipboardFloatActivity : AppCompatActivity() {
             finish()
         }
     }
+
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         super.onBackPressed()

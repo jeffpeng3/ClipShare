@@ -2,17 +2,12 @@ package top.coclyun.clipshare
 
 import android.content.ClipboardManager
 import android.content.Context
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.os.Message
 import android.util.Log
-import android.widget.Toast
 import androidx.core.content.ContextCompat
-import rikka.shizuku.Shizuku
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -69,7 +64,7 @@ open class ClipboardListener(context: Context) {
         while (bufferedReader.readLine().also { line = it } != null) {
             line?.let { Log.d("read_logs", it) }
             if (line!!.contains(BuildConfig.APPLICATION_ID)) {
-                context.startActivity(ClipboardFloatActivity.getIntent(context))
+                context.startActivity(ClipboardFocusActivity.getIntent(context))
             }
         }
         Log.d("read_logs", "finished")

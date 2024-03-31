@@ -61,7 +61,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ClipboardFloatActivity"
+            android:name=".ClipboardFocusActivity"
             android:excludeFromRecents="true"
             android:taskAffinity="top.coclyun.task1"
             android:theme="@style/Theme.Transparent" />
