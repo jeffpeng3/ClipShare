@@ -282,7 +282,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           },
                           errorText: "端口号范围0-65535",
                           onOk: (str) {
-                            ref.notifier(settingProvider).setLocalName(str);
+                            ref.notifier(settingProvider).setPort(str.toInt());
                           },
                         ),
                       );

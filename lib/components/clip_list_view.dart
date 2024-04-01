@@ -132,11 +132,14 @@ class ClipListViewState extends State<ClipListView>
   }
 
   void _scrollListener() {
-    if (_scrollController.offset == 0 && _list.length != 20) {
+    if (_scrollController.offset == 0) {
       Future.delayed(const Duration(milliseconds: 100), () {
         var tmpList = _list.sublist(0, min(_list.length, 20));
         _list.clear();
         _list.addAll(tmpList);
+        if (tmpList.isNotEmpty) {
+          _minId = tmpList.last.data.id;
+        }
         setState(() {});
       });
     }
@@ -190,7 +193,9 @@ class ClipListViewState extends State<ClipListView>
                         return Container(
                           padding: const EdgeInsets.only(left: 2, right: 2),
                           constraints: const BoxConstraints(
-                              maxHeight: 150, minHeight: 80),
+                            maxHeight: 150,
+                            minHeight: 80,
+                          ),
                           child: ClipDataCard(
                             clip: _list[i],
                             routeToSearchOnClickChip: widget.enableRouteSearch,
@@ -208,7 +213,7 @@ class ClipListViewState extends State<ClipListView>
                               }
                             },
                             onUpdate: widget.onUpdate,
-                            onRemove:widget.onRemove,
+                            onRemove: widget.onRemove,
                           ),
                         );
                       },

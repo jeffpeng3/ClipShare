@@ -43,16 +43,12 @@ class HistoryFloatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
     fun bind(item: String, onDragStart: () -> Unit, onDragEnd: () -> Unit) {
         textView.text = item
-//        copy.setOnClickListener{
-//
-//        }
         textView.setOnLongClickListener {
             //开始startDragAndDrop
-            val item = ClipData.Item(item)
             val mimeTypes = arrayOf(ClipDescription.MIMETYPE_TEXT_PLAIN)
-            val dragData = ClipData("ClipboardData", mimeTypes, item)
-            val shadow = DragShadowBuilder(itemView)
-            itemView.startDragAndDrop(dragData, shadow, null, View.DRAG_FLAG_GLOBAL)
+            val dragData = ClipData("ClipboardData", mimeTypes, ClipData.Item(item))
+            val shadow = DragShadowBuilder(textView)
+            textView.startDragAndDrop(dragData, shadow, null, View.DRAG_FLAG_GLOBAL)
             false
         }
         textView.setOnDragListener { view, event ->

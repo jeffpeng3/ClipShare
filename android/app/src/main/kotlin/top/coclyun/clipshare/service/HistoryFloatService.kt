@@ -15,8 +15,10 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.View.INVISIBLE
 import android.view.View.OnClickListener
 import android.view.View.OnTouchListener
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
@@ -78,7 +80,7 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
         // 设置悬浮窗的位置
         setPosCenter()
         mainParams.flags = LayoutParams.FLAG_NOT_FOCUSABLE or LayoutParams.FLAG_NOT_TOUCH_MODAL
-        mainParams.gravity = Gravity.LEFT or Gravity.TOP
+        mainParams.gravity = Gravity.END or Gravity.CENTER
         val bar = view.findViewById<LinearLayout>(R.id.bar)
         recyclerView = view.findViewById(R.id.list)
         recyclerView?.layoutManager = LinearLayoutManager(view.context)
@@ -113,12 +115,10 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
         val metrics = resources.displayMetrics
         val screenWidth = metrics.widthPixels
         val screenHeight = metrics.heightPixels
-        // 屏幕右侧
-        val xPosition: Int = screenWidth - view.width
         // 垂直居中
-        val yPosition: Int = (screenHeight - view.height) / 2
-        mainParams.x = xPosition
-        mainParams.y = yPosition
+//        val yPosition: Int = (screenHeight - view.height) / 2
+        mainParams.x = 0
+//        mainParams.y = yPosition
     }
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {
@@ -146,28 +146,28 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
                 y = nowY
                 // 设置悬浮窗的位置
                 val metrics = resources.displayMetrics
-                val screenWidth = metrics.widthPixels
-                val tempX = if (positionX != 0) positionX else mainParams.x + movedX
 
                 //保持在窗口右边
-                positionX = mainParams.x + movedX
-                mainParams.x = max(screenWidth, tempX)
+//                positionX = mainParams.x + movedX
+                mainParams.x = 0
                 mainParams.y = if (positionY != 0) positionY else mainParams.y + movedY
                 positionY = mainParams.y + movedY
                 if (movedX < -20) {
                     //向左滑动，显示列表
+                    view.visibility = INVISIBLE
                     bar.visibility = View.GONE
                     showListView = true
-                    val handler = Handler(Looper.getMainLooper())
-                    handler.postDelayed({
-                        //显示listview
-                        recyclerView?.visibility = View.VISIBLE
-                        setPosCenter()
-                        mainParams.width = LayoutParams.MATCH_PARENT
-                        mainParams.height = LayoutParams.MATCH_PARENT
+                    //显示listview
+                    recyclerView?.visibility = View.VISIBLE
+                    setPosCenter()
+                    mainParams.width = LayoutParams.MATCH_PARENT
+                    mainParams.height = LayoutParams.MATCH_PARENT
+                    windowManager.updateViewLayout(view, mainParams)
+                    view.post {
+                        view.visibility = VISIBLE
                         refreshData()
-                        windowManager.updateViewLayout(view, mainParams)
-                    }, 0)
+                    }
+
                 } else if (!showListView) {
                     lastPos = arrayOf(positionX, positionY)
                 }
@@ -192,13 +192,17 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
                         val list = lst.map { it["content"].toString() }.toList()
                         // 创建并设置适配器
                         recyclerView?.adapter = HistoryFloatAdapter(list, {
-                            mainParams.width = dp2px(200f).toInt()
+                            view.visibility = INVISIBLE
+                            mainParams.width = LayoutParams.WRAP_CONTENT
+                            mainParams.x = 0
 //                            setPosCenter()
                             windowManager.updateViewLayout(view, mainParams)
                         }, {
                             mainParams.width = LayoutParams.MATCH_PARENT
 //                            setPosCenter()
                             windowManager.updateViewLayout(view, mainParams)
+                            view.post { view.visibility = VISIBLE }
+
                         })
                     }
                 }
