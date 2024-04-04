@@ -1,3 +1,6 @@
+import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/extension.dart';
+
 class Settings {
   //端口
   int port;
@@ -20,11 +23,9 @@ class Settings {
   //是否第一次打开软件
   bool firstStartup;
 
-  //RSA私钥
-  final String privateKeyRSA;
-
-  //RSA公钥
-  final String publicKeyRSA;
+  //记录的上次窗口大小，格式为：widthxheight。默认值为：1000x650
+  final String windowSize;
+  final bool rememberWindowSize;
 
   Settings({
     required this.port,
@@ -34,8 +35,8 @@ class Settings {
     required this.allowDiscover,
     required this.showHistoryFloat,
     required this.firstStartup,
-    required this.privateKeyRSA,
-    required this.publicKeyRSA,
+    required this.windowSize,
+    required this.rememberWindowSize,
   });
 
   Settings copyWith({
@@ -46,6 +47,8 @@ class Settings {
     bool? allowDiscover,
     bool? showHistoryFloat,
     bool? firstStartup,
+    String? windowSize,
+    bool? rememberWindowSize,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -55,8 +58,9 @@ class Settings {
       allowDiscover: allowDiscover ?? this.allowDiscover,
       showHistoryFloat: showHistoryFloat ?? this.showHistoryFloat,
       firstStartup: firstStartup ?? this.firstStartup,
-      privateKeyRSA: privateKeyRSA,
-      publicKeyRSA: publicKeyRSA,
+      windowSize:
+          windowSize.isNullOrEmpty ? Constants.defaultWindowSize : windowSize!,
+      rememberWindowSize: rememberWindowSize ?? this.rememberWindowSize,
     );
   }
 }

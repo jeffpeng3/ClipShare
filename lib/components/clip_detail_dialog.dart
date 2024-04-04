@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:clipshare/components/clip_content_view.dart';
 import 'package:clipshare/components/clip_tag_row_view.dart';
-import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
@@ -73,9 +73,9 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                       onPressed: () {
                         var id = widget.clip.data.id;
                         //删除tag
-                        DBUtil.inst.historyTagDao.removeAllByHisId(id);
+                        AppDb.inst.historyTagDao.removeAllByHisId(id);
                         //删除历史
-                        DBUtil.inst.historyDao.delete(id).then((v) {
+                        AppDb.inst.historyDao.delete(id).then((v) {
                           if (v == null || v <= 0) return;
                           //添加删除记录
                           var opRecord = OperationRecord.fromSimple(
@@ -86,7 +86,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                           widget.onRemove(id);
                           setState(() {});
                           Navigator.pop(widget.dlgContext);
-                          DBUtil.inst.opRecordDao.addAndNotify(opRecord);
+                          AppDb.inst.opRecordDao.addAndNotify(opRecord);
                         });
                       },
                       tooltip: "删除记录",
@@ -104,7 +104,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                         var isTop = !widget.clip.data.top;
                         widget.clip.data.top = isTop;
 
-                        DBUtil.inst.historyDao.setTop(id, isTop).then((v) {
+                        AppDb.inst.historyDao.setTop(id, isTop).then((v) {
                           if (v == null || v <= 0) return;
                           var opRecord = OperationRecord.fromSimple(
                             Module.historyTop,
@@ -113,7 +113,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                           );
                           widget.onUpdate();
                           setState(() {});
-                          DBUtil.inst.opRecordDao.addAndNotify(opRecord);
+                          AppDb.inst.opRecordDao.addAndNotify(opRecord);
                         });
                       },
                       tooltip: widget.clip.data.top ? "取消置顶" : "置顶",
@@ -148,7 +148,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                         color: Colors.blueGrey,
                       ),
                       onPressed: () {
-                        DBUtil.inst.opRecordDao
+                        AppDb.inst.opRecordDao
                             .getByDataId(
                           widget.clip.data.id,
                           Module.history.moduleName,

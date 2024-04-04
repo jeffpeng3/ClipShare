@@ -1,5 +1,5 @@
 import 'package:clipshare/dao/history_tag_dao.dart';
-import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/util/constants.dart';
@@ -23,7 +23,7 @@ class HistoryTagMap {
 }
 
 class HistoryTagProvider extends Notifier<HistoryTagMap> {
-  final HistoryTagDao _historyTagDao = DBUtil.inst.historyTagDao;
+  final HistoryTagDao _historyTagDao = AppDb.inst.historyTagDao;
   static HistoryTagMap? _tagsMap;
   static NotifierProvider<HistoryTagProvider, HistoryTagMap> inst =
       NotifierProvider<HistoryTagProvider, HistoryTagMap>((ref) {
@@ -34,7 +34,7 @@ class HistoryTagProvider extends Notifier<HistoryTagMap> {
   HistoryTagMap init() {
     if (_tagsMap == null) {
       //初始化标签列表
-      DBUtil.inst.historyTagDao.getAll().then((lst) {
+      AppDb.inst.historyTagDao.getAll().then((lst) {
         _initState(lst);
       });
     }
@@ -61,7 +61,7 @@ class HistoryTagProvider extends Notifier<HistoryTagMap> {
       tag.id.toString(),
     );
     //添加操作记录
-    DBUtil.inst.opRecordDao.addAndNotify(opRecord);
+    AppDb.inst.opRecordDao.addAndNotify(opRecord);
     return true;
   }
 
@@ -82,7 +82,7 @@ class HistoryTagProvider extends Notifier<HistoryTagMap> {
         tag.id.toString(),
       );
       //添加操作记录
-      DBUtil.inst.opRecordDao.addAndNotify(opRecord);
+      AppDb.inst.opRecordDao.addAndNotify(opRecord);
     }
     if (!notify || res) {
       if (state._map.containsKey(tag.hisId)) {

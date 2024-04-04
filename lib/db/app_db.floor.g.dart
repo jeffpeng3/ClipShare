@@ -37,7 +37,7 @@ class _$AppDbBuilder {
   }
 
   /// Creates the database and initializes it.
-  Future<AppDb> build() async {
+  Future<_AppDb> build() async {
     final path = name != null
         ? await sqfliteDatabaseFactory.getDatabasePath(name!)
         : ':memory:';
@@ -51,7 +51,7 @@ class _$AppDbBuilder {
   }
 }
 
-class _$AppDb extends AppDb {
+class _$AppDb extends _AppDb {
   _$AppDb([StreamController<String>? listener]) {
     changeListener = listener ?? StreamController<String>.broadcast();
   }

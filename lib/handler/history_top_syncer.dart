@@ -1,26 +1,23 @@
 import 'dart:convert';
 
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/util/constants.dart';
-import 'package:flutter/cupertino.dart';
 
-import '../components/clip_list_view.dart';
-import '../db/db_util.dart';
 import '../entity/tables/operation_record.dart';
 import '../entity/tables/operation_sync.dart';
 import '../main.dart';
 
 /// 记录置顶操作同步处理器
 class HistoryTopSyncer implements SyncListener {
-
   HistoryTopSyncer() {
     SocketListener.inst.addSyncListener(Module.historyTop, this);
   }
 
-  void destroy() {
+  void dispose() {
     SocketListener.inst.removeSyncListener(Module.historyTop, this);
   }
 
@@ -34,7 +31,7 @@ class HistoryTopSyncer implements SyncListener {
       uid: App.userId,
     );
     //记录同步记录
-    DBUtil.inst.opSyncDao.add(opSync);
+    AppDb.inst.opSyncDao.add(opSync);
   }
 
   @override
@@ -46,7 +43,7 @@ class HistoryTopSyncer implements SyncListener {
     Future? f;
     switch (opRecord.method) {
       case OpMethod.update:
-        f = DBUtil.inst.historyDao.setTop(history.id, history.top);
+        f = AppDb.inst.historyDao.setTop(history.id, history.top);
         break;
       default:
         return;

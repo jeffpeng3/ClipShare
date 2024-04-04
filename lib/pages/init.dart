@@ -1,40 +1,40 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/db/app_db.dart';
+import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/settings.dart';
+import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/entity/tables/history.dart';
+import 'package:clipshare/entity/version.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/guide/battery_perm_guide.dart';
 import 'package:clipshare/pages/guide/float_perm_guide.dart';
 import 'package:clipshare/pages/guide/notify_perm_guide.dart';
 import 'package:clipshare/pages/guide/shizuku_perm_guide.dart';
 import 'package:clipshare/pages/user_guide.dart';
-import 'package:clipshare/provider/history_tag_provider.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
+import 'package:clipshare/util/snowflake.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:refena_flutter/refena_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../entity/dev_info.dart';
-import '../entity/tables/device.dart';
-import '../main.dart';
-import '../util/crypto.dart';
-import '../util/snowflake.dart';
 import 'nav/base_page.dart';
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+class LoadingPage extends StatefulWidget {
+  const LoadingPage({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  State<LoadingPage> createState() => _LoadingPageState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _LoadingPageState extends State<LoadingPage> {
   @override
   void initState() {
     super.initState();
@@ -52,11 +52,15 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> init() async {
     App.context = context;
     //初始化数据库
-    await DBUtil.inst.init();
+    await AppDb.inst.init();
     //初始化本机设备信息
     await initDevInfo();
     //加载配置信息
     await loadConfigs();
+    //加载配置后初始窗体配置
+    if (Platform.isWindows) {
+      await initWindowsManager();
+    }
     // 初始化channel
     App.clipChannel.setMethodCallHandler((call) async {
       var arguments = call.arguments;
@@ -68,7 +72,7 @@ class _SplashScreenState extends State<SplashScreen> {
           return Future(() => true);
         case "getHistory":
           int fromId = arguments["fromId"];
-          var historyDao = DBUtil.inst.historyDao;
+          var historyDao = AppDb.inst.historyDao;
           var lst = List<History>.empty();
           if (fromId == 0) {
             lst = await historyDao.getHistoriesTop20(App.userId);
@@ -132,9 +136,31 @@ class _SplashScreenState extends State<SplashScreen> {
     return Future.value();
   }
 
+  Future<void> initWindowsManager() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    // 必须加上这一行。
+    await windowManager.ensureInitialized();
+    final [weight, height] =
+        App.settings.windowSize.split("x").map((e) => e.toDouble()).toList();
+    WindowOptions windowOptions = WindowOptions(
+      size: Size(weight, height),
+      center: true,
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.normal,
+    );
+    windowManager.waitUntilReadyToShow(windowOptions, () {
+      if (!App.settings.startMini) {
+        windowManager.show();
+        windowManager.focus();
+      }
+    });
+    return Future<void>.value();
+  }
+
   ///加载配置信息
   Future<void> loadConfigs() async {
-    var cfg = DBUtil.inst.configDao;
+    var cfg = AppDb.inst.configDao;
     var port = await cfg.getConfig(
       "port",
       App.userId,
@@ -163,31 +189,40 @@ class _SplashScreenState extends State<SplashScreen> {
       "firstStartup",
       App.userId,
     );
-    var [privateKeyRSA, publicKeyRSA] = CryptoUtil.genRSAKey();
+    var windowSize = await cfg.getConfig(
+      "windowSize",
+      App.userId,
+    );
+    var rememberWindowSize = await cfg.getConfig(
+      "rememberWindowSize",
+      App.userId,
+    );
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
-      localName:
-          localName != null && localName != "" ? localName : App.devInfo.name,
+      localName: localName.isNotNullAndEmpty ? localName! : App.devInfo.name,
       startMini: startMini?.toBool() ?? false,
       launchAtStartup: launchAtStartup?.toBool() ?? false,
       allowDiscover: allowDiscover?.toBool() ?? true,
       showHistoryFloat: showHistoryFloat?.toBool() ?? false,
       firstStartup: firstStartup?.toBool() ?? true,
-      privateKeyRSA: privateKeyRSA,
-      publicKeyRSA: publicKeyRSA,
+      windowSize:
+          windowSize.isNullOrEmpty || rememberWindowSize?.toBool() != true
+              ? Constants.defaultWindowSize
+              : windowSize!,
+      rememberWindowSize: rememberWindowSize?.toBool() ?? false,
     );
     if (App.settings.showHistoryFloat) {
       App.androidChannel.invokeMethod("showHistoryFloatWindow");
     }
     App.devInfo.name = App.settings.localName;
-    if (!App.settings.startMini && PlatformExt.isPC) {
-      await windowManager.show();
-      await windowManager.focus();
-    }
   }
 
   ///调用平台方法，获取设备信息
   Future<void> initDevInfo() async {
+    //读取版本信息
+    var pkgInfo = await PackageInfo.fromPlatform();
+    App.version = Version(pkgInfo.version, pkgInfo.buildNumber);
+    //读取设备id信息
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
       var androidInfo = await deviceInfo.androidInfo;

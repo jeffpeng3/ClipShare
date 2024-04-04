@@ -1,31 +1,23 @@
+import 'dart:ui';
+
 import 'package:clipshare/dao/config_dao.dart';
-import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/entity/tables/config.dart';
 import 'package:clipshare/main.dart';
 import 'package:refena_flutter/refena_flutter.dart';
+import 'package:window_manager/window_manager.dart';
 
 final settingProvider = NotifierProvider<SettingProvider, Settings>((ref) {
   return SettingProvider();
 });
 
 class SettingProvider extends Notifier<Settings> {
-  final ConfigDao _configDao = DBUtil.inst.configDao;
+  final ConfigDao _configDao = AppDb.inst.configDao;
 
   @override
   Settings init() {
-    var settings = App.settings;
-    return Settings(
-      port: settings.port,
-      localName: settings.localName,
-      launchAtStartup: settings.launchAtStartup,
-      startMini: settings.startMini,
-      allowDiscover: settings.allowDiscover,
-      showHistoryFloat: settings.showHistoryFloat,
-      firstStartup: settings.firstStartup,
-      privateKeyRSA: settings.privateKeyRSA,
-      publicKeyRSA: settings.publicKeyRSA,
-    );
+    return App.settings;
   }
 
   Future<void> _addOrUpdate(String key, String value) async {
@@ -85,6 +77,23 @@ class SettingProvider extends Notifier<Settings> {
     await _addOrUpdate("firstStartup", false.toString());
     App.settings = state = state.copyWith(
       firstStartup: false,
+    );
+  }
+
+  Future<void> setRememberWindowSize(bool rememberWindowSize) async {
+    await _addOrUpdate("rememberWindowSize", rememberWindowSize.toString());
+    Size size = await windowManager.getSize();
+    App.settings = state = state.copyWith(
+      rememberWindowSize: rememberWindowSize,
+      windowSize: "${size.width}x${size.height}",
+    );
+  }
+
+  Future<void> setWindowSize(Size windowSize) async {
+    var size = "${windowSize.width}x${windowSize.height}";
+    await _addOrUpdate("windowSize", size);
+    App.settings = state = state.copyWith(
+      windowSize: size,
     );
   }
 }

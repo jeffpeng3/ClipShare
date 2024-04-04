@@ -5,7 +5,8 @@ import 'package:basic_utils/basic_utils.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/entity/tables/device.dart';
-import 'package:clipshare/pages/splash.dart';
+import 'package:clipshare/entity/version.dart';
+import 'package:clipshare/pages/init.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/snowflake.dart';
@@ -16,26 +17,7 @@ import 'package:refena_flutter/refena_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
 void main() async {
-  if (Platform.isWindows) {
-    await initWindowsManager();
-  }
   runApp(RefenaScope(child: const App()));
-}
-
-Future<void> initWindowsManager() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // 必须加上这一行。
-  await windowManager.ensureInitialized();
-
-  WindowOptions windowOptions = const WindowOptions(
-    size: Size(1000, 650),
-    center: true,
-    backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.normal,
-  );
-  windowManager.waitUntilReadyToShow(windowOptions, () async {});
-  return Future<void>.value();
 }
 
 //解决 Windows 端 SingleChildScrollView 无法水平滚动的问题
@@ -72,6 +54,7 @@ class App extends StatelessWidget {
   static late BuildContext context;
   static late Settings settings;
   static bool innerCopy = false;
+  static late final Version version;
 
   const App({super.key});
 
@@ -97,7 +80,7 @@ class App extends StatelessWidget {
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
-      home: const SplashScreen(),
+      home: const LoadingPage(),
     );
   }
 }

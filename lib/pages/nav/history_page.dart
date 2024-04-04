@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:clipshare/components/clip_list_view.dart';
 import 'package:clipshare/components/loading.dart';
 import 'package:clipshare/dao/history_dao.dart';
-import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
@@ -59,7 +59,7 @@ class HistoryPageState extends State<HistoryPage>
   void initState() {
     super.initState();
     updating = false;
-    _historyDao = DBUtil.inst.historyDao;
+    _historyDao = AppDb.inst.historyDao;
     //更新上次复制的记录
     _historyDao.getLatestLocalClip(App.userId).then((his) {
       _last = his;
@@ -182,7 +182,7 @@ class HistoryPageState extends State<HistoryPage>
         OpMethod.add,
         history.id.toString(),
       );
-      DBUtil.inst.opRecordDao.addAndNotify(opRecord);
+      AppDb.inst.opRecordDao.addAndNotify(opRecord);
       if (history.content.hasUrl) {
         //添加标签
         var tag = HistoryTag(
@@ -205,10 +205,10 @@ class HistoryPageState extends State<HistoryPage>
       uid: App.userId,
     );
     //记录同步记录
-    DBUtil.inst.opSyncDao.add(opSync);
+    AppDb.inst.opSyncDao.add(opSync);
     //更新本地历史记录为已同步
     var hisId = msg.data["hisId"];
-    DBUtil.inst.historyDao.setSync(hisId, true);
+    AppDb.inst.historyDao.setSync(hisId, true);
     Log.debug(tag, hisId);
     for (var clip in _list) {
       if (clip.data.id.toString() == hisId.toString()) {
@@ -228,7 +228,7 @@ class HistoryPageState extends State<HistoryPage>
     history.sync = true;
     if (opRecord.module == Module.historyTop) {
       //更新数据库
-      DBUtil.inst.historyDao.setTop(history.id, history.top).then((v) {
+      AppDb.inst.historyDao.setTop(history.id, history.top).then((v) {
         //更新页面
         updatePage(
           (h) => h.id == history.id,
@@ -254,7 +254,7 @@ class HistoryPageState extends State<HistoryPage>
         }
         break;
       case OpMethod.delete:
-        DBUtil.inst.historyDao.delete(history.id).then((cnt) {
+        AppDb.inst.historyDao.delete(history.id).then((cnt) {
           if (cnt == null || cnt == 0) return;
           _list.removeWhere((element) => element.data.id == history.id);
           //删除以后判断是否是最近复制的，如果是，更新_last
@@ -273,7 +273,7 @@ class HistoryPageState extends State<HistoryPage>
         });
         break;
       case OpMethod.update:
-        f = DBUtil.inst.historyDao.updateHistory(history).then((cnt) {
+        f = AppDb.inst.historyDao.updateHistory(history).then((cnt) {
           if (cnt == 0) return;
           var i = _list.indexWhere((element) => element.data.id == history.id);
           if (i == -1) return;

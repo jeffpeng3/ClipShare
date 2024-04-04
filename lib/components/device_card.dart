@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:clipshare/components/rounded_chip.dart';
-import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
@@ -112,7 +112,7 @@ class _DeviceCardState extends State<DeviceCard> {
                       OpMethod.update,
                       dev.guid,
                     );
-                    DBUtil.inst.opRecordDao.addAndNotify(opRecord);
+                    AppDb.inst.opRecordDao.addAndNotify(opRecord);
                     Navigator.pop(context);
                     setState(() {});
                   }

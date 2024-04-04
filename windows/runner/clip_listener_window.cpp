@@ -63,7 +63,7 @@ std::wstring ClipListenerWindow::GetClipboardText(int retry)
 	bool isOpen = OpenClipboard(nullptr);
 	if (!isOpen)
 	{
-		if(retry >= 3)
+		if(retry > 5)
 		{
 			return empty;
 		}

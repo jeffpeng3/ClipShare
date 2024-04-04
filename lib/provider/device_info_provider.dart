@@ -1,12 +1,12 @@
 import 'package:clipshare/dao/device_dao.dart';
-import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/devices.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/main.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 final class DeviceInfoProvider extends Notifier<Devices> {
-  final DeviceDao _deviceDao = DBUtil.inst.deviceDao;
+  final DeviceDao _deviceDao = AppDb.inst.deviceDao;
   static Devices? _devices;
   static final NotifierProvider<DeviceInfoProvider, Devices> inst =
       NotifierProvider<DeviceInfoProvider, Devices>((ref) {

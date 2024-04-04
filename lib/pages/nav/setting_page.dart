@@ -154,14 +154,17 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                   ),
                   SettingCard(
                     main: const Text("记住上次窗口大小"),
-                    value: true,
+                    sub: Text(
+                      "${vm.rememberWindowSize ? "记录值：${vm.windowSize}，" : ""}默认值：${Constants.defaultWindowSize}",
+                    ),
+                    value: vm.rememberWindowSize,
                     action: (v) => Switch(
-                      value: vm.showHistoryFloat,
+                      value: v,
                       onChanged: (checked) {
                         HapticFeedback.mediumImpact();
                         ref
                             .notifier(settingProvider)
-                            .setShowHistoryFloat(checked);
+                            .setRememberWindowSize(checked);
                       },
                     ),
                     show: (v) => PlatformExt.isPC,
@@ -312,7 +315,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                 cardList: [
                   SettingCard(
                     main: const Text("关于${Constants.appName}"),
-                    sub: const Text("1.0"),
+                    sub: Text(App.version.name),
                     value: false,
                     action: (v) => TextButton(
                       onPressed: () {},

@@ -1,27 +1,26 @@
 import 'dart:convert';
 
 import 'package:clipshare/components/add_device_dialog.dart';
+import 'package:clipshare/components/device_card.dart';
+import 'package:clipshare/dao/device_dao.dart';
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/message_data.dart';
+import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
+import 'package:clipshare/entity/tables/operation_sync.dart';
+import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/global.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 import 'package:refena_flutter/refena_flutter.dart';
-
-import '../../components/device_card.dart';
-import '../../dao/device_dao.dart';
-import '../../db/db_util.dart';
-import '../../entity/tables/device.dart';
-import '../../entity/tables/operation_sync.dart';
-import '../../listeners/socket_listener.dart';
-import '../../main.dart';
-import '../../util/log.dart';
 
 class DevicesPage extends StatefulWidget {
   const DevicesPage({super.key});
@@ -58,7 +57,7 @@ class _DevicesPageState extends State<DevicesPage>
       duration: const Duration(seconds: 4),
     )..repeat();
     _setRotationAnimation();
-    _deviceDao = DBUtil.inst.deviceDao;
+    _deviceDao = AppDb.inst.deviceDao;
     _deviceDao.getAllDevices(App.userId).then((list) {
       _pairedList.clear();
       for (var dev in list) {
@@ -303,7 +302,7 @@ class _DevicesPageState extends State<DevicesPage>
                           }
                           //更新配对状态为未配对
                           device.isPaired = false;
-                          DBUtil.inst.deviceDao.updateDevice(device);
+                          AppDb.inst.deviceDao.updateDevice(device);
                         },
                         splashColor: Colors.black12,
                         borderRadius: BorderRadius.circular(12),
@@ -596,7 +595,7 @@ class _DevicesPageState extends State<DevicesPage>
     var opSync =
         OperationSync(opId: data["id"], devId: send.guid, uid: App.userId);
     //记录同步记录
-    DBUtil.inst.opSyncDao.add(opSync);
+    AppDb.inst.opSyncDao.add(opSync);
   }
 
   @override
@@ -609,13 +608,13 @@ class _DevicesPageState extends State<DevicesPage>
     if (dev.guid != App.devInfo.guid) {
       switch (opRecord.method) {
         case OpMethod.add:
-          f = DBUtil.inst.deviceDao.add(dev);
+          f = AppDb.inst.deviceDao.add(dev);
           break;
         case OpMethod.delete:
-          DBUtil.inst.deviceDao.remove(dev.guid, App.userId);
+          AppDb.inst.deviceDao.remove(dev.guid, App.userId);
           break;
         case OpMethod.update:
-          f = DBUtil.inst.deviceDao.updateDevice(dev);
+          f = AppDb.inst.deviceDao.updateDevice(dev);
           break;
         default:
           return;

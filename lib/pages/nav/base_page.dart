@@ -162,6 +162,16 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   }
 
   @override
+  void onWindowResized() {
+    if (!App.settings.rememberWindowSize) {
+      return;
+    }
+    windowManager.getSize().then((size) {
+      context.ref.notifier(settingProvider).setWindowSize(size);
+    });
+  }
+
+  @override
   void onTrayIconRightMouseDown() async {
     await trayManager.popUpContextMenu();
   }
@@ -193,7 +203,8 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
 
   void exitApp() {
     windowManager.setPreventClose(false).then((value) {
-      windowManager.close();
+      // await AppDb.inst.close();
+      WindowManager.instance.destroy();
     });
   }
 
@@ -255,11 +266,11 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   }
 
   @override
-  void dispose() {
+  void dispose() async {
     trayManager.removeListener(this);
     windowManager.removeListener(this);
-    _tagSyncer.destroy();
-    _historyTopSyncer.destroy();
+    _tagSyncer.dispose();
+    _historyTopSyncer.dispose();
     _networkListener.cancel();
     super.dispose();
   }

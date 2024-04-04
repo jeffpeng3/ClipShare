@@ -9,18 +9,18 @@ import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/handler/dev_pairing_handler.dart';
 import 'package:clipshare/handler/socket/secure_socket_client.dart';
+import 'package:clipshare/handler/socket/secure_socket_server.dart';
 import 'package:clipshare/handler/sync_data_handler.dart';
 import 'package:clipshare/handler/task_runner.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
-import '../db/db_util.dart';
-import '../handler/socket/secure_socket_server.dart';
-import '../util/crypto.dart';
+import 'package:clipshare/db/app_db.dart';
 
 abstract class DevAliveListener {
   //连接成功
@@ -89,7 +89,7 @@ class SocketListener {
   Future<SocketListener> init(Ref ref) async {
     if (_isInit) throw Exception("已初始化");
     _ref = ref;
-    _deviceDao = DBUtil.inst.deviceDao;
+    _deviceDao = AppDb.inst.deviceDao;
     // 初始化，创建socket监听
     _runSocketServer();
     await _startListenMulticast();
@@ -510,7 +510,6 @@ class SocketListener {
       prime: App.prime,
       keyPair: App.keyPair,
       onConnected: (SecureSocketClient client) {
-        print("manual");
         //外部终止连接
         if (data.containsKey('stop') && data['stop'] == true) {
           client.destroy();

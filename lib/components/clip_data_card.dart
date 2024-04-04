@@ -1,5 +1,5 @@
 import 'package:clipshare/components/rounded_chip.dart';
-import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/main.dart';
@@ -244,7 +244,7 @@ class ClipDataCardState extends State<ClipDataCard> {
             //置顶取反
             var isTop = !widget.clip.data.top;
             widget.clip.data.top = isTop;
-            DBUtil.inst.historyDao.setTop(id, isTop).then((v) {
+            AppDb.inst.historyDao.setTop(id, isTop).then((v) {
               if (v == null || v <= 0) return;
               var opRecord = OperationRecord.fromSimple(
                 Module.historyTop,
@@ -254,7 +254,7 @@ class ClipDataCardState extends State<ClipDataCard> {
               widget.onUpdate();
               setState(() {});
               Navigator.of(context).pop();
-              DBUtil.inst.opRecordDao.addAndNotify(opRecord);
+              AppDb.inst.opRecordDao.addAndNotify(opRecord);
             });
           },
         ),
@@ -285,7 +285,7 @@ class ClipDataCardState extends State<ClipDataCard> {
               OpMethod.add,
               widget.clip.data.id.toString(),
             );
-            DBUtil.inst.opRecordDao.addAndNotify(opRecord);
+            AppDb.inst.opRecordDao.addAndNotify(opRecord);
           },
         ),
         ListTile(
@@ -308,9 +308,9 @@ class ClipDataCardState extends State<ClipDataCard> {
           onTap: () {
             var id = widget.clip.data.id;
             //删除tag
-            DBUtil.inst.historyTagDao.removeAllByHisId(id);
+            AppDb.inst.historyTagDao.removeAllByHisId(id);
             //删除历史
-            DBUtil.inst.historyDao.delete(id).then((v) {
+            AppDb.inst.historyDao.delete(id).then((v) {
               if (v == null || v <= 0) return;
               //添加删除记录
               var opRecord = OperationRecord.fromSimple(
@@ -320,7 +320,7 @@ class ClipDataCardState extends State<ClipDataCard> {
               );
               widget.onRemove(id);
               Navigator.of(context).pop();
-              DBUtil.inst.opRecordDao.addAndNotify(opRecord);
+              AppDb.inst.opRecordDao.addAndNotify(opRecord);
             });
           },
         ),

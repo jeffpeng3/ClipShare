@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/views/v_history_tag_hold.dart';
 import 'package:clipshare/main.dart';
@@ -71,7 +71,7 @@ class _TagEditPageState extends State<TagEditPage> {
   @override
   void initState() {
     super.initState();
-    DBUtil.inst.historyTagDao.listWithHold(widget.hisId).then((lst) {
+    AppDb.inst.historyTagDao.listWithHold(widget.hisId).then((lst) {
       _selected.clear();
       _tags.clear();
       _tags.addAll(lst);
@@ -117,7 +117,7 @@ class _TagEditPageState extends State<TagEditPage> {
               var id = widget.hisId;
               link = link.then((value) {
                 //获取原 hisTagId
-                return DBUtil.inst.historyTagDao.get(id, v.tagName).then((ht) {
+                return AppDb.inst.historyTagDao.get(id, v.tagName).then((ht) {
                   if (ht == null) return Future.value();
                   willRmList.add(ht);
                   return Future.value();

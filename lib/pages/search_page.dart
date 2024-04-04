@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:clipshare/components/clip_list_view.dart';
 import 'package:clipshare/components/loading.dart';
 import 'package:clipshare/components/rounded_chip.dart';
-import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/main.dart';
@@ -90,12 +90,12 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
     _list.clear();
     _minId = null;
     //加载所有标签名
-    DBUtil.inst.historyTagDao.getAllTagNames().then((lst) {
+    AppDb.inst.historyTagDao.getAllTagNames().then((lst) {
       _allTagNames = lst;
       debounceSetState();
     });
     //加载所有设备名
-    DBUtil.inst.deviceDao.getAllDevices(App.userId).then((lst) {
+    AppDb.inst.deviceDao.getAllDevices(App.userId).then((lst) {
       var tmpLst = List<Device>.empty(growable: true);
       tmpLst.add(App.device);
       tmpLst.addAll(lst);
@@ -111,7 +111,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
 
   Future<List<ClipData>> _loadData(int? minId) {
     //加载搜索结果的前20条
-    return DBUtil.inst.historyDao
+    return AppDb.inst.historyDao
         .getHistoriesPageByWhere(
       App.userId,
       minId ?? 0,

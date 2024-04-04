@@ -1,4 +1,4 @@
-import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/entity/tables/history.dart';
@@ -18,7 +18,7 @@ class SyncDataHandler {
   }
 
   static Future<List<OperationRecord>> getData(String devId) {
-    return DBUtil.inst.opRecordDao.getSyncRecord(App.userId, devId).then((lst) {
+    return AppDb.inst.opRecordDao.getSyncRecord(App.userId, devId).then((lst) {
       var future = Future.value();
       var rmList = <OperationRecord>[];
       for (var item in lst) {
@@ -37,7 +37,7 @@ class SyncDataHandler {
     var id = item.data;
     switch (item.module) {
       case Module.device:
-        f = DBUtil.inst.deviceDao.getById(id, App.userId).then((v) {
+        f = AppDb.inst.deviceDao.getById(id, App.userId).then((v) {
           if (v == null) {
             if (item.method != OpMethod.delete) {
               rmList.add(item);
@@ -53,7 +53,7 @@ class SyncDataHandler {
         });
         break;
       case Module.tag:
-        f = DBUtil.inst.historyTagDao.getById(int.parse(id)).then((v) {
+        f = AppDb.inst.historyTagDao.getById(int.parse(id)).then((v) {
           if (v == null) {
             if (item.method != OpMethod.delete) {
               rmList.add(item);
@@ -68,7 +68,7 @@ class SyncDataHandler {
         });
         break;
       case Module.history:
-        f = DBUtil.inst.historyDao.getById(int.parse(id)).then((v) {
+        f = AppDb.inst.historyDao.getById(int.parse(id)).then((v) {
           if (v == null) {
             if (item.method != OpMethod.delete) {
               rmList.add(item);
@@ -83,7 +83,7 @@ class SyncDataHandler {
         });
         break;
       case Module.historyTop:
-        f = DBUtil.inst.historyDao.getById(int.parse(id)).then((v) {
+        f = AppDb.inst.historyDao.getById(int.parse(id)).then((v) {
           if (v == null) {
             if (item.method != OpMethod.delete) {
               rmList.add(item);

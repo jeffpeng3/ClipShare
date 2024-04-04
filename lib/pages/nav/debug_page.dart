@@ -1,7 +1,7 @@
+import 'package:clipshare/main.dart';
 import 'package:flutter/material.dart';
 
-import '../../db/db_util.dart';
-import '../../main.dart';
+import 'package:clipshare/db/app_db.dart';
 
 class DebugPage extends StatefulWidget {
   const DebugPage({super.key});
@@ -19,7 +19,7 @@ class _DebugPageState extends State<DebugPage> {
       children: [
         ElevatedButton(
           onPressed: () {
-            DBUtil.inst.historyDao.removeAllLocalHistories();
+            AppDb.inst.historyDao.removeAllLocalHistories();
           },
           child: const Text("删除所有本地历史"),
         ),
@@ -28,7 +28,7 @@ class _DebugPageState extends State<DebugPage> {
         ),
         ElevatedButton(
           onPressed: () {
-            DBUtil.inst.deviceDao.removeAll(App.userId);
+            AppDb.inst.deviceDao.removeAll(App.userId);
           },
           child: const Text("删除所有设备"),
         ),
@@ -37,7 +37,7 @@ class _DebugPageState extends State<DebugPage> {
         ),
         ElevatedButton(
           onPressed: () {
-            DBUtil.inst.historyTagDao.removeAll();
+            AppDb.inst.historyTagDao.removeAll();
           },
           child: const Text("删除所有标签"),
         ),
@@ -46,8 +46,8 @@ class _DebugPageState extends State<DebugPage> {
         ),
         ElevatedButton(
           onPressed: () {
-            DBUtil.inst.opRecordDao.removeAll(App.userId);
-            DBUtil.inst.opSyncDao.removeAll(App.userId);
+            AppDb.inst.opRecordDao.removeAll(App.userId);
+            AppDb.inst.opSyncDao.removeAll(App.userId);
           },
           child: const Text("删除所有操作和同步记录"),
         ),
@@ -56,8 +56,8 @@ class _DebugPageState extends State<DebugPage> {
         ),
         ElevatedButton(
           onPressed: () {
-            DBUtil.inst.opSyncDao.resetSyncStatus(App.device.guid);
-            DBUtil.inst.opSyncDao.removeAll(App.userId);
+            AppDb.inst.opSyncDao.resetSyncStatus(App.device.guid);
+            AppDb.inst.opSyncDao.removeAll(App.userId);
           },
           child: const Text("重置所有记录为未同步"),
         ),

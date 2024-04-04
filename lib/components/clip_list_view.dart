@@ -5,7 +5,7 @@ import 'package:clipshare/components/clip_data_card.dart';
 import 'package:clipshare/components/clip_tag_row_view.dart';
 import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/dao/history_dao.dart';
-import 'package:clipshare/db/db_util.dart';
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/main.dart';
@@ -65,7 +65,7 @@ class ClipListViewState extends State<ClipListView>
     super.initState();
     _loadNewData = false;
     _list.addAll(widget.list);
-    _historyDao = DBUtil.inst.historyDao;
+    _historyDao = AppDb.inst.historyDao;
     if (_list.isNotEmpty) {
       _minId = _list.last.data.id;
     }

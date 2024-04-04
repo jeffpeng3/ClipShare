@@ -1,10 +1,10 @@
 import 'dart:convert';
 
+import 'package:clipshare/entity/dev_info.dart';
+import 'package:clipshare/main.dart';
 import 'package:floor/floor.dart';
 
-import '../../db/db_util.dart';
-import '../../main.dart';
-import '../dev_info.dart';
+import 'package:clipshare/db/app_db.dart';
 
 @entity
 class Device {
@@ -93,6 +93,6 @@ class Device {
   }
 
   static Future<Device?> fromDevInfo(DevInfo dev) {
-    return DBUtil.inst.deviceDao.getById(dev.guid, App.userId);
+    return AppDb.inst.deviceDao.getById(dev.guid, App.userId);
   }
 }

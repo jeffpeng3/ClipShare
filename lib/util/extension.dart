@@ -100,6 +100,12 @@ extension StringExt on String {
   }
 }
 
+extension StringNilExt on String? {
+  bool get isNotNullAndEmpty => this != null && this!.isNotEmpty;
+
+  bool get isNullOrEmpty => this == null || this!.isEmpty;
+}
+
 extension PlatformExt on Platform {
   static bool get isMobile {
     return Platform.isIOS || Platform.isAndroid;

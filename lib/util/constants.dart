@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 class Constants {
   //组播默认端口
   static const int port = 42317;
-
   //app名称
-  static const String appName = "轻贴";
+  static const String appName = "ClipShare";
+  //默认窗体大小
+  static const String defaultWindowSize = "1000x650";
 
   //组播地址
   static const String multicastGroup = '224.0.0.128';
