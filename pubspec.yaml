@@ -70,6 +70,10 @@ dependencies:
   url_launcher: ^6.2.5
   # 代码高亮
   flutter_highlighting: ^0.9.0+11.8.0
+  # 多窗口
+  desktop_multi_window: ^0.2.0
+  # 注册表操作
+  win32_registry: 1.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

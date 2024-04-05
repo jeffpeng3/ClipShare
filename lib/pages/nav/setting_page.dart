@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:refena_flutter/refena_flutter.dart';
+import 'package:win32_registry/win32_registry.dart';
 
 class SettingPage extends StatefulWidget {
   const SettingPage({super.key});
@@ -102,23 +103,27 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                     action: (v) => Switch(
                       value: v,
                       onChanged: (checked) async {
+                        PackageInfo packageInfo =
+                            await PackageInfo.fromPlatform();
+                        final appName = packageInfo.appName;
+                        final appPath = Platform.resolvedExecutable;
+                        launchAtStartup.setup(
+                          appName: appName,
+                          appPath: appPath,
+                        );
+                        if(!(await launchAtStartup.isEnabled())){
+                          await launchAtStartup.enable();
+                        }else{
+                          await launchAtStartup.disable();
+                        }
                         ref
                             .notifier(settingProvider)
                             .setLaunchAtStartup(checked);
-                        PackageInfo packageInfo =
-                            await PackageInfo.fromPlatform();
-                        launchAtStartup.setup(
-                          appName: packageInfo.appName,
-                          appPath: Platform.resolvedExecutable,
-                        );
                         if (checked) {
-                          await launchAtStartup.enable();
-                        } else {
-                          await launchAtStartup.disable();
-                        }
+                        } else {}
                       },
                     ),
-                    show: (v) => PlatformExt.isPC,
+                    show: (v) => Platform.isWindows,
                   ),
                   SettingCard(
                     main: const Text("启动时最小化窗口"),

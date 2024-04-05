@@ -4,19 +4,19 @@ part of 'app_db.dart';
 // **************************************************************************
 
 // ignore: avoid_classes_with_only_static_members
-class $FloorAppDb {
+class $Floor_AppDb {
   /// Creates a database builder for a persistent database.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static _$AppDbBuilder databaseBuilder(String name) => _$AppDbBuilder(name);
+  static _$_AppDbBuilder databaseBuilder(String name) => _$_AppDbBuilder(name);
 
   /// Creates a database builder for an in memory database.
   /// Information stored in an in memory database disappears when the process is killed.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static _$AppDbBuilder inMemoryDatabaseBuilder() => _$AppDbBuilder(null);
+  static _$_AppDbBuilder inMemoryDatabaseBuilder() => _$_AppDbBuilder(null);
 }
 
-class _$AppDbBuilder {
-  _$AppDbBuilder(this.name);
+class _$_AppDbBuilder {
+  _$_AppDbBuilder(this.name);
 
   final String? name;
 
@@ -25,13 +25,13 @@ class _$AppDbBuilder {
   Callback? _callback;
 
   /// Adds migrations to the builder.
-  _$AppDbBuilder addMigrations(List<Migration> migrations) {
+  _$_AppDbBuilder addMigrations(List<Migration> migrations) {
     _migrations.addAll(migrations);
     return this;
   }
 
   /// Adds a database [Callback] to the builder.
-  _$AppDbBuilder addCallback(Callback callback) {
+  _$_AppDbBuilder addCallback(Callback callback) {
     _callback = callback;
     return this;
   }
@@ -41,7 +41,7 @@ class _$AppDbBuilder {
     final path = name != null
         ? await sqfliteDatabaseFactory.getDatabasePath(name!)
         : ':memory:';
-    final database = _$AppDb();
+    final database = _$_AppDb();
     database.database = await database.open(
       path,
       _migrations,
@@ -51,8 +51,8 @@ class _$AppDbBuilder {
   }
 }
 
-class _$AppDb extends _AppDb {
-  _$AppDb([StreamController<String>? listener]) {
+class _$_AppDb extends _AppDb {
+  _$_AppDb([StreamController<String>? listener]) {
     changeListener = listener ?? StreamController<String>.broadcast();
   }
 

@@ -1,5 +1,6 @@
 // 必须的包
 import 'dart:async';
+import 'dart:io';
 
 import 'package:clipshare/dao/config_dao.dart';
 import 'package:clipshare/dao/device_dao.dart';
@@ -83,7 +84,7 @@ class AppDb {
 
   void dispose() => _singleton = null;
 
-  Future<bool> init() {
+  Future<bool> init() async {
     if (_inited) {
       throw Exception("The initialization has been completed");
     }
@@ -91,7 +92,13 @@ class AppDb {
       throw Exception("Initializing in progress");
     }
     _initing = true;
-    return $FloorAppDb.databaseBuilder('clipshare.db').build().then((value) {
+    // 获取应用程序的文件目录
+    String databasesPath = "clipshare.db";
+    if (Platform.isWindows) {
+      var dirPath = Directory(Platform.resolvedExecutable).parent.path;
+      databasesPath = "$dirPath\\$databasesPath";
+    }
+    return $Floor_AppDb.databaseBuilder(databasesPath).build().then((value) {
       _db = value;
       _inited = true;
       _initing = false;
@@ -99,7 +106,7 @@ class AppDb {
     });
   }
 
-  Future<void> close(){
+  Future<void> close() {
     return _db.close();
   }
 
