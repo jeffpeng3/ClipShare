@@ -10,7 +10,8 @@ class BatteryPermGuide extends BaseGuide {
     super.widget = PermissionGuide(
       title: "电池优化",
       icon: Icons.filter_none_rounded,
-      description: "为了保证后台存活需要将其从电池优化中移除",
+      description: "为了保证后台存活需要将其从电池优化中移除\n"
+          "此外，请在后台任务卡片中加锁并手机管家中设置运行自启！",
       grantPerm: permHandler.request,
       checkPerm: canNext,
     );

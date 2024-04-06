@@ -17,6 +17,7 @@ import 'package:clipshare/pages/guide/float_perm_guide.dart';
 import 'package:clipshare/pages/guide/notify_perm_guide.dart';
 import 'package:clipshare/pages/guide/shizuku_perm_guide.dart';
 import 'package:clipshare/pages/user_guide.dart';
+import 'package:clipshare/pages/welcome_page.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
@@ -50,7 +51,7 @@ class _LoadingPageState extends State<LoadingPage> {
     init().then((v) {
       // 初始化完成，导航到下一个页面
       if (App.settings.firstStartup && Platform.isAndroid) {
-        gotoUserGuidePage();
+        gotoWelcomePage();
       } else {
         gotoHomePage();
       }
@@ -362,18 +363,11 @@ class _LoadingPageState extends State<LoadingPage> {
     );
   }
 
-  void gotoUserGuidePage() {
+  void gotoWelcomePage() {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => UserGuide(
-          guides: [
-            FloatPermGuide(),
-            ShizukuPermGuide(),
-            NotifyPermGuide(),
-            BatteryPermGuide(),
-          ],
-        ),
+        builder: (context) => const WelcomePage(),
       ),
     );
   }

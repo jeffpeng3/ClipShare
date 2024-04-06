@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/handler/history_top_syncer.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/handler/tag_syncer.dart';
@@ -203,7 +204,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
 
   void exitApp() {
     windowManager.setPreventClose(false).then((value) {
-      // await AppDb.inst.close();
+      App.compactWindow?.close();
       WindowManager.instance.destroy();
     });
   }
