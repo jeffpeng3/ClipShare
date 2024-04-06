@@ -4,9 +4,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import io.flutter.plugin.common.MethodChannel
+import top.coclyun.clipshare.MainActivity
 
 class ScreenReceiver internal constructor(private var androidChannel: MethodChannel) :
     BroadcastReceiver() {
+    constructor() : this(androidChannel = MainActivity.androidChannel)
     override fun onReceive(context: Context, intent: Intent) {
         if (Intent.ACTION_SCREEN_ON == intent.action) {
             // 屏幕已打开
