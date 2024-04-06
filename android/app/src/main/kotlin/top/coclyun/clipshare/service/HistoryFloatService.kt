@@ -29,7 +29,6 @@ import io.flutter.plugin.common.MethodChannel.Result
 import top.coclyun.clipshare.MainActivity
 import top.coclyun.clipshare.R
 import top.coclyun.clipshare.adapter.HistoryFloatAdapter
-import kotlin.math.max
 
 
 class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
@@ -78,7 +77,7 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
         mainParams.width = LayoutParams.WRAP_CONTENT
         mainParams.height = LayoutParams.WRAP_CONTENT
         // 设置悬浮窗的位置
-        setPosCenter()
+        setPos1P3()
         mainParams.flags = LayoutParams.FLAG_NOT_FOCUSABLE or LayoutParams.FLAG_NOT_TOUCH_MODAL
         mainParams.gravity = Gravity.END or Gravity.CENTER
         val bar = view.findViewById<LinearLayout>(R.id.bar)
@@ -110,15 +109,22 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
         closeFloatWindow()
     }
 
-    private fun setPosCenter() {
+    private fun setPosRight() {
+        // 设置悬浮窗的位置
+        val metrics = resources.displayMetrics
+        val screenWidth = metrics.widthPixels
+        val screenHeight = metrics.heightPixels
+        mainParams.x = 0
+    }
+    private fun setPos1P3() {
         // 设置悬浮窗的位置
         val metrics = resources.displayMetrics
         val screenWidth = metrics.widthPixels
         val screenHeight = metrics.heightPixels
         // 垂直居中
-//        val yPosition: Int = (screenHeight - view.height) / 2
+        val yPosition: Int = -(screenHeight - view.height) / 3
         mainParams.x = 0
-//        mainParams.y = yPosition
+        mainParams.y = yPosition
     }
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {
@@ -147,19 +153,21 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
                 // 设置悬浮窗的位置
                 val metrics = resources.displayMetrics
 
-                //保持在窗口右边
-//                positionX = mainParams.x + movedX
-                mainParams.x = 0
-                mainParams.y = if (positionY != 0) positionY else mainParams.y + movedY
-                positionY = mainParams.y + movedY
+                //未锁定位置
+                if (!MainActivity.lockHistoryFloatLoc) {
+                    //保持在窗口右边
+                    mainParams.x = 0
+                    mainParams.y = if (positionY != 0) positionY else mainParams.y + movedY
+                    positionY = mainParams.y + movedY
+                }
                 if (movedX < -20) {
                     //向左滑动，显示列表
                     view.visibility = INVISIBLE
                     bar.visibility = View.GONE
                     showListView = true
                     //显示listview
-                    recyclerView?.visibility = View.VISIBLE
-                    setPosCenter()
+                    recyclerView?.visibility = VISIBLE
+                    setPosRight()
                     mainParams.width = LayoutParams.MATCH_PARENT
                     mainParams.height = LayoutParams.MATCH_PARENT
                     windowManager.updateViewLayout(view, mainParams)
@@ -199,7 +207,6 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
                             windowManager.updateViewLayout(view, mainParams)
                         }, {
                             mainParams.width = LayoutParams.MATCH_PARENT
-//                            setPosCenter()
                             windowManager.updateViewLayout(view, mainParams)
                             view.post { view.visibility = VISIBLE }
 

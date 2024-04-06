@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -32,13 +31,16 @@ import top.coclyun.clipshare.service.HistoryFloatService
 class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListener {
     private val requestShizukuCode = 5001
     private val requestOverlayResultCode = 5002
-    private lateinit var screenReceiver: ScreenReceiver;
+    private lateinit var screenReceiver: ScreenReceiver
     private val TAG: String = "MainActivity";
 
     companion object {
         lateinit var commonChannel: MethodChannel;
         lateinit var androidChannel: MethodChannel;
-        lateinit var clipChannel: MethodChannel
+        lateinit var clipChannel: MethodChannel;
+
+        @JvmStatic
+        var lockHistoryFloatLoc: Boolean = false
     }
 
     override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
@@ -252,6 +254,10 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
                     if (!isServiceRunning(this, HistoryFloatService::class.java)) {
                         startService(Intent(this, HistoryFloatService::class.java))
                     }
+                }
+                //锁定悬浮窗位置
+                "lockHistoryFloatLoc" -> {
+                    lockHistoryFloatLoc = args["loc"] as Boolean
                 }
                 //关闭历史浮窗
                 "closeHistoryFloatWindow" -> {

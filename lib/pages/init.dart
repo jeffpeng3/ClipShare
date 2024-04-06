@@ -12,17 +12,11 @@ import 'package:clipshare/entity/version.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
-import 'package:clipshare/pages/guide/battery_perm_guide.dart';
-import 'package:clipshare/pages/guide/float_perm_guide.dart';
-import 'package:clipshare/pages/guide/notify_perm_guide.dart';
-import 'package:clipshare/pages/guide/shizuku_perm_guide.dart';
-import 'package:clipshare/pages/user_guide.dart';
 import 'package:clipshare/pages/welcome_page.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
-import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -108,7 +102,7 @@ class _LoadingPageState extends State<LoadingPage> {
             (res) {
               if (res == null) return;
               App.innerCopy = true;
-              App.clipChannel.invokeMethod("copy",res.toJson());
+              App.clipChannel.invokeMethod("copy", res.toJson());
             },
           );
           break;
@@ -252,6 +246,10 @@ class _LoadingPageState extends State<LoadingPage> {
       "rememberWindowSize",
       App.userId,
     );
+    var lockHistoryFloatLoc = await cfg.getConfig(
+      "lockHistoryFloatLoc",
+      App.userId,
+    );
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
       localName: localName.isNotNullAndEmpty ? localName! : App.devInfo.name,
@@ -265,10 +263,15 @@ class _LoadingPageState extends State<LoadingPage> {
               ? Constants.defaultWindowSize
               : windowSize!,
       rememberWindowSize: rememberWindowSize?.toBool() ?? false,
+      lockHistoryFloatLoc: lockHistoryFloatLoc?.toBool() ?? true,
     );
     if (App.settings.showHistoryFloat) {
       App.androidChannel.invokeMethod("showHistoryFloatWindow");
     }
+    App.androidChannel.invokeMethod(
+      "lockHistoryFloatLoc",
+      {"loc": App.settings.lockHistoryFloatLoc},
+    );
     App.devInfo.name = App.settings.localName;
   }
 

@@ -72,6 +72,12 @@ class SettingProvider extends Notifier<Settings> {
       showHistoryFloat: showHistoryFloat,
     );
   }
+  Future<void> setLockHistoryFloatLoc(bool lockHistoryFloatLoc) async {
+    await _addOrUpdate("lockHistoryFloatLoc", lockHistoryFloatLoc.toString());
+    App.settings = state = state.copyWith(
+      lockHistoryFloatLoc: lockHistoryFloatLoc,
+    );
+  }
 
   Future<void> setFirstStartup() async {
     await _addOrUpdate("firstStartup", false.toString());

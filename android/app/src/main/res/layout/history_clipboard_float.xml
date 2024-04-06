@@ -5,8 +5,8 @@
     android:layout_height="wrap_content"
     android:clickable="true"
     android:focusable="true"
-    android:paddingVertical="25dp"
-    android:paddingStart="25dp">
+    android:paddingVertical="15dp"
+    android:paddingStart="15dp">
 
     <LinearLayout
         android:id="@+id/bar"

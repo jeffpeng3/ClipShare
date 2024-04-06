@@ -156,6 +156,24 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                     show: (v) => Platform.isAndroid,
                   ),
                   SettingCard(
+                    main: const Text("锁定悬浮窗位置"),
+                    value: vm.lockHistoryFloatLoc,
+                    action: (v) => Switch(
+                      value: vm.lockHistoryFloatLoc,
+                      onChanged: (checked) {
+                        HapticFeedback.mediumImpact();
+                        App.androidChannel.invokeMethod(
+                          "lockHistoryFloatLoc",
+                          {"loc": checked},
+                        );
+                        ref
+                            .notifier(settingProvider)
+                            .setLockHistoryFloatLoc(checked);
+                      },
+                    ),
+                    show: (v) => Platform.isAndroid && vm.showHistoryFloat,
+                  ),
+                  SettingCard(
                     main: const Text("记住上次窗口大小"),
                     sub: Text(
                       "${vm.rememberWindowSize ? "记录值：${vm.windowSize}，" : ""}默认值：${Constants.defaultWindowSize}",

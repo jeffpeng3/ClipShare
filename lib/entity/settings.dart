@@ -20,6 +20,9 @@ class Settings {
   //显示历史悬浮窗
   bool showHistoryFloat;
 
+  //锁定悬浮窗位置
+  bool lockHistoryFloatLoc;
+
   //是否第一次打开软件
   bool firstStartup;
 
@@ -37,6 +40,7 @@ class Settings {
     required this.firstStartup,
     required this.windowSize,
     required this.rememberWindowSize,
+    required this.lockHistoryFloatLoc,
   });
 
   Settings copyWith({
@@ -49,6 +53,7 @@ class Settings {
     bool? firstStartup,
     String? windowSize,
     bool? rememberWindowSize,
+    bool? lockHistoryFloatLoc,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -61,6 +66,7 @@ class Settings {
       windowSize:
           windowSize.isNullOrEmpty ? Constants.defaultWindowSize : windowSize!,
       rememberWindowSize: rememberWindowSize ?? this.rememberWindowSize,
+      lockHistoryFloatLoc: lockHistoryFloatLoc ?? this.lockHistoryFloatLoc,
     );
   }
 }
