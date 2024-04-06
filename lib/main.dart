@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 
@@ -6,18 +7,37 @@ import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/entity/version.dart';
+import 'package:clipshare/pages/compact_page.dart';
 import 'package:clipshare/pages/init.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/snowflake.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
-void main() async {
-  runApp(RefenaScope(child: const App()));
+void main(List<String> args) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  var isMultiWindow = args.firstOrNull == 'multi_window';
+  if (PlatformExt.isMobile || !isMultiWindow) {
+    runApp(RefenaScope(child: const App()));
+  } else {
+    //子窗口
+    final windowId = int.parse(args[1]);
+    final argument = args[2].isEmpty
+        ? const {}
+        : jsonDecode(args[2]) as Map<String, dynamic>;
+    runApp(
+      CompactWindow(
+        windowController: WindowController.fromWindowId(windowId),
+        args: argument,
+      ),
+    );
+  }
 }
 
 //解决 Windows 端 SingleChildScrollView 无法水平滚动的问题
@@ -31,6 +51,20 @@ class MyCustomScrollBehavior extends MaterialScrollBehavior {
         // etc.
       };
 }
+
+final themeData = ThemeData(
+  colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
+  fontFamily: Platform.isWindows ? 'Microsoft YaHei' : null,
+);
+const locale = Locale("zh", "CH");
+const supportedLocales = [
+  Locale("zh", "CH"),
+  Locale('en', 'US'),
+];
+const localizationsDelegates = [
+  GlobalMaterialLocalizations.delegate,
+  GlobalWidgetsLocalizations.delegate,
+];
 
 class App extends StatelessWidget {
   //通用通道
@@ -64,23 +98,61 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'ClipShare',
       scrollBehavior: MyCustomScrollBehavior(),
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
-        fontFamily: Platform.isWindows ? 'Microsoft YaHei' : null,
-      ),
+      theme: themeData,
       //当前运行环境配置
-      locale: const Locale("zh", "CH"),
+      locale: locale,
       //程序支持的语言环境配置
-      supportedLocales: const [
-        Locale("zh", "CH"),
-        Locale('en', 'US'),
-      ],
+      supportedLocales: supportedLocales,
       //Material 风格代理配置
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
+      localizationsDelegates: localizationsDelegates,
       home: const LoadingPage(),
+    );
+  }
+}
+
+class CompactWindow extends StatefulWidget {
+  final WindowController windowController;
+  final Map? args;
+
+  const CompactWindow({
+    super.key,
+    required this.windowController,
+    required this.args,
+  });
+
+  @override
+  State<StatefulWidget> createState() {
+    return _CompactWindowState();
+  }
+}
+
+class _CompactWindowState extends State<CompactWindow> {
+  @override
+  Widget build(BuildContext context) {
+    print(widget.args);
+    // ValueListenableBuilder<bool>(
+    //     valueListenable: DesktopLifecycle.instance.isActive,
+    //     builder: (context, active, child) {
+    //       if (active) {
+    //         return const Text('Window Active');
+    //       } else {
+    //         return const Text('Window Inactive');
+    //       }
+    //     },
+    //   ),
+    return MaterialApp(
+      title: '历史记录',
+      theme: themeData,
+      //当前运行环境配置
+      locale: locale,
+      //程序支持的语言环境配置
+      supportedLocales: supportedLocales,
+      //Material 风格代理配置
+      localizationsDelegates: localizationsDelegates,
+      home: const Scaffold(
+        backgroundColor: App.bgColor,
+        body: CompactPage(),
+      ),
     );
   }
 }

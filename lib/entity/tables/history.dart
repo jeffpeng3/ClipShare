@@ -92,7 +92,13 @@ class History implements Comparable {
       sync: sync,
     );
   }
-
+  static List<History> fromJsonList(List<dynamic> jsonList){
+    List<History> res = List.empty(growable: true);
+    for (var map in jsonList) {
+      res.add(History.fromJson(map));
+    }
+    return res;
+  }
   Map<String, dynamic> toJson() {
     return {
       "id": id,

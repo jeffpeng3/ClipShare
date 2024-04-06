@@ -33,6 +33,14 @@ class Devices {
     return Devices.fromMap(_devices);
   }
 
+  Map<String, String> toIdNameMap() {
+    Map<String, String> res = {};
+    _devices.forEach((key, value) {
+      res[key] = value.name;
+    });
+    return res;
+  }
+
   List<Device> get pairedList {
     return _devices.values.where((dev) => dev.isPaired).toList();
   }

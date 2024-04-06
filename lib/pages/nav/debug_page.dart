@@ -1,7 +1,10 @@
-import 'package:clipshare/main.dart';
-import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:clipshare/db/app_db.dart';
+import 'package:clipshare/main.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart';
+import 'package:flutter/material.dart';
 
 class DebugPage extends StatefulWidget {
   const DebugPage({super.key});
@@ -60,6 +63,27 @@ class _DebugPageState extends State<DebugPage> {
             AppDb.inst.opSyncDao.removeAll(App.userId);
           },
           child: const Text("重置所有记录为未同步"),
+        ),
+        Visibility(
+          visible: Platform.isWindows,
+          child: ElevatedButton(
+            onPressed: () async {
+              final window = await DesktopMultiWindow.createWindow(
+                jsonEncode({
+                  'args1': 'Sub window',
+                  'args2': 100,
+                  'args3': true,
+                  'business': 'business_test',
+                }),
+              );
+              window
+                ..setFrame(const Offset(0, 0) & const Size(400, 720))
+                ..center()
+                ..setTitle('Another window')
+                ..show();
+            },
+            child: const Text("新窗口"),
+          ),
         ),
       ],
     );

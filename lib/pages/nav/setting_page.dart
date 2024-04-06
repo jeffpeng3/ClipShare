@@ -13,7 +13,6 @@ import 'package:flutter/services.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:refena_flutter/refena_flutter.dart';
-import 'package:win32_registry/win32_registry.dart';
 
 class SettingPage extends StatefulWidget {
   const SettingPage({super.key});
@@ -111,16 +110,15 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           appName: appName,
                           appPath: appPath,
                         );
-                        if(!(await launchAtStartup.isEnabled())){
+                        var enabled = await launchAtStartup.isEnabled();
+                        if (!enabled) {
                           await launchAtStartup.enable();
-                        }else{
+                        } else {
                           await launchAtStartup.disable();
                         }
                         ref
                             .notifier(settingProvider)
-                            .setLaunchAtStartup(checked);
-                        if (checked) {
-                        } else {}
+                            .setLaunchAtStartup(!enabled);
                       },
                     ),
                     show: (v) => Platform.isWindows,

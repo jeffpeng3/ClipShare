@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/dev_info.dart';
@@ -15,14 +17,19 @@ import 'package:clipshare/pages/guide/float_perm_guide.dart';
 import 'package:clipshare/pages/guide/notify_perm_guide.dart';
 import 'package:clipshare/pages/guide/shizuku_perm_guide.dart';
 import 'package:clipshare/pages/user_guide.dart';
+import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
-import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/snowflake.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:refena_flutter/refena_flutter.dart';
+import 'package:screen_retriever/screen_retriever.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'nav/base_page.dart';
@@ -57,11 +64,49 @@ class _LoadingPageState extends State<LoadingPage> {
     await initDevInfo();
     //加载配置信息
     await loadConfigs();
-    //加载配置后初始窗体配置
+    //加载配置后初始化窗体配置
     if (Platform.isWindows) {
       await initWindowsManager();
+      await initHotKey();
+      initMultiWindowEvent();
     }
     // 初始化channel
+    initChannel();
+    return Future.value();
+  }
+
+  void initMultiWindowEvent() {
+    //处理弹窗事件
+    DesktopMultiWindow.setMethodHandler((
+      MethodCall call,
+      int fromWindowId,
+    ) async {
+      var args = jsonDecode(call.arguments);
+      switch (call.method) {
+        case "getHistories":
+          int fromId = args["fromId"];
+          var historyDao = AppDb.inst.historyDao;
+          var lst = List<History>.empty();
+          if (fromId == 0) {
+            lst = await historyDao.getHistoriesTop20(App.userId);
+          } else {
+            lst = await historyDao.getHistoriesPage(App.userId, fromId);
+          }
+          var devInfos = context.ref.read(DeviceInfoProvider.inst);
+          var devMap = devInfos.toIdNameMap();
+          devMap[App.devInfo.guid] = "本机";
+          var res = {
+            "list": lst,
+            "devInfos": devMap,
+          };
+          return jsonEncode(res);
+      }
+      //都不符合，返回空
+      return Future.value();
+    });
+  }
+
+  void initChannel() {
     App.clipChannel.setMethodCallHandler((call) async {
       var arguments = call.arguments;
       switch (call.method) {
@@ -87,7 +132,6 @@ class _LoadingPageState extends State<LoadingPage> {
                 },
               )
               .toList();
-          Log.debug("contentLst", contentLst);
           return Future(() => contentLst);
       }
       return Future(() => false);
@@ -133,7 +177,6 @@ class _LoadingPageState extends State<LoadingPage> {
         return Future(() => false);
       });
     }
-    return Future.value();
   }
 
   Future<void> initWindowsManager() async {
@@ -252,6 +295,51 @@ class _LoadingPageState extends State<LoadingPage> {
       throw Exception("Not Support Platform");
     }
     App.snowflake = Snowflake(App.device.guid.hashCode);
+  }
+
+  ///初始化快捷键
+  initHotKey() async {
+    // For hot reload, `unregisterAll()` needs to be called.
+    await hotKeyManager.unregisterAll();
+    // ctrl + alt + h
+    HotKey _hotKey = HotKey(
+      key: PhysicalKeyboardKey.keyH,
+      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+      // Set hotkey scope (default is HotKeyScope.system)
+      scope: HotKeyScope.system,
+    );
+    await hotKeyManager.register(
+      _hotKey,
+      keyDownHandler: (hotKey) async {
+        var ids = List.empty();
+        try {
+          ids = await DesktopMultiWindow.getAllSubWindowIds();
+        } catch (e) {
+          ids = List.empty();
+        }
+        //只允许弹窗一次
+        if (ids.isNotEmpty) {
+          return;
+        }
+        //createWindow里面的参数必须传
+        final window = await DesktopMultiWindow.createWindow("");
+        var offset = await screenRetriever.getCursorScreenPoint();
+        //多显示器不知道怎么判断鼠标在哪个显示器中，所以默认主显示器
+        Size screenSize = (await screenRetriever.getPrimaryDisplay()).size;
+        final [width, height] = [320.0, 515.0];
+        final maxX = screenSize.width - width;
+        final maxY = screenSize.height - height;
+        //限制在屏幕范围内
+        final [x, y] = [min(maxX, offset.dx), min(maxY, offset.dy)];
+        window
+          ..setFrame(Offset(x, y) & Size(width, height))
+          ..setTitle('历史记录')
+          ..show();
+        // Future.delayed(const Duration(seconds: 2),(){
+        //   window.show();
+        // });
+      },
+    );
   }
 
   void gotoHomePage() {
