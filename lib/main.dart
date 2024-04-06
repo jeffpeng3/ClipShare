@@ -18,7 +18,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:refena_flutter/refena_flutter.dart';
-import 'package:window_manager/window_manager.dart';
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,6 +78,7 @@ class App extends StatelessWidget {
   static final prime = CryptoUtil.getPrim();
   static final keyPair = CryptoUtils.generateRSAKeyPair();
   static const bgColor = Color.fromARGB(255, 238, 238, 238);
+  static WindowController? compactWindow;
 
   //当前设备id
   static late final DevInfo devInfo;
@@ -129,17 +129,6 @@ class CompactWindow extends StatefulWidget {
 class _CompactWindowState extends State<CompactWindow> {
   @override
   Widget build(BuildContext context) {
-    print(widget.args);
-    // ValueListenableBuilder<bool>(
-    //     valueListenable: DesktopLifecycle.instance.isActive,
-    //     builder: (context, active, child) {
-    //       if (active) {
-    //         return const Text('Window Active');
-    //       } else {
-    //         return const Text('Window Inactive');
-    //       }
-    //     },
-    //   ),
     return MaterialApp(
       title: '历史记录',
       theme: themeData,
@@ -149,10 +138,7 @@ class _CompactWindowState extends State<CompactWindow> {
       supportedLocales: supportedLocales,
       //Material 风格代理配置
       localizationsDelegates: localizationsDelegates,
-      home: const Scaffold(
-        backgroundColor: App.bgColor,
-        body: CompactPage(),
-      ),
+      home: const CompactPage(),
     );
   }
 }

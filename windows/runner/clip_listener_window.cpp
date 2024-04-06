@@ -4,6 +4,7 @@
 #include <sstream>
 #include <flutter/encodable_value.h>
 #include "flutter/standard_method_codec.h"
+#include <atlenc.h>
 
 #pragma warning(disable : 4996)  // 禁用废弃警告
 ClipListenerWindow::ClipListenerWindow(flutter::MethodChannel<flutter::EncodableValue>* channel): channel_(channel)
@@ -13,18 +14,41 @@ ClipListenerWindow::ClipListenerWindow(flutter::MethodChannel<flutter::Encodable
 ClipListenerWindow::~ClipListenerWindow()
 {
 }
-
+std::wstring Utf16FromUtf8(const std::string& string) {
+	int size_needed = MultiByteToWideChar(CP_UTF8, 0, string.c_str(), -1, nullptr, 0);
+	if (size_needed == 0) {
+		return {};
+	}
+	std::wstring wstrTo(size_needed, 0);
+	int converted_length = MultiByteToWideChar(CP_UTF8, 0, string.c_str(), -1, &wstrTo[0], size_needed);
+	if (converted_length == 0) {
+		return {};
+	}
+	return wstrTo;
+}
 bool ClipListenerWindow::OnCreate()
 {
 	if (!Win32Window::OnCreate())
 	{
 		return false;
 	}
-	std::stringstream ss;
-	ss << GetHandle();
-	std::string s("listener handle: " + ss.str() + "\n");
-	std::wstring wideString(s.begin(), s.end());
-	OutputDebugString(wideString.c_str());
+
+	channel_->SetMethodCallHandler([this](const auto& call, auto result)
+	{
+		if (call.method_name() == "copy")
+		{
+			auto* arguments = std::get_if<flutter::EncodableMap>(call.arguments());
+			auto type = std::get<std::string>(arguments->at(flutter::EncodableValue("type")));
+			auto content = std::get<std::string>(arguments->at(flutter::EncodableValue("content")));
+			SetClipboard(type, content);
+			result->Success(flutter::EncodableValue(true));
+		}
+	});
+	// std::stringstream ss;
+	// ss << GetHandle();
+	// std::string s("listener handle: " + ss.str() + "\n");
+	// std::wstring wideString(s.begin(), s.end());
+	// OutputDebugString(wideString.c_str());
 	// 注册为剪贴板查看器
 	hWndNextViewer_ = SetClipboardViewer(GetHandle());
 
@@ -56,6 +80,48 @@ void ClipListenerWindow::SendClip(std::wstring& content)
 	channel_->InvokeMethod("setClipText", std::make_unique<flutter::EncodableValue>(args));
 }
 
+void ClipListenerWindow::SetClipboard(std::string type, std::string content, int retry)
+{
+	// 尝试打开剪贴板
+	bool isOpen = OpenClipboard(nullptr);
+	if (!isOpen)
+	{
+		if (retry > 5)
+		{
+			return;
+		}
+		Sleep(100);
+		return SetClipboard(type, content, retry + 1);
+	}
+
+	// 清空剪贴板内容
+	EmptyClipboard();
+	std::wstring data = Utf16FromUtf8(content).c_str();
+	// 分配全局内存，用于存放文本
+	HGLOBAL hClipboardData = GlobalAlloc(GMEM_MOVEABLE, (wcslen(data.c_str()) + 1) * sizeof(wchar_t));
+	if (!hClipboardData)
+	{
+		CloseClipboard();
+		std::cerr << "Failed to allocate memory for clipboard!" << std::endl;
+		return;
+	}
+	//文本类型
+	if (type == "Text")
+	{
+		// 将文本复制到全局内存中
+		wchar_t* pchData = static_cast<wchar_t*>(GlobalLock(hClipboardData));
+		wcscpy_s(pchData, wcslen(data.c_str())+1, data.c_str());
+		GlobalUnlock(hClipboardData);
+
+		// 将全局内存放入剪贴板
+		SetClipboardData(CF_UNICODETEXT, hClipboardData);
+	}
+
+
+	// 关闭剪贴板
+	CloseClipboard();
+}
+
 std::wstring ClipListenerWindow::GetClipboardText(int retry)
 {
 	std::wstring empty = L"";
@@ -63,7 +129,7 @@ std::wstring ClipListenerWindow::GetClipboardText(int retry)
 	bool isOpen = OpenClipboard(nullptr);
 	if (!isOpen)
 	{
-		if(retry > 5)
+		if (retry > 5)
 		{
 			return empty;
 		}

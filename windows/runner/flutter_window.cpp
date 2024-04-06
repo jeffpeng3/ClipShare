@@ -69,32 +69,29 @@ bool FlutterWindow::OnCreate()
 		t.detach();
 	});
 
-	// Flutter can complete the first frame before the "show window" callback is
-	// registered. The following call ensures a frame is pending to ensure the
-	// window is shown. It is a no-op if the first frame hasn't completed yet.
 	DesktopMultiWindowSetWindowCreatedCallback([](void* controller)
 	{
 		auto* flutter_view_controller = reinterpret_cast<flutter::FlutterViewController*>(controller);
 		HWND hwnd = flutter_view_controller->view()->GetNativeWindow();
 		hwnd = GetParent(hwnd);
-		//设置置顶
-		::SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-
 		// 获取当前窗口样式
 		LONG style = GetWindowLong(hwnd, GWL_STYLE);
 
 		// 移除最大化和最小化按钮的样式标志
 		style &= ~WS_MAXIMIZEBOX; // 移除最大化按钮
 		style &= ~WS_MINIMIZEBOX; // 移除最小化按钮
+		// 添加WS_POPUP样式，使窗口成为弹窗
+		style |= WS_POPUP;
 
 		// 设置新的窗口样式
 		SetWindowLong(hwnd, GWL_STYLE, style);
+
+		//设置置顶
+		::SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
 	});
-	// SetChildContent(flutter_controller_->view()->GetNativeWindow());
 	flutter_controller_->ForceRedraw();
 	return true;
 }
-
 void FlutterWindow::OnDestroy()
 {
 	if (flutter_controller_)

@@ -21,6 +21,7 @@ import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -100,6 +101,16 @@ class _LoadingPageState extends State<LoadingPage> {
             "devInfos": devMap,
           };
           return jsonEncode(res);
+        case "copy":
+          int id = args["id"];
+          AppDb.inst.historyDao.getById(id).then(
+            (res) {
+              if (res == null) return;
+              App.innerCopy = true;
+              App.clipChannel.invokeMethod("copy",res.toJson());
+            },
+          );
+          break;
       }
       //都不符合，返回空
       return Future.value();
@@ -319,10 +330,11 @@ class _LoadingPageState extends State<LoadingPage> {
         }
         //只允许弹窗一次
         if (ids.isNotEmpty) {
-          return;
+          await App.compactWindow?.close();
         }
         //createWindow里面的参数必须传
         final window = await DesktopMultiWindow.createWindow("");
+        App.compactWindow = window;
         var offset = await screenRetriever.getCursorScreenPoint();
         //多显示器不知道怎么判断鼠标在哪个显示器中，所以默认主显示器
         Size screenSize = (await screenRetriever.getPrimaryDisplay()).size;
@@ -335,9 +347,6 @@ class _LoadingPageState extends State<LoadingPage> {
           ..setFrame(Offset(x, y) & Size(width, height))
           ..setTitle('历史记录')
           ..show();
-        // Future.delayed(const Duration(seconds: 2),(){
-        //   window.show();
-        // });
       },
     );
   }

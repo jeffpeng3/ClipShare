@@ -11,6 +11,7 @@ import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:highlighting/languages/all.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -167,6 +168,17 @@ class ClipListViewState extends State<ClipListView>
     setState(() {});
   }
 
+  void notifyCompactWindow() {
+    if (App.compactWindow == null) {
+      return;
+    }
+    DesktopMultiWindow.invokeMethod(
+      App.compactWindow!.windowId,
+      "notify",
+      "{}",
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -189,6 +201,7 @@ class ClipListViewState extends State<ClipListView>
                     child: ListView.builder(
                       itemCount: _list.length,
                       controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
                       itemBuilder: (context, i) {
                         return Container(
                           padding: const EdgeInsets.only(left: 2, right: 2),
@@ -212,8 +225,14 @@ class ClipListViewState extends State<ClipListView>
                                 });
                               }
                             },
-                            onUpdate: widget.onUpdate,
-                            onRemove: widget.onRemove,
+                            onUpdate: () {
+                              widget.onUpdate.call();
+                              notifyCompactWindow();
+                            },
+                            onRemove: (id) {
+                              widget.onRemove.call(id);
+                              notifyCompactWindow();
+                            },
                           ),
                         );
                       },

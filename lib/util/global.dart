@@ -11,8 +11,8 @@ class Global {
     App.androidChannel.invokeMethod("sendNotify", {"content": content});
   }
 
-  static void snackBarSuc(String text) {
-    ScaffoldMessenger.of(App.context).showSnackBar(
+  static void snackBarSuc(BuildContext context,String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(text),
         backgroundColor: Colors.lightBlue,
@@ -20,8 +20,8 @@ class Global {
     );
   }
 
-  static void snackBarErr(String text) {
-    ScaffoldMessenger.of(App.context).showSnackBar(
+  static void snackBarErr(BuildContext context,String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(text),
         backgroundColor: Colors.redAccent,

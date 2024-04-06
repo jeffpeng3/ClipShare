@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/entity/clip_data.dart';
+import 'package:clipshare/util/global.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 
 class ClipDataCardCompact extends StatelessWidget {
@@ -21,7 +25,13 @@ class ClipDataCardCompact extends StatelessWidget {
           mouseCursor: SystemMouseCursors.basic,
           onTap: () {
             if (isDouble) {
-              print("双击");
+              DesktopMultiWindow.invokeMethod(
+                0,
+                'copy',
+                jsonEncode({"id": _clip.data.id}),
+              ).then(
+                (args) => Global.snackBarSuc(context, "复制成功"),
+              );
               isDouble = false;
             } else {
               isDouble = true;

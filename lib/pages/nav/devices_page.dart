@@ -549,14 +549,14 @@ class _DevicesPageState extends State<DevicesPage>
           _addPairedDevInPage(dbDev);
           return;
         }
-        Global.snackBarErr("设备添加失败");
+        Global.snackBarErr(context,"设备添加失败");
       });
     } else {
       //新设备
       _ref.notifier(DeviceInfoProvider.inst).addOrUpdate(newDev).then((res) {
         if (!res) {
           Log.debug(tag, "Device information addition failed");
-          Global.snackBarErr("设备添加失败");
+          Global.snackBarErr(context,"设备添加失败");
           return;
         }
         _addPairedDevInPage(newDev);

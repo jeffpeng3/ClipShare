@@ -18,6 +18,7 @@ import 'package:clipshare/provider/history_tag_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -171,6 +172,7 @@ class HistoryPageState extends State<HistoryPage>
     var clip = ClipData(history);
     return _historyDao.add(clip.data).then((cnt) {
       if (cnt <= 0) return cnt;
+      notifyCompactWindow();
       _last = history;
       _list.add(clip);
       _list.sort((a, b) => b.data.compareTo(a.data));
@@ -209,7 +211,6 @@ class HistoryPageState extends State<HistoryPage>
     //更新本地历史记录为已同步
     var hisId = msg.data["hisId"];
     AppDb.inst.historyDao.setSync(hisId, true);
-    Log.debug(tag, hisId);
     for (var clip in _list) {
       if (clip.data.id.toString() == hisId.toString()) {
         clip.data.sync = true;
@@ -217,6 +218,16 @@ class HistoryPageState extends State<HistoryPage>
         break;
       }
     }
+  }
+  void notifyCompactWindow() {
+    if (App.compactWindow == null) {
+      return;
+    }
+    DesktopMultiWindow.invokeMethod(
+      App.compactWindow!.windowId,
+      "notify",
+      "{}",
+    );
   }
 
   @override
@@ -284,6 +295,7 @@ class HistoryPageState extends State<HistoryPage>
       default:
         return;
     }
+    notifyCompactWindow();
     f.whenComplete(() {
       //发送同步确认
       SocketListener.inst.sendData(send, MsgType.ackSync, {

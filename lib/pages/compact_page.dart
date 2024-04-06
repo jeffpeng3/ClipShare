@@ -118,14 +118,22 @@ class _CompactPageState extends State<CompactPage> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    _scrollController.removeListener(_scrollListener);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: App.bgColor,
+      //这个刷新不知道为什么没效果
       body: RefreshIndicator(
         onRefresh: refresh,
         child: ListView.builder(
           itemCount: _list.length,
           controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
           itemBuilder: (ctx, idx) {
             return ClipDataCardCompact(
               devName: _list[idx].devName,
@@ -135,21 +143,17 @@ class _CompactPageState extends State<CompactPage> {
         ),
       ),
       floatingActionButton: _showBackToTopButton
-          ? Positioned(
-              bottom: 16,
-              right: 16,
-              child: FloatingActionButton(
-                onPressed: () {
-                  Future.delayed(const Duration(milliseconds: 100), () {
-                    _scrollController.animateTo(
-                      0,
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
-                    );
-                  });
-                },
-                child: const Icon(Icons.arrow_upward), // 可以选择其他图标
-              ),
+          ? FloatingActionButton(
+              onPressed: () {
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                });
+              },
+              child: const Icon(Icons.arrow_upward), // 可以选择其他图标
             )
           : null,
     );

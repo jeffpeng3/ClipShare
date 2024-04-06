@@ -29,4 +29,5 @@ private:
     std::wstring lastText = L"";
     void SendClip(std::wstring& content);
     std::wstring GetClipboardText(int retry = 0);
+    static void SetClipboard(std::string type,std::string content,int retry=0);
 };
