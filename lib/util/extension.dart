@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
@@ -15,6 +16,10 @@ extension StringExt on String {
     return matchRegExp(
       r"((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}",
     );
+  }
+
+  String substringMinLen(int start, int end) {
+    return substring(start, min(end, length));
   }
 
   bool matchRegExp(String regExp, [bool caseSensitive = false]) {

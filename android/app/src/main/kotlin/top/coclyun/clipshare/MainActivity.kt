@@ -41,6 +41,8 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
 
         @JvmStatic
         var lockHistoryFloatLoc: Boolean = false
+        @JvmStatic
+        var innerCopy: Boolean = false
     }
 
     override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {

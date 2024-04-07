@@ -504,6 +504,10 @@ class _DevicesPageState extends State<DevicesPage>
     forgetDev?.isPaired = false;
     if (forgetDev?.isConnected ?? false) {
       onConnected(dev);
+    }else{
+      setState(() {
+
+      });
     }
   }
 

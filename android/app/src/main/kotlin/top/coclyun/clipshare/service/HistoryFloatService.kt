@@ -207,6 +207,7 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
                             windowManager.updateViewLayout(view, mainParams)
                         }, {
                             mainParams.width = LayoutParams.MATCH_PARENT
+                            setPos1P3()
                             windowManager.updateViewLayout(view, mainParams)
                             view.post { view.visibility = VISIBLE }
 

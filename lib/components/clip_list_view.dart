@@ -16,6 +16,8 @@ import 'package:flutter/material.dart';
 import 'package:highlighting/languages/all.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
+import 'empty_content.dart';
+
 class ClipListView extends StatefulWidget {
   final List<ClipData> list;
   final void Function() onRefreshData;
@@ -198,45 +200,55 @@ class ClipListViewState extends State<ClipListView>
                         widget.onRefreshData,
                       );
                     },
-                    child: ListView.builder(
-                      itemCount: _list.length,
-                      controller: _scrollController,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      itemBuilder: (context, i) {
-                        return Container(
-                          padding: const EdgeInsets.only(left: 2, right: 2),
-                          constraints: const BoxConstraints(
-                            maxHeight: 150,
-                            minHeight: 80,
+                    child: _list.isEmpty
+                        ? Stack(
+                            children: [
+                              ListView(),
+                              const EmptyContent(),
+                            ],
+                          )
+                        : ListView.builder(
+                            itemCount: _list.length,
+                            controller: _scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemBuilder: (context, i) {
+                              return Container(
+                                padding:
+                                    const EdgeInsets.only(left: 2, right: 2),
+                                constraints: const BoxConstraints(
+                                  maxHeight: 150,
+                                  minHeight: 80,
+                                ),
+                                child: ClipDataCard(
+                                  clip: _list[i],
+                                  routeToSearchOnClickChip:
+                                      widget.enableRouteSearch,
+                                  onTap: () {
+                                    var data = _list[i];
+                                    if (data.data.id !=
+                                        _showHistoryData?.data.id) {
+                                      _showHistoryData = data;
+                                      _clipTagRowKey = UniqueKey();
+                                      setState(() {});
+                                    } else {
+                                      setState(() {
+                                        _showHistoryData = null;
+                                        _rightShowFullPage = false;
+                                      });
+                                    }
+                                  },
+                                  onUpdate: () {
+                                    widget.onUpdate.call();
+                                    notifyCompactWindow();
+                                  },
+                                  onRemove: (id) {
+                                    widget.onRemove.call(id);
+                                    notifyCompactWindow();
+                                  },
+                                ),
+                              );
+                            },
                           ),
-                          child: ClipDataCard(
-                            clip: _list[i],
-                            routeToSearchOnClickChip: widget.enableRouteSearch,
-                            onTap: () {
-                              var data = _list[i];
-                              if (data.data.id != _showHistoryData?.data.id) {
-                                _showHistoryData = data;
-                                _clipTagRowKey = UniqueKey();
-                                setState(() {});
-                              } else {
-                                setState(() {
-                                  _showHistoryData = null;
-                                  _rightShowFullPage = false;
-                                });
-                              }
-                            },
-                            onUpdate: () {
-                              widget.onUpdate.call();
-                              notifyCompactWindow();
-                            },
-                            onRemove: (id) {
-                              widget.onRemove.call(id);
-                              notifyCompactWindow();
-                            },
-                          ),
-                        );
-                      },
-                    ),
                   ),
                   _showBackToTopButton
                       ? Positioned(

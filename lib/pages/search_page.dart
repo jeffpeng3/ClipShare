@@ -537,7 +537,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                               _searchType = type;
                             });
                             Future.delayed(
-                              const Duration(milliseconds: 500),
+                              const Duration(milliseconds: 200),
                               refreshData,
                             );
                           },

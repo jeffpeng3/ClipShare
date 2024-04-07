@@ -329,6 +329,48 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                 ],
               ),
 
+              ///快捷键
+              SettingCardGroup(
+                groupName: "快捷键",
+                icon: const Icon(Icons.keyboard_alt_sharp),
+                cardList: [
+                  SettingCard(
+                    main: const Text("历史弹窗"),
+                    sub: const Text("Ctrl + Alt + H"),
+                    value: "123",
+                    action: (v) {
+                      final editor = TextEditingController();
+                      editor.text = "Ctrl + Alt + H";
+                      return TextField(
+                        readOnly: true,
+                        controller: editor,
+                        style: const TextStyle(color: Colors.grey),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                        ),
+                      );
+                    },
+                    show: (v) => Platform.isWindows,
+                  ),
+                ],
+              ),
+
+              ///快捷键
+              SettingCardGroup(
+                groupName: "日志",
+                icon: const Icon(Icons.bug_report_outlined),
+                cardList: [
+                  SettingCard(
+                    main: const Text("启用日志记录"),
+                    sub: const Text("将会占据额外空间，已产生 0B 日志"),
+                    value: false,
+                    action: (v) {
+                      return Switch(value: v, onChanged: (checked) {});
+                    },
+                  ),
+                ],
+              ),
+
               ///关于
               SettingCardGroup(
                 groupName: "关于",
@@ -338,10 +380,10 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                     main: const Text("关于${Constants.appName}"),
                     sub: Text(App.version.name),
                     value: false,
-                    action: (v) => TextButton(
-                      onPressed: () {},
-                      child: const Text("检测更新"),
-                    ),
+                    // action: (v) => TextButton(
+                    //   onPressed: () {},
+                    //   child: const Text("检测更新"),
+                    // ),
                   ),
                 ],
               ),

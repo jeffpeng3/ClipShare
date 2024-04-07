@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipshare/components/empty_content.dart';
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/main.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -85,6 +86,7 @@ class _DebugPageState extends State<DebugPage> {
             child: const Text("新窗口"),
           ),
         ),
+        const EmptyContent(),
       ],
     );
   }

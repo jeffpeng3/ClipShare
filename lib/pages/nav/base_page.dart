@@ -205,6 +205,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   void exitApp() {
     windowManager.setPreventClose(false).then((value) {
       App.compactWindow?.close();
+      windowManager.hide();
       WindowManager.instance.destroy();
     });
   }

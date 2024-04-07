@@ -71,23 +71,48 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                         color: Colors.blueGrey,
                       ),
                       onPressed: () {
-                        var id = widget.clip.data.id;
-                        //删除tag
-                        AppDb.inst.historyTagDao.removeAllByHisId(id);
-                        //删除历史
-                        AppDb.inst.historyDao.delete(id).then((v) {
-                          if (v == null || v <= 0) return;
-                          //添加删除记录
-                          var opRecord = OperationRecord.fromSimple(
-                            Module.history,
-                            OpMethod.delete,
-                            id,
-                          );
-                          widget.onRemove(id);
-                          setState(() {});
-                          Navigator.pop(widget.dlgContext);
-                          AppDb.inst.opRecordDao.addAndNotify(opRecord);
-                        });
+                        showDialog(
+                          context: context,
+                          builder: (ctx) {
+                            return AlertDialog(
+                              title: const Text("删除提示"),
+                              content: const Text("确定删除该记录？"),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                  },
+                                  child: const Text("取消"),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    var id = widget.clip.data.id;
+                                    //删除tag
+                                    AppDb.inst.historyTagDao
+                                        .removeAllByHisId(id);
+                                    //删除历史
+                                    AppDb.inst.historyDao.delete(id).then((v) {
+                                      if (v == null || v <= 0) return;
+                                      //添加删除记录
+                                      var opRecord = OperationRecord.fromSimple(
+                                        Module.history,
+                                        OpMethod.delete,
+                                        id,
+                                      );
+                                      widget.onRemove(id);
+                                      setState(() {});
+                                      Navigator.pop(widget.dlgContext);
+                                      AppDb.inst.opRecordDao
+                                          .addAndNotify(opRecord);
+                                    });
+                                    Navigator.pop(ctx);
+                                  },
+                                  child: const Text("确定"),
+                                ),
+                              ],
+                            );
+                          },
+                        );
                       },
                       tooltip: "删除记录",
                     ),

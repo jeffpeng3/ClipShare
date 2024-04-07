@@ -18,13 +18,13 @@ import top.coclyun.clipshare.BuildConfig
 import top.coclyun.clipshare.ClipboardFocusActivity
 import top.coclyun.clipshare.ClipboardListener
 import top.coclyun.clipshare.MainActivity
+import top.coclyun.clipshare.R
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import top.coclyun.clipshare.R
 
 
 class BackgroundService : Service(),
@@ -92,8 +92,13 @@ class BackgroundService : Service(),
                 while (bufferedReader.readLine().also { line = it } != null) {
                     line?.let { Log.d("read_logs", it) }
                     if (line!!.contains(BuildConfig.APPLICATION_ID)) {
-                        line?.let { Log.d("read_logs", "self log") }
-                        mHandler.sendMessage(Message())
+                        if (MainActivity.innerCopy) {
+                            Log.d("clipboardChanged", "is innerCopy")
+                            MainActivity.innerCopy = false
+                        }else{
+                            line?.let { Log.d("read_logs", "self log") }
+                            mHandler.sendMessage(Message())
+                        }
                     }
                 }
                 notify("日志服务异常停止")
@@ -152,7 +157,6 @@ class BackgroundService : Service(),
         Log.d("clipboardChanged", "is same $same")
         if (same) return
         MainActivity.clipChannel.invokeMethod("setClipText", mapOf("text" to content))
-        notify(content);
     }
 
     private fun createPendingIntent(): PendingIntent? {

@@ -2,7 +2,7 @@ package top.coclyun.clipshare.adapter
 
 import android.content.ClipData
 import android.content.ClipDescription
-import android.util.Log
+import android.content.ClipboardManager
 import android.view.DragEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -10,8 +10,11 @@ import android.view.View.DragShadowBuilder
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.recyclerview.widget.RecyclerView
+import top.coclyun.clipshare.MainActivity
 import top.coclyun.clipshare.R
+import kotlin.math.min
 
 
 class HistoryFloatAdapter(
@@ -28,7 +31,7 @@ class HistoryFloatAdapter(
 
     override fun onBindViewHolder(holder: HistoryFloatViewHolder, position: Int) {
         val item = dataList[position]
-        holder.bind(item,onDragStart,onDragEnd)
+        holder.bind(item, onDragStart, onDragEnd)
     }
 
     override fun getItemCount(): Int {
@@ -42,7 +45,7 @@ class HistoryFloatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
     private val copy = itemView.findViewById<LinearLayout>(R.id.copy)
 
     fun bind(item: String, onDragStart: () -> Unit, onDragEnd: () -> Unit) {
-        textView.text = item
+        textView.text = item.substring(0, min(200, item.length))
         textView.setOnLongClickListener {
             //开始startDragAndDrop
             val mimeTypes = arrayOf(ClipDescription.MIMETYPE_TEXT_PLAIN)
@@ -62,6 +65,20 @@ class HistoryFloatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
                 }
             }
             true
+        }
+        copy.setOnClickListener {
+            MainActivity.innerCopy = true;
+            // 获取剪贴板管理器
+            val clipboardManager = getSystemService(
+                itemView.context,
+                ClipboardManager::class.java
+            ) as ClipboardManager
+
+            // 创建一个剪贴板数据
+            val clipData = ClipData.newPlainText("ClipboardData", item)
+
+            // 将数据放入剪贴板
+            clipboardManager.setPrimaryClip(clipData)
 
         }
     }
