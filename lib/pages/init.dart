@@ -194,7 +194,6 @@ class _LoadingPageState extends State<LoadingPage> {
     WindowOptions windowOptions = WindowOptions(
       size: Size(weight, height),
       center: true,
-      backgroundColor: Colors.transparent,
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.normal,
     );
