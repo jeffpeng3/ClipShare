@@ -94,7 +94,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
               ///常规
               SettingCardGroup(
                 groupName: "常规",
-                icon: const Icon(Icons.discount),
+                icon: const Icon(Icons.discount_outlined),
                 cardList: [
                   SettingCard(
                     main: const Text("开机启动"),
@@ -332,11 +332,11 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
               ///快捷键
               SettingCardGroup(
                 groupName: "快捷键",
-                icon: const Icon(Icons.keyboard_alt_sharp),
+                icon: const Icon(Icons.keyboard_alt_outlined),
                 cardList: [
                   SettingCard(
                     main: const Text("历史弹窗"),
-                    sub: const Text("Ctrl + Alt + H"),
+                    sub: const Text("在屏幕任意位置唤起历史记录弹窗"),
                     value: "123",
                     action: (v) {
                       final editor = TextEditingController();
@@ -355,7 +355,85 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                 ],
               ),
 
-              ///快捷键
+              ///同步设置
+              SettingCardGroup(
+                groupName: "同步",
+                icon: const Icon(Icons.sync_rounded),
+                cardList: [
+                  SettingCard(
+                    main: const Text("短信同步"),
+                    sub: const Text("符合规则的短信将自动同步"),
+                    value: false,
+                    show: (v) => PlatformExt.isMobile,
+                    action: (v) {
+                      return Switch(value: v, onChanged: (checked) {});
+                    },
+                  ),
+                  SettingCard(
+                    main: const Text("文件同步"),
+                    sub: const Text("符合规则的文件将允许同步"),
+                    value: false,
+                    show: (v) => PlatformExt.isPC,
+                    action: (v) {
+                      return Switch(value: v, onChanged: (checked) {});
+                    },
+                  ),
+                  SettingCard(
+                    main: const Text("文件存储路径"),
+                    sub: const Text("/data/..."),
+                    value: false,
+                    action: (v) {
+                      return TextButton(
+                          onPressed: () {}, child: const Text("选择"));
+                    },
+                  ),
+                ],
+              ),
+
+              ///规则设置
+              SettingCardGroup(
+                groupName: "规则",
+                icon: const Icon(Icons.assignment_outlined),
+                cardList: [
+                  SettingCard(
+                    main: const Text("标签规则"),
+                    sub: const Text("符合规则的记录将会自动打上对应标签"),
+                    value: false,
+                    action: (v) {
+                      return TextButton(
+                        onPressed: () {},
+                        child: const Text("配置"),
+                      );
+                    },
+                  ),
+                  SettingCard(
+                    main: const Text("文件规则"),
+                    sub: const Text("符合指定文件扩展或大小的文件将会允许同步"),
+                    value: false,
+                    show: (v) => PlatformExt.isPC,
+                    action: (v) {
+                      return TextButton(
+                        onPressed: () {},
+                        child: const Text("配置"),
+                      );
+                    },
+                  ),
+                  SettingCard(
+                    main: const Text("短信规则"),
+                    sub: const Text("符合规则的短信将会同步"),
+                    value: false,
+                    show: (v) => PlatformExt.isMobile,
+                    action: (v) {
+                      return TextButton(
+                        onPressed: () {},
+                        child: const Text("配置"),
+                      );
+                    },
+                  ),
+                ],
+              ),
+
+              ///日志
               SettingCardGroup(
                 groupName: "日志",
                 icon: const Icon(Icons.bug_report_outlined),
@@ -374,7 +452,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
               ///关于
               SettingCardGroup(
                 groupName: "关于",
-                icon: const Icon(Icons.info),
+                icon: const Icon(Icons.info_outline),
                 cardList: [
                   SettingCard(
                     main: const Text("关于${Constants.appName}"),
