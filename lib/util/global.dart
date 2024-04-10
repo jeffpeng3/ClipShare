@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../main.dart';
@@ -8,7 +10,9 @@ class Global {
   }
 
   static void notify(String content) {
-    App.androidChannel.invokeMethod("sendNotify", {"content": content});
+    if(Platform.isAndroid) {
+      App.androidChannel.invokeMethod("sendNotify", {"content": content});
+    }
   }
 
   static void snackBarSuc(BuildContext context,String text) {

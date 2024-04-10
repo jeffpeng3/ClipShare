@@ -623,6 +623,18 @@ class _$DeviceDao extends DeviceDao {
   }
 
   @override
+  Future<int?> updateDeviceAddress(
+    String guid,
+    int uid,
+    String address,
+  ) async {
+    return _queryAdapter.query(
+        'update device set address = ?3 where uid = ?2 and guid = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [guid, uid, address]);
+  }
+
+  @override
   Future<int> add(Device dev) {
     return _deviceInsertionAdapter.insertAndReturnId(
         dev, OnConflictStrategy.abort);

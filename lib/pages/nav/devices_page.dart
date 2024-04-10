@@ -220,13 +220,27 @@ class _DevicesPageState extends State<DevicesPage>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Constants.devTypeIcons[device.type]!,
-                      const SizedBox(
-                        width: 5,
+                      Icon(
+                        Constants.devTypeIcons[device.type]!.icon,
+                        color: isConnected ? Colors.lightBlue : Colors.grey,
+                        size: Constants.devTypeIcons[device.type]!.size,
                       ),
-                      Text(
-                        device.name,
-                        style: const TextStyle(fontSize: 25),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            device.name,
+                            style: const TextStyle(fontSize: 25),
+                          ),
+                          Text(
+                            device.address ?? "",
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -259,17 +273,12 @@ class _DevicesPageState extends State<DevicesPage>
                               true,
                             );
                           } else {
-                            if (device.address == null) {
-                              //todo 局域网设备，启用自动发现去连接
-                            } else {
-                              //todo 根据地址去连接
-                            }
-                            // SocketListener.inst.sendData(
-                            //   devInfo,
-                            //   MsgType.connect,
-                            //   {"manual": 1},
-                            // );
+                            var address = device.address;
+                            var [ip, port] = address!.split(";");
+                            SocketListener.inst
+                                .manualConnect(ip, port: port.toInt());
                           }
+                          Navigator.pop(context);
                         },
                         splashColor: Colors.black12,
                         borderRadius: BorderRadius.circular(12),
@@ -291,18 +300,46 @@ class _DevicesPageState extends State<DevicesPage>
                     Expanded(
                       child: InkWell(
                         onTap: () {
-                          if (isConnected) {
-                            var devInfo = DevInfo.fromDevice(device);
-                            SocketListener.inst.onDevForget(
-                              devInfo,
-                              App.userId,
-                            );
-                            SocketListener.inst
-                                .sendData(devInfo, MsgType.forgetDev, {});
-                          }
-                          //更新配对状态为未配对
-                          device.isPaired = false;
-                          AppDb.inst.deviceDao.updateDevice(device);
+                          showDialog(
+                            context: context,
+                            builder: (ctx) {
+                              return AlertDialog(
+                                title: const Text("提示"),
+                                content: const Text("是否要取消配对？"),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(ctx);
+                                    },
+                                    child: const Text("取消"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      if (isConnected) {
+                                        var devInfo =
+                                            DevInfo.fromDevice(device);
+                                        SocketListener.inst.onDevForget(
+                                          devInfo,
+                                          App.userId,
+                                        );
+                                        SocketListener.inst.sendData(
+                                            devInfo, MsgType.forgetDev, {});
+                                      }
+                                      //更新配对状态为未配对
+                                      device.isPaired = false;
+                                      setState(() {
+
+                                      });
+                                      AppDb.inst.deviceDao.updateDevice(device);
+                                      Navigator.pop(ctx);
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text("确定"),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
                         },
                         splashColor: Colors.black12,
                         borderRadius: BorderRadius.circular(12),
@@ -371,6 +408,7 @@ class _DevicesPageState extends State<DevicesPage>
                       height: 30,
                     ),
                     Pinput(
+                      length: 6,
                       controller: pinCtr,
                       autofocus: true,
                       defaultPinTheme: defaultPinTheme,
@@ -394,7 +432,7 @@ class _DevicesPageState extends State<DevicesPage>
                       pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
                       showCursor: true,
                       onChanged: (pin) {
-                        completedInputPin = pin.length == 4;
+                        completedInputPin = pin.length == 6;
                         state(() {});
                       },
                     ),
@@ -468,6 +506,7 @@ class _DevicesPageState extends State<DevicesPage>
       if (paired.dev == dev) {
         //修改widget状态
         paired.isConnected = true;
+        paired.dev!.address = dev!.address;
         setState(() {});
         //是已配对的设备，请求所有缺失数据
         // SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
@@ -504,10 +543,8 @@ class _DevicesPageState extends State<DevicesPage>
     forgetDev?.isPaired = false;
     if (forgetDev?.isConnected ?? false) {
       onConnected(dev);
-    }else{
-      setState(() {
-
-      });
+    } else {
+      setState(() {});
     }
   }
 
@@ -553,14 +590,14 @@ class _DevicesPageState extends State<DevicesPage>
           _addPairedDevInPage(dbDev);
           return;
         }
-        Global.snackBarErr(context,"设备添加失败");
+        Global.snackBarErr(context, "设备添加失败");
       });
     } else {
       //新设备
       _ref.notifier(DeviceInfoProvider.inst).addOrUpdate(newDev).then((res) {
         if (!res) {
           Log.debug(tag, "Device information addition failed");
-          Global.snackBarErr(context,"设备添加失败");
+          Global.snackBarErr(context, "设备添加失败");
           return;
         }
         _addPairedDevInPage(newDev);

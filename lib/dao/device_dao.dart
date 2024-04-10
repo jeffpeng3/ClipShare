@@ -32,4 +32,10 @@ abstract class DeviceDao {
   ///删除所有设备（逻辑删？todo）
   @Query("delete from device where uid = :uid")
   Future<int?> removeAll(int uid);
+
+  ///更新设备当前连接地址
+  @Query(
+    "update device set address = :address where uid = :uid and guid = :guid",
+  )
+  Future<int?> updateDeviceAddress(String guid, int uid, String address);
 }

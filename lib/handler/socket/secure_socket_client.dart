@@ -3,13 +3,16 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:basic_utils/basic_utils.dart';
+import 'package:clipshare/main.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:encrypt/encrypt.dart';
 
 class SecureSocketClient {
   final String ip;
-  final int port;
+  late final int _port;
+
+  int get port => _port;
   late final Socket _socket;
   bool _listening = false;
   String _data = "";
@@ -28,9 +31,9 @@ class SecureSocketClient {
 
   bool get isReady => _ready;
 
-  SecureSocketClient._private(this.ip, this.port);
+  SecureSocketClient._private(this.ip);
 
-  static SecureSocketClient empty = SecureSocketClient._private("127.0.0.1", 0);
+  static SecureSocketClient empty = SecureSocketClient._private("127.0.0.1");
 
   ///连接 socket
   static Future<SecureSocketClient> connect({
@@ -64,18 +67,19 @@ class SecureSocketClient {
     required Socket socket,
     required BigInt prime,
     required AsymmetricKeyPair keyPair,
+    int? serverPort,
     void Function(SecureSocketClient)? onConnected,
     required void Function(SecureSocketClient client, String data)? onMessage,
     void Function(Exception e)? onError,
     void Function()? onDone,
     bool? cancelOnError,
   }) {
-    var ssc = SecureSocketClient._private(
-      socket.remoteAddress.address,
-      socket.remotePort,
-    );
-    ssc._prime=prime;
-    ssc._keyPair=keyPair;
+    var ssc = SecureSocketClient._private(socket.remoteAddress.address);
+    if (serverPort != null) {
+      ssc._port = serverPort;
+    }
+    ssc._prime = prime;
+    ssc._keyPair = keyPair;
     ssc._socket = socket;
     ssc._onMessage = onMessage;
     ssc._onConnected = onConnected;
@@ -177,10 +181,12 @@ class SecureSocketClient {
       //计算 aesKey 完成密钥交换
       _aesKey = ssk.toString().substring(0, 32);
       _encrypter = CryptoUtil.getEncrypter(_aesKey);
+      _port = data["port"];
       //发送自己的publicKey
       Map<String, dynamic> map = {
         "seq": 2,
         "key": _dh.publicKey.toString(),
+        "port": App.settings.port,
       };
       //发送
       send(map);
@@ -189,6 +195,7 @@ class SecureSocketClient {
     if (data["seq"] == 2) {
       //接收公钥
       var key = data["key"];
+      _port = data["port"];
       var otherPublicKey = BigInt.parse(key);
       //SharedSecretKey
       var ssk = _dh.generateSharedSecret(otherPublicKey);
@@ -222,12 +229,12 @@ class SecureSocketClient {
     } else {
       data = CryptoUtil.base64Encode(data);
     }
-    try{
+    try {
       _socket.writeln("$data,");
-    }catch(e,stack){
+    } catch (e, stack) {
       Log.debug("SecureSocketClient", "发送失败：$e");
       Log.debug("SecureSocketClient", "$stack");
-      if(_onError==null){
+      if (_onError == null) {
         _onError!.call(e as Exception);
       }
     }
@@ -249,6 +256,7 @@ class SecureSocketClient {
       "prime": _prime.toString(),
       "g": g.toString(),
       "key": _dh.publicKey.toString(),
+      "port": App.settings.port,
     };
     send(map);
   }

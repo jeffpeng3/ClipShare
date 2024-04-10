@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/dao/device_dao.dart';
+import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/settings.dart';
@@ -16,11 +17,10 @@ import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
-
-import 'package:clipshare/db/app_db.dart';
 
 abstract class DevAliveListener {
   //连接成功
@@ -281,9 +281,6 @@ class SocketListener {
         );
         //告诉客户端配对状态
         client.send(pairedStatusData.toJson());
-        //暂时是未配对，等待对方发送配对状态
-        // var ds = DevSocket(dev: dev, socket: client, isPaired: false);
-        // _devSockets[dev.guid] = ds;
         break;
 
       case MsgType.pairedStatus:
@@ -322,14 +319,30 @@ class SocketListener {
       ///请求配对我方，生成四位配对码
       case MsgType.reqPairing:
         final random = Random();
-        int code = 1000 + random.nextInt(9000);
+        int code = 100000 + random.nextInt(900000);
         DevPairingHandler.addCode(dev.guid, CryptoUtil.toMD5(code));
+        //发送通知
+        Global.notify("新配对请求");
         showDialog(
           context: App.context,
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text("配对请求"),
-              content: Text("来自 ${dev.name} 的配对请求\n配对码：$code"),
+              content: IntrinsicHeight(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text("来自 ${dev.name} 的配对请求\n配对码:"),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      code.toString().split("").join("  "),
+                      style: const TextStyle(fontSize: 30),
+                    ),
+                  ],
+                ),
+              ),
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
@@ -403,7 +416,7 @@ class SocketListener {
     }
     Log.debug(tag, "开始发现设备");
     //先发现自添加设备
-    List<Future<void> Function()> tasks =await _customDiscover();
+    List<Future<void> Function()> tasks = await _customDiscover();
     tasks.addAll(_multicastDiscover());
     _taskRunner = TaskRunner<void>(
       initialTasks: tasks,
@@ -578,7 +591,7 @@ class SocketListener {
       var ds = DevSocket(dev: dev, socket: client, isPaired: paired);
       _devSockets[dev.guid] = ds;
     }
-    _onDevConnected(dev);
+    _onDevConnected(dev, client.ip, client.port);
     if (paired) {
       //已配对，获取该设备未同步记录
       sendData(dev, MsgType.reqMissingData, {});
@@ -586,7 +599,10 @@ class SocketListener {
   }
 
   ///设备连接成功
-  void _onDevConnected(DevInfo dev) {
+  void _onDevConnected(DevInfo dev, String ip, int port) async {
+    //todo 更新连接地址
+    String address = "$ip:$port";
+    await _deviceDao.updateDeviceAddress(dev.guid, App.userId, address);
     map.remove(dev.guid);
     for (var listener in _devAliveListeners) {
       try {
@@ -766,6 +782,7 @@ class SocketListener {
         sendData(dev, MsgType.disConnect, {});
       }
       _devSockets[id]!.socket.destroy();
+      _onDevDisConnected(id);
       return true;
     }
     return false;

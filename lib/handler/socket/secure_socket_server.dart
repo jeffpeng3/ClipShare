@@ -62,7 +62,7 @@ class SecureSocketServer {
             prime: App.prime,
             keyPair: App.keyPair,
             onConnected: (SecureSocketClient ssc) {
-              _onConnected(ip, port);
+              _onConnected(ssc.ip, ssc.port);
             },
             onMessage: _onMessage,
             onDone: () {
