@@ -90,6 +90,10 @@ class App extends StatelessWidget {
   static bool innerCopy = false;
   static late final Version version;
 
+  static late final String documentPath;
+  static late final String cachePath;
+  static late final String logsDirPath;
+
   const App({super.key});
 
   // This widget is the root of your application.

@@ -72,6 +72,7 @@ class SettingProvider extends Notifier<Settings> {
       showHistoryFloat: showHistoryFloat,
     );
   }
+
   Future<void> setLockHistoryFloatLoc(bool lockHistoryFloatLoc) async {
     await _addOrUpdate("lockHistoryFloatLoc", lockHistoryFloatLoc.toString());
     App.settings = state = state.copyWith(
@@ -100,6 +101,13 @@ class SettingProvider extends Notifier<Settings> {
     await _addOrUpdate("windowSize", size);
     App.settings = state = state.copyWith(
       windowSize: size,
+    );
+  }
+
+  Future<void> setEnableLogsRecord(bool enableLogsRecord) async {
+    await _addOrUpdate("enableLogsRecord", enableLogsRecord.toString());
+    App.settings = state = state.copyWith(
+      enableLogsRecord: enableLogsRecord,
     );
   }
 }

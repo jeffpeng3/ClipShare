@@ -10,6 +10,7 @@ class SettingCard<T> extends StatefulWidget {
   late BorderRadius borderRadius;
   final bool Function(T)? show;
   final void Function()? onTap;
+  final void Function()? onDoubleTap;
 
   SettingCard({
     super.key,
@@ -20,6 +21,7 @@ class SettingCard<T> extends StatefulWidget {
     this.separate = false,
     this.showValueInSub = false,
     this.onTap,
+    this.onDoubleTap,
     this.borderRadius = BorderRadius.zero,
     this.show,
   });
@@ -31,6 +33,8 @@ class SettingCard<T> extends StatefulWidget {
 }
 
 class _SettingCardState<T> extends State<SettingCard<T>> {
+  bool _readyDoubleClick = false;
+
   @override
   Widget build(BuildContext context) {
     //不显示内容
@@ -47,7 +51,28 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
         color: Colors.white,
         child: InkWell(
           onTap: () {
-            widget.onTap?.call();
+            if (widget.onDoubleTap == null) {
+              //未设置双击，直接执行单击
+              widget.onTap?.call();
+            } else {
+              //设置了双击，且已经点击过一次，执行双击逻辑
+              if (_readyDoubleClick) {
+                widget.onDoubleTap!.call();
+                //双击结束，恢复状态
+                _readyDoubleClick = false;
+              } else {
+                _readyDoubleClick = true;
+                //设置了双击，但仅点击了一次，延迟一段时间
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  if (_readyDoubleClick) {
+                    //指定时间后仍然没有进行第二次点击，进行单击逻辑
+                    widget.onTap?.call();
+                  }
+                  //指定时间后无论是否双击，恢复状态
+                  _readyDoubleClick = false;
+                });
+              }
+            }
           },
           mouseCursor: SystemMouseCursors.basic,
           child: Column(

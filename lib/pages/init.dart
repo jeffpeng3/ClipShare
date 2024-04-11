@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:window_manager/window_manager.dart';
@@ -54,6 +55,8 @@ class _LoadingPageState extends State<LoadingPage> {
 
   Future<void> init() async {
     App.context = context;
+    // 初始化App路径
+    initPath();
     //初始化数据库
     await AppDb.inst.init();
     //初始化本机设备信息
@@ -69,6 +72,21 @@ class _LoadingPageState extends State<LoadingPage> {
     // 初始化channel
     initChannel();
     return Future.value();
+  }
+
+  void initPath() async {
+    if (Platform.isAndroid) {
+      App.documentPath = (await getExternalStorageDirectories(
+              type: StorageDirectory.documents))![0]
+          .path;
+      App.cachePath = (await getExternalCacheDirectories())![0].path;
+    } else {
+      App.documentPath = (await getApplicationDocumentsDirectory()).path;
+      App.cachePath = (await getApplicationCacheDirectory()).path;
+    }
+    print("documentPath, ${App.documentPath}");
+    print("cachePath, ${App.cachePath}");
+    App.logsDirPath = "${App.cachePath}/logs";
   }
 
   void initMultiWindowEvent() {
@@ -249,6 +267,10 @@ class _LoadingPageState extends State<LoadingPage> {
       "lockHistoryFloatLoc",
       App.userId,
     );
+    var enableLogsRecord = await cfg.getConfig(
+      "enableLogsRecord",
+      App.userId,
+    );
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
       localName: localName.isNotNullAndEmpty ? localName! : App.devInfo.name,
@@ -263,14 +285,17 @@ class _LoadingPageState extends State<LoadingPage> {
               : windowSize!,
       rememberWindowSize: rememberWindowSize?.toBool() ?? false,
       lockHistoryFloatLoc: lockHistoryFloatLoc?.toBool() ?? true,
+      enableLogsRecord: enableLogsRecord?.toBool() ?? false,
     );
-    if (App.settings.showHistoryFloat) {
-      App.androidChannel.invokeMethod("showHistoryFloatWindow");
+    if (Platform.isAndroid) {
+      if (App.settings.showHistoryFloat) {
+        App.androidChannel.invokeMethod("showHistoryFloatWindow");
+      }
+      App.androidChannel.invokeMethod(
+        "lockHistoryFloatLoc",
+        {"loc": App.settings.lockHistoryFloatLoc},
+      );
     }
-    App.androidChannel.invokeMethod(
-      "lockHistoryFloatLoc",
-      {"loc": App.settings.lockHistoryFloatLoc},
-    );
     App.devInfo.name = App.settings.localName;
   }
 

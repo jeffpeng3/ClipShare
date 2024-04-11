@@ -17,6 +17,7 @@ import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/history_tag_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
@@ -219,6 +220,7 @@ class HistoryPageState extends State<HistoryPage>
       }
     }
   }
+
   void notifyCompactWindow() {
     if (App.compactWindow == null) {
       return;

@@ -1,4 +1,5 @@
 import 'package:clipshare/entity/tables/history.dart';
+import 'package:clipshare/util/extension.dart';
 
 class ClipData {
   ClipData(this._data);
@@ -42,20 +43,7 @@ class ClipData {
   String getSizeText() {
     int size = data.size;
     if (isText || isRichText) return "$size 字";
-
-    const int KB = 1024;
-    const int MB = KB * 1024;
-    const int GB = MB * 1024;
-
-    if (size >= GB) {
-      return '${(size / GB).toStringAsFixed(2)} GB';
-    } else if (size >= MB) {
-      return '${(size / MB).toStringAsFixed(2)} MB';
-    } else if (size >= KB) {
-      return '${(size / KB).toStringAsFixed(2)} KB';
-    } else {
-      return '$size B';
-    }
+    return size.sizeStr;
   }
 
   static List<ClipData> fromList(List<History> list) {

@@ -29,7 +29,7 @@ class Settings {
   //记录的上次窗口大小，格式为：widthxheight。默认值为：1000x650
   final String windowSize;
   final bool rememberWindowSize;
-
+final bool enableLogsRecord;
   Settings({
     required this.port,
     required this.localName,
@@ -41,6 +41,7 @@ class Settings {
     required this.windowSize,
     required this.rememberWindowSize,
     required this.lockHistoryFloatLoc,
+    required this.enableLogsRecord,
   });
 
   Settings copyWith({
@@ -54,6 +55,7 @@ class Settings {
     String? windowSize,
     bool? rememberWindowSize,
     bool? lockHistoryFloatLoc,
+    bool? enableLogsRecord,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -67,6 +69,7 @@ class Settings {
           windowSize.isNullOrEmpty ? Constants.defaultWindowSize : windowSize!,
       rememberWindowSize: rememberWindowSize ?? this.rememberWindowSize,
       lockHistoryFloatLoc: lockHistoryFloatLoc ?? this.lockHistoryFloatLoc,
+      enableLogsRecord: enableLogsRecord ?? this.enableLogsRecord,
     );
   }
 }

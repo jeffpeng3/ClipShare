@@ -111,6 +111,24 @@ extension StringNilExt on String? {
   bool get isNullOrEmpty => this == null || this!.isEmpty;
 }
 
+extension IntExt on int {
+  String get sizeStr {
+    const kb = 1024;
+    const mb = kb * 1024;
+    const gb = mb * 1024;
+
+    if (this >= gb) {
+      return '${(this / gb).toStringAsFixed(2)} GB';
+    } else if (this >= mb) {
+      return '${(this / mb).toStringAsFixed(2)} MB';
+    } else if (this >= kb) {
+      return '${(this / kb).toStringAsFixed(2)} KB';
+    } else {
+      return '$this B';
+    }
+  }
+}
+
 extension PlatformExt on Platform {
   static bool get isMobile {
     return Platform.isIOS || Platform.isAndroid;
