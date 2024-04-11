@@ -79,7 +79,7 @@ dependencies:
   # 提供一种平台无关的方式以一致的方式访问设备的文件位置系统
   path_provider: ^2.1.2
   # 文件打开
-  open_filex: ^4.4.0
+  open_file_plus: ^3.4.1+1
 dev_dependencies:
   flutter_test:
     sdk: flutter

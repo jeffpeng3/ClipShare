@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:open_filex/open_filex.dart';
-
 class FileUtil {
   static int getDirectorySize(String directoryPath) {
     Directory directory = Directory(directoryPath);

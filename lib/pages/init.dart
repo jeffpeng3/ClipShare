@@ -17,6 +17,7 @@ import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -84,9 +85,9 @@ class _LoadingPageState extends State<LoadingPage> {
       App.documentPath = (await getApplicationDocumentsDirectory()).path;
       App.cachePath = (await getApplicationCacheDirectory()).path;
     }
-    print("documentPath, ${App.documentPath}");
-    print("cachePath, ${App.cachePath}");
     App.logsDirPath = "${App.cachePath}/logs";
+    Log.debug("init", "documentPath, ${App.documentPath}");
+    Log.debug("init", "cachePath, ${App.cachePath}");
   }
 
   void initMultiWindowEvent() {

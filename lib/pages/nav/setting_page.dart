@@ -9,10 +9,11 @@ import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/file_util.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
-import 'package:open_filex/open_filex.dart';
+import 'package:open_file_plus/open_file_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
@@ -473,8 +474,17 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                       size: 20,
                                     ),
                                   ),
-                                  onTap: () {
-                                    OpenFilex.open(App.logsDirPath);
+                                  onTap: () async {
+                                    // late OpenResult res;
+                                    try {
+                                      var res = await OpenFile.open(App.logsDirPath);
+                                      Log.debug(
+                                        tag,
+                                        "${res.type.name},${res.message}",
+                                      );
+                                    } catch (e) {
+                                      Log.error(tag, e);
+                                    }
                                   },
                                 ),
                               ),
