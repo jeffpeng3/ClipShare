@@ -17,7 +17,6 @@ import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/history_tag_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
-import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
@@ -186,13 +185,16 @@ class HistoryPageState extends State<HistoryPage>
         history.id.toString(),
       );
       AppDb.inst.opRecordDao.addAndNotify(opRecord);
-      if (history.content.hasUrl) {
-        //添加标签
-        var tag = HistoryTag(
-          "链接",
-          history.id,
-        );
-        context.ref.notifier(HistoryTagProvider.inst).add(tag);
+      var regulars = jsonDecode(App.settings.tagRegulars);
+      for (var reg in regulars) {
+        if (history.content.matchRegExp(reg["regular"])) {
+          //添加标签
+          var tag = HistoryTag(
+            reg["name"],
+            history.id,
+          );
+          context.ref.notifier(HistoryTagProvider.inst).add(tag);
+        }
       }
       return cnt;
     });

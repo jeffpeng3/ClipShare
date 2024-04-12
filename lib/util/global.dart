@@ -1,12 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../main.dart';
 
 class Global {
-
   static void toast(String text) {
     App.androidChannel.invokeMethod("toast", {"content": text});
   }
@@ -33,5 +31,25 @@ class Global {
         backgroundColor: Colors.redAccent,
       ),
     );
+  }
+
+  static void showTipsDialog(BuildContext context, String text,
+      [String title = "提示"]) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(title),
+            content: Text(text),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text("确定"),
+              ),
+            ],
+          );
+        });
   }
 }

@@ -139,10 +139,6 @@ class _TagEditPageState extends State<TagEditPage> {
                 .then(
                   (value) => setState(() {
                     saving = false;
-                    // HistoryPage.pageKey.currentState?.updatePage(
-                    //   (history) => true,
-                    //   (history) {},
-                    // );
                     Navigator.pop(context);
                   }),
                 );

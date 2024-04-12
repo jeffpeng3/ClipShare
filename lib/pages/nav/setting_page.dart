@@ -1,14 +1,18 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipshare/components/regular_setting_add_dialog.dart';
 import 'package:clipshare/components/setting_card.dart';
 import 'package:clipshare/components/setting_card_group.dart';
 import 'package:clipshare/components/text_edit_dialog.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/pages/settings/regular_setting_page.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/file_util.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -419,7 +423,63 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           value: false,
                           action: (v) {
                             return TextButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => RegularSettingPage(
+                                      initData:
+                                          jsonDecode(App.settings.tagRegulars),
+                                      onAdd: (data, remove) {
+                                        var tag = data["name"] as String?;
+                                        var regular =
+                                            data["regular"] as String?;
+                                        if (tag.isNullOrEmpty ||
+                                            regular.isNullOrEmpty) {
+                                          Global.showTipsDialog(
+                                            context,
+                                            "请输入完整！",
+                                          );
+                                          return null;
+                                        }
+                                        var key = UniqueKey();
+                                        return SettingCard(
+                                          key: key,
+                                          main: Text("标签：$tag"),
+                                          sub: Text("规则：$regular"),
+                                          value: data,
+                                          borderRadius: const BorderRadius.all(
+                                            Radius.circular(8.0),
+                                          ),
+                                          action: (data) {
+                                            return IconButton(
+                                              onPressed: () {
+                                                remove(key);
+                                              },
+                                              icon: const Icon(
+                                                Icons.delete_outline,
+                                                color: Colors.red,
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      },
+                                      renderEditLayout: (onChange) {
+                                        return RegularSettingAddDialog(
+                                          onChange: onChange,
+                                        );
+                                      },
+                                      confirm: (res) {
+                                        var json = jsonEncode(res);
+                                        ref
+                                            .notifier(settingProvider)
+                                            .setTagRegulars(json);
+                                      },
+                                      title: "标签规则配置",
+                                    ),
+                                  ),
+                                );
+                              },
                               child: const Text("配置"),
                             );
                           },
@@ -477,7 +537,8 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                   onTap: () async {
                                     // late OpenResult res;
                                     try {
-                                      var res = await OpenFile.open(App.logsDirPath);
+                                      var res =
+                                          await OpenFile.open(App.logsDirPath);
                                       Log.debug(
                                         tag,
                                         "${res.type.name},${res.message}",

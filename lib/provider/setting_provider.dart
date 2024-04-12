@@ -110,4 +110,10 @@ class SettingProvider extends Notifier<Settings> {
       enableLogsRecord: enableLogsRecord,
     );
   }
+  Future<void> setTagRegulars(String tagRegulars) async {
+    await _addOrUpdate("tagRegulars", tagRegulars);
+    App.settings = state = state.copyWith(
+      tagRegulars: tagRegulars,
+    );
+  }
 }

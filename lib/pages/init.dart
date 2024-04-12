@@ -56,14 +56,14 @@ class _LoadingPageState extends State<LoadingPage> {
 
   Future<void> init() async {
     App.context = context;
-    // 初始化App路径
-    initPath();
     //初始化数据库
     await AppDb.inst.init();
     //初始化本机设备信息
     await initDevInfo();
     //加载配置信息
     await loadConfigs();
+    // 初始化App路径
+    initPath();
     //加载配置后初始化窗体配置
     if (Platform.isWindows) {
       await initWindowsManager();
@@ -272,6 +272,10 @@ class _LoadingPageState extends State<LoadingPage> {
       "enableLogsRecord",
       App.userId,
     );
+    var tagRegulars = await cfg.getConfig(
+      "tagRegulars",
+      App.userId,
+    );
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
       localName: localName.isNotNullAndEmpty ? localName! : App.devInfo.name,
@@ -287,6 +291,13 @@ class _LoadingPageState extends State<LoadingPage> {
       rememberWindowSize: rememberWindowSize?.toBool() ?? false,
       lockHistoryFloatLoc: lockHistoryFloatLoc?.toBool() ?? true,
       enableLogsRecord: enableLogsRecord?.toBool() ?? false,
+      tagRegulars: tagRegulars ??
+          jsonEncode([
+            {
+              "name": "链接",
+              "regular": r"[a-zA-z]+://[^\s]*",
+            }
+          ]),
     );
     if (Platform.isAndroid) {
       if (App.settings.showHistoryFloat) {
