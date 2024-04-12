@@ -323,13 +323,14 @@ class _DevicesPageState extends State<DevicesPage>
                                           App.userId,
                                         );
                                         SocketListener.inst.sendData(
-                                            devInfo, MsgType.forgetDev, {});
+                                          devInfo,
+                                          MsgType.forgetDev,
+                                          {},
+                                        );
                                       }
                                       //更新配对状态为未配对
                                       device.isPaired = false;
-                                      setState(() {
-
-                                      });
+                                      setState(() {});
                                       AppDb.inst.deviceDao.updateDevice(device);
                                       Navigator.pop(ctx);
                                       Navigator.pop(context);
