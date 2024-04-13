@@ -4,7 +4,6 @@ import 'package:clipshare/components/empty_content.dart';
 import 'package:clipshare/components/setting_card.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
-import 'package:clipshare/util/extension.dart';
 import 'package:flutter/material.dart';
 
 class RegularSettingPage extends StatefulWidget {
@@ -70,18 +69,17 @@ class _RegularSettingPageState extends State<RegularSettingPage> {
       ],
     );
     return Scaffold(
-      backgroundColor:
-          isSmallScreen || PlatformExt.isPC ? Colors.transparent : App.bgColor,
-      appBar: isSmallScreen || Platform.isWindows
-          ? null
-          : AppBar(
+      backgroundColor: isSmallScreen ? App.bgColor : Colors.transparent,
+      appBar: isSmallScreen
+          ? AppBar(
               backgroundColor: Theme.of(context).colorScheme.inversePrimary,
               title: title,
-            ),
+            )
+          : null,
       body: Column(
         children: [
           Visibility(
-            visible: isSmallScreen || PlatformExt.isPC,
+            visible: !isSmallScreen,
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.only(
@@ -95,7 +93,9 @@ class _RegularSettingPageState extends State<RegularSettingPage> {
                 child: Row(
                   children: [
                     const Icon(Icons.window),
-                    const SizedBox(width: 5,),
+                    const SizedBox(
+                      width: 5,
+                    ),
                     Expanded(
                       child: DefaultTextStyle(
                         style: TextStyle(

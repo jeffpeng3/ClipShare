@@ -8,6 +8,7 @@ import 'package:clipshare/components/text_edit_dialog.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/settings/regular_setting_page.dart';
+import 'package:clipshare/pages/update_log_page.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
@@ -613,7 +614,9 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           sub: Text(App.version.name),
                           value: false,
                           action: (v) => IconButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Global.showDialogPage(context, const UpdateLogPage());
+                            },
                             icon: const Icon(
                               Icons.info_outline,
                               color: Colors.blueGrey,
