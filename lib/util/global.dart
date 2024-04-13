@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -33,23 +34,48 @@ class Global {
     );
   }
 
-  static void showTipsDialog(BuildContext context, String text,
-      [String title = "提示"]) {
+  static void showTipsDialog(
+    BuildContext context,
+    String text, [
+    String title = "提示",
+  ]) {
     showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text(title),
-            content: Text(text),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text("确定"),
-              ),
-            ],
-          );
-        });
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(text),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("确定"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  static void showDialogPage(BuildContext context,Widget widget){
+    showDialog(
+      context: context,
+      builder: (context) {
+        var h = MediaQuery.of(context).size.height;
+        return Center(
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: 350,
+              maxHeight: min(h * 0.7, 350 * 1.618),
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white,
+            ),
+            child: widget,
+          ),
+        );
+      },
+    );
   }
 }

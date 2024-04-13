@@ -7,6 +7,7 @@ import 'package:clipshare/entity/views/v_history_tag_hold.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/history_tag_provider.dart';
 import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -20,27 +21,9 @@ class TagEditPage extends StatefulWidget {
 
   static void goto(int hisId) {
     var showLeftBar =
-        MediaQuery.of(App.context).size.width >= Constants.showLeftBarWidth;
+        MediaQuery.of(App.context).size.width >= Constants.smallScreenWidth;
     if (showLeftBar || PlatformExt.isPC) {
-      showDialog(
-        context: App.context,
-        builder: (context) {
-          var h = MediaQuery.of(context).size.height;
-          return Center(
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: 350,
-                maxHeight: min(h * 0.7, 350 * 1.618),
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: Colors.white,
-              ),
-              child: TagEditPage(hisId),
-            ),
-          );
-        },
-      );
+      Global.showDialogPage(App.context, TagEditPage(hisId));
     } else {
       Navigator.push(
         App.context,
@@ -66,7 +49,7 @@ class _TagEditPageState extends State<TagEditPage> {
   bool exists = false;
 
   bool get showLeftBar =>
-      MediaQuery.of(App.context).size.width >= Constants.showLeftBarWidth;
+      MediaQuery.of(App.context).size.width >= Constants.smallScreenWidth;
 
   @override
   void initState() {

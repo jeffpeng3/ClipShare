@@ -77,7 +77,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   String get tag => "BasePage";
 
   bool get _showLeftBar =>
-      MediaQuery.of(context).size.width >= Constants.showLeftBarWidth;
+      MediaQuery.of(context).size.width >= Constants.smallScreenWidth;
 
   ///导航至搜索页面
   void gotoSearchPage(String? devId, String? tagName) {

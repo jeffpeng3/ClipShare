@@ -80,6 +80,9 @@ class App extends StatelessWidget {
   static const bgColor = Color.fromARGB(255, 238, 238, 238);
   static WindowController? compactWindow;
 
+  static bool get isSmallScreen =>
+      MediaQuery.of(App.context).size.width <= Constants.smallScreenWidth;
+
   //当前设备id
   static late final DevInfo devInfo;
   static late final Device device;

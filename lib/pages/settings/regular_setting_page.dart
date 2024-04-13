@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:clipshare/components/empty_content.dart';
 import 'package:clipshare/components/setting_card.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:flutter/material.dart';
 
 class RegularSettingPage extends StatefulWidget {
@@ -47,37 +51,91 @@ class _RegularSettingPageState extends State<RegularSettingPage> {
     setState(() {});
   }
 
+  bool get isSmallScreen =>
+      MediaQuery.of(App.context).size.width <= Constants.smallScreenWidth;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: App.bgColor,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Row(
-          children: [
-            Expanded(child: Text(widget.title)),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                var arr = _list.map((e) => e.value).toList();
-                widget.confirm.call(arr);
-              },
-              child: const Text("确定"),
-            ),
-          ],
+    var title = Row(
+      children: [
+        Expanded(child: Text(widget.title)),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            var arr = _list.map((e) => e.value).toList();
+            widget.confirm.call(arr);
+          },
+          child: const Text("保存"),
         ),
-      ),
-      body: _list.isEmpty
-          ? const EmptyContent()
-          : Padding(
-              padding: const EdgeInsets.all(5),
-              child: ListView.builder(
-                itemCount: _list.length,
-                itemBuilder: (context, i) {
-                  return _list[i];
-                },
+      ],
+    );
+    return Scaffold(
+      backgroundColor:
+          isSmallScreen || PlatformExt.isPC ? Colors.transparent : App.bgColor,
+      appBar: isSmallScreen || Platform.isWindows
+          ? null
+          : AppBar(
+              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+              title: title,
+            ),
+      body: Column(
+        children: [
+          Visibility(
+            visible: isSmallScreen || PlatformExt.isPC,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+                color: Theme.of(context).colorScheme.inversePrimary,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
+                child: Row(
+                  children: [
+                    const Icon(Icons.window),
+                    const SizedBox(width: 5,),
+                    Expanded(
+                      child: DefaultTextStyle(
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.black,
+                          fontFamily:
+                              Platform.isWindows ? 'Microsoft YaHei' : null,
+                        ),
+                        child: title,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
+          ),
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+                color: App.bgColor,
+              ),
+              child: _list.isEmpty
+                  ? const EmptyContent()
+                  : Padding(
+                      padding: const EdgeInsets.all(5),
+                      child: ListView.builder(
+                        itemCount: _list.length,
+                        itemBuilder: (context, i) {
+                          return _list[i];
+                        },
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: Tooltip(
         message: "添加规则",
         child: FloatingActionButton(

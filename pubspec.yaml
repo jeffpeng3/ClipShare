@@ -78,8 +78,10 @@ dependencies:
   screen_retriever: ^0.1.9
   # 提供一种平台无关的方式以一致的方式访问设备的文件位置系统
   path_provider: ^2.1.2
-  # 文件打开
+  # 文件打开（解决 Android13 权限问题）
   open_file_plus: ^3.4.1+1
+  # markdown 渲染
+  flutter_markdown: ^0.6.22+1
 dev_dependencies:
   flutter_test:
     sdk: flutter

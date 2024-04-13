@@ -404,7 +404,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           value: false,
                           action: (v) {
                             return TextButton(
-                              onPressed: () {},
+                              onPressed: true ? null : () {},
                               child: const Text("选择"),
                             );
                           },
@@ -424,61 +424,65 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           action: (v) {
                             return TextButton(
                               onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => RegularSettingPage(
-                                      initData:
-                                          jsonDecode(App.settings.tagRegulars),
-                                      onAdd: (data, remove) {
-                                        var tag = data["name"] as String?;
-                                        var regular =
-                                            data["regular"] as String?;
-                                        if (tag.isNullOrEmpty ||
-                                            regular.isNullOrEmpty) {
-                                          Global.showTipsDialog(
-                                            context,
-                                            "请输入完整！",
-                                          );
-                                          return null;
-                                        }
-                                        var key = UniqueKey();
-                                        return SettingCard(
-                                          key: key,
-                                          main: Text("标签：$tag"),
-                                          sub: Text("规则：$regular"),
-                                          value: data,
-                                          borderRadius: const BorderRadius.all(
-                                            Radius.circular(8.0),
-                                          ),
-                                          action: (data) {
-                                            return IconButton(
-                                              onPressed: () {
-                                                remove(key);
-                                              },
-                                              icon: const Icon(
-                                                Icons.delete_outline,
-                                                color: Colors.red,
-                                              ),
-                                            );
+                                var page = RegularSettingPage(
+                                  initData:
+                                      jsonDecode(App.settings.tagRegulars),
+                                  onAdd: (data, remove) {
+                                    var tag = data["name"] as String?;
+                                    var regular = data["regular"] as String?;
+                                    if (tag.isNullOrEmpty ||
+                                        regular.isNullOrEmpty) {
+                                      Global.showTipsDialog(
+                                        context,
+                                        "请输入完整！",
+                                      );
+                                      return null;
+                                    }
+                                    var key = UniqueKey();
+                                    return SettingCard(
+                                      key: key,
+                                      main: Text("标签：$tag"),
+                                      sub: Text("规则：$regular"),
+                                      value: data,
+                                      borderRadius: const BorderRadius.all(
+                                        Radius.circular(8.0),
+                                      ),
+                                      action: (data) {
+                                        return IconButton(
+                                          onPressed: () {
+                                            remove(key);
                                           },
+                                          icon: const Icon(
+                                            Icons.delete_outline,
+                                            color: Colors.red,
+                                          ),
                                         );
                                       },
-                                      renderEditLayout: (onChange) {
-                                        return RegularSettingAddDialog(
-                                          onChange: onChange,
-                                        );
-                                      },
-                                      confirm: (res) {
-                                        var json = jsonEncode(res);
-                                        ref
-                                            .notifier(settingProvider)
-                                            .setTagRegulars(json);
-                                      },
-                                      title: "标签规则配置",
-                                    ),
-                                  ),
+                                    );
+                                  },
+                                  renderEditLayout: (onChange) {
+                                    return RegularSettingAddDialog(
+                                      onChange: onChange,
+                                    );
+                                  },
+                                  confirm: (res) {
+                                    var json = jsonEncode(res);
+                                    ref
+                                        .notifier(settingProvider)
+                                        .setTagRegulars(json);
+                                  },
+                                  title: "标签规则配置",
                                 );
+                                if (App.isSmallScreen) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => page,
+                                    ),
+                                  );
+                                } else {
+                                  Global.showDialogPage(context, page);
+                                }
                               },
                               child: const Text("配置"),
                             );
@@ -491,7 +495,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           show: (v) => PlatformExt.isPC,
                           action: (v) {
                             return TextButton(
-                              onPressed: () {},
+                              onPressed: true ? null : () {},
                               child: const Text("配置"),
                             );
                           },
@@ -503,7 +507,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           show: (v) => PlatformExt.isMobile,
                           action: (v) {
                             return TextButton(
-                              onPressed: () {},
+                              onPressed: true ? null : () {},
                               child: const Text("配置"),
                             );
                           },

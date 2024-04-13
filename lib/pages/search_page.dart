@@ -132,7 +132,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
   }
 
   bool get showLeftBar =>
-      MediaQuery.of(context).size.width >= Constants.showLeftBarWidth;
+      MediaQuery.of(context).size.width >= Constants.smallScreenWidth;
 
   ///加载扩展搜索底部弹窗
   void _showExtendSearchDialog() {

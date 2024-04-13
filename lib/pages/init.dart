@@ -291,13 +291,7 @@ class _LoadingPageState extends State<LoadingPage> {
       rememberWindowSize: rememberWindowSize?.toBool() ?? false,
       lockHistoryFloatLoc: lockHistoryFloatLoc?.toBool() ?? true,
       enableLogsRecord: enableLogsRecord?.toBool() ?? false,
-      tagRegulars: tagRegulars ??
-          jsonEncode([
-            {
-              "name": "链接",
-              "regular": r"[a-zA-z]+://[^\s]*",
-            }
-          ]),
+      tagRegulars: tagRegulars ?? Constants.defaultTags,
     );
     if (Platform.isAndroid) {
       if (App.settings.showHistoryFloat) {

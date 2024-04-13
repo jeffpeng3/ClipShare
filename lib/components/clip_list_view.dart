@@ -58,7 +58,7 @@ class ClipListViewState extends State<ClipListView>
   MenuController codeMenuController = MenuController();
 
   bool get showLeftBar =>
-      MediaQuery.of(context).size.width >= Constants.showLeftBarWidth;
+      MediaQuery.of(context).size.width >= Constants.smallScreenWidth;
 
   bool get showHistoryRight =>
       MediaQuery.of(context).size.width >= Constants.showHistoryRightWidth;

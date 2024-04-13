@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 
@@ -15,13 +17,20 @@ class Constants {
   //组播心跳时长
   static const heartbeatsSeconds = 10;
 
+  static final defaultTags=jsonEncode([
+    {
+      "name": "链接",
+      "regular": r"[a-zA-z]+://[^\s]*",
+    }
+  ]);
+
   //配对时限（秒）
   static const pairingLimit = 60;
   static const channelCommon = "top.coclyun.clipshare/common";
   static const channelClip = "top.coclyun.clipshare/clip";
   static const channelAndroid = "top.coclyun.clipshare/android";
 
-  static const showLeftBarWidth = 640;
+  static const smallScreenWidth = 640;
   static const showHistoryRightWidth = 840;
 
   //设备类型图片
