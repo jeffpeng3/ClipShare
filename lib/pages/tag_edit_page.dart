@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
@@ -23,7 +22,7 @@ class TagEditPage extends StatefulWidget {
     var showLeftBar =
         MediaQuery.of(App.context).size.width >= Constants.smallScreenWidth;
     if (showLeftBar || PlatformExt.isPC) {
-      Global.showDialogPage(App.context, TagEditPage(hisId));
+      Global.showDialogPage(context: App.context, child: TagEditPage(hisId));
     } else {
       Navigator.push(
         App.context,

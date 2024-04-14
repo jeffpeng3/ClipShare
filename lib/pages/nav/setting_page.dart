@@ -526,7 +526,11 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                     ),
                                   );
                                 } else {
-                                  Global.showDialogPage(context, page);
+                                  Global.showDialogPage(
+                                    context: context,
+                                    child: page,
+                                    dismissible: false,
+                                  );
                                 }
                               },
                               child: const Text("配置"),
@@ -660,8 +664,8 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           action: (v) => IconButton(
                             onPressed: () {
                               Global.showDialogPage(
-                                context,
-                                const UpdateLogPage(),
+                                context: context,
+                                child: const UpdateLogPage(),
                               );
                             },
                             icon: const Icon(

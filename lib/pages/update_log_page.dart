@@ -29,7 +29,9 @@ class UpdateLogPage extends StatelessWidget {
                       child: Text(
                         "更新日志",
                         style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold,),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     IconButton(

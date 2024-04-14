@@ -80,9 +80,14 @@ class Global {
     );
   }
 
-  static void showDialogPage(BuildContext context, Widget widget) {
+  static void showDialogPage({
+    required BuildContext context,
+    required Widget child,
+    dismissible = true,
+  }) {
     showDialog(
       context: context,
+      barrierDismissible: dismissible,
       builder: (context) {
         var h = MediaQuery.of(context).size.height;
         return Center(
@@ -95,7 +100,7 @@ class Global {
               borderRadius: BorderRadius.circular(20),
               color: Colors.white,
             ),
-            child: widget,
+            child: child,
           ),
         );
       },

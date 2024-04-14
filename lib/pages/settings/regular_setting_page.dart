@@ -66,6 +66,12 @@ class _RegularSettingPageState extends State<RegularSettingPage> {
           },
           child: const Text("保存"),
         ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text("取消"),
+        ),
       ],
     );
     return Scaffold(
