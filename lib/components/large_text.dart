@@ -5,16 +5,16 @@ import 'package:flutter/cupertino.dart';
 class LargeText extends StatefulWidget {
   final String text;
   final int blockSize;
-  final double threshold;
+  final double bottomThreshold;
   final Widget Function(String text) onThresholdChanged;
 
   const LargeText({
     super.key,
     required this.text,
     required this.blockSize,
-    required this.threshold,
+    required this.bottomThreshold,
     required this.onThresholdChanged,
-  }) : assert(threshold >= 0.0 && threshold <= 1.0);
+  }) : assert(bottomThreshold >= 0.0 && bottomThreshold <= 1.0);
 
   @override
   State<StatefulWidget> createState() {
@@ -74,11 +74,10 @@ class _LargeTextState extends State<LargeText> {
       start + widget.blockSize * cacheLength,
       widget.text.length,
     );
-    print("down $start -> $end");
     if (start != _startPos || end != _endPos) {
       _startPos = start;
       _endPos = end;
-      updateShowText();
+      updateShowText(true);
     }
   }
 
@@ -94,7 +93,7 @@ class _LargeTextState extends State<LargeText> {
     }
     updating = true;
     var maxScrollExtent = _controller.position.maxScrollExtent;
-    var thresholdOffset = widget.threshold * maxScrollExtent;
+    var thresholdOffset = widget.bottomThreshold * maxScrollExtent;
     var before = _controller.position.extentBefore;
     var after = _controller.position.extentAfter;
     //向上/左滚动
@@ -115,8 +114,11 @@ class _LargeTextState extends State<LargeText> {
 
   void updateShowText([bool down = false]) {
     _showText = widget.text.substring(_startPos, _endPos);
-    _controller
-        .jumpTo(_controller.position.maxScrollExtent * (1 - widget.threshold));
+    var pos = (down ? 1 - widget.bottomThreshold : widget.bottomThreshold);
+    _controller.jumpTo(
+      _controller.position.maxScrollExtent * pos,
+    );
+    if (down) {}
     setState(() {});
   }
 

@@ -110,7 +110,7 @@ class _DebugPageState extends State<DebugPage> {
           height: 200,
           child: LargeText(
             text: text,
-            threshold: 0.3,
+            bottomThreshold: 0.3,
             blockSize: 1000,
             onThresholdChanged: (String text) => Text(text),
           ),

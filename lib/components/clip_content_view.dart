@@ -19,7 +19,7 @@ class ClipContentView extends StatelessWidget {
     return LargeText(
       text: content,
       blockSize: 5000,
-      threshold: 0.3,
+      bottomThreshold: 0.3,
       onThresholdChanged: (showText) {
         return Container(
           alignment: Alignment.topLeft,
