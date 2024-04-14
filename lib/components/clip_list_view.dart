@@ -126,12 +126,22 @@ class ClipListViewState extends State<ClipListView>
       if (list.isNotEmpty) {
         _minId = list[list.length - 1].data.id;
         _list.addAll(list);
+        removeDuplicates();
         _sortList();
       }
       Future.delayed(const Duration(milliseconds: 500), () {
         _loadNewData = false;
       });
     });
+  }
+
+  void removeDuplicates() {
+    Map<int, ClipData> map = {};
+    for (var clip in _list) {
+      map[clip.data.id] = clip;
+    }
+    _list.clear();
+    _list.addAll(map.values);
   }
 
   void _scrollListener() {

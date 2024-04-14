@@ -151,35 +151,33 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
         bool searchOnlyNoSync = false;
         onDateRangeClick(state) async {
           //显示时间选择器
-          DateTimeRange range = await showDateRangePicker(
-                //语言环境
-                locale: const Locale("zh", "CH"),
-                context: context,
-                //开始时间
-                firstDate: DateTime(1970, 1),
-                //结束时间
-                lastDate: DateTime(2100, 12),
-                cancelText: "取消",
-                confirmText: "确定",
-                useRootNavigator: true,
-                //初始的时间范围选择
-                initialDateRange: DateTimeRange(
-                  start: DateTime.now(),
-                  end: DateTime.now(),
-                ),
-                builder: (context, child) {
-                  return Theme(
-                    data: Theme.of(App.context),
-                    child: child!,
-                  );
-                },
-              ) ??
-              DateTimeRange(
-                start: now,
-                end: now,
+          DateTimeRange? range = await showDateRangePicker(
+            //语言环境
+            locale: const Locale("zh", "CH"),
+            context: context,
+            //开始时间
+            firstDate: DateTime(1970, 1),
+            //结束时间
+            lastDate: DateTime(2100, 12),
+            cancelText: "取消",
+            confirmText: "确定",
+            useRootNavigator: true,
+            //初始的时间范围选择
+            initialDateRange: DateTimeRange(
+              start: DateTime.now(),
+              end: DateTime.now(),
+            ),
+            builder: (context, child) {
+              return Theme(
+                data: Theme.of(App.context),
+                child: child!,
               );
-          start = range.start.toString().substring(0, 10);
-          end = range.end.toString().substring(0, 10);
+            },
+          );
+          if (range != null) {
+            start = range.start.toString().substring(0, 10);
+            end = range.end.toString().substring(0, 10);
+          }
           state(() {});
         }
 
@@ -257,12 +255,17 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                             ),
                           ),
                           avatar: const Icon(Icons.date_range_outlined),
-                          deleteIcon: const Icon(
-                            Icons.location_on,
+                          deleteIcon: Icon(
+                            start != nowDayStr || start == "开始日期"
+                                ? Icons.location_on
+                                : Icons.close,
                             size: 17,
                             color: Colors.blue,
                           ),
-                          deleteButtonTooltipMessage: "定位到今天",
+                          deleteButtonTooltipMessage:
+                              start != nowDayStr || start == "开始日期"
+                                  ? "定位到今天"
+                                  : "清除",
                           onDeleted: start != nowDayStr
                               ? () {
                                   start = DateTime.now()
@@ -270,7 +273,10 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                                       .substring(0, 10);
                                   setInnerState(() {});
                                 }
-                              : null,
+                              : () {
+                                  start = "开始日期";
+                                  setInnerState(() {});
+                                },
                         ),
                         Container(
                           margin: const EdgeInsets.only(right: 10, left: 10),
@@ -287,20 +293,28 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                             ),
                           ),
                           avatar: const Icon(Icons.date_range_outlined),
-                          deleteIcon: const Icon(
-                            Icons.location_on,
+                          deleteIcon: Icon(
+                            end != nowDayStr || end == "结束日期"
+                                ? Icons.location_on
+                                : Icons.close,
                             size: 17,
                             color: Colors.blue,
                           ),
-                          deleteButtonTooltipMessage: "定位到今天",
-                          onDeleted: end != nowDayStr
+                          deleteButtonTooltipMessage:
+                              end != nowDayStr || end == "结束日期"
+                                  ? "定位到今天"
+                                  : "清除",
+                          onDeleted: end != nowDayStr || end == "结束日期"
                               ? () {
                                   end = DateTime.now()
                                       .toString()
                                       .substring(0, 10);
                                   setInnerState(() {});
                                 }
-                              : null,
+                              : () {
+                                  end = "结束日期";
+                                  setInnerState(() {});
+                                },
                         ),
                       ],
                     ),
