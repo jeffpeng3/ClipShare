@@ -18,11 +18,11 @@ import kotlin.math.min
 
 
 class HistoryFloatAdapter(
-    private val dataList: List<String>,
+    dataList: List<String>,
     private val onDragStart: () -> Unit,
     private val onDragEnd: () -> Unit,
 ) : RecyclerView.Adapter<HistoryFloatViewHolder>() {
-
+    private val dataList: MutableList<String> = dataList.toMutableList();
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryFloatViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.history_float_item_layout, parent, false)
@@ -36,6 +36,12 @@ class HistoryFloatAdapter(
 
     override fun getItemCount(): Int {
         return dataList.size
+    }
+
+    fun addDataList(list: List<String>) {
+        dataList.addAll(list)
+        // 更新整个数据集
+        notifyDataSetChanged()
     }
 }
 

@@ -45,6 +45,7 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
     private val TAG = "HistoryFloatService"
     private var recyclerView: RecyclerView? = null
     private var minHistoryId = 0L
+    private var loading = false;
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
@@ -89,14 +90,23 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
         recyclerView?.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-                val totalItemCount = layoutManager.itemCount
-                //距离底部的距离
-                val distanceToBottom = totalItemCount - lastVisibleItemPosition
+                val dist = getDistanceToBottom(recyclerView)
+                Log.d(TAG, "onScrolled: $dist $dy")
+                if (dist <= 5 && dy > 0) {
+                    refreshData(true)
+                }
             }
         })
         windowManager.addView(view, mainParams)
+    }
+
+    // 获取距离底部的距离
+    fun getDistanceToBottom(recyclerView: RecyclerView): Int {
+        val layoutManager = recyclerView.layoutManager
+        val lastVisibleItemPosition =
+            (layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+        val totalItemCount = layoutManager.itemCount
+        return totalItemCount - lastVisibleItemPosition
     }
 
     private fun closeFloatWindow() {
@@ -116,6 +126,7 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
         val screenHeight = metrics.heightPixels
         mainParams.x = 0
     }
+
     private fun setPos1P3() {
         // 设置悬浮窗的位置
         val metrics = resources.displayMetrics
@@ -189,6 +200,8 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
     }
 
     private fun refreshData(more: Boolean = false) {
+        if (loading) return
+        loading = true
         MainActivity.clipChannel.invokeMethod("getHistory",
             mapOf("fromId" to if (more) minHistoryId else 0L),
             object : Result {
@@ -198,21 +211,26 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
                     if (lst.isNotEmpty()) {
                         minHistoryId = lst.last()["id"] as Long
                         val list = lst.map { it["content"].toString() }.toList()
-                        // 创建并设置适配器
-                        recyclerView?.adapter = HistoryFloatAdapter(list, {
-                            view.visibility = INVISIBLE
-                            mainParams.width = LayoutParams.WRAP_CONTENT
-                            mainParams.x = 0
-//                            setPosCenter()
-                            windowManager.updateViewLayout(view, mainParams)
-                        }, {
-                            mainParams.width = LayoutParams.MATCH_PARENT
-                            setPos1P3()
-                            windowManager.updateViewLayout(view, mainParams)
-                            view.post { view.visibility = VISIBLE }
+                        if (more) {
+                            (recyclerView?.adapter as HistoryFloatAdapter).addDataList(list);
+                        } else {
+                            // 创建并设置适配器
+                            recyclerView?.adapter = HistoryFloatAdapter(list, {
+                                view.visibility = INVISIBLE
+                                mainParams.width = LayoutParams.WRAP_CONTENT
+                                mainParams.x = 0
+                                windowManager.updateViewLayout(view, mainParams)
+                            }, {
+                                mainParams.width = LayoutParams.MATCH_PARENT
+                                setPos1P3()
+                                windowManager.updateViewLayout(view, mainParams)
+                                view.post { view.visibility = VISIBLE }
 
-                        })
+                            })
+                        }
+
                     }
+                    loading = false
                 }
 
                 override fun error(
@@ -249,7 +267,8 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
         handler.postDelayed({
             bar.visibility = if (showListView) View.GONE else View.VISIBLE
             mainParams.x = lastPos[0]
-            mainParams.y = lastPos[1]
+//            mainParams.y = lastPos[1]
+            Log.d(TAG, "hideRecycleView: ${lastPos[0]} ${lastPos[1]} ")
             windowManager.updateViewLayout(view, mainParams)
         }, 500)
     }

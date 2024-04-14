@@ -121,7 +121,6 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
     }());
     // 在构建完成后初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Log.debug(tag, "main created");
       _initCommon();
       if (Platform.isAndroid) {
         _initAndroid();
