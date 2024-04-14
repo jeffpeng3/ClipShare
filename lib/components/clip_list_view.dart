@@ -460,6 +460,7 @@ class ClipListViewState extends State<ClipListView>
                           child: Padding(
                             padding: const EdgeInsets.only(top: 5, bottom: 5),
                             child: ClipContentView(
+                              key: _clipTagRowKey,
                               content: _showHistoryData!.data.content,
                               language: language,
                             ),

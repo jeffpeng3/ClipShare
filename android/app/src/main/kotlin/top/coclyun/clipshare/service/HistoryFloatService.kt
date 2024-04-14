@@ -268,7 +268,6 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
             bar.visibility = if (showListView) View.GONE else View.VISIBLE
             mainParams.x = lastPos[0]
 //            mainParams.y = lastPos[1]
-            Log.d(TAG, "hideRecycleView: ${lastPos[0]} ${lastPos[1]} ")
             windowManager.updateViewLayout(view, mainParams)
         }, 500)
     }

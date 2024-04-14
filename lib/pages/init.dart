@@ -142,7 +142,6 @@ class _LoadingPageState extends State<LoadingPage> {
           int fromId = arguments["fromId"];
           var historyDao = AppDb.inst.historyDao;
           var lst = List<History>.empty();
-          Log.debug("getHistory", fromId);
           if (fromId == 0) {
             lst = await historyDao.getHistoriesTop20(App.userId);
           } else {
