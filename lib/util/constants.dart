@@ -23,6 +23,7 @@ class Constants {
       "regular": r"[a-zA-z]+://[^\s]*",
     }
   ]);
+  static const defaultHistoryWindowKeys="458976,458978;458763";
 
   //配对时限（秒）
   static const pairingLimit = 60;
@@ -61,6 +62,32 @@ class Constants {
       size: 48,
     ),
   };
+  static final keyNameMap = [
+    {
+      "key": "Divide",
+      "name": "/",
+    },
+    {
+      "key": "Multiply",
+      "name": "*",
+    },
+    {
+      "key": "Subtract",
+      "name": "-",
+    },
+    {
+      "key": "Add",
+      "name": "+",
+    },
+    {
+      "key": "Equal",
+      "name": "=",
+    },
+    {
+      "key": "Minus",
+      "name": "-",
+    },
+  ];
 }
 
 enum Option { add, delete, update }

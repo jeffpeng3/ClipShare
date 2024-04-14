@@ -116,4 +116,10 @@ class SettingProvider extends Notifier<Settings> {
       tagRegulars: tagRegulars,
     );
   }
+  Future<void> setHistoryWindowHotKeys(String historyWindowHotKeys) async {
+    await _addOrUpdate("historyWindowHotKeys", historyWindowHotKeys);
+    App.settings = state = state.copyWith(
+      historyWindowHotKeys: historyWindowHotKeys,
+    );
+  }
 }

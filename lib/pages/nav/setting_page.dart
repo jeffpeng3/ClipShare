@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipshare/components/hot_key_editor.dart';
 import 'package:clipshare/components/regular_setting_add_dialog.dart';
 import 'package:clipshare/components/setting_card.dart';
 import 'package:clipshare/components/setting_card_group.dart';
 import 'package:clipshare/components/text_edit_dialog.dart';
+import 'package:clipshare/handler/hot_key_handler.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/settings/regular_setting_page.dart';
@@ -358,17 +360,59 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                         SettingCard(
                           main: const Text("历史弹窗"),
                           sub: const Text("在屏幕任意位置唤起历史记录弹窗"),
-                          value: "123",
+                          value: vm.historyWindowHotKeys,
                           action: (v) {
-                            final editor = TextEditingController();
-                            editor.text = "Ctrl + Alt + H";
-                            return TextField(
-                              readOnly: true,
-                              controller: editor,
-                              style: const TextStyle(color: Colors.grey),
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                              ),
+                            var keyText = HotKeyEditor.toText(v);
+                            return HotKeyEditor(
+                              hotKey: keyText,
+                              onDone: (modifiers, key, showText, keyCodes) {
+                                if (showText == keyText) return;
+                                if (modifiers.isEmpty || key == null) {
+                                  Global.showTipsDialog(
+                                    context: context,
+                                    text: "快捷键必须是控制键和非控制键的组合！",
+                                  );
+                                } else {
+                                  Global.showTipsDialog(
+                                    context: context,
+                                    text: "是否保存快捷键（$showText）设置？",
+                                    showCancel: true,
+                                    onOk: () {
+                                      var hotkey =
+                                          AppHotKeyHandler.toSystemHotKey(
+                                        keyCodes,
+                                      );
+                                      AppHotKeyHandler.registerHistoryWindow(
+                                        hotkey,
+                                      ).then((v) {
+                                        //设置为新值
+                                        ref
+                                            .notifier(settingProvider)
+                                            .setHistoryWindowHotKeys(keyCodes);
+                                      }).catchError((err) {
+                                        Global.showTipsDialog(
+                                          context: context,
+                                          text: "设置失败 $err",
+                                        );
+                                        //设置为原始值
+                                        ref
+                                            .notifier(settingProvider)
+                                            .setHistoryWindowHotKeys(
+                                              vm.historyWindowHotKeys,
+                                            );
+                                      });
+                                    },
+                                    onCancel: () {
+                                      //设置为原始值
+                                      ref
+                                          .notifier(settingProvider)
+                                          .setHistoryWindowHotKeys(
+                                            vm.historyWindowHotKeys,
+                                          );
+                                    },
+                                  );
+                                }
+                              },
                             );
                           },
                           show: (v) => Platform.isWindows,
@@ -434,8 +478,8 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                     if (tag.isNullOrEmpty ||
                                         regular.isNullOrEmpty) {
                                       Global.showTipsDialog(
-                                        context,
-                                        "请输入完整！",
+                                        context: context,
+                                        text: "请输入完整！",
                                       );
                                       return null;
                                     }
@@ -615,7 +659,10 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           value: false,
                           action: (v) => IconButton(
                             onPressed: () {
-                              Global.showDialogPage(context, const UpdateLogPage());
+                              Global.showDialogPage(
+                                context,
+                                const UpdateLogPage(),
+                              );
                             },
                             icon: const Icon(
                               Icons.info_outline,

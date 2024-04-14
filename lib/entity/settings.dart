@@ -32,7 +32,10 @@ class Settings {
 
   //标签规则
   final String tagRegulars;
+  //启用日志记录
   final bool enableLogsRecord;
+  //历史记录弹窗快捷键
+  final String historyWindowHotKeys;
 
   Settings({
     required this.port,
@@ -47,6 +50,7 @@ class Settings {
     required this.lockHistoryFloatLoc,
     required this.enableLogsRecord,
     required this.tagRegulars,
+    required this.historyWindowHotKeys,
   });
 
   Settings copyWith({
@@ -62,6 +66,7 @@ class Settings {
     bool? lockHistoryFloatLoc,
     bool? enableLogsRecord,
     String? tagRegulars,
+    String? historyWindowHotKeys,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -77,6 +82,7 @@ class Settings {
       lockHistoryFloatLoc: lockHistoryFloatLoc ?? this.lockHistoryFloatLoc,
       enableLogsRecord: enableLogsRecord ?? this.enableLogsRecord,
       tagRegulars: tagRegulars ?? this.tagRegulars,
+      historyWindowHotKeys: historyWindowHotKeys ?? this.historyWindowHotKeys,
     );
   }
 }

@@ -34,30 +34,53 @@ class Global {
     );
   }
 
-  static void showTipsDialog(
-    BuildContext context,
-    String text, [
+  static void showTipsDialog({
+    required BuildContext context,
+    required String text,
     String title = "提示",
-  ]) {
+    String okText = "确定",
+    String cancelText = "取消",
+    bool showCancel = false,
+    bool showOk = true,
+    void Function()? onOk,
+    void Function()? onCancel,
+    bool autoDismiss = true,
+  }) {
     showDialog(
       context: context,
+      barrierDismissible: autoDismiss,
       builder: (context) {
         return AlertDialog(
           title: Text(title),
           content: Text(text),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("确定"),
+            Visibility(
+              visible: showCancel,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  onCancel?.call();
+                },
+                child: Text(cancelText),
+              ),
+            ),
+            Visibility(
+              visible: showOk,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  onOk?.call();
+                },
+                child: Text(okText),
+              ),
             ),
           ],
         );
       },
     );
   }
-  static void showDialogPage(BuildContext context,Widget widget){
+
+  static void showDialogPage(BuildContext context, Widget widget) {
     showDialog(
       context: context,
       builder: (context) {

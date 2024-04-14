@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/dev_info.dart';
@@ -9,6 +8,7 @@ import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/entity/version.dart';
+import 'package:clipshare/handler/hot_key_handler.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
@@ -23,11 +23,9 @@ import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:refena_flutter/refena_flutter.dart';
-import 'package:screen_retriever/screen_retriever.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'nav/base_page.dart';
@@ -276,6 +274,10 @@ class _LoadingPageState extends State<LoadingPage> {
       "tagRegulars",
       App.userId,
     );
+    var historyWindowKeys = await cfg.getConfig(
+      "historyWindowHotKeys",
+      App.userId,
+    );
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
       localName: localName.isNotNullAndEmpty ? localName! : App.devInfo.name,
@@ -292,6 +294,8 @@ class _LoadingPageState extends State<LoadingPage> {
       lockHistoryFloatLoc: lockHistoryFloatLoc?.toBool() ?? true,
       enableLogsRecord: enableLogsRecord?.toBool() ?? false,
       tagRegulars: tagRegulars ?? Constants.defaultTags,
+      historyWindowHotKeys:
+          historyWindowKeys ?? Constants.defaultHistoryWindowKeys,
     );
     if (Platform.isAndroid) {
       if (App.settings.showHistoryFloat) {
@@ -344,45 +348,9 @@ class _LoadingPageState extends State<LoadingPage> {
 
   ///初始化快捷键
   initHotKey() async {
-    // For hot reload, `unregisterAll()` needs to be called.
-    await hotKeyManager.unregisterAll();
-    // ctrl + alt + h
-    HotKey _hotKey = HotKey(
-      key: PhysicalKeyboardKey.keyH,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-      // Set hotkey scope (default is HotKeyScope.system)
-      scope: HotKeyScope.system,
-    );
-    await hotKeyManager.register(
-      _hotKey,
-      keyDownHandler: (hotKey) async {
-        var ids = List.empty();
-        try {
-          ids = await DesktopMultiWindow.getAllSubWindowIds();
-        } catch (e) {
-          ids = List.empty();
-        }
-        //只允许弹窗一次
-        if (ids.isNotEmpty) {
-          await App.compactWindow?.close();
-        }
-        //createWindow里面的参数必须传
-        final window = await DesktopMultiWindow.createWindow("");
-        App.compactWindow = window;
-        var offset = await screenRetriever.getCursorScreenPoint();
-        //多显示器不知道怎么判断鼠标在哪个显示器中，所以默认主显示器
-        Size screenSize = (await screenRetriever.getPrimaryDisplay()).size;
-        final [width, height] = [355.0, 630.0];
-        final maxX = screenSize.width - width;
-        final maxY = screenSize.height - height;
-        //限制在屏幕范围内
-        final [x, y] = [min(maxX, offset.dx), min(maxY, offset.dy)];
-        window
-          ..setFrame(Offset(x, y) & Size(width, height))
-          ..setTitle('历史记录')
-          ..show();
-      },
-    );
+    await AppHotKeyHandler.unRegisterAll();
+    var hotKey = AppHotKeyHandler.toSystemHotKey(App.settings.historyWindowHotKeys);
+    AppHotKeyHandler.registerHistoryWindow(hotKey);
   }
 
   void gotoHomePage() {

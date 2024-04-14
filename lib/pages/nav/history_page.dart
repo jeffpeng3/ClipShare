@@ -231,7 +231,13 @@ class HistoryPageState extends State<HistoryPage>
       App.compactWindow!.windowId,
       "notify",
       "{}",
-    );
+    ).catchError((err) {
+      if (err.toString().contains("target window not found")) {
+        App.compactWindow = null;
+      } else {
+        Log.error(tag, err);
+      }
+    });
   }
 
   @override
