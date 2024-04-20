@@ -470,8 +470,9 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                             return TextButton(
                               onPressed: () {
                                 var page = RegularSettingPage(
-                                  initData:
-                                      jsonDecode(App.settings.tagRegulars),
+                                  initData: jsonDecode(
+                                    App.settings.tagRegulars,
+                                  )["data"],
                                   onAdd: (data, remove) {
                                     var tag = data["name"] as String?;
                                     var regular = data["regular"] as String?;
@@ -511,7 +512,16 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                     );
                                   },
                                   confirm: (res) {
-                                    var json = jsonEncode(res);
+                                    var oldValue = jsonDecode(
+                                      App.settings.tagRegulars,
+                                    );
+                                    var version = oldValue["version"];
+                                    var json = jsonEncode(
+                                      {
+                                        "version": version + 1,
+                                        "data": res,
+                                      },
+                                    );
                                     ref
                                         .notifier(settingProvider)
                                         .setTagRegulars(json);

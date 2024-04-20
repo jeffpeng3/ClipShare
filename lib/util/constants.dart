@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 class Constants {
   //组播默认端口
   static const int port = 42317;
+
   //app名称
   static const String appName = "ClipShare";
+
   //默认窗体大小
   static const String defaultWindowSize = "1000x650";
 
@@ -17,13 +19,18 @@ class Constants {
   //组播心跳时长
   static const heartbeatsSeconds = 10;
 
-  static final defaultTags=jsonEncode([
+  static final defaultTags = jsonEncode(
     {
-      "name": "链接",
-      "regular": r"[a-zA-z]+://[^\s]*",
-    }
-  ]);
-  static const defaultHistoryWindowKeys="458976,458978;458763";
+      "version": 1,
+      "data": [
+        {
+          "name": "链接",
+          "regular": r"[a-zA-z]+://[^\s]*",
+        }
+      ]
+    },
+  );
+  static const defaultHistoryWindowKeys = "458976,458978;458763";
 
   //配对时限（秒）
   static const pairingLimit = 60;

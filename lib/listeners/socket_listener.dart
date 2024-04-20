@@ -81,7 +81,7 @@ class SocketListener {
 
   static SocketListener get inst => _singleton;
   static bool _isInit = false;
-  Map<String, Future> map = {};
+  Map<String, Future> broadcastProcessChain = {};
 
   Settings get settings => _ref.read(settingProvider);
   List<RawDatagramSocket> multicasts = [];
@@ -123,10 +123,10 @@ class SocketListener {
         switch (msg.key) {
           case MsgType.broadcastInfo:
             Future.delayed(const Duration(seconds: 5), () {
-              map.remove(dev.guid);
+              broadcastProcessChain.remove(dev.guid);
             });
-            if (!map.containsKey(dev.guid)) {
-              map[dev.guid] = _onReceivedBroadcastInfo(msg, datagram);
+            if (!broadcastProcessChain.containsKey(dev.guid)) {
+              broadcastProcessChain[dev.guid] = _onReceivedBroadcastInfo(msg, datagram);
             }
             break;
           default:
@@ -603,7 +603,7 @@ class SocketListener {
     //todo 更新连接地址
     String address = "$ip:$port";
     await _deviceDao.updateDeviceAddress(dev.guid, App.userId, address);
-    map.remove(dev.guid);
+    broadcastProcessChain.remove(dev.guid);
     for (var listener in _devAliveListeners) {
       try {
         listener.onConnected(dev);

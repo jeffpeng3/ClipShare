@@ -37,6 +37,10 @@ class _UserGuideState extends State<UserGuide> with WidgetsBindingObserver {
     f.then((v) {
       if (v) {
         gotoHomePage();
+      } else {
+        setState(() {
+          _initFinished = true;
+        });
       }
     });
     if (widget.guides.isNotEmpty) {
