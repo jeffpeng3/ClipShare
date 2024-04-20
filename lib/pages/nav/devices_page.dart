@@ -274,7 +274,7 @@ class _DevicesPageState extends State<DevicesPage>
                             );
                           } else {
                             var address = device.address;
-                            var [ip, port] = address!.split(";");
+                            var [ip, port] = address!.split(":");
                             SocketListener.inst
                                 .manualConnect(ip, port: port.toInt());
                           }

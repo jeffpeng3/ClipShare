@@ -31,7 +31,13 @@ class SecureSocketClient {
 
   bool get isReady => _ready;
 
-  SecureSocketClient._private(this.ip);
+  final StreamController<String> _msgStreamController = StreamController();
+
+  SecureSocketClient._private(this.ip) {
+    _msgStreamController.stream.listen((data) {
+      _socket.writeln(data);
+    });
+  }
 
   static SecureSocketClient empty = SecureSocketClient._private("127.0.0.1");
 
@@ -211,6 +217,7 @@ class SecureSocketClient {
     if (_ready) {
       throw Exception("already ready");
     }
+    print("秘钥交换成功");
     _ready = true;
     if (_onConnected != null) {
       _onConnected(this);
@@ -230,7 +237,8 @@ class SecureSocketClient {
       data = CryptoUtil.base64Encode(data);
     }
     try {
-      _socket.writeln("$data,");
+      _msgStreamController.add("$data,");
+      // _socket.writeln("$data,");
     } catch (e, stack) {
       Log.debug("SecureSocketClient", "发送失败：$e");
       Log.debug("SecureSocketClient", "$stack");

@@ -185,7 +185,7 @@ class HistoryPageState extends State<HistoryPage>
         history.id.toString(),
       );
       AppDb.inst.opRecordDao.addAndNotify(opRecord);
-      var regulars = jsonDecode(App.settings.tagRegulars);
+      var regulars = jsonDecode(App.settings.tagRegulars)["data"];
       for (var reg in regulars) {
         if (history.content.matchRegExp(reg["regular"])) {
           //添加标签
