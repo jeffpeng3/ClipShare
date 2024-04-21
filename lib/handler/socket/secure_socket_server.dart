@@ -6,6 +6,7 @@ import 'package:clipshare/main.dart';
 import 'package:clipshare/util/log.dart';
 
 class SecureSocketServer {
+  static const tag = "SecureSocketServer";
   final String ip;
   final int port;
   late final ServerSocket _server;
@@ -56,6 +57,7 @@ class SecureSocketServer {
       _stream = _server.listen(
         (client) {
           String ip = client.remoteAddress.address;
+          //此处端口不是客户端的服务端口，是客户端的socket进程端口
           int port = client.remotePort;
           var ssc = SecureSocketClient.fromSocket(
             socket: client,
@@ -66,6 +68,7 @@ class SecureSocketServer {
             },
             onMessage: _onMessage,
             onDone: () {
+              Log.debug(tag, "_onClientDone");
               if (_onClientDone != null) {
                 _onClientDone!.call(ip, port);
               }
@@ -74,7 +77,7 @@ class SecureSocketServer {
               }
             },
             onError: (e) {
-              Log.error("SecureSocketClient", "error:$e");
+              Log.error(tag, "_onClientError error:$e");
               if (_onClientError != null) {
                 _onClientError!(e, ip, port);
               }

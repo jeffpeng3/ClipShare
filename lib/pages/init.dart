@@ -9,12 +9,12 @@ import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/entity/version.dart';
 import 'package:clipshare/handler/hot_key_handler.dart';
+import 'package:clipshare/handler/socket/secure_socket_client.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/welcome_page.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
-import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
@@ -71,6 +71,15 @@ class _LoadingPageState extends State<LoadingPage> {
     }
     // 初始化channel
     initChannel();
+    try {
+      //不知道为什么必须调用一次connect，不论是否成功，否则进入主页时必定卡顿两秒钟
+      SecureSocketClient.connect(
+        ip: "0.0.0.0",
+        port: Constants.port,
+        prime: App.prime,
+        keyPair: App.keyPair,
+      );
+    } catch (e) {}
     return Future.value();
   }
 
@@ -279,6 +288,10 @@ class _LoadingPageState extends State<LoadingPage> {
       "historyWindowHotKeys",
       App.userId,
     );
+    var heartbeatInterval = await cfg.getConfig(
+      "heartbeatInterval",
+      App.userId,
+    );
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
       localName: localName.isNotNullAndEmpty ? localName! : App.devInfo.name,
@@ -297,6 +310,8 @@ class _LoadingPageState extends State<LoadingPage> {
       tagRegulars: tagRegulars ?? Constants.defaultTags,
       historyWindowHotKeys:
           historyWindowKeys ?? Constants.defaultHistoryWindowKeys,
+      heartbeatInterval:
+          heartbeatInterval?.toInt() ?? Constants.heartbeatInterval,
     );
     if (Platform.isAndroid) {
       if (App.settings.showHistoryFloat) {
@@ -350,7 +365,8 @@ class _LoadingPageState extends State<LoadingPage> {
   ///初始化快捷键
   initHotKey() async {
     await AppHotKeyHandler.unRegisterAll();
-    var hotKey = AppHotKeyHandler.toSystemHotKey(App.settings.historyWindowHotKeys);
+    var hotKey =
+        AppHotKeyHandler.toSystemHotKey(App.settings.historyWindowHotKeys);
     AppHotKeyHandler.registerHistoryWindow(hotKey);
   }
 

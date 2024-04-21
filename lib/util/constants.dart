@@ -17,7 +17,7 @@ class Constants {
   static const String multicastGroup = '224.0.0.128';
 
   //组播心跳时长
-  static const heartbeatsSeconds = 10;
+  static const heartbeatInterval = 30;
 
   static final defaultTags = jsonEncode(
     {
@@ -128,6 +128,8 @@ enum MsgType {
   disConnect,
   //忘记设备
   forgetDev,
+  //心跳
+  heartbeat,
   //未知key
   unknown;
 

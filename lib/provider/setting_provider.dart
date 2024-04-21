@@ -5,6 +5,7 @@ import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/entity/tables/config.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -80,7 +81,7 @@ class SettingProvider extends Notifier<Settings> {
     );
   }
 
-  Future<void> setFirstStartup() async {
+  Future<void> setNotFirstStartup() async {
     await _addOrUpdate("firstStartup", false.toString());
     App.settings = state = state.copyWith(
       firstStartup: false,
@@ -110,16 +111,25 @@ class SettingProvider extends Notifier<Settings> {
       enableLogsRecord: enableLogsRecord,
     );
   }
+
   Future<void> setTagRegulars(String tagRegulars) async {
     await _addOrUpdate("tagRegulars", tagRegulars);
     App.settings = state = state.copyWith(
       tagRegulars: tagRegulars,
     );
   }
+
   Future<void> setHistoryWindowHotKeys(String historyWindowHotKeys) async {
     await _addOrUpdate("historyWindowHotKeys", historyWindowHotKeys);
     App.settings = state = state.copyWith(
       historyWindowHotKeys: historyWindowHotKeys,
+    );
+  }
+
+  Future<void> setHeartbeatInterval(String heartbeatInterval) async {
+    await _addOrUpdate("heartbeatInterval", heartbeatInterval);
+    App.settings = state = state.copyWith(
+      heartbeatInterval: heartbeatInterval.toInt(),
     );
   }
 }

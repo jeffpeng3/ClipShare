@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:clipshare/components/empty_content.dart';
-import 'package:clipshare/components/setting_card.dart';
+import 'package:clipshare/components/settings/card/setting_card.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:flutter/material.dart';

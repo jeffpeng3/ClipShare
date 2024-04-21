@@ -1,5 +1,5 @@
-import 'package:clipshare/components/setting_card.dart';
-import 'package:clipshare/components/setting_header.dart';
+import 'package:clipshare/components/settings/card/setting_card.dart';
+import 'package:clipshare/components/settings/card/setting_header.dart';
 import 'package:flutter/cupertino.dart';
 
 class SettingCardGroup extends StatelessWidget {

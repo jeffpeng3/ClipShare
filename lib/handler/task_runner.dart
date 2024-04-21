@@ -68,12 +68,12 @@ class TaskRunner<T> {
   /// Processes the queue one by one.
   Future<void> _runner({required void Function() onFinish}) async {
     while (_queue.isNotEmpty) {
-      if (_streamController.isClosed || _stopped) {
-        return;
-      }
       final task = _queue.removeFirst();
       try {
         var res = await task();
+        if (_streamController.isClosed || _stopped) {
+          return;
+        }
         _streamController.add(res);
       } catch (e) {
         Log.debug(tag, e.toString());

@@ -36,6 +36,8 @@ class Settings {
   final bool enableLogsRecord;
   //历史记录弹窗快捷键
   final String historyWindowHotKeys;
+  //历史记录弹窗快捷键
+  final int heartbeatInterval;
 
   Settings({
     required this.port,
@@ -51,6 +53,7 @@ class Settings {
     required this.enableLogsRecord,
     required this.tagRegulars,
     required this.historyWindowHotKeys,
+    required this.heartbeatInterval,
   });
 
   Settings copyWith({
@@ -67,6 +70,7 @@ class Settings {
     bool? enableLogsRecord,
     String? tagRegulars,
     String? historyWindowHotKeys,
+    int? heartbeatInterval,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -83,6 +87,7 @@ class Settings {
       enableLogsRecord: enableLogsRecord ?? this.enableLogsRecord,
       tagRegulars: tagRegulars ?? this.tagRegulars,
       historyWindowHotKeys: historyWindowHotKeys ?? this.historyWindowHotKeys,
+      heartbeatInterval: heartbeatInterval ?? this.heartbeatInterval,
     );
   }
 }

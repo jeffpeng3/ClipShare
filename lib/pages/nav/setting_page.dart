@@ -3,11 +3,12 @@ import 'dart:io';
 
 import 'package:clipshare/components/hot_key_editor.dart';
 import 'package:clipshare/components/regular_setting_add_dialog.dart';
-import 'package:clipshare/components/setting_card.dart';
-import 'package:clipshare/components/setting_card_group.dart';
-import 'package:clipshare/components/text_edit_dialog.dart';
+import 'package:clipshare/components/settings/card/setting_card.dart';
+import 'package:clipshare/components/settings/card/setting_card_group.dart';
+import 'package:clipshare/components/settings/text_edit_dialog.dart';
 import 'package:clipshare/handler/hot_key_handler.dart';
 import 'package:clipshare/handler/permission_handler.dart';
+import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/settings/regular_setting_page.dart';
 import 'package:clipshare/pages/update_log_page.dart';
@@ -348,6 +349,70 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                   .setAllowDiscover(checked);
                             },
                           ),
+                        ),
+                        SettingCard(
+                          main: Row(
+                            children: [
+                              const Text("心跳检测间隔"),
+                              const SizedBox(
+                                width: 5,
+                              ),
+                              Tooltip(
+                                message: "说明",
+                                child: GestureDetector(
+                                  child: const MouseRegion(
+                                    cursor: SystemMouseCursors.click,
+                                    child: Icon(
+                                      Icons.question_mark_outlined,
+                                      color: Colors.blueGrey,
+                                      size: 15,
+                                    ),
+                                  ),
+                                  onTap: () async {
+                                    Global.showTipsDialog(
+                                      context: context,
+                                      text: "当设备切换网络时无法自动检测到设备是否掉线\n"
+                                          "启用心跳检测将会定时检查设备存活情况。",
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          sub: const Text(
+                            "检测设备存活。默认30s，0不检测",
+                          ),
+                          value: vm.heartbeatInterval,
+                          action: (v) => Text(v <= 0 ? '不检测' : '${v}s'),
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => TextEditDialog(
+                                title: "心跳间隔",
+                                labelText: "心跳间隔",
+                                initStr:
+                                    "${vm.heartbeatInterval <= 0 ? '' : vm.heartbeatInterval}",
+                                verify: (str) {
+                                  var port = int.tryParse(str);
+                                  if (port == null) return false;
+                                  return true;
+                                },
+                                errorText: "单位秒，0为禁用检测",
+                                onOk: (str) async {
+                                  await ref
+                                      .notifier(settingProvider)
+                                      .setHeartbeatInterval(str);
+                                  var enable = str.toInt() > 0;
+                                  Log.debug(tag, "${enable ? '启用' : '禁用'}心跳检测");
+                                  if (enable) {
+                                    SocketListener.inst.startHeartbeatTest();
+                                  } else {
+                                    SocketListener.inst.stopHeartbeatTest();
+                                  }
+                                },
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),

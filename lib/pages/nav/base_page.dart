@@ -263,7 +263,9 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
     _tagSyncer = TagSyncer();
     _historyTopSyncer = HistoryTopSyncer();
     //进入主页面后标记为不是第一次进入
-    context.ref.notifier(settingProvider).setFirstStartup();
+    if(!App.settings.firstStartup) {
+      context.ref.notifier(settingProvider).setNotFirstStartup();
+    }
   }
 
   @override

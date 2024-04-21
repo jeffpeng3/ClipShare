@@ -35,7 +35,14 @@ class SecureSocketClient {
 
   SecureSocketClient._private(this.ip) {
     _msgStreamController.stream.listen((data) {
-      _socket.writeln(data);
+      try {
+        _socket.writeln(data);
+      } catch (e, stack) {
+        _msgStreamController.close();
+        Log.debug("SecureSocketClient", "发送失败：$e");
+        Log.debug("SecureSocketClient", "$stack");
+        _onDone?.call();
+      }
     });
   }
 
@@ -53,7 +60,7 @@ class SecureSocketClient {
     void Function()? onDone,
     bool? cancelOnError,
   }) async {
-    var socket = await Socket.connect(ip, port);
+    var socket = await Socket.connect(ip, port,timeout: const Duration(seconds: 2));
     var ssc = SecureSocketClient.fromSocket(
       socket: socket,
       prime: prime,
@@ -156,6 +163,7 @@ class SecureSocketClient {
           if (_ready) {
             _onDone?.call();
           }
+          Log.debug("SecureSocketClient", "_onDone");
           _socket.close();
         },
         cancelOnError: _cancelOnError,
@@ -217,7 +225,6 @@ class SecureSocketClient {
     if (_ready) {
       throw Exception("already ready");
     }
-    print("秘钥交换成功");
     _ready = true;
     if (_onConnected != null) {
       _onConnected(this);
@@ -238,12 +245,12 @@ class SecureSocketClient {
     }
     try {
       _msgStreamController.add("$data,");
-      // _socket.writeln("$data,");
     } catch (e, stack) {
       Log.debug("SecureSocketClient", "发送失败：$e");
+      Log.debug("SecureSocketClient", "_onDone ${_onDone==null}");
       Log.debug("SecureSocketClient", "$stack");
-      if (_onError == null) {
-        _onError!.call(e as Exception);
+      if (_onDone != null) {
+        _onDone!.call();
       }
     }
   }
@@ -271,11 +278,13 @@ class SecureSocketClient {
 
   ///关闭连接
   Future close() {
+    _msgStreamController.close();
     return _socket.close();
   }
 
   ///强制关闭
   void destroy() {
+    _msgStreamController.close();
     return _socket.destroy();
   }
 }

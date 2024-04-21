@@ -65,6 +65,7 @@ class SocketListener {
   static const String tag = "SocketListener";
   late DeviceDao _deviceDao;
   final Map<Module, List<SyncListener>> _syncListeners = {};
+  Timer? _heartbeatTimer;
   final List<DevAliveListener> _devAliveListeners = List.empty(growable: true);
   final List<DiscoverListener> _discoverListeners = List.empty(growable: true);
 
@@ -73,6 +74,8 @@ class SocketListener {
 
   //临时记录链接配对自定义ip设备记录
   final Set<String> customIpSetTemp = {};
+  final Set<String> _connectingAddress = {};
+  Map<String, Future> broadcastProcessChain = {};
 
   SocketListener._private();
 
@@ -81,7 +84,6 @@ class SocketListener {
 
   static SocketListener get inst => _singleton;
   static bool _isInit = false;
-  Map<String, Future> broadcastProcessChain = {};
 
   Settings get settings => _ref.read(settingProvider);
   List<RawDatagramSocket> multicasts = [];
@@ -92,7 +94,7 @@ class SocketListener {
     _deviceDao = AppDb.inst.deviceDao;
     // 初始化，创建socket监听
     _runSocketServer();
-    await _startListenMulticast();
+    startHeartbeatTest();
     _isInit = true;
     return this;
   }
@@ -105,7 +107,7 @@ class SocketListener {
     }
     //重新监听
     multicasts = await _getSockets(Constants.multicastGroup, settings.port);
-    startDiscoverDevice();
+    // startDiscoverDevice();
     for (var multicast in multicasts) {
       multicast.listen((event) {
         final datagram = multicast.receive();
@@ -122,11 +124,20 @@ class SocketListener {
         }
         switch (msg.key) {
           case MsgType.broadcastInfo:
+            var devId = dev.guid;
+            String ip = datagram.address.address;
+            var port = msg.data["port"];
+            String address = "$ip:$port";
             Future.delayed(const Duration(seconds: 5), () {
-              broadcastProcessChain.remove(dev.guid);
+              broadcastProcessChain.remove(devId);
+              _connectingAddress.remove(address);
             });
-            if (!broadcastProcessChain.containsKey(dev.guid)) {
-              broadcastProcessChain[dev.guid] = _onReceivedBroadcastInfo(msg, datagram);
+            var inChain = broadcastProcessChain.containsKey(devId);
+            var connecting = _connectingAddress.contains(address);
+            if (!inChain && !connecting) {
+              _connectingAddress.add(address);
+              broadcastProcessChain[devId] =
+                  _onReceivedBroadcastInfo(msg, datagram);
             }
             break;
           default:
@@ -155,11 +166,12 @@ class SocketListener {
     //建立连接
     String ip = datagram.address.address;
     Log.debug(tag, "${dev.name} ip: $ip，port ${msg.data["port"]}");
-    return _linkAliveSocket(dev, ip, msg.data["port"]);
+    return _connectFromBroadcast(dev, ip, msg.data["port"]);
   }
 
-  ///socket建立链接
-  Future _linkAliveSocket(DevInfo dev, String ip, int port) {
+  ///从广播，建立 socket 链接
+  Future _connectFromBroadcast(DevInfo dev, String ip, int port) {
+    //已在broadcastProcessChain中添加互斥
     return SecureSocketClient.connect(
       ip: ip,
       port: port,
@@ -185,10 +197,11 @@ class SocketListener {
         _onSocketReceived(client, msg);
       },
       onDone: () {
+        Log.debug(tag, "从广播连接，服务端连接关闭");
         _onDevDisConnected(dev.guid);
       },
       onError: (error) {
-        Log.debug(tag, '发生错误: $error');
+        Log.debug(tag, '从广播连接，发生错误: $error');
         _onDevDisConnected(dev.guid);
       },
     );
@@ -211,22 +224,29 @@ class SocketListener {
         _onSocketReceived(client, msg);
       },
       onError: (err) {
-        Log.error(tag, "出现错误：$err");
+        Log.error(tag, "服务端内客户端连接，出现错误：$err");
       },
       onClientError: (e, ip, port) {
-        Log.error(tag, "client 出现错误 $e");
+        //此处端口不是客户端的服务端口，是客户端的socket进程端口
+        Log.error(tag, "client 出现错误 $ip $port $e");
         for (var id in _devSockets.keys) {
           var skt = _devSockets[id]!;
-          if (skt.socket.ip == ip && skt.socket.port == port) {
+          if (skt.socket.ip == ip) {
             _onDevDisConnected(id);
             break;
           }
         }
       },
       onClientDone: (ip, port) {
+        //此处端口不是客户端的服务端口，是客户端的socket进程端口
+        Log.error(tag, "client done $e $ip $port");
         for (var id in _devSockets.keys) {
           var skt = _devSockets[id]!;
-          if (skt.socket.ip == ip && skt.socket.port == port) {
+          Log.error(
+            tag,
+            "client done skt $e ${skt.socket.ip} ${skt.socket.port}",
+          );
+          if (skt.socket.ip == ip) {
             _onDevDisConnected(id);
             break;
           }
@@ -415,6 +435,8 @@ class SocketListener {
       }
     }
     Log.debug(tag, "开始发现设备");
+    //重新更新广播监听
+    await _startListenMulticast();
     //先发现自添加设备
     List<Future<void> Function()> tasks = await _customDiscover();
     tasks.addAll(_multicastDiscover());
@@ -453,8 +475,6 @@ class SocketListener {
   ///重新发现设备
   void restartDiscoverDevice() async {
     Log.debug(tag, "重新开始发现设备");
-    //重新更新广播监听
-    await _startListenMulticast();
     await stopDiscoverDevice(true);
     startDiscoverDevice(true);
   }
@@ -517,9 +537,18 @@ class SocketListener {
     Function? onErr,
     Map<String, dynamic> data = const {},
   }) {
+    port = port ?? Constants.port;
+    String address = "$ip:$port";
+    if (_connectingAddress.contains(address)) {
+      return Future(() => null);
+    }
+    _connectingAddress.add(address);
+    Future.delayed(const Duration(seconds: 5), () {
+      _connectingAddress.remove(address);
+    });
     return SecureSocketClient.connect(
       ip: ip,
-      port: port ?? Constants.port,
+      port: port,
       prime: App.prime,
       keyPair: App.keyPair,
       onConnected: (SecureSocketClient client) {
@@ -545,6 +574,24 @@ class SocketListener {
         Map<String, dynamic> json = jsonDecode(data);
         var msg = MessageData.fromJson(json);
         _onSocketReceived(client, msg);
+      },
+      onDone: () {
+        Log.debug(tag, "手动连接关闭");
+        for (var devId in _devSockets.keys) {
+          var skt = _devSockets[devId]!.socket;
+          if (skt.ip == ip && skt.port == port) {
+            _onDevDisConnected(devId);
+          }
+        }
+      },
+      onError: (error) {
+        Log.error(tag, '手动连接发生错误: $error $ip $port');
+        for (var devId in _devSockets.keys) {
+          var skt = _devSockets[devId]!.socket;
+          if (skt.ip == ip && skt.port == port) {
+            _onDevDisConnected(devId);
+          }
+        }
       },
     ).catchError(onErr ?? (err) => SecureSocketClient.empty);
   }
@@ -600,7 +647,7 @@ class SocketListener {
 
   ///设备连接成功
   void _onDevConnected(DevInfo dev, String ip, int port) async {
-    //todo 更新连接地址
+    //更新连接地址
     String address = "$ip:$port";
     await _deviceDao.updateDeviceAddress(dev.guid, App.userId, address);
     broadcastProcessChain.remove(dev.guid);
@@ -639,9 +686,32 @@ class SocketListener {
     }
   }
 
+  ///开始所有设备的心跳测试
+  void startHeartbeatTest() {
+    //先停止
+    stopHeartbeatTest();
+    var interval = App.settings.heartbeatInterval;
+    Log.debug(tag, "interval $interval");
+    if (interval <= 0) return;
+    //更新timer
+    _heartbeatTimer = Timer.periodic(Duration(seconds: interval), (timer) {
+      if(_devSockets.isEmpty)return;
+      Log.debug(tag, "send heartbeat");
+      sendData(null, MsgType.heartbeat, {});
+    });
+  }
+
+  ///停止所有设备的心跳测试
+  void stopHeartbeatTest() {
+    _heartbeatTimer?.cancel();
+  }
+
   ///设备断开连接
   void _onDevDisConnected(String devId) {
+    //移除socket
     _devSockets.remove(devId);
+    //停止心跳检测
+    _heartbeatTimer?.cancel();
     Log.debug(tag, "$devId 断开连接");
     for (var listener in _devAliveListeners) {
       try {
@@ -666,7 +736,7 @@ class SocketListener {
       data: data,
       recv: null,
     );
-    //向所有已配对设备发送消息
+    //向所有设备发送消息
     if (dev == null) {
       var list = onlyPaired
           ? _devSockets.values.where((dev) => dev.isPaired)
