@@ -58,7 +58,7 @@ class DeviceCard extends StatefulWidget {
     return DeviceCard(
       dev: dev ?? this.dev,
       isPaired: isPaired ?? this.isPaired,
-      isConnected: isConnected ?? this.isConnected,
+      isConnected: isConnected,
       isSelf: isSelf ?? this.isSelf,
       onTap: onTap ?? this.onTap,
       onLongPress: onLongPress ?? this.onLongPress,
@@ -160,6 +160,9 @@ class _DeviceCardState extends State<DeviceCard> {
     );
   }
 
+  Version get minVersion =>
+      App.minVersion > widget.minVersion! ? App.minVersion : widget.minVersion!;
+
   @override
   Widget build(BuildContext context) {
     const chipColor = Color.fromARGB(255, 213, 222, 232);
@@ -185,8 +188,7 @@ class _DeviceCardState extends State<DeviceCard> {
         borderRadius: BorderRadius.circular(12.0),
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: SizedBox(
-            height: 96,
+          child: IntrinsicHeight(
             child: Row(
               children: [
                 _empty ? _emptyIcon : _currIcon,
@@ -261,35 +263,36 @@ class _DeviceCardState extends State<DeviceCard> {
                               ),
                             ),
                           ),
-                          widget.isLowerVersion
-                              ? Container(
-                                  margin: const EdgeInsets.only(left: 5),
-                                  child: Row(
-                                    children: <Widget>[
-                                      IconButton(
-                                        onPressed: () => {
-                                          Global.showTipsDialog(
-                                            context: context,
-                                            text: "与该设备的软件版本不兼容，禁用数据同步功能。"
-                                                "\n最低版本要求为 ${widget.minVersion!.name}(${widget.minVersion!.code})"
-                                                "\n当前软件版本为 ${App.version.name}(${App.version.code})",
-                                          ),
-                                        },
-                                        icon: const Icon(
-                                          Icons.info_outline,
-                                          color: Colors.orange,
-                                        ),
+                          if (widget.isLowerVersion)
+                            Container(
+                              margin: const EdgeInsets.only(left: 5),
+                              child: Row(
+                                children: <Widget>[
+                                  IconButton(
+                                    onPressed: () => {
+                                      Global.showTipsDialog(
+                                        context: context,
+                                        text: "与该设备的软件版本不兼容，禁用数据同步功能。"
+                                            "\n最低版本要求为 ${minVersion.name}(${minVersion.code})"
+                                            "\n当前软件版本为 ${App.version.name}(${App.version.code})",
                                       ),
-                                      const Text(
-                                        "版本不兼容",
-                                        style: TextStyle(
-                                          color: Colors.orange,
-                                        ),
-                                      ),
-                                    ],
+                                    },
+                                    icon: const Icon(
+                                      Icons.info_outline,
+                                      color: Colors.orange,
+                                    ),
                                   ),
-                                )
-                              : const SizedBox.shrink(),
+                                  const Text(
+                                    "版本不兼容",
+                                    style: TextStyle(
+                                      color: Colors.orange,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            const SizedBox.shrink(),
                         ],
                       ),
                     ],

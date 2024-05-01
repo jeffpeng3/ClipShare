@@ -206,7 +206,6 @@ class _TagEditPageState extends State<TagEditPage> {
                     border: InputBorder.none,
                   ),
                   onChanged: (text) {
-                    Log.debug(tag, text);
                     for (var t in _tags) {
                       if (t.tagName == text) {
                         setState(() {

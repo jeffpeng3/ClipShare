@@ -312,46 +312,30 @@ class _DevicesPageState extends State<DevicesPage>
                     Expanded(
                       child: InkWell(
                         onTap: () {
-                          showDialog(
+                          Global.showTipsDialog(
                             context: context,
-                            builder: (ctx) {
-                              return AlertDialog(
-                                title: const Text("提示"),
-                                content: const Text("是否要取消配对？"),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(ctx);
-                                    },
-                                    child: const Text("取消"),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      if (isConnected) {
-                                        var devInfo =
-                                            DevInfo.fromDevice(device);
-                                        SocketListener.inst.onDevForget(
-                                          devInfo,
-                                          App.userId,
-                                        );
-                                        SocketListener.inst.sendData(
-                                          devInfo,
-                                          MsgType.forgetDev,
-                                          {},
-                                        );
-                                      }
-                                      //更新配对状态为未配对
-                                      device.isPaired = false;
-                                      setState(() {});
-                                      AppDb.inst.deviceDao.updateDevice(device);
-                                      Navigator.pop(ctx);
-                                      Navigator.pop(context);
-                                    },
-                                    child: const Text("确定"),
-                                  ),
-                                ],
-                              );
+                            text: "是否要取消配对？",
+                            onOk: () {
+                              if (isConnected) {
+                                var devInfo = DevInfo.fromDevice(device);
+                                SocketListener.inst.onDevForget(
+                                  devInfo,
+                                  App.userId,
+                                );
+                                SocketListener.inst.sendData(
+                                  devInfo,
+                                  MsgType.forgetDev,
+                                  {},
+                                );
+                              }
+                              //更新配对状态为未配对
+                              device.isPaired = false;
+                              //更新UI
+                              setState(() {});
+                              AppDb.inst.deviceDao.updateDevice(device);
+                              Navigator.pop(context);
                             },
+                            showCancel: true,
                           );
                         },
                         splashColor: Colors.black12,
@@ -571,9 +555,8 @@ class _DevicesPageState extends State<DevicesPage>
     if (forgetDev?.isConnected ?? false) {
       // 已经连接，minVersion必定不空
       onConnected(dev, forgetDev!.minVersion!, forgetDev.version!);
-    } else {
-      setState(() {});
     }
+    setState(() {});
   }
 
   @override
@@ -642,6 +625,7 @@ class _DevicesPageState extends State<DevicesPage>
     //配对成功，从连接列表中移除
     var discoverDev =
         _discoverList.firstWhere((ele) => ele.dev?.guid == dev.guid);
+    _discoverList.removeWhere((ele) => ele.dev?.guid == dev.guid);
     //添加到已配对列表
     _pairedList.add(
       discoverDev.copyWith(

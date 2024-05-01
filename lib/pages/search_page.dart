@@ -39,6 +39,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
   bool _loading = true;
 
   ///搜索相关
+  var _hasCondition = false;
   final Set<String> _selectedTags = {};
   final Set<String> _selectedDevIds = {};
   var _searchStartDate = "";
@@ -89,22 +90,27 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
   void refreshData() {
     _list.clear();
     _minId = null;
+    _loadSearchCondition();
+    _loadData(_minId).then((lst) {
+      _list = lst;
+      _loading = false;
+      debounceSetState();
+    });
+  }
+
+  ///加载搜索条件
+  Future<void> _loadSearchCondition() async {
     //加载所有标签名
-    AppDb.inst.historyTagDao.getAllTagNames().then((lst) {
+    await AppDb.inst.historyTagDao.getAllTagNames().then((lst) {
       _allTagNames = lst;
       debounceSetState();
     });
     //加载所有设备名
-    AppDb.inst.deviceDao.getAllDevices(App.userId).then((lst) {
+    await AppDb.inst.deviceDao.getAllDevices(App.userId).then((lst) {
       var tmpLst = List<Device>.empty(growable: true);
       tmpLst.add(App.device);
       tmpLst.addAll(lst);
       _allDevices = tmpLst;
-      debounceSetState();
-    });
-    _loadData(_minId).then((lst) {
-      _list = lst;
-      _loading = false;
       debounceSetState();
     });
   }
@@ -206,9 +212,11 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                           Row(
                             children: [
                               TextButton.icon(
-                                icon: Icon(searchOnlyNoSync
-                                    ? Icons.check_box
-                                    : Icons.check_box_outline_blank_sharp),
+                                icon: Icon(
+                                  searchOnlyNoSync
+                                      ? Icons.check_box
+                                      : Icons.check_box_outline_blank_sharp,
+                                ),
                                 label: const Text(
                                   "仅未同步",
                                   style: TextStyle(color: Colors.black),
@@ -224,6 +232,15 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context);
+                              var hasCondition = false;
+                              //判断是否加入了筛选条件
+                              if (!start.contains("日期") ||
+                                  !end.contains("日期") ||
+                                  tags.isNotEmpty ||
+                                  devs.isNotEmpty ||
+                                  searchOnlyNoSync) {
+                                hasCondition = true;
+                              }
                               _searchStartDate =
                                   start.contains("日期") ? "" : start;
                               _searchEndDate = end.contains("日期") ? "" : end;
@@ -232,6 +249,8 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                               _selectedDevIds.clear();
                               _selectedDevIds.addAll(devs);
                               _searchOnlyNoSync = searchOnlyNoSync;
+                              _hasCondition = hasCondition;
+                              setState(() {});
                               refreshData();
                             },
                             child: const Text("确定"),
@@ -516,11 +535,17 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
             Container(
               margin: const EdgeInsets.only(left: 5, right: 5),
               child: IconButton(
-                onPressed: () {
+                onPressed: () async {
+                  await _loadSearchCondition();
                   _showExtendSearchDialog();
                 },
                 tooltip: "更多筛选项",
-                icon: const Icon(Icons.menu_rounded),
+                icon: Icon(
+                  _hasCondition
+                      ? Icons.playlist_add_check_outlined
+                      : Icons.menu_rounded,
+                  color: _hasCondition ? Colors.blueAccent : null,
+                ),
               ),
             ),
           ],
