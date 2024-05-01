@@ -54,7 +54,14 @@ android {
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        // bundle分包时默认会增加versionCode，这里重新复写
+        project.android.applicationVariants.all { variant ->
+            variant.outputs.each { output ->
+                output.versionCodeOverride = flutterVersionCode.toInteger()
+            }
+        }
     }
+
     signingConfigs{
         release{
             keyAlias keystoreProperties['keyAlias']
