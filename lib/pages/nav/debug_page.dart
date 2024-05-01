@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:clipshare/components/large_text.dart';
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/main.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -17,6 +16,7 @@ class DebugPage extends StatefulWidget {
 class _DebugPageState extends State<DebugPage> {
   final ScrollController _controller = ScrollController();
   double visibleCharacterCount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -98,6 +98,12 @@ class _DebugPageState extends State<DebugPage> {
         ),
         Container(
           height: 10,
+        ),
+        ElevatedButton(
+          onPressed: () {
+            throw Exception("123");
+          },
+          child: const Text("123"),
         ),
       ],
     );

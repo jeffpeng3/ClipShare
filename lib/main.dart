@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
@@ -12,6 +13,7 @@ import 'package:clipshare/pages/init.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +25,13 @@ void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   var isMultiWindow = args.firstOrNull == 'multi_window';
   if (PlatformExt.isMobile || !isMultiWindow) {
-    runApp(RefenaScope(child: const App()));
+    ///全局异常捕获
+    runZonedGuarded(
+      () => runApp(RefenaScope(child: const App())),
+      (error, stack) {
+        Log.error("App", "$error $stack");
+      },
+    );
   } else {
     //子窗口
     final windowId = int.parse(args[1]);
