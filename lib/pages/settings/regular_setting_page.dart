@@ -12,7 +12,7 @@ class RegularSettingPage extends StatefulWidget {
     Function(Key),
   ) onAdd;
   final Widget Function(Function(Map<String, dynamic>) onChange)
-      renderEditLayout;
+      editDialogLayout;
   final void Function(List<Map<String, dynamic>> result) confirm;
   final List<dynamic> initData;
   final String title;
@@ -22,7 +22,7 @@ class RegularSettingPage extends StatefulWidget {
     required this.onAdd,
     required this.confirm,
     required this.title,
-    required this.renderEditLayout,
+    required this.editDialogLayout,
     required this.initData,
   });
 
@@ -151,7 +151,7 @@ class _RegularSettingPageState extends State<RegularSettingPage> {
               builder: (context) {
                 return AlertDialog(
                   title: const Text("添加规则"),
-                  content: widget.renderEditLayout.call((data) {
+                  content: widget.editDialogLayout.call((data) {
                     _addData = data;
                   }),
                   actions: [

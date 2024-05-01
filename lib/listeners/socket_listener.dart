@@ -8,6 +8,7 @@ import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/settings.dart';
+import 'package:clipshare/entity/version.dart';
 import 'package:clipshare/handler/dev_pairing_handler.dart';
 import 'package:clipshare/handler/socket/secure_socket_client.dart';
 import 'package:clipshare/handler/socket/secure_socket_server.dart';
@@ -24,7 +25,7 @@ import 'package:refena_flutter/refena_flutter.dart';
 
 abstract class DevAliveListener {
   //连接成功
-  void onConnected(DevInfo info);
+  void onConnected(DevInfo info, Version minVersion, Version version);
 
   //断开连接
   void onDisConnected(String devId);
@@ -56,8 +57,16 @@ class DevSocket {
   DevInfo dev;
   SecureSocketClient socket;
   bool isPaired;
+  Version? minVersion;
+  Version? version;
 
-  DevSocket({required this.dev, required this.socket, this.isPaired = false});
+  DevSocket({
+    required this.dev,
+    required this.socket,
+    this.isPaired = false,
+    this.minVersion,
+    this.version,
+  });
 }
 
 class SocketListener {
@@ -186,7 +195,13 @@ class SocketListener {
           userId: App.userId,
           send: App.devInfo,
           key: MsgType.pairedStatus,
-          data: {"isPaired": localIsPaired},
+          data: {
+            "isPaired": localIsPaired,
+            "minVersionName": App.minVersion.name,
+            "minVersionCode": App.minVersion.code,
+            "versionName": App.version.name,
+            "versionCode": App.version.code,
+          },
         );
         //告诉服务器配对状态
         client.send(pairedStatusData.toJson());
@@ -297,7 +312,13 @@ class SocketListener {
           userId: App.userId,
           send: App.devInfo,
           key: MsgType.pairedStatus,
-          data: {"isPaired": localIsPaired},
+          data: {
+            "isPaired": localIsPaired,
+            "minVersionName": App.minVersion.name,
+            "minVersionCode": App.minVersion.code,
+            "versionName": App.version.name,
+            "versionCode": App.version.code,
+          },
         );
         //告诉客户端配对状态
         client.send(pairedStatusData.toJson());
@@ -628,17 +649,44 @@ class SocketListener {
       userId: App.userId,
       send: App.devInfo,
       key: MsgType.pairedStatus,
-      data: {"isPaired": paired},
+      data: {
+        "isPaired": paired,
+        "minVersionName": App.minVersion.name,
+        "minVersionCode": App.minVersion.code,
+        "versionName": App.version.name,
+        "versionCode": App.version.code,
+      },
     );
     client.send(pairedStatusData.toJson());
+    var minName = msg.data["minVersionName"];
+    var minCode = msg.data["minVersionCode"];
+    var versionName = msg.data["versionName"];
+    var versionCode = msg.data["versionCode"];
+    var minVersion = Version(minName, minCode);
+    var version = Version(versionName, versionCode);
+    Log.debug(tag,"minVersion $minVersion version $version");
     //添加到本地
     if (_devSockets.containsKey(dev.guid)) {
       _devSockets[dev.guid]!.isPaired = paired;
+      _devSockets[dev.guid]!.minVersion = minVersion;
+      _devSockets[dev.guid]!.version = version;
     } else {
-      var ds = DevSocket(dev: dev, socket: client, isPaired: paired);
+      var ds = DevSocket(
+        dev: dev,
+        socket: client,
+        isPaired: paired,
+        minVersion: minVersion,
+        version: version,
+      );
       _devSockets[dev.guid] = ds;
     }
-    _onDevConnected(dev, client.ip, client.port);
+    _onDevConnected(
+      dev,
+      client.ip,
+      client.port,
+      minVersion,
+      version,
+    );
     if (paired) {
       //已配对，获取该设备未同步记录
       sendData(dev, MsgType.reqMissingData, {});
@@ -646,14 +694,20 @@ class SocketListener {
   }
 
   ///设备连接成功
-  void _onDevConnected(DevInfo dev, String ip, int port) async {
+  void _onDevConnected(
+    DevInfo dev,
+    String ip,
+    int port,
+    Version minVersion,
+    Version version,
+  ) async {
     //更新连接地址
     String address = "$ip:$port";
     await _deviceDao.updateDeviceAddress(dev.guid, App.userId, address);
     broadcastProcessChain.remove(dev.guid);
     for (var listener in _devAliveListeners) {
       try {
-        listener.onConnected(dev);
+        listener.onConnected(dev, minVersion,version);
       } catch (e, t) {
         Log.debug(tag, "$e $t");
       }
@@ -691,11 +745,10 @@ class SocketListener {
     //先停止
     stopHeartbeatTest();
     var interval = App.settings.heartbeatInterval;
-    Log.debug(tag, "interval $interval");
     if (interval <= 0) return;
     //更新timer
     _heartbeatTimer = Timer.periodic(Duration(seconds: interval), (timer) {
-      if(_devSockets.isEmpty)return;
+      if (_devSockets.isEmpty) return;
       Log.debug(tag, "send heartbeat");
       sendData(null, MsgType.heartbeat, {});
     });
@@ -722,7 +775,7 @@ class SocketListener {
     }
   }
 
-  ///向指定设备发送消息
+  ///向兼容的设备发送消息
   void sendData(
     DevInfo? dev,
     MsgType key,
@@ -741,6 +794,10 @@ class SocketListener {
       var list = onlyPaired
           ? _devSockets.values.where((dev) => dev.isPaired)
           : _devSockets.values;
+      //筛选兼容版本的设备
+      list = list.where(
+        (dev) => dev.version != null && dev.version! >= App.minVersion,
+      );
       //批量发送
       for (var skt in list) {
         skt.socket.send(msg.toJson());
@@ -749,8 +806,15 @@ class SocketListener {
       //向指定设备发送消息
       DevSocket? skt = _devSockets[dev.guid];
       if (skt == null) {
-        //发送的设备未连接
         Log.debug(tag, "${dev.name} 设备未连接，发送失败");
+        return;
+      }
+      if (skt.version == null) {
+        Log.debug(tag, "${dev.name} 设备无版本号信息，尚未准备好");
+        return;
+      }
+      if (skt.version! < App.minVersion) {
+        Log.debug(tag, "${dev.name} 与当前设备版本不兼容");
         return;
       }
       skt.socket.send(msg.toJson());

@@ -9,6 +9,7 @@ import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/entity/tables/operation_sync.dart';
+import 'package:clipshare/entity/version.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
@@ -78,6 +79,10 @@ class _DevicesPageState extends State<DevicesPage>
                 _showBottomDetailSheet(device, isConnected, showReNameDlg);
               }
             },
+            isConnected: false,
+            isSelf: false,
+            minVersion: null,
+            version: null,
           ),
         );
       }
@@ -188,7 +193,14 @@ class _DevicesPageState extends State<DevicesPage>
               ),
             ),
             _discoverList.isEmpty
-                ? DeviceCard(dev: null)
+                ? const DeviceCard(
+                    dev: null,
+                    isPaired: false,
+                    isConnected: false,
+                    isSelf: false,
+                    minVersion: null,
+                    version: null,
+                  )
                 : Column(
                     children: _discoverList,
                   ),
@@ -501,13 +513,19 @@ class _DevicesPageState extends State<DevicesPage>
   }
 
   @override
-  void onConnected(DevInfo info) async {
+  void onConnected(DevInfo info, Version minVersion, Version version) async {
     var dev = await Device.fromDevInfo(info);
-    for (var paired in _pairedList) {
+    for (var i = 0; i < _pairedList.length; i++) {
+      var paired = _pairedList[i];
       if (paired.dev == dev) {
         //修改widget状态
-        paired.isConnected = true;
         paired.dev!.address = dev!.address;
+        _pairedList[i] = paired.copyWith(
+          isConnected: true,
+          dev: paired.dev,
+          minVersion: minVersion,
+          version: version,
+        );
         setState(() {});
         //是已配对的设备，请求所有缺失数据
         // SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
@@ -530,6 +548,11 @@ class _DevicesPageState extends State<DevicesPage>
           type: info.type,
         ),
         onTap: (device, isConnected, showReNameDlg) => _requestPairing(info),
+        minVersion: minVersion,
+        version: version,
+        isPaired: false,
+        isConnected: true,
+        isSelf: false,
       ),
     );
     setState(() {});
@@ -538,12 +561,16 @@ class _DevicesPageState extends State<DevicesPage>
   @override
   void onForget(DevInfo dev, int uid) {
     //忘记设备，从已配对列表移动到发现设备列表
-    var forgetDev = _pairedList
-        .firstWhereOrNull((element) => element.dev?.guid == dev.guid);
-    _pairedList.removeWhere((element) => element.dev?.guid == dev.guid);
-    forgetDev?.isPaired = false;
+    var forgetDev = _pairedList.firstWhereOrNull(
+      (element) => element.dev?.guid == dev.guid,
+    );
+    _pairedList.removeWhere(
+      (element) => element.dev?.guid == dev.guid,
+    );
+    forgetDev = forgetDev?.copyWith(isPaired: false);
     if (forgetDev?.isConnected ?? false) {
-      onConnected(dev);
+      // 已经连接，minVersion必定不空
+      onConnected(dev, forgetDev!.minVersion!, forgetDev.version!);
     } else {
       setState(() {});
     }
@@ -552,9 +579,14 @@ class _DevicesPageState extends State<DevicesPage>
   @override
   void onDisConnected(String devId) {
     _discoverList.removeWhere((dev) => dev.dev?.guid == devId);
-    for (var dev in _pairedList) {
+    for (var i = 0; i < _pairedList.length; i++) {
+      var dev = _pairedList[i];
       if (dev.dev?.guid == devId) {
-        dev.isConnected = false;
+        _pairedList[i] = dev.copyWith(
+          isConnected: false,
+          minVersion: null,
+          version: null,
+        );
       }
     }
     setState(() {});
@@ -608,10 +640,11 @@ class _DevicesPageState extends State<DevicesPage>
 
   void _addPairedDevInPage(Device dev) {
     //配对成功，从连接列表中移除
-    _discoverList.removeWhere((ele) => ele.dev?.guid == dev.guid);
+    var discoverDev =
+        _discoverList.firstWhere((ele) => ele.dev?.guid == dev.guid);
     //添加到已配对列表
     _pairedList.add(
-      DeviceCard(
+      discoverDev.copyWith(
         dev: dev,
         isPaired: true,
         isConnected: true,

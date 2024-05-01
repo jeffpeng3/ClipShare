@@ -363,7 +363,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                   child: const MouseRegion(
                                     cursor: SystemMouseCursors.click,
                                     child: Icon(
-                                      Icons.question_mark_outlined,
+                                      Icons.info_outline,
                                       color: Colors.blueGrey,
                                       size: 15,
                                     ),
@@ -571,7 +571,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                       },
                                     );
                                   },
-                                  renderEditLayout: (onChange) {
+                                  editDialogLayout: (onChange) {
                                     return RegularSettingAddDialog(
                                       onChange: onChange,
                                     );
@@ -734,7 +734,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       cardList: [
                         SettingCard(
                           main: const Text("关于${Constants.appName}"),
-                          sub: Text(App.version.name),
+                          sub: Text("${App.version.name}(${App.version.code})"),
                           value: false,
                           action: (v) => IconButton(
                             onPressed: () {

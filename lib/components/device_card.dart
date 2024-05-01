@@ -3,8 +3,11 @@ import 'dart:async';
 import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/tables/device.dart';
+import 'package:clipshare/entity/version.dart';
+import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
@@ -14,23 +17,54 @@ class DeviceCard extends StatefulWidget {
   final Device? dev;
   final void Function(Device, bool, void Function())? onTap;
   final void Function(Device, bool, void Function())? onLongPress;
-  bool isPaired;
-  bool isSelf;
-  bool isConnected;
+  final bool isPaired;
+  final bool isSelf;
+  final bool isConnected;
+  final Version? minVersion;
+  final Version? version;
 
-  DeviceCard({
+  const DeviceCard({
     super.key,
     required this.dev,
     this.onTap,
     this.onLongPress,
-    this.isPaired = false,
-    this.isConnected = false,
-    this.isSelf = false,
+    required this.isPaired,
+    required this.isConnected,
+    required this.isSelf,
+    required this.minVersion,
+    required this.version,
   });
+
+  bool get isLowerVersion => minVersion == null || version == null
+      ? false
+      : minVersion! > App.version || version! < App.minVersion;
 
   @override
   State<StatefulWidget> createState() {
     return _DeviceCardState();
+  }
+
+  DeviceCard copyWith({
+    Device? dev,
+    void Function(Device, bool, void Function())? onTap,
+    void Function(Device, bool, void Function())? onLongPress,
+    bool? isPaired,
+    bool? isConnected,
+    bool? isSelf,
+    Version? minVersion,
+    Version? version,
+  }) {
+    isConnected = isConnected ?? this.isConnected;
+    return DeviceCard(
+      dev: dev ?? this.dev,
+      isPaired: isPaired ?? this.isPaired,
+      isConnected: isConnected ?? this.isConnected,
+      isSelf: isSelf ?? this.isSelf,
+      onTap: onTap ?? this.onTap,
+      onLongPress: onLongPress ?? this.onLongPress,
+      minVersion: !isConnected ? null : minVersion ?? this.minVersion,
+      version: !isConnected ? null : version ?? this.version,
+    );
   }
 }
 
@@ -152,7 +186,7 @@ class _DeviceCardState extends State<DeviceCard> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: SizedBox(
-            height: 80,
+            height: 96,
             child: Row(
               children: [
                 _empty ? _emptyIcon : _currIcon,
@@ -197,36 +231,63 @@ class _DeviceCardState extends State<DeviceCard> {
                       ),
                       Row(
                         children: [
-                          !_empty && widget.isPaired
-                              ? Row(
-                                  children: [
-                                    Container(
-                                      width: 6.0 * 2,
-                                      height: 6.0 * 2,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: widget.isConnected
-                                            ? _connColor
-                                            : Colors.grey,
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      width: 10,
-                                    ),
-                                  ],
-                                )
-                              : const SizedBox.shrink(),
+                          Visibility(
+                            visible: !_empty && widget.isPaired,
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 10),
+                              child: Container(
+                                width: 6.0 * 2,
+                                height: 6.0 * 2,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: widget.isConnected
+                                      ? _connColor
+                                      : Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
                           RoundedChip(
                             label: Text(_empty ? "    " : widget.dev!.type),
                             backgroundColor: chipColor,
                           ),
-                          const SizedBox(
-                            width: 5,
+                          Visibility(
+                            visible: widget.isSelf,
+                            child: Container(
+                              margin: const EdgeInsets.only(left: 5),
+                              child: const RoundedChip(
+                                label: Text("本机"),
+                                backgroundColor: chipColor,
+                              ),
+                            ),
                           ),
-                          widget.isSelf
-                              ? const RoundedChip(
-                                  label: Text("本机"),
-                                  backgroundColor: chipColor,
+                          widget.isLowerVersion
+                              ? Container(
+                                  margin: const EdgeInsets.only(left: 5),
+                                  child: Row(
+                                    children: <Widget>[
+                                      IconButton(
+                                        onPressed: () => {
+                                          Global.showTipsDialog(
+                                            context: context,
+                                            text: "与该设备的软件版本不兼容，禁用数据同步功能。"
+                                                "\n最低版本要求为 ${widget.minVersion!.name}(${widget.minVersion!.code})"
+                                                "\n当前软件版本为 ${App.version.name}(${App.version.code})",
+                                          ),
+                                        },
+                                        icon: const Icon(
+                                          Icons.info_outline,
+                                          color: Colors.orange,
+                                        ),
+                                      ),
+                                      const Text(
+                                        "版本不兼容",
+                                        style: TextStyle(
+                                          color: Colors.orange,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 )
                               : const SizedBox.shrink(),
                         ],
