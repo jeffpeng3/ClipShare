@@ -16,7 +16,6 @@ import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/history_tag_provider.dart';
 import 'package:clipshare/util/constants.dart';
-import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/file_util.dart';
 import 'package:clipshare/util/log.dart';
@@ -155,7 +154,7 @@ class HistoryPageState extends State<HistoryPage>
       return;
     }
     //和上次复制的内容相同
-    if (_last?.content == content) {
+    if (_last?.content == content && _last?.type == type.value) {
       return;
     }
     Log.debug("ClipData onChanged", content);
@@ -167,10 +166,10 @@ class HistoryPageState extends State<HistoryPage>
       case ContentType.image:
         //如果上次也是复制的图片/文件，判断其md5与本次比较，若相同则跳过
         if (_last?.type == ContentType.image.value) {
-          var md51 = await CryptoUtil.calcFileMD5(_last!.content);
-          var md52 = await CryptoUtil.calcFileMD5(content);
-          //两次的图片相同，跳过。
-          if (md51 == md52) {
+          var md51 = await File(_last!.content).md5;
+          var md52 = await File(content).md5;
+          //两次的图片存在且相同，跳过。
+          if (md51 == md52 && md51 != null) {
             return;
           }
         }
@@ -178,7 +177,7 @@ class HistoryPageState extends State<HistoryPage>
         var tempFile = File(content);
         size = await tempFile.length();
         // var fileName = content.replaceFirst(tempFile.absolute.parent.path, "");
-        var newPath = App.settings.fileStorePath + tempFile.fileName;
+        var newPath = "${App.settings.fileStorePath}/${tempFile.fileName}";
         var newFile = File(newPath);
         FileUtil.moveFile(content, newPath);
         content = newFile.normalizePath;

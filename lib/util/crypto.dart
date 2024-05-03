@@ -14,8 +14,12 @@ class CryptoUtil {
     return digest.toString();
   }
 
-  static Future<String> calcFileMD5(String filePath) async {
-    var res = md5.convert(await File(filePath).readAsBytes());
+  static Future<String?> calcFileMD5(String filePath) async {
+    var file = File(filePath);
+    if(!file.existsSync()){
+      return null;
+    }
+    var res = md5.convert(await file.readAsBytes());
     return res.toString();
   }
 

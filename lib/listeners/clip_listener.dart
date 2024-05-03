@@ -2,7 +2,7 @@ import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
 
 abstract class ClipObserver {
-  void onChanged(ContentType type,String content);
+  void onChanged(ContentType type, String content);
 }
 
 class ClipListener {
@@ -25,10 +25,10 @@ class ClipListener {
     return this;
   }
 
-  void update(ContentType type,String content) {
+  void update(ContentType type, String content) {
     for (var observer in _list) {
       try {
-        observer.onChanged(type,content);
+        observer.onChanged(type, content);
       } catch (e, stacktrace) {
         Log.debug(tag, e);
         Log.debug(tag, stacktrace);

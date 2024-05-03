@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
@@ -516,5 +517,12 @@ extension FileExt on File {
     return absolute.path
         .replaceFirst(absolute.parent.path, "")
         .replaceAll(RegExp(r'(/+|\\+)'), "");
+  }
+
+  Future<String?> get md5 async {
+    if (!existsSync()) {
+      return null;
+    }
+    return crypto.md5.convert(await readAsBytes()).toString();
   }
 }

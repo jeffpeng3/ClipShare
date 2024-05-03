@@ -19,6 +19,7 @@ import top.coclyun.clipshare.ClipboardFocusActivity
 import top.coclyun.clipshare.ClipboardListener
 import top.coclyun.clipshare.MainActivity
 import top.coclyun.clipshare.R
+import top.coclyun.clipshare.enums.ContentType
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.ref.WeakReference
@@ -95,7 +96,7 @@ class BackgroundService : Service(),
                         if (MainActivity.innerCopy) {
                             Log.d("clipboardChanged", "is innerCopy")
                             MainActivity.innerCopy = false
-                        }else{
+                        } else {
                             line?.let { Log.d("read_logs", "self log") }
                             mHandler.sendMessage(Message())
                         }
@@ -153,10 +154,13 @@ class BackgroundService : Service(),
         ClipboardListener.instance(this)!!.removeObserver(this)
     }
 
-    override fun clipboardChanged(content: String, same: Boolean) {
+    override fun clipboardChanged(type: ContentType, content: String, same: Boolean) {
         Log.d("clipboardChanged", "is same $same")
         if (same) return
-        MainActivity.clipChannel.invokeMethod("onClipboardChanged", mapOf("content" to content,"type" to "Text"))
+        MainActivity.clipChannel.invokeMethod(
+            "onClipboardChanged",
+            mapOf("content" to content, "type" to type.name)
+        )
     }
 
     private fun createPendingIntent(): PendingIntent? {
