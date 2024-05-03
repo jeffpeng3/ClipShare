@@ -29,5 +29,5 @@ private:
     std::wstring lastText = L"";
     void SendClip(std::string& type,std::wstring& content);
     std::wstring* GetClipboardDataCustom(std::string& type, int retry = 0);
-    static void OnClipboardChanged(std::string type,std::string content,int retry=0);
+    static bool InnerCopy(std::string type,std::string content,int retry=0);
 };

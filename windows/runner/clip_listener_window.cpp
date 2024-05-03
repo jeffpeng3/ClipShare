@@ -76,8 +76,8 @@ bool ClipListenerWindow::OnCreate()
 			auto* arguments = std::get_if<flutter::EncodableMap>(call.arguments());
 			auto type = std::get<std::string>(arguments->at(flutter::EncodableValue("type")));
 			auto content = std::get<std::string>(arguments->at(flutter::EncodableValue("content")));
-			OnClipboardChanged(type, content);
-			result->Success(flutter::EncodableValue(true));
+			bool res = InnerCopy(type, content);
+			result->Success(flutter::EncodableValue(res));
 		}
 	});
 	// std::stringstream ss;
@@ -195,7 +195,7 @@ bool BitmapToClipboard(HBITMAP hBM, HWND hWnd)
 	return nullptr != hDIB;
 }
 
-void ClipListenerWindow::OnClipboardChanged(std::string type, std::string content, int retry)
+bool ClipListenerWindow::InnerCopy(std::string type, std::string content, int retry)
 {
 	// 尝试打开剪贴板
 	bool isOpen = OpenClipboard(nullptr);
@@ -203,10 +203,10 @@ void ClipListenerWindow::OnClipboardChanged(std::string type, std::string conten
 	{
 		if (retry > 5)
 		{
-			return;
+			return false;
 		}
 		Sleep(100);
-		return OnClipboardChanged(type, content, retry + 1);
+		return InnerCopy(type, content, retry + 1);
 	}
 
 	// 清空剪贴板内容
@@ -222,7 +222,7 @@ void ClipListenerWindow::OnClipboardChanged(std::string type, std::string conten
 		{
 			CloseClipboard();
 			std::cerr << "Failed to allocate memory for clipboard!" << std::endl;
-			return;
+			return false;
 		}
 		// 将文本复制到全局内存中
 		auto const pchData = static_cast<wchar_t*>(GlobalLock(hClipboardData));
@@ -230,7 +230,7 @@ void ClipListenerWindow::OnClipboardChanged(std::string type, std::string conten
 		{
 			CloseClipboard();
 			std::cerr << "Failed to lock!" << std::endl;
-			return;
+			return false;
 		}
 		wcscpy_s(pchData, wcslen(data.c_str()) + 1, data.c_str());
 		GlobalUnlock(hClipboardData);
@@ -242,38 +242,15 @@ void ClipListenerWindow::OnClipboardChanged(std::string type, std::string conten
 	{
 		CImage image;
 		if (FAILED(image.Load(std::wstring(content.begin(), content.end()).c_str()))) {
-			return;
+			return false;
 		}
 		HBITMAP hBitmap = image.Detach();
 		if (hBitmap == nullptr) {
 			std::cerr << "Failed to load image." << std::endl;
-			return;
+			return false;
 		}
 		BitmapToClipboard(hBitmap, nullptr);
-		// SetClipboardData(CF_DIB, hBitmap);
 		DeleteObject(hBitmap);
-		// // 分配全局内存，用于存放图片数据
-		// hClipboardData = GlobalAlloc(GMEM_MOVEABLE, imageData.size());
-		// if (!hClipboardData)
-		// {
-		// 	CloseClipboard();
-		// 	std::cerr << "Failed to allocate memory for clipboard!" << std::endl;
-		// 	return;
-		// }
-		//
-		//
-		// // 将图片字节复制到全局内存中
-		// auto const pchData = GlobalLock(hClipboardData);
-		// if (!pchData)
-		// {
-		// 	CloseClipboard();
-		// 	std::cerr << "Failed to lock!" << std::endl;
-		// 	return;
-		// }
-		// memcpy(pchData, imageData.data(), imageData.size());
-		// GlobalUnlock(hClipboardData);
-		// // 将全局内存放入剪贴板
-		// SetClipboardData(CF_DIB, hClipboardData);
 	}
 	// 关闭剪贴板
 	CloseClipboard();
@@ -282,6 +259,7 @@ void ClipListenerWindow::OnClipboardChanged(std::string type, std::string conten
 		//释放GlobalAlloc分配的内存
 		GlobalFree(hClipboardData);
 	}
+	return true;
 }
 
 std::wstring* GetClipboardText()
