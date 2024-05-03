@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.ActivityManager
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -18,6 +20,7 @@ import android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -41,6 +44,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
 
         @JvmStatic
         var lockHistoryFloatLoc: Boolean = false
+
         @JvmStatic
         var innerCopy: Boolean = false
     }
@@ -106,6 +110,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
             "top.coclyun.clipshare/clip"
         )
         initCommonChannel()
+        initClipChannel()
         initAndroidChannel()
         initService()
     }
@@ -187,6 +192,49 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         }
         // 未找到匹配的服务类名，表示服务未在运行
         return false
+    }
+
+    /**
+     * 初始化剪贴板channel
+     */
+    private fun initClipChannel() {
+        clipChannel.setMethodCallHandler { call, result ->
+            var args: Map<String, Any> = mapOf()
+            if (call.arguments is Map<*, *>) {
+                args = call.arguments as Map<String, Any>
+            }
+            when (call.method) {
+                "copy" -> {
+                    try {
+                        innerCopy = true;
+                        val type = args["type"].toString()
+                        val content = args["content"].toString()
+                        when (type) {
+                            "Text" -> {
+                                // 获取剪贴板管理器
+                                val clipboardManager = ContextCompat.getSystemService(
+                                    context,
+                                    ClipboardManager::class.java
+                                ) as ClipboardManager
+                                // 创建一个剪贴板数据
+                                val clipData = ClipData.newPlainText("ClipboardData", content.toString())
+                                // 将数据放入剪贴板
+                                clipboardManager.setPrimaryClip(clipData)
+                            }
+
+                            "Image" -> {
+                                val path = content
+                            }
+                        }
+                        result.success(true)
+                    } catch (e: Exception) {
+                        innerCopy = false;
+                        result.success(false)
+                    }
+
+                }
+            }
+        }
     }
 
     /**

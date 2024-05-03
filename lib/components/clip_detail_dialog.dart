@@ -161,9 +161,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                           App.innerCopy = false;
                           setState(() {});
                         });
-                        Clipboard.setData(
-                          ClipboardData(text: widget.clip.data.content),
-                        );
+                        App.clipChannel.invokeMethod("copy", widget.clip.data.toJson());
                       },
                       tooltip: "复制内容",
                     ),
