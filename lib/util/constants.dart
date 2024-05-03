@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
@@ -27,10 +28,16 @@ class Constants {
           "name": "链接",
           "regular": r"[a-zA-z]+://[^\s]*",
         }
-      ]
+      ],
     },
   );
+
+  //默认历史弹窗快捷键（Ctrl + Alt + H）
   static const defaultHistoryWindowKeys = "458976,458978;458763";
+
+  static const androidRootStoragePath = "/storage/emulated/0/";
+  static const androidDownloadPath = "${androidRootStoragePath}Download";
+  static const androidPicturesPath = "${androidRootStoragePath}Pictures";
 
   //配对时限（秒）
   static const pairingLimit = 60;
@@ -69,6 +76,8 @@ class Constants {
       size: 48,
     ),
   };
+
+  //按键名称映射
   static final keyNameMap = [
     {
       "key": "Divide",
@@ -95,9 +104,49 @@ class Constants {
       "name": "-",
     },
   ];
+
+  //文件默认存储路径
+  static String get defaultFileStorePath {
+    if (Platform.isAndroid) {
+      return "$androidDownloadPath/$appName";
+    }
+    return "files/";
+  }
 }
 
 enum Option { add, delete, update }
+
+enum ContentType {
+  unknown(label: "未知", value: "unknown"),
+  all(label: "全部", value: ""),
+  text(label: "文本", value: "Text"),
+  image(label: "图片", value: "Image"),
+  richText(label: "富文本", value: "RichText"),
+  file(label: "文件", value: "File");
+
+  const ContentType({required this.label, required this.value});
+
+  final String value;
+  final String label;
+
+  static ContentType parse(String value) => ContentType.values.firstWhere(
+        (e) => e.value == value,
+        orElse: () {
+          Log.debug("ContentType", "key '$value' unknown");
+          return ContentType.unknown;
+        },
+      );
+
+  static Map<String, String> get typeMap {
+    var lst =
+        ContentType.values.where((e) => e != ContentType.unknown).toList();
+    Map<String, String> res = {};
+    for (var t in lst) {
+      res[t.label] = t.value;
+    }
+    return res;
+  }
+}
 
 enum MsgType {
   //设备连接

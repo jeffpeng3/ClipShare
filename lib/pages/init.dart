@@ -22,6 +22,7 @@ import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -59,6 +60,8 @@ class _LoadingPageState extends State<LoadingPage> {
     await AppDb.inst.init();
     //初始化本机设备信息
     await initDevInfo();
+    // var dirs = await getExternalStorageDirectory();
+    // print(dirs);
     //加载配置信息
     await loadConfigs();
     // 初始化App路径
@@ -85,9 +88,12 @@ class _LoadingPageState extends State<LoadingPage> {
 
   void initPath() async {
     if (Platform.isAndroid) {
+      // /storage/emulated/0/Android/data/top.coclyun.clipshare/files/documents
       App.documentPath = (await getExternalStorageDirectories(
-              type: StorageDirectory.documents))![0]
+        type: StorageDirectory.documents,
+      ))![0]
           .path;
+      // /storage/emulated/0/Android/data/top.coclyun.clipshare/cache
       App.cachePath = (await getExternalCacheDirectories())![0].path;
     } else {
       App.documentPath = (await getApplicationDocumentsDirectory()).path;
@@ -143,10 +149,11 @@ class _LoadingPageState extends State<LoadingPage> {
     App.clipChannel.setMethodCallHandler((call) async {
       var arguments = call.arguments;
       switch (call.method) {
-        case "setClipText":
-          String text = arguments['text'];
-          ClipListener.inst.update(text);
-          debugPrint("clipboard changed: $text");
+        case "onClipboardChanged":
+          String content = arguments['content'];
+          String type = arguments['type'];
+          ClipListener.inst.update(ContentType.parse(type), content);
+          debugPrint("clipboard changed: $type: $content");
           return Future(() => true);
         case "getHistory":
           int fromId = arguments["fromId"];
@@ -292,6 +299,12 @@ class _LoadingPageState extends State<LoadingPage> {
       "heartbeatInterval",
       App.userId,
     );
+    var fileStorePath = await cfg.getConfig(
+      "fileStorePath",
+      App.userId,
+    );
+    var fileStoreDir =
+        Directory(fileStorePath ?? Constants.defaultFileStorePath);
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
       localName: localName.isNotNullAndEmpty ? localName! : App.devInfo.name,
@@ -312,7 +325,16 @@ class _LoadingPageState extends State<LoadingPage> {
           historyWindowKeys ?? Constants.defaultHistoryWindowKeys,
       heartbeatInterval:
           heartbeatInterval?.toInt() ?? Constants.heartbeatInterval,
+      fileStorePath: fileStoreDir.absolute.normalizePath,
     );
+    //判断路径是否存在，不存在则创建,todo
+    if (!fileStoreDir.existsSync()) {
+      try {
+        fileStoreDir.createSync();
+      } catch (e) {
+        var dirPath = await FilePicker.platform.getDirectoryPath();
+      }
+    }
     if (Platform.isAndroid) {
       if (App.settings.showHistoryFloat) {
         App.androidChannel.invokeMethod("showHistoryFloatWindow");

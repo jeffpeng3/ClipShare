@@ -203,7 +203,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
               constraints: const BoxConstraints(maxHeight: 300),
               margin: const EdgeInsets.only(top: 10),
               child: ClipContentView(
-                content: widget.clip.data.content,
+                clipData: widget.clip,
               ),
             ),
           ],

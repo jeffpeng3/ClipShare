@@ -132,4 +132,11 @@ class SettingProvider extends Notifier<Settings> {
       heartbeatInterval: heartbeatInterval.toInt(),
     );
   }
+
+  Future<void> setFileStorePath(String fileStorePath) async {
+    await _addOrUpdate("fileStorePath", fileStorePath);
+    App.settings = state = state.copyWith(
+      fileStorePath: fileStorePath,
+    );
+  }
 }

@@ -492,3 +492,29 @@ extension PhysicalKeyboardKeyExt on PhysicalKeyboardKey {
 }
 
 extension HotKeyModifierExt on HotKeyModifier {}
+
+extension DirectoryExt on Directory {
+  String get normalizePath {
+    if (Platform.isWindows) {
+      return absolute.path.replaceAll(RegExp(r'(/+|\\+)'), "\\");
+    } else {
+      return absolute.path.replaceAll(RegExp(r'(/+|\\+)'), "/");
+    }
+  }
+}
+
+extension FileExt on File {
+  String get normalizePath {
+    if (Platform.isWindows) {
+      return absolute.path.replaceAll(RegExp(r'(/+|\\+)'), "\\");
+    } else {
+      return absolute.path.replaceAll(RegExp(r'(/+|\\+)'), "/");
+    }
+  }
+
+  String get fileName {
+    return absolute.path
+        .replaceFirst(absolute.parent.path, "")
+        .replaceAll(RegExp(r'(/+|\\+)'), "");
+  }
+}

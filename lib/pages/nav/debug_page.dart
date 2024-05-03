@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/util/crypto.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 
@@ -100,10 +101,13 @@ class _DebugPageState extends State<DebugPage> {
           height: 10,
         ),
         ElevatedButton(
-          onPressed: () {
-            throw Exception("123");
+          onPressed: () async {
+            var dir = Directory("files/").absolute.path;
+            print(dir);
+            // var md5 = await CryptoUtil.calcFileMD5("$dir/tmp/1.txt");
+            // print(md5);
           },
-          child: const Text("123"),
+          child: const Text("calcFileMd5"),
         ),
       ],
     );

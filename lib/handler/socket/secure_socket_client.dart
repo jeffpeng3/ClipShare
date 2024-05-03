@@ -60,7 +60,8 @@ class SecureSocketClient {
     void Function()? onDone,
     bool? cancelOnError,
   }) async {
-    var socket = await Socket.connect(ip, port,timeout: const Duration(seconds: 2));
+    var socket =
+        await Socket.connect(ip, port, timeout: const Duration(seconds: 2));
     var ssc = SecureSocketClient.fromSocket(
       socket: socket,
       prime: prime,
@@ -117,38 +118,41 @@ class SecureSocketClient {
             if (s.isEmpty) {
               continue;
             }
-            var lastIdx = s.length - 1;
-            //未接收到结束符，继续等待
-            if (s[lastIdx] != ",") {
+            //未接收到结束符，全部接收，继续等待
+            if (!s.contains(',')) {
               _data += rec;
               return;
             }
-            //去除结束符
-            _data += s.substring(0, lastIdx);
-            //接收完成，进行解码
-            if (_ready) {
-              //密钥已交换
+            //以结束符分割数据包
+            var pkgs = s.split(",");
+            for (var pkg in pkgs) {
+              if (pkg.isEmpty) continue;
+              //接收完整的数据包然后进行解析
+              _data += pkg;
               try {
-                //此处需要解密
-                var decrypt = CryptoUtil.decryptAES(
-                  key: _aesKey,
-                  encoded: _data,
-                  encrypter: _encrypter,
-                );
-                if (_onMessage != null) {
-                  _onMessage(this, decrypt);
+                //接收完成，进行解码
+                if (_ready) {
+                  //密钥已交换，此处需要解密
+                  var decrypt = CryptoUtil.decryptAES(
+                    key: _aesKey,
+                    encoded: _data,
+                    encrypter: _encrypter,
+                  );
+                  if (_onMessage != null) {
+                    _onMessage(this, decrypt);
+                  }
+                } else {
+                  //密钥未交换
+                  var decodeB64 = CryptoUtil.base64DecodeStr(_data);
+                  _exchange(decodeB64);
                 }
               } catch (ex, stack) {
                 //解析出错
                 Log.error("SecureSocketClient", "解析出错：$ex\n$stack");
               } finally {
+                //无论是否接收完，清空缓冲区，进行下一个数据包接收
                 _data = "";
               }
-            } else {
-              //密钥未交换
-              var decodeB64 = CryptoUtil.base64Decode(_data);
-              _exchange(decodeB64);
-              _data = "";
             }
           }
         },
@@ -241,13 +245,13 @@ class SecureSocketClient {
         encrypter: _encrypter,
       );
     } else {
-      data = CryptoUtil.base64Encode(data);
+      data = CryptoUtil.base64EncodeStr(data);
     }
     try {
       _msgStreamController.add("$data,");
     } catch (e, stack) {
       Log.debug("SecureSocketClient", "发送失败：$e");
-      Log.debug("SecureSocketClient", "_onDone ${_onDone==null}");
+      Log.debug("SecureSocketClient", "_onDone ${_onDone == null}");
       Log.debug("SecureSocketClient", "$stack");
       if (_onDone != null) {
         _onDone!.call();

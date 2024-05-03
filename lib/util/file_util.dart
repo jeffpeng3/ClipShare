@@ -1,6 +1,7 @@
 import 'dart:io';
 
 class FileUtil {
+  ///递归获取文件夹大小
   static int getDirectorySize(String directoryPath) {
     Directory directory = Directory(directoryPath);
     int totalSize = 0;
@@ -13,7 +14,7 @@ class FileUtil {
     return totalSize;
   }
 
-  // 递归删除目录下所有文件
+  /// 递归删除目录下所有文件
   static void deleteDirectoryFiles(String directoryPath) {
     Directory directory = Directory(directoryPath);
     directory.listSync().forEach((FileSystemEntity entity) {
@@ -24,5 +25,12 @@ class FileUtil {
         entity.deleteSync(); // 删除子目录
       }
     });
+  }
+
+  /// 移动文件
+  static void moveFile(String sourcePath, String destinationPath) {
+    File sourceFile = File(sourcePath);
+    File destinationFile = File(destinationPath);
+    sourceFile.renameSync(destinationPath);
   }
 }

@@ -156,7 +156,7 @@ class BackgroundService : Service(),
     override fun clipboardChanged(content: String, same: Boolean) {
         Log.d("clipboardChanged", "is same $same")
         if (same) return
-        MainActivity.clipChannel.invokeMethod("setClipText", mapOf("text" to content))
+        MainActivity.clipChannel.invokeMethod("onClipboardChanged", mapOf("content" to content,"type" to "Text"))
     }
 
     private fun createPendingIntent(): PendingIntent? {

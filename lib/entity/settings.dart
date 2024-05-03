@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 
@@ -36,8 +38,10 @@ class Settings {
   final bool enableLogsRecord;
   //历史记录弹窗快捷键
   final String historyWindowHotKeys;
-  //历史记录弹窗快捷键
+  //心跳间隔时长
   final int heartbeatInterval;
+  //文件存储路径
+  final String fileStorePath;
 
   Settings({
     required this.port,
@@ -54,6 +58,7 @@ class Settings {
     required this.tagRegulars,
     required this.historyWindowHotKeys,
     required this.heartbeatInterval,
+    required this.fileStorePath,
   });
 
   Settings copyWith({
@@ -71,6 +76,7 @@ class Settings {
     String? tagRegulars,
     String? historyWindowHotKeys,
     int? heartbeatInterval,
+    String? fileStorePath,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -88,6 +94,7 @@ class Settings {
       tagRegulars: tagRegulars ?? this.tagRegulars,
       historyWindowHotKeys: historyWindowHotKeys ?? this.historyWindowHotKeys,
       heartbeatInterval: heartbeatInterval ?? this.heartbeatInterval,
+      fileStorePath: Directory(fileStorePath ?? this.fileStorePath).absolute.normalizePath,
     );
   }
 }

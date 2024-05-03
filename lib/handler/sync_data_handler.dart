@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:clipshare/db/app_db.dart';
+import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/entity/tables/history.dart';
@@ -7,6 +11,7 @@ import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/extension.dart';
 
 class SyncDataHandler {
   static void sendMissingData(DevInfo dev) {
@@ -78,6 +83,15 @@ class SyncDataHandler {
               item.data = empty.toString();
             }
           } else {
+            var clip = ClipData(v);
+            if (clip.isImage) {
+              var file = File(v.content);
+              var fileName = file.fileName;
+              var bytes = file.readAsBytesSync();
+              v.content = jsonEncode(
+                {"fileName": fileName, "data": bytes},
+              );
+            }
             item.data = v.toString();
           }
         });

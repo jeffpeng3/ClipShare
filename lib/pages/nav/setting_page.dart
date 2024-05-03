@@ -18,6 +18,7 @@ import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/file_util.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/log.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
@@ -509,12 +510,29 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           },
                         ),
                         SettingCard(
+                          main: const Text("图片存储至Pictures文件夹中"),
+                          sub: const Text("Pictures文件夹是Android上的标准图片存储位置"),
+                          value: false,
+                          action: (v) {
+                            return Switch(value: v, onChanged: (checked) {});
+                          },
+                          show: (v) => Platform.isAndroid || true,
+                        ),
+                        SettingCard(
                           main: const Text("文件存储路径"),
-                          sub: const Text("/data/..."),
+                          sub: Text(vm.fileStorePath),
                           value: false,
                           action: (v) {
                             return TextButton(
-                              onPressed: true ? null : () {},
+                              onPressed: () async {
+                                String? directory = await FilePicker.platform
+                                    .getDirectoryPath(lockParentWindow: true);
+                                if (directory != null) {
+                                  ref
+                                      .notifier(settingProvider)
+                                      .setFileStorePath(directory);
+                                }
+                              },
                               child: const Text("选择"),
                             );
                           },

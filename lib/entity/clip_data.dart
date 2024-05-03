@@ -1,4 +1,5 @@
 import 'package:clipshare/entity/tables/history.dart';
+import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 
 class ClipData {
@@ -8,17 +9,21 @@ class ClipData {
 
   History get data => _data;
 
-  bool get isImg => _data.type == "Img";
+  bool get isImage => _data.type == ContentType.image.value;
 
-  bool get isText => _data.type == "Text";
+  bool get isText => _data.type == ContentType.text.value;
 
-  bool get isFile => _data.type == "File";
+  bool get isFile => _data.type == ContentType.file.value;
 
   String get timeStr => getTimeStr();
 
-  bool get isRichText => _data.type == "RichText";
+  bool get isRichText => _data.type == ContentType.richText.value;
 
-  String get sizeText => getSizeText();
+  String get sizeText {
+    int size = data.size;
+    if (isText || isRichText) return "$size 字";
+    return size.sizeStr;
+  }
 
   String getTimeStr() {
     String time = "";
@@ -38,12 +43,6 @@ class ClipData {
     }
 
     return time;
-  }
-
-  String getSizeText() {
-    int size = data.size;
-    if (isText || isRichText) return "$size 字";
-    return size.sizeStr;
   }
 
   static List<ClipData> fromList(List<History> list) {

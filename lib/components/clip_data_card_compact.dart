@@ -1,18 +1,23 @@
 import 'dart:convert';
 
+import 'package:clipshare/components/clip_simple_data_content.dart';
+import 'package:clipshare/components/clip_simple_data_extra_info.dart';
 import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 
+///多窗口下一些数据拿不到所以单独写一个
 class ClipDataCardCompact extends StatelessWidget {
   final String devName;
   final ClipData _clip;
 
-  const ClipDataCardCompact(
-      {super.key, required ClipData clip, required this.devName})
-      : _clip = clip;
+  const ClipDataCardCompact({
+    super.key,
+    required ClipData clip,
+    required this.devName,
+  }) : _clip = clip;
 
   @override
   Widget build(BuildContext context) {
@@ -58,43 +63,15 @@ class ClipDataCardCompact extends StatelessWidget {
                         devName,
                         style: const TextStyle(fontSize: 12),
                       ),
-                    )
+                    ),
                   ],
                 ),
                 Expanded(
-                  child: Column(
-                    children: [
-                      Container(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          _clip.data.content,
-                          textAlign: TextAlign.left,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                  child: ClipSimpleDataContent(
+                    clip: _clip,
                   ),
                 ),
-                Row(
-                  children: [
-                    _clip.data.top
-                        ? const Icon(Icons.push_pin, size: 16)
-                        : const SizedBox(width: 0),
-                    !_clip.data.sync
-                        ? const Icon(
-                            Icons.sync,
-                            size: 16,
-                            color: Colors.red,
-                          )
-                        : const SizedBox(width: 0),
-                    Text(_clip.timeStr),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(minWidth: 10),
-                    ),
-                    Text(_clip.sizeText),
-                  ],
-                ),
+                ClipSimpleDataExtraInfo(clip: _clip),
               ],
             ),
           ),

@@ -329,83 +329,90 @@ class ClipListViewState extends State<ClipListView>
                                 const SizedBox(
                                   width: 5,
                                 ),
-                                MenuAnchor(
-                                  controller: codeMenuController,
-                                  menuChildren: [
-                                    for (var language in allLanguages.keys)
-                                      SizedBox(
-                                        width: 200,
-                                        child: InkWell(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(7),
-                                            child: Text(
-                                              language,
-                                              style: TextStyle(
-                                                color: this.language == language
-                                                    ? Colors.blue
-                                                    : null,
+                                _showHistoryData!.isText
+                                    ? MenuAnchor(
+                                        controller: codeMenuController,
+                                        menuChildren: [
+                                          for (var language
+                                              in allLanguages.keys)
+                                            SizedBox(
+                                              width: 200,
+                                              child: InkWell(
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(7),
+                                                  child: Text(
+                                                    language,
+                                                    style: TextStyle(
+                                                      color: this.language ==
+                                                              language
+                                                          ? Colors.blue
+                                                          : null,
+                                                    ),
+                                                  ),
+                                                ),
+                                                onTap: () {
+                                                  setState(() {
+                                                    codeMenuController.close();
+                                                    this.language =
+                                                        this.language ==
+                                                                language
+                                                            ? null
+                                                            : language;
+                                                  });
+                                                },
                                               ),
                                             ),
+                                        ],
+                                        style: MenuStyle(
+                                          maximumSize: MaterialStateProperty
+                                              .resolveWith<Size?>(
+                                            (Set<MaterialState> states) {
+                                              return const Size(150, 200);
+                                            },
                                           ),
-                                          onTap: () {
-                                            setState(() {
-                                              codeMenuController.close();
-                                              this.language =
-                                                  this.language == language
-                                                      ? null
-                                                      : language;
-                                            });
-                                          },
                                         ),
-                                      ),
-                                  ],
-                                  style: MenuStyle(
-                                    maximumSize: MaterialStateProperty
-                                        .resolveWith<Size?>(
-                                      (Set<MaterialState> states) {
-                                        return const Size(150, 200);
-                                      },
-                                    ),
-                                  ),
-                                  crossAxisUnconstrained: false,
-                                  consumeOutsideTap: true,
-                                  builder: (context, controller, child) {
-                                    onPressed() {
-                                      if (controller.isOpen) {
-                                        controller.close();
-                                      } else {
-                                        controller.open();
-                                      }
-                                    }
+                                        crossAxisUnconstrained: false,
+                                        consumeOutsideTap: true,
+                                        builder: (context, controller, child) {
+                                          onPressed() {
+                                            if (controller.isOpen) {
+                                              controller.close();
+                                            } else {
+                                              controller.open();
+                                            }
+                                          }
 
-                                    return language != null
-                                        ? RoundedChip(
-                                            padding: const EdgeInsets.only(
-                                              left: 2,
-                                              right: 2,
-                                            ),
-                                            label: Text(
-                                              language!,
-                                              style: const TextStyle(
-                                                color: Colors.blue,
-                                              ),
-                                            ),
-                                            onPressed: onPressed,
-                                          )
-                                        : Tooltip(
-                                            message: "源代码模式",
-                                            child: IconButton(
-                                              visualDensity:
-                                                  VisualDensity.compact,
-                                              onPressed: onPressed,
-                                              icon: const Icon(
-                                                Icons.code,
-                                                size: 20,
-                                              ),
-                                            ),
-                                          );
-                                  },
-                                ),
+                                          return language != null
+                                              ? RoundedChip(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                    left: 2,
+                                                    right: 2,
+                                                  ),
+                                                  label: Text(
+                                                    language!,
+                                                    style: const TextStyle(
+                                                      color: Colors.blue,
+                                                    ),
+                                                  ),
+                                                  onPressed: onPressed,
+                                                )
+                                              : Tooltip(
+                                                  message: "源代码模式",
+                                                  child: IconButton(
+                                                    visualDensity:
+                                                        VisualDensity.compact,
+                                                    onPressed: onPressed,
+                                                    icon: const Icon(
+                                                      Icons.code,
+                                                      size: 20,
+                                                    ),
+                                                  ),
+                                                );
+                                        },
+                                      )
+                                    : const SizedBox.shrink(),
                               ],
                             ),
                             Tooltip(
@@ -471,7 +478,7 @@ class ClipListViewState extends State<ClipListView>
                             padding: const EdgeInsets.only(top: 5, bottom: 5),
                             child: ClipContentView(
                               key: _clipTagRowKey,
-                              content: _showHistoryData!.data.content,
+                              clipData: _showHistoryData!,
                               language: language,
                             ),
                           ),

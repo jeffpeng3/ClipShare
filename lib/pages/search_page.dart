@@ -46,16 +46,10 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
   var _searchEndDate = "";
   var _searchType = "全部";
   var _searchOnlyNoSync = false;
-  final _typeMap = {
-    "全部": "",
-    "文本": "Text",
-    "图片": "Img",
-    "富文本": "RichText",
-    "文件": "File",
-  };
 
-  String get typeValue =>
-      _typeMap.keys.contains(_searchType) ? _typeMap[_searchType]! : "";
+  String get typeValue => ContentType.typeMap.keys.contains(_searchType)
+      ? ContentType.typeMap[_searchType]!
+      : "";
 
   @override
   void initState() {

@@ -123,7 +123,7 @@ class SocketListener {
         if (datagram == null) {
           return;
         }
-        var data = CryptoUtil.base64Decode(utf8.decode(datagram.data));
+        var data = CryptoUtil.base64DecodeStr(utf8.decode(datagram.data));
         Map<String, dynamic> json = jsonDecode(data);
         var msg = MessageData.fromJson(json);
         var dev = msg.send;
@@ -598,7 +598,7 @@ class SocketListener {
       },
       onDone: () {
         Log.debug(tag, "手动连接关闭");
-        for (var devId in _devSockets.keys) {
+        for (var devId in _devSockets.keys.toList()) {
           var skt = _devSockets[devId]!.socket;
           if (skt.ip == ip && skt.port == port) {
             _onDevDisConnected(devId);
@@ -607,7 +607,7 @@ class SocketListener {
       },
       onError: (error) {
         Log.error(tag, '手动连接发生错误: $error $ip $port');
-        for (var devId in _devSockets.keys) {
+        for (var devId in _devSockets.keys.toList()) {
           var skt = _devSockets[devId]!.socket;
           if (skt.ip == ip && skt.port == port) {
             _onDevDisConnected(devId);
@@ -835,7 +835,7 @@ class SocketListener {
       recv: recv,
     );
     try {
-      var b64Data = CryptoUtil.base64Encode("${msg.toJsonStr()}\n");
+      var b64Data = CryptoUtil.base64EncodeStr("${msg.toJsonStr()}\n");
       var multicasts = await _getSockets(Constants.multicastGroup);
       for (var multicast in multicasts) {
         multicast.send(

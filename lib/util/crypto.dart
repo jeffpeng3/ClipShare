@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:basic_utils/basic_utils.dart';
@@ -13,18 +14,29 @@ class CryptoUtil {
     return digest.toString();
   }
 
-  static String base64Encode(String input) {
-    // Encode the input string to Base64
+  static Future<String> calcFileMD5(String filePath) async {
+    var res = md5.convert(await File(filePath).readAsBytes());
+    return res.toString();
+  }
+
+  static String base64EncodeStr(String input) {
     List<int> bytes = utf8.encode(input);
     String encodedString = base64.encode(bytes);
     return encodedString;
   }
 
-  static String base64Decode(String input) {
-    // Decode the Base64 string to the original string
+  static String base64EncodeBytes(List<int> bytes) {
+    String encodedString = base64.encode(bytes);
+    return encodedString;
+  }
+
+  static String base64DecodeStr(String input) {
     List<int> bytes = base64.decode(input);
     String decodedString = utf8.decode(bytes);
     return decodedString;
+  }
+  static List<int> base64DecodeBytes(String input) {
+    return base64.decode(input);
   }
 
   /// 返回RSA的pem格式的key

@@ -16,11 +16,14 @@ import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/history_tag_provider.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/file_util.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 class HistoryPage extends StatefulWidget {
@@ -146,7 +149,7 @@ class HistoryPageState extends State<HistoryPage>
   }
 
   @override
-  void onChanged(String content) {
+  Future<void> onChanged(ContentType type, String content) async {
     if (App.innerCopy) {
       App.innerCopy = false;
       return;
@@ -156,14 +159,45 @@ class HistoryPageState extends State<HistoryPage>
       return;
     }
     Log.debug("ClipData onChanged", content);
+    int size = content.length;
+    switch (type) {
+      case ContentType.text:
+        //文本无特殊实现，此处留空
+        break;
+      case ContentType.image:
+        //如果上次也是复制的图片/文件，判断其md5与本次比较，若相同则跳过
+        if (_last?.type == ContentType.image.value) {
+          var md51 = await CryptoUtil.calcFileMD5(_last!.content);
+          var md52 = await CryptoUtil.calcFileMD5(content);
+          //两次的图片相同，跳过。
+          if (md51 == md52) {
+            return;
+          }
+        }
+        //移动到设置的路径然后删除临时文件
+        var tempFile = File(content);
+        size = await tempFile.length();
+        // var fileName = content.replaceFirst(tempFile.absolute.parent.path, "");
+        var newPath = App.settings.fileStorePath + tempFile.fileName;
+        var newFile = File(newPath);
+        FileUtil.moveFile(content, newPath);
+        content = newFile.normalizePath;
+        break;
+      case ContentType.richText:
+        break;
+      case ContentType.file:
+        break;
+      default:
+        throw Exception("UnSupport Type: ${type.label}-${type.value}");
+    }
     var history = History(
       id: App.snowflake.nextId(),
       uid: App.userId,
       devId: App.devInfo.guid,
       time: DateTime.now().toString(),
       content: content,
-      type: 'Text',
-      size: content.length,
+      type: type.value,
+      size: size,
     );
     addData(history, true);
   }
@@ -185,15 +219,17 @@ class HistoryPageState extends State<HistoryPage>
         history.id.toString(),
       );
       AppDb.inst.opRecordDao.addAndNotify(opRecord);
-      var regulars = jsonDecode(App.settings.tagRegulars)["data"];
-      for (var reg in regulars) {
-        if (history.content.matchRegExp(reg["regular"])) {
-          //添加标签
-          var tag = HistoryTag(
-            reg["name"],
-            history.id,
-          );
-          context.ref.notifier(HistoryTagProvider.inst).add(tag);
+      if (ContentType.parse(history.type) == ContentType.text) {
+        var regulars = jsonDecode(App.settings.tagRegulars)["data"];
+        for (var reg in regulars) {
+          if (history.content.matchRegExp(reg["regular"])) {
+            //添加标签
+            var tag = HistoryTag(
+              reg["name"],
+              history.id,
+            );
+            context.ref.notifier(HistoryTagProvider.inst).add(tag);
+          }
         }
       }
       return cnt;
@@ -241,7 +277,7 @@ class HistoryPageState extends State<HistoryPage>
   }
 
   @override
-  void onSync(MessageData msg) {
+  Future<void> onSync(MessageData msg) async {
     var send = msg.send;
     var opRecord = OperationRecord.fromJson(msg.data);
     Map<String, dynamic> json = jsonDecode(opRecord.data);
@@ -265,6 +301,25 @@ class HistoryPageState extends State<HistoryPage>
       return;
     }
     Future f = Future.value();
+    if ([OpMethod.add, OpMethod.update].contains(opRecord.method)) {
+      switch (ContentType.parse(history.type)) {
+        case ContentType.image:
+          var content = jsonDecode(history.content);
+          var fileName = content["fileName"];
+          var data = content["data"].cast<int>();
+          var path = "${App.settings.fileStorePath}/$fileName";
+          history.content = path;
+          await Permission.manageExternalStorage.request();
+          await Permission.storage.request();
+          var file = File(path);
+          if (!file.existsSync()) {
+            file.writeAsBytesSync(data);
+          }
+          break;
+        default:
+          break;
+      }
+    }
     switch (opRecord.method) {
       case OpMethod.add:
         f = addData(history, false);

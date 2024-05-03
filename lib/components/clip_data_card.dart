@@ -1,3 +1,5 @@
+import 'package:clipshare/components/clip_simple_data_content.dart';
+import 'package:clipshare/components/clip_simple_data_extra_info.dart';
 import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/clip_data.dart';
@@ -11,7 +13,6 @@ import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:contextmenu/contextmenu.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 import 'clip_detail_dialog.dart';
@@ -124,10 +125,8 @@ class ClipDataCardState extends State<ClipDataCard> {
                         children: [
                           //来源设备
                           Consumer(
-                            // provider: DeviceInfoProvider.inst,
                             builder: (context, ref) {
                               var vm = ref.watch(DeviceInfoProvider.inst);
-                              // print("12");
                               return RoundedChip(
                                 avatar: const Icon(Icons.devices_rounded),
                                 backgroundColor: const Color(0x1a000000),
@@ -183,50 +182,14 @@ class ClipDataCardState extends State<ClipDataCard> {
                   ),
                 ),
                 Expanded(
-                  child: Column(
-                    children: [
-                      Container(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          widget.clip.data.content.substringMinLen(0, 200),
-                          textAlign: TextAlign.left,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                  child: Container(
+                    alignment: Alignment.centerLeft,
+                    child: ClipSimpleDataContent(
+                      clip: widget.clip,
+                    ),
                   ),
                 ),
-                Row(
-                  children: [
-                    widget.clip.data.top
-                        ? const Icon(Icons.push_pin, size: 16)
-                        : const SizedBox(width: 0),
-                    !widget.clip.data.sync
-                        ? const Icon(
-                            Icons.sync,
-                            size: 16,
-                            color: Colors.red,
-                          )
-                        : const SizedBox(width: 0),
-                    GestureDetector(
-                      child: Text(
-                        _showSimpleTime
-                            ? widget.clip.timeStr
-                            : widget.clip.data.time.substring(0, 19),
-                      ),
-                      onTap: () {
-                        setState(() {
-                          _showSimpleTime = !_showSimpleTime;
-                        });
-                      },
-                    ),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(minWidth: 10),
-                    ),
-                    Text(widget.clip.sizeText),
-                  ],
-                ),
+                ClipSimpleDataExtraInfo(clip: widget.clip),
               ],
             ),
           ),
@@ -266,9 +229,7 @@ class ClipDataCardState extends State<ClipDataCard> {
           title: const Text("复制内容"),
           onTap: () {
             App.innerCopy = true;
-            Clipboard.setData(
-              ClipboardData(text: widget.clip.data.content),
-            );
+            App.clipChannel.invokeMethod("copy", widget.clip.data.toJson());
             Navigator.of(context).pop();
           },
         ),
