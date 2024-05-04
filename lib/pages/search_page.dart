@@ -556,7 +556,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  for (var type in ["全部", "文本", "图片", "富文本", "文件"])
+                  for (var type in ["全部", "文本", "图片", "文件"])
                     Row(
                       children: [
                         RoundedChip(
@@ -610,6 +610,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                         topLeft: Radius.circular(4),
                         topRight: Radius.circular(4),
                       ),
+                      imageMasonryGridViewLayout: _searchType == "图片",
                     ),
             ),
           ],

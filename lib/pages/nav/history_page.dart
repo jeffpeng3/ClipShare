@@ -21,7 +21,6 @@ import 'package:clipshare/util/file_util.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
@@ -328,7 +327,7 @@ class HistoryPageState extends State<HistoryPage>
         //不是批量同步时放入本地剪贴板
         if (msg.key != MsgType.missingData) {
           App.innerCopy = true;
-          Clipboard.setData(ClipboardData(text: history.content));
+          App.clipChannel.invokeMethod("copy", history.toJson());
         }
         break;
       case OpMethod.delete:

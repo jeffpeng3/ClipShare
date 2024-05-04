@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/components/clip_content_view.dart';
@@ -9,11 +10,13 @@ import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/pages/preview_page.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:highlighting/languages/all.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
@@ -27,6 +30,7 @@ class ClipListView extends StatefulWidget {
   final Future<List<ClipData>> Function(int minId)? onLoadMoreData;
   final void Function() onUpdate;
   final void Function(int id) onRemove;
+  final bool imageMasonryGridViewLayout;
 
   const ClipListView({
     super.key,
@@ -37,6 +41,7 @@ class ClipListView extends StatefulWidget {
     this.enableRouteSearch = false,
     required this.onUpdate,
     required this.onRemove,
+    this.imageMasonryGridViewLayout = false,
   });
 
   @override
@@ -218,63 +223,105 @@ class ClipListViewState extends State<ClipListView>
                               const EmptyContent(),
                             ],
                           )
-                        : ListView.builder(
-                            itemCount: _list.length,
-                            controller: _scrollController,
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            itemBuilder: (context, i) {
-                              return Container(
-                                padding:
-                                    const EdgeInsets.only(left: 2, right: 2),
-                                constraints: const BoxConstraints(
-                                  maxHeight: 150,
-                                  minHeight: 80,
-                                ),
-                                child: ClipDataCard(
-                                  clip: _list[i],
-                                  routeToSearchOnClickChip:
-                                      widget.enableRouteSearch,
-                                  onTap: () {
-                                    var data = _list[i];
-                                    if (data.data.id !=
-                                        _showHistoryData?.data.id) {
-                                      _showHistoryData = data;
-                                      _clipTagRowKey = UniqueKey();
-                                      setState(() {});
-                                    } else {
-                                      setState(() {
-                                        _showHistoryData = null;
-                                        _rightShowFullPage = false;
-                                      });
-                                    }
-                                  },
-                                  onDoubleTap: () async {
-                                    App.innerCopy = true;
-                                    var res = await App.clipChannel
-                                        .invokeMethod<bool>(
-                                      "copy",
-                                      _list[i].data.toJson(),
-                                    );
-                                    res = res ?? false;
-                                    if (res) {
-                                      Global.snackBarSuc(context, "复制成功");
-                                    } else {
-                                      Global.snackBarErr(context, "复制失败");
-                                    }
-                                    App.innerCopy = false;
-                                  },
-                                  onUpdate: () {
-                                    widget.onUpdate.call();
-                                    notifyCompactWindow();
-                                  },
-                                  onRemove: (id) {
-                                    widget.onRemove.call(id);
-                                    notifyCompactWindow();
-                                  },
-                                ),
-                              );
-                            },
-                          ),
+                        : widget.imageMasonryGridViewLayout
+                            ? LayoutBuilder(
+                                builder: (ctx, constraints) {
+                                  var maxWidth = 200.0;
+                                  var count =
+                                      max(1, constraints.maxWidth ~/ maxWidth);
+                                  return MasonryGridView.count(
+                                    crossAxisCount: count,
+                                    mainAxisSpacing: 4,
+                                    crossAxisSpacing: 4,
+                                    itemCount: _list.length,
+                                    itemBuilder: (context, index) {
+                                      var clipData = _list[index];
+                                      return MouseRegion(
+                                        cursor: SystemMouseCursors.click,
+                                        child: InkWell(
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                            child: Image.file(
+                                              File(clipData.data.content),
+                                              fit: BoxFit.fitWidth,
+                                              width: maxWidth,
+                                            ),
+                                          ),
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    PreviewPage(
+                                                  clip: clipData,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              )
+                            : ListView.builder(
+                                itemCount: _list.length,
+                                controller: _scrollController,
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                itemBuilder: (context, i) {
+                                  return Container(
+                                    padding: const EdgeInsets.only(
+                                        left: 2, right: 2),
+                                    constraints: const BoxConstraints(
+                                      maxHeight: 150,
+                                      minHeight: 80,
+                                    ),
+                                    child: ClipDataCard(
+                                      clip: _list[i],
+                                      routeToSearchOnClickChip:
+                                          widget.enableRouteSearch,
+                                      onTap: () {
+                                        var data = _list[i];
+                                        if (data.data.id !=
+                                            _showHistoryData?.data.id) {
+                                          _showHistoryData = data;
+                                          _clipTagRowKey = UniqueKey();
+                                          setState(() {});
+                                        } else {
+                                          setState(() {
+                                            _showHistoryData = null;
+                                            _rightShowFullPage = false;
+                                          });
+                                        }
+                                      },
+                                      onDoubleTap: () async {
+                                        App.innerCopy = true;
+                                        var res = await App.clipChannel
+                                            .invokeMethod<bool>(
+                                          "copy",
+                                          _list[i].data.toJson(),
+                                        );
+                                        res = res ?? false;
+                                        if (res) {
+                                          Global.snackBarSuc(context, "复制成功");
+                                        } else {
+                                          Global.snackBarErr(context, "复制失败");
+                                        }
+                                        App.innerCopy = false;
+                                      },
+                                      onUpdate: () {
+                                        widget.onUpdate.call();
+                                        notifyCompactWindow();
+                                      },
+                                      onRemove: (id) {
+                                        widget.onRemove.call(id);
+                                        notifyCompactWindow();
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
                   ),
                   _showBackToTopButton
                       ? Positioned(
