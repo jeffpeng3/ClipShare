@@ -1,6 +1,5 @@
 import 'package:clipshare/pages/guide/base_guide.dart';
 import 'package:clipshare/pages/nav/base_page.dart';
-import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 
 class UserGuide extends StatefulWidget {
@@ -18,6 +17,7 @@ class _UserGuideState extends State<UserGuide> with WidgetsBindingObserver {
   int _current = 0;
   bool _canNext = false;
   bool _initFinished = false;
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
@@ -54,6 +54,12 @@ class _UserGuideState extends State<UserGuide> with WidgetsBindingObserver {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    _pageController.dispose();
+  }
+
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
@@ -68,9 +74,19 @@ class _UserGuideState extends State<UserGuide> with WidgetsBindingObserver {
   void gotoPre() async {
     if (_current != 0) {
       _current -= 1;
-      _canNext = await widget.guides[_current].canNext();
+      await updateCanNext();
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.ease,
+      );
       setState(() {});
     }
+  }
+
+  Future<void> updateCanNext() async {
+    _canNext = await widget.guides[_current].canNext() ||
+        widget.guides[_current].allowSkip;
+    setState(() {});
   }
 
   ///跳转下一项
@@ -79,7 +95,11 @@ class _UserGuideState extends State<UserGuide> with WidgetsBindingObserver {
       //允许下一步
       if (_canNext || widget.guides[_current].allowSkip) {
         _current += 1;
-        _canNext = await widget.guides[_current].canNext();
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.ease,
+        );
+        await updateCanNext();
         setState(() {});
       }
     }
@@ -97,33 +117,92 @@ class _UserGuideState extends State<UserGuide> with WidgetsBindingObserver {
               ),
             ),
           )
-        : GestureDetector(
-            onHorizontalDragEnd: (details) async {
-              Log.debug("onHorizontalDragEnd", details.primaryVelocity);
-              if (details.primaryVelocity == null) return;
-              if (details.primaryVelocity! > 500) {
-                Log.debug("onHorizontalDragEnd", "right");
-                // right
-                gotoPre();
-              } else if (details.primaryVelocity! < -500) {
-                // left
-                Log.debug("onHorizontalDragEnd", "left");
-                gotoNext();
-              }
-            },
-            child: Scaffold(
-              body: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+        : Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: widget.guides[_current].allowSkip
+                            ? () async {
+                                if (_current == widget.guides.length - 1) {
+                                  //跳转到首页
+                                  gotoHomePage();
+                                } else {
+                                  gotoNext();
+                                }
+                              }
+                            : null,
+                        child: Text(
+                          widget.guides[_current].allowSkip ? "跳过此项" : "",
+                        ),
+                      ),
+                    ],
+                  ),
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      pageSnapping: true,
+                      onPageChanged: (idx) async {
+                        if (idx > _current && !_canNext) {
+                          _pageController.previousPage(
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.ease,
+                          );
+                          return;
+                        }
+                        _current = idx;
+                        await updateCanNext();
+                        setState(() {});
+                      },
                       children: [
-                        TextButton(
-                          onPressed: widget.guides[_current].allowSkip
+                        for (var idx = 0; idx < widget.guides.length; idx++)
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [widget.guides[idx].widget],
+                          ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: _current == 0 ? null : gotoPre,
+                        child: const Text("上一步"),
+                      ),
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            for (var i = 0; i < widget.guides.length; i++)
+                              SizedBox(
+                                width: 16.0,
+                                height: 16.0,
+                                child: Center(
+                                  child: Container(
+                                    width: 10.0,
+                                    height: 10.0,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: i <= _current
+                                          ? Colors.blue
+                                          : Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: 70,
+                        child: TextButton(
+                          onPressed: _canNext
                               ? () async {
                                   if (_current == widget.guides.length - 1) {
-                                    //跳转到首页
                                     gotoHomePage();
                                   } else {
                                     gotoNext();
@@ -131,77 +210,13 @@ class _UserGuideState extends State<UserGuide> with WidgetsBindingObserver {
                                 }
                               : null,
                           child: Text(
-                              widget.guides[_current].allowSkip ? "跳过此项" : ""),
+                            _current == widget.guides.length - 1 ? "完成" : "下一步",
+                          ),
                         ),
-                      ],
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          for (var idx = 0; idx < widget.guides.length; idx++)
-                            Visibility(
-                              visible: _current == idx,
-                              child: widget.guides[_current].widget,
-                            ),
-                        ],
                       ),
-                    ),
-                    Row(
-                      children: [
-                        TextButton(
-                          onPressed: _current == 0 ? null : gotoPre,
-                          child: const Text("上一步"),
-                        ),
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              for (var i = 0; i < widget.guides.length; i++)
-                                SizedBox(
-                                  width: 16.0,
-                                  height: 16.0,
-                                  child: Center(
-                                    child: Container(
-                                      width: 10.0,
-                                      height: 10.0,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: i <= _current
-                                            ? Colors.blue
-                                            : Colors.grey,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          width: 70,
-                          child: TextButton(
-                            onPressed: _canNext ||
-                                    widget.guides[_current].allowSkip
-                                ? () async {
-                                    if (_current == widget.guides.length - 1) {
-                                      gotoHomePage();
-                                    } else {
-                                      gotoNext();
-                                    }
-                                  }
-                                : null,
-                            child: Text(
-                              _current == widget.guides.length - 1
-                                  ? "完成"
-                                  : "下一步",
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
             ),
           );
