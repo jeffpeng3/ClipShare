@@ -52,6 +52,8 @@ class Settings {
 
   //忽略Shizuku权限
   final bool ignoreShizuku;
+  //使用安全认证
+  final bool useAuthentication;
 
   Settings({
     required this.port,
@@ -71,6 +73,7 @@ class Settings {
     required this.fileStorePath,
     required this.saveToPictures,
     required this.ignoreShizuku,
+    required this.useAuthentication,
   });
 
   Settings copyWith({
@@ -91,6 +94,7 @@ class Settings {
     String? fileStorePath,
     bool? saveToPictures,
     bool? ignoreShizuku,
+    bool? useAuthentication,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -112,6 +116,7 @@ class Settings {
           Directory(fileStorePath ?? this.fileStorePath).absolute.normalizePath,
       saveToPictures: saveToPictures ?? this.saveToPictures,
       ignoreShizuku: ignoreShizuku ?? this.ignoreShizuku,
+      useAuthentication: useAuthentication ?? this.useAuthentication,
     );
   }
 }

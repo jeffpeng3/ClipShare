@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:clipshare/handler/history_top_syncer.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/handler/tag_syncer.dart';
+import 'package:clipshare/listeners/screen_opened_listener.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/pages/authentication_page.dart';
 import 'package:clipshare/pages/nav/debug_page.dart';
 import 'package:clipshare/pages/nav/devices_page.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
@@ -30,7 +32,9 @@ class BasePage extends StatefulWidget {
   State<BasePage> createState() => _BasePageState();
 }
 
-class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
+class _BasePageState extends State<BasePage>
+    with TrayListener, WindowListener
+    implements ScreenOpenedObserver {
   int _index = 0;
   final List<Widget> _pages = List.from([
     HistoryPage(
@@ -78,6 +82,45 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
   bool get _showLeftBar =>
       MediaQuery.of(context).size.width >= Constants.smallScreenWidth;
 
+  @override
+  void initState() {
+    super.initState();
+    assert(() {
+      _navBarItems.add(
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.bug_report_outlined),
+          label: "Debug",
+        ),
+      );
+      _pages.add(const DebugPage());
+      return true;
+    }());
+    ScreenOpenedListener.inst.register(this);
+    // 在构建完成后初始化
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initCommon();
+      if (Platform.isAndroid) {
+        _initAndroid();
+      }
+      if (Platform.isWindows) {
+        _initWindows();
+      }
+    });
+  }
+
+  @override
+  Future<void> onOpened() async {
+    //此处应该发送socket通知同步剪贴板到本机
+    SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
+    if (App.authenticating || !App.settings.useAuthentication) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AuthenticationPage(),
+      ),
+    );
+  }
+
   ///导航至搜索页面
   void gotoSearchPage(String? devId, String? tagName) {
     if (_showLeftBar) {
@@ -103,31 +146,6 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
         ),
       );
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    assert(() {
-      _navBarItems.add(
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.bug_report_outlined),
-          label: "Debug",
-        ),
-      );
-      _pages.add(const DebugPage());
-      return true;
-    }());
-    // 在构建完成后初始化
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initCommon();
-      if (Platform.isAndroid) {
-        _initAndroid();
-      }
-      if (Platform.isWindows) {
-        _initWindows();
-      }
-    });
   }
 
   ///初始化托盘
@@ -274,6 +292,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
     _tagSyncer.dispose();
     _historyTopSyncer.dispose();
     _networkListener.cancel();
+    ScreenOpenedListener.inst.remove(this);
     super.dispose();
   }
 

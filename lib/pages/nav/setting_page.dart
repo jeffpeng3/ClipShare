@@ -428,6 +428,52 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       ],
                     ),
 
+                    ///安全设置
+                    SettingCardGroup(
+                      groupName: "安全设置",
+                      icon: const Icon(Icons.fingerprint_outlined),
+                      cardList: [
+                        SettingCard(
+                          main: const Text("启用安全认证"),
+                          sub: const Text("密码或生物识别认证"),
+                          value: vm.useAuthentication,
+                          action: (v) {
+                            return Switch(
+                              value: v,
+                              onChanged: (checked) {
+                                //todo 这里还要验证是否设置了指纹或密码
+                                ref
+                                    .notifier(settingProvider)
+                                    .useAuthentication(checked);
+                              },
+                            );
+                          },
+                          show: (v) => Platform.isAndroid,
+                        ),
+                        SettingCard(
+                          main: const Text("更改密码"),
+                          sub: const Text("更改应用密码"),
+                          value: '',
+                          action: (v) {
+                            return const TextButton(
+                              onPressed: null,
+                              child: Text("更改"),
+                            );
+                          },
+                          show: (v) => Platform.isAndroid,
+                        ),
+                        SettingCard(
+                          main: const Text("密码重新验证"),
+                          sub: const Text("在后台指定时长后重新验证密码"),
+                          value: '',
+                          action: (v) {
+                            return const Text("立即");
+                          },
+                          show: (v) => Platform.isAndroid,
+                        ),
+                      ],
+                    ),
+
                     ///快捷键
                     SettingCardGroup(
                       groupName: "快捷键",

@@ -11,7 +11,7 @@ import 'package:clipshare/entity/version.dart';
 import 'package:clipshare/handler/hot_key_handler.dart';
 import 'package:clipshare/handler/socket/secure_socket_client.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
-import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/listeners/screen_opened_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/welcome_page.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
@@ -180,8 +180,7 @@ class _LoadingPageState extends State<LoadingPage> {
         var arguments = call.arguments;
         switch (call.method) {
           case "onScreenOpened":
-            //此处应该发送socket通知同步剪贴板到本机
-            SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
+            ScreenOpenedListener.inst.notify();
             break;
           case "checkMustPermission":
             try {
@@ -318,6 +317,10 @@ class _LoadingPageState extends State<LoadingPage> {
       "ignoreShizuku",
       App.userId,
     );
+    var useAuthentication = await cfg.getConfig(
+      "useAuthentication",
+      App.userId,
+    );
     var fileStoreDir =
         Directory(fileStorePath ?? Constants.defaultFileStorePath);
     App.settings = Settings(
@@ -343,6 +346,7 @@ class _LoadingPageState extends State<LoadingPage> {
       fileStorePath: fileStoreDir.absolute.normalizePath,
       saveToPictures: saveToPictures?.toBool() ?? false,
       ignoreShizuku: ignoreShizuku?.toBool() ?? false,
+      useAuthentication: useAuthentication?.toBool() ?? false,
     );
     if (Platform.isAndroid) {
       if (App.settings.showHistoryFloat) {

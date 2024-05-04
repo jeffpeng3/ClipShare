@@ -29,9 +29,11 @@ import rikka.shizuku.Shizuku
 import top.coclyun.clipshare.broadcast.ScreenReceiver
 import top.coclyun.clipshare.service.BackgroundService
 import top.coclyun.clipshare.service.HistoryFloatService
+import io.flutter.embedding.android.FlutterFragmentActivity
 
 
-class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListener {
+
+class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResultListener {
     private val requestShizukuCode = 5001
     private val requestOverlayResultCode = 5002
     private lateinit var screenReceiver: ScreenReceiver
@@ -212,7 +214,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
                         val content = args["content"].toString()
                         // 获取剪贴板管理器
                         val clipboardManager = ContextCompat.getSystemService(
-                            context,
+                            applicationContext,
                             ClipboardManager::class.java
                         ) as ClipboardManager
                         when (type) {
@@ -228,7 +230,7 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
                                 val uri =
                                     Uri.parse("content://top.coclyun.clipshare.FileProvider/$content")
                                 val clipData =
-                                    ClipData.newUri(context.contentResolver, "image", uri)
+                                    ClipData.newUri(applicationContext.contentResolver, "image", uri)
                                 // 将数据放入剪贴板
                                 clipboardManager.setPrimaryClip(clipData)
                                 result.success(true)

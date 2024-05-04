@@ -99,6 +99,7 @@ class App extends StatelessWidget {
   static late BuildContext context;
   static late Settings settings;
   static bool innerCopy = false;
+  static bool authenticating = false;
   static late final Version version;
   static const minVersion = Version("1.0.0-alpha", "3");
   static late double osVersion;

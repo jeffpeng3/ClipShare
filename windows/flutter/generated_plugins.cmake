@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   desktop_multi_window
   hotkey_manager_windows
+  local_auth_windows
   permission_handler_windows
   screen_retriever
   smart_auth

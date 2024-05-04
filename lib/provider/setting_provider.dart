@@ -152,4 +152,10 @@ class SettingProvider extends Notifier<Settings> {
       ignoreShizuku: true,
     );
   }
+  Future<void> useAuthentication(bool useAuthentication) async {
+    await _addOrUpdate("useAuthentication", useAuthentication.toString());
+    App.settings = state = state.copyWith(
+      useAuthentication: useAuthentication,
+    );
+  }
 }
