@@ -2,6 +2,8 @@ package top.coclyun.clipshare.service
 
 import android.app.Service
 import android.content.Intent
+import android.content.res.Configuration
+import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import android.content.res.Resources
 import android.graphics.PixelFormat
 import android.os.Build
@@ -20,7 +22,6 @@ import android.view.View.OnClickListener
 import android.view.View.OnTouchListener
 import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
 import android.widget.LinearLayout
@@ -56,20 +57,6 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         val layoutInflater = baseContext.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
         view = layoutInflater.inflate(R.layout.history_clipboard_float, null) as ViewGroup
-        view.setOnSystemUiVisibilityChangeListener { it ->
-            run {
-                var isFullScreen = false;
-                isFullScreen = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    // For Android 11 and above, check the appearance of the navigation bar
-                    view.getRootWindowInsets().isVisible(WindowInsets.Type.navigationBars())
-                } else {
-                    // For Android versions prior to Android 11
-                    (it and View.SYSTEM_UI_FLAG_FULLSCREEN) == View.SYSTEM_UI_FLAG_FULLSCREEN
-                }
-                Log.d(TAG, "isFullScreen: $isFullScreen")
-                view.visibility = if (isFullScreen) View.GONE else VISIBLE
-            }
-        }
         mainParams = LayoutParams()
     }
 
@@ -132,6 +119,12 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
         super.onDestroy()
         stopSelf()
         closeFloatWindow()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        val isLandScape = newConfig.orientation == ORIENTATION_LANDSCAPE
+        view.visibility = if (isLandScape) View.GONE else VISIBLE
     }
 
     private fun setPosRight() {
