@@ -5,6 +5,7 @@ import 'package:clipshare/main.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class Constants {
   //组播默认端口
@@ -57,28 +58,28 @@ class Constants {
   static const showHistoryRightWidth = 840;
 
   //设备类型图片
-  static Map<String, Icon> devTypeIcons = const {
-    'Windows': Icon(
+  static Map<String, Icon> devTypeIcons = {
+    'Windows': const Icon(
       Icons.laptop_windows_outlined,
       color: Colors.grey,
       size: 48,
     ),
-    'Android': Icon(
-      Icons.phone_android_outlined,
+    'Android': const Icon(
+      Icons.android_outlined,
       color: Colors.grey,
       size: 48,
     ),
-    'Mac': Icon(
+    'Mac': const Icon(
       Icons.laptop_mac_outlined,
       color: Colors.grey,
       size: 48,
     ),
     'Linux': Icon(
-      Icons.laptop_windows_outlined,
+      MdiIcons.linux,
       color: Colors.grey,
       size: 48,
     ),
-    'IOS': Icon(
+    'IOS': const Icon(
       Icons.apple_outlined,
       color: Colors.grey,
       size: 48,

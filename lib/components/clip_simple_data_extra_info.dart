@@ -14,7 +14,7 @@ class ClipSimpleDataExtraInfo extends StatefulWidget {
 }
 
 class _ClipSimpleDataExtraInfoState extends State<ClipSimpleDataExtraInfo> {
-  bool _showSimpleTime = false;
+  bool _showSimpleTime = true;
 
   @override
   Widget build(BuildContext context) {
