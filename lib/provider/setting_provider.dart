@@ -146,4 +146,10 @@ class SettingProvider extends Notifier<Settings> {
       saveToPictures: saveToPictures,
     );
   }
+  Future<void> ignoreShizuku() async {
+    await _addOrUpdate("ignoreShizuku", true.toString());
+    App.settings = state = state.copyWith(
+      ignoreShizuku: true,
+    );
+  }
 }

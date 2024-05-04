@@ -249,14 +249,15 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           },
                         ),
                         SettingCard(
-                          main: const Text("剪贴板权限"),
-                          sub: const Text("请通过Shizuku或Root授权"),
+                          main: const Text("Shizuku权限"),
+                          sub: const Text("授权以获知剪贴板变化"),
                           value: hasShizukuPerm,
                           action: (val) => Icon(
                             val ? Icons.check_circle : Icons.help,
                             color: val ? Colors.green : Colors.orange,
                           ),
-                          show: (v) => Platform.isAndroid && !v,
+                          show: (v) =>
+                              Platform.isAndroid && !v && App.osVersion >= 10,
                           onTap: () {
                             if (!hasShizukuPerm) {
                               shizukuHandler.request();

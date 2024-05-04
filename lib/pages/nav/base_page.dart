@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/handler/history_top_syncer.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/handler/tag_syncer.dart';
@@ -236,7 +235,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
     //检查权限
     var permHandlers = [
       FloatPermHandler(),
-      ShizukuPermHandler(),
+      if (!App.settings.ignoreShizuku) ShizukuPermHandler(),
       NotifyPermHandler(),
     ];
     for (var handler in permHandlers) {
@@ -263,7 +262,7 @@ class _BasePageState extends State<BasePage> with TrayListener, WindowListener {
     _tagSyncer = TagSyncer();
     _historyTopSyncer = HistoryTopSyncer();
     //进入主页面后标记为不是第一次进入
-    if(App.settings.firstStartup) {
+    if (App.settings.firstStartup) {
       context.ref.notifier(settingProvider).setNotFirstStartup();
     }
   }

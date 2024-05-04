@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 class ShizukuPermGuide extends BaseGuide {
   var permHandler = ShizukuPermHandler();
 
-  ShizukuPermGuide() {
+  ShizukuPermGuide({super.allowSkip = true}) {
     super.widget = PermissionGuide(
       title: "Shizuku 权限",
       icon: Icons.copy_all,
@@ -77,7 +77,7 @@ class ShizukuPermGuide extends BaseGuide {
                       color: Colors.blue,
                     )
                   : const SizedBox.shrink(),
-              label: Text(hasPerm ? "OK" : "去授权"),
+              label: Text(hasPerm ? "已授权" : "去授权"),
             ),
           ],
         );

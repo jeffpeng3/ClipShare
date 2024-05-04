@@ -1,5 +1,8 @@
 import 'package:clipshare/main.dart';
+import 'package:clipshare/provider/setting_provider.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:flutter/material.dart';
+import 'package:refena_flutter/refena_flutter.dart';
 
 abstract class AbstractPermissionHandler {
   static void showRequestDialog({
@@ -42,26 +45,6 @@ abstract class AbstractPermissionHandler {
     );
   }
 
-  static void showCloseDialog(String title, String content) {
-    showDialog(
-      context: App.context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(content),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("确定"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void request();
 
   Future<bool> hasPermission();
@@ -78,9 +61,10 @@ class FloatPermHandler extends AbstractPermissionHandler {
         '\n\n点击确定跳转页面授权悬浮窗权限',
       ),
       onClose: (ctx) {
-        AbstractPermissionHandler.showCloseDialog(
-          "必要权限缺失",
-          '请授予悬浮窗权限，否则无法后台读取剪贴板',
+        Global.showTipsDialog(
+          context: ctx,
+          title: "必要权限缺失",
+          text: '请授予悬浮窗权限，否则无法后台读取剪贴板',
         );
       },
       onConfirm: (ctx) {
@@ -88,9 +72,10 @@ class FloatPermHandler extends AbstractPermissionHandler {
             .invokeMethod<bool>("grantAlertWindowPermission")
             .then((res) async {
           if (await hasPermission()) return;
-          AbstractPermissionHandler.showCloseDialog(
-            "必要权限缺失",
-            '请授予悬浮窗权限，否则无法后台读取剪贴板',
+          Global.showTipsDialog(
+            context: ctx,
+            title: "必要权限缺失",
+            text: '请授予悬浮窗权限，否则无法后台读取剪贴板',
           );
         });
         return true;
@@ -114,22 +99,32 @@ class ShizukuPermHandler extends AbstractPermissionHandler {
     AbstractPermissionHandler.showRequestDialog(
       title: "Shizuku权限请求",
       content: const Text(
-        '由于 Android 10 及以上版本的系统不允许后台读取剪贴板，需要依赖 Shizuku ，否则只能被动接收剪贴板数据而不能发送',
+        '由于 Android 10 及以上版本的系统不允许后台读取剪贴板，需要依赖 Shizuku，否则只能被动接收剪贴板数据而不能自动同步',
       ),
+      closeText: App.settings.ignoreShizuku ? "取消" : "不再提示",
       onClose: (ctx) {
-        AbstractPermissionHandler.showCloseDialog(
-          "必要权限缺失",
-          '请授予 Shizuku 权限，否则无法后台读取剪贴板',
+        if (App.settings.ignoreShizuku) {
+          return;
+        }
+        Global.showTipsDialog(
+          context: ctx,
+          text: "确认不再提示？",
+          showCancel: true,
+          onOk: () async{
+            await App.context.ref.notifier(settingProvider).ignoreShizuku();
+            print("App.settings.ignoreShizuku ${App.settings.ignoreShizuku}");
+          },
         );
       },
       onConfirm: (ctx) {
         App.androidChannel
             .invokeMethod<bool>("grantShizukuPermission")
             .then((res) {
-          if (res == true) return;
-          AbstractPermissionHandler.showCloseDialog(
-            "必要权限缺失",
-            '请授予 Shizuku 权限，否则无法后台读取剪贴板',
+          if (res == true || App.settings.ignoreShizuku) return;
+          Global.showTipsDialog(
+            context: ctx,
+            title: "权限缺失",
+            text: '请授予 Shizuku 权限，否则无法后台读取剪贴板',
           );
         });
         return true;

@@ -15,6 +15,7 @@ import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/welcome_page.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
+import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
@@ -22,7 +23,6 @@ import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -185,7 +185,7 @@ class _LoadingPageState extends State<LoadingPage> {
             break;
           case "checkMustPermission":
             try {
-              if (App.settings.firstStartup) {
+              if (App.settings.firstStartup || App.settings.ignoreShizuku) {
                 return;
               }
             } catch (e) {
@@ -197,15 +197,16 @@ class _LoadingPageState extends State<LoadingPage> {
                 return AlertDialog(
                   title: const Text('必要权限缺失'),
                   content: const Text(
-                    '请授权必要权限，由于 Android 10 及以上版本的系统不允许后台读取剪贴板，需要依赖 Shizuku 或 Root 权限来提权，否则只能被动接收剪贴板数据而不能发送',
+                    '请授权必要权限，由于 Android 10 及以上版本的系统不允许后台读取剪贴板，需要依赖 Shizuku，否则只能被动接收剪贴板数据而不能自动同步',
                   ),
                   actions: [
                     TextButton(
                       onPressed: () {
+                        context.ref.notifier(settingProvider).ignoreShizuku();
                         // 关闭弹窗
                         Navigator.of(context).pop();
                       },
-                      child: const Text('再也不说了'),
+                      child: const Text('不再提示'),
                     ),
                     TextButton(
                       onPressed: () {
@@ -313,6 +314,10 @@ class _LoadingPageState extends State<LoadingPage> {
       "saveToPictures",
       App.userId,
     );
+    var ignoreShizuku = await cfg.getConfig(
+      "ignoreShizuku",
+      App.userId,
+    );
     var fileStoreDir =
         Directory(fileStorePath ?? Constants.defaultFileStorePath);
     App.settings = Settings(
@@ -337,6 +342,7 @@ class _LoadingPageState extends State<LoadingPage> {
           heartbeatInterval?.toInt() ?? Constants.heartbeatInterval,
       fileStorePath: fileStoreDir.absolute.normalizePath,
       saveToPictures: saveToPictures?.toBool() ?? false,
+      ignoreShizuku: ignoreShizuku?.toBool() ?? false,
     );
     if (Platform.isAndroid) {
       if (App.settings.showHistoryFloat) {

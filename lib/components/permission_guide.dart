@@ -105,7 +105,7 @@ class _PermissionGuideState extends State<PermissionGuide>
                             color: Colors.blue,
                           )
                         : const SizedBox.shrink(),
-                    label: Text(_hasPerm ? "OK" : "去授权"),
+                    label: Text(_hasPerm ? "已授权" : "去授权"),
                   )),
       ],
     );

@@ -50,6 +50,9 @@ class Settings {
   //保存至相册
   final bool saveToPictures;
 
+  //忽略Shizuku权限
+  final bool ignoreShizuku;
+
   Settings({
     required this.port,
     required this.localName,
@@ -67,6 +70,7 @@ class Settings {
     required this.heartbeatInterval,
     required this.fileStorePath,
     required this.saveToPictures,
+    required this.ignoreShizuku,
   });
 
   Settings copyWith({
@@ -86,6 +90,7 @@ class Settings {
     int? heartbeatInterval,
     String? fileStorePath,
     bool? saveToPictures,
+    bool? ignoreShizuku,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -106,6 +111,7 @@ class Settings {
       fileStorePath:
           Directory(fileStorePath ?? this.fileStorePath).absolute.normalizePath,
       saveToPictures: saveToPictures ?? this.saveToPictures,
+      ignoreShizuku: ignoreShizuku ?? this.ignoreShizuku,
     );
   }
 }
