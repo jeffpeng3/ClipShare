@@ -61,35 +61,38 @@ open class ClipboardListener(context: Context) {
             var type = ContentType.Text;
             var content = item.coerceToText(context).toString()
             Log.d(TAG, "label:$label , uri:${item.uri}")
-            val uriStr = item.uri.toString()
-            if ((label.contains("image") || uriStr.startsWith(mediaImagesUri)) && item.uri != null) {
-                type = ContentType.Image;
-                val contentResolver = context.contentResolver
-                val currentTimeMillis = System.currentTimeMillis()
-                val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-S", Locale.CHINA)
-                val fileName = dateFormat.format(Date(currentTimeMillis))
-                val cachePath = context.externalCacheDir?.absolutePath + "/" + fileName + ".png";
-                Log.d(TAG, "cachePath $cachePath")
-                try {
-                    val inputStream = contentResolver.openInputStream(item.uri)
-                    if (inputStream == null) {
-                        Log.e(TAG, "Failed to open input stream for URI: ${item.uri}")
-                        return;
+            if (item.uri != null) {
+                val uriStr = item.uri.toString()
+                if (label.contains("image") || uriStr.startsWith(mediaImagesUri)) {
+                    type = ContentType.Image;
+                    val contentResolver = context.contentResolver
+                    val currentTimeMillis = System.currentTimeMillis()
+                    val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-S", Locale.CHINA)
+                    val fileName = dateFormat.format(Date(currentTimeMillis))
+                    val cachePath =
+                        context.externalCacheDir?.absolutePath + "/" + fileName + ".png";
+                    Log.d(TAG, "cachePath $cachePath")
+                    try {
+                        val inputStream = contentResolver.openInputStream(item.uri)
+                        if (inputStream == null) {
+                            Log.e(TAG, "Failed to open input stream for URI: ${item.uri}")
+                            return;
+                        }
+                        val destFile = File(cachePath)
+                        val outputStream: OutputStream = FileOutputStream(destFile)
+                        val buffer = ByteArray(10240)
+                        var length: Int
+                        while (inputStream.read(buffer).also { length = it } > 0) {
+                            outputStream.write(buffer, 0, length)
+                        }
+                        inputStream.close()
+                        outputStream.close()
+                        Log.d(TAG, "File copied successfully to: $cachePath")
+                    } catch (e: IOException) {
+                        Log.e(TAG, "Error copying file: " + e.message)
                     }
-                    val destFile = File(cachePath)
-                    val outputStream: OutputStream = FileOutputStream(destFile)
-                    val buffer = ByteArray(10240)
-                    var length: Int
-                    while (inputStream.read(buffer).also { length = it } > 0) {
-                        outputStream.write(buffer, 0, length)
-                    }
-                    inputStream.close()
-                    outputStream.close()
-                    Log.d(TAG, "File copied successfully to: $cachePath")
-                } catch (e: IOException) {
-                    Log.e(TAG, "Error copying file: " + e.message)
+                    content = cachePath;
                 }
-                content = cachePath;
             }
             val isSame = content == lastContent && type == lastType
             lastContent = content

@@ -1,19 +1,15 @@
 import 'package:clipshare/components/clip_simple_data_content.dart';
 import 'package:clipshare/components/clip_simple_data_extra_info.dart';
-import 'package:clipshare/components/rounded_chip.dart';
+import 'package:clipshare/components/clip_simple_data_header.dart';
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/main.dart';
-import 'package:clipshare/pages/nav/base_page.dart';
 import 'package:clipshare/pages/tag_edit_page.dart';
-import 'package:clipshare/provider/device_info_provider.dart';
-import 'package:clipshare/provider/history_tag_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:contextmenu/contextmenu.dart';
 import 'package:flutter/material.dart';
-import 'package:refena_flutter/refena_flutter.dart';
 
 import 'clip_detail_dialog.dart';
 
@@ -139,68 +135,9 @@ class ClipDataCardState extends State<ClipDataCard> {
               children: [
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  child: ViewModelBuilder(
-                    provider: HistoryTagProvider.inst,
-                    builder: (context, tagsMap) {
-                      var tags = tagsMap.getTagList(widget.clip.data.id);
-                      return Row(
-                        children: [
-                          //来源设备
-                          Consumer(
-                            builder: (context, ref) {
-                              var vm = ref.watch(DeviceInfoProvider.inst);
-                              return RoundedChip(
-                                avatar: const Icon(Icons.devices_rounded),
-                                backgroundColor: const Color(0x1a000000),
-                                onPressed: () {
-                                  if (widget.routeToSearchOnClickChip) {
-                                    //导航至搜索页面
-                                    BasePage.pageKey.currentState
-                                        ?.gotoSearchPage(
-                                      widget.clip.data.devId,
-                                      null,
-                                    );
-                                  }
-                                },
-                                label: Text(
-                                  vm.getName(widget.clip.data.devId),
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              );
-                            },
-                          ),
-                          //标签
-                          for (var tagName in tags)
-                            Container(
-                              margin: const EdgeInsets.only(left: 5),
-                              child: RoundedChip(
-                                onPressed: () {
-                                  if (widget.routeToSearchOnClickChip) {
-                                    //导航至搜索页面
-                                    BasePage.pageKey.currentState
-                                        ?.gotoSearchPage(null, tagName);
-                                  }
-                                },
-                                backgroundColor: const Color(0x1a000000),
-                                avatar: const CircleAvatar(
-                                  backgroundColor: Colors.blue,
-                                  child: Text(
-                                    '#',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                label: Text(
-                                  tagName,
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              ),
-                            ),
-                        ],
-                      );
-                    },
+                  child: ClipSimpleDataHeader(
+                    clip: widget.clip,
+                    routeToSearchOnClickChip: widget.routeToSearchOnClickChip,
                   ),
                 ),
                 Expanded(
