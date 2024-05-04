@@ -30,7 +30,8 @@ class FileUtil {
   /// 移动文件
   static void moveFile(String sourcePath, String destinationPath) {
     File sourceFile = File(sourcePath);
-    File destinationFile = File(destinationPath);
-    sourceFile.renameSync(destinationPath);
+    File destFile = File(destinationPath);
+    destFile.writeAsBytesSync(sourceFile.readAsBytesSync());
+    sourceFile.deleteSync();
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipshare/main.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +40,12 @@ class Constants {
   static const androidRootStoragePath = "/storage/emulated/0";
   static const androidDownloadPath = "$androidRootStoragePath/Download";
   static const androidPicturesPath = "$androidRootStoragePath/Pictures";
-  static final logsDirPath = Directory("logs").absolute.normalizePath;
+  static String get logsDirPath {
+    if(Platform.isWindows){
+      return Directory("logs").absolute.normalizePath;
+    }
+    return "${App.cachePath}/logs";
+  }
 
   //配对时限（秒）
   static const pairingLimit = 60;

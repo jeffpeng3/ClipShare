@@ -288,7 +288,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       cardList: [
                         SettingCard(
                           main: const Text("设备名称"),
-                          sub: const Text("其他人显示的设备名称"),
+                          sub: const Text("其他设备显示的名称"),
                           value: vm.localName,
                           action: (v) => Text(v),
                           onTap: () {
@@ -733,7 +733,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                     child: Icon(
                                       Icons.open_in_new_outlined,
                                       color: Colors.blueGrey,
-                                      size: 20,
+                                      size: 17,
                                     ),
                                   ),
                                   onTap: () async {

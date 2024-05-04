@@ -51,6 +51,7 @@ open class ClipboardListener(context: Context) {
         }
     }
 
+    private val mediaImagesUri = "content://media/external/images/"
     fun onClipboardChanged() {
         try {
             Log.d("clipboardChanged", "listener")
@@ -59,7 +60,9 @@ open class ClipboardListener(context: Context) {
             val label = description.label;
             var type = ContentType.Text;
             var content = item.coerceToText(context).toString()
-            if (label.contains("image") && item.uri != null) {
+            Log.d(TAG, "label:$label , uri:${item.uri}")
+            val uriStr = item.uri.toString()
+            if ((label.contains("image") || uriStr.startsWith(mediaImagesUri)) && item.uri != null) {
                 type = ContentType.Image;
                 val contentResolver = context.contentResolver
                 val currentTimeMillis = System.currentTimeMillis()
