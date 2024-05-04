@@ -57,7 +57,7 @@ abstract class HistoryDao {
             )
           end
      and case 
-          when :onlyNoSync = true then
+          when :onlyNoSync = 1 then
             sync = 0
           else
             1

@@ -2,6 +2,7 @@ import 'package:clipshare/components/permission_guide.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/guide/base_guide.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 
 class NotifyPermGuide extends BaseGuide {
@@ -24,7 +25,8 @@ class NotifyPermGuide extends BaseGuide {
   @override
   Future<bool> canNext() async {
     var has = await permHandler.hasPermission();
-    if (has && hasPerm == false) {
+    if (has) {
+      Log.info("NotifyPermGuide", "androidChannel invoke startService");
       App.androidChannel.invokeMethod("startService");
     }
     hasPerm = has;

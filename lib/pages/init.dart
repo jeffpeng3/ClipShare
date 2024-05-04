@@ -40,6 +40,8 @@ class LoadingPage extends StatefulWidget {
 }
 
 class _LoadingPageState extends State<LoadingPage> {
+  static const tag = "init";
+
   @override
   void initState() {
     super.initState();
@@ -60,8 +62,6 @@ class _LoadingPageState extends State<LoadingPage> {
     await AppDb.inst.init();
     //初始化本机设备信息
     await initDevInfo();
-    // var dirs = await getExternalStorageDirectory();
-    // print(dirs);
     //加载配置信息
     await loadConfigs();
     // 初始化App路径
@@ -99,7 +99,6 @@ class _LoadingPageState extends State<LoadingPage> {
       App.documentPath = (await getApplicationDocumentsDirectory()).path;
       App.cachePath = (await getApplicationCacheDirectory()).path;
     }
-    App.logsDirPath = "${App.cachePath}/logs";
     Log.debug("init", "documentPath, ${App.documentPath}");
     Log.debug("init", "cachePath, ${App.cachePath}");
   }
@@ -185,6 +184,13 @@ class _LoadingPageState extends State<LoadingPage> {
             SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
             break;
           case "checkMustPermission":
+            try {
+              if (App.settings.firstStartup) {
+                return;
+              }
+            } catch (e) {
+              return;
+            }
             showDialog(
               context: context,
               builder: (BuildContext context) {
@@ -303,6 +309,10 @@ class _LoadingPageState extends State<LoadingPage> {
       "fileStorePath",
       App.userId,
     );
+    var saveToPictures = await cfg.getConfig(
+      "saveToPictures",
+      App.userId,
+    );
     var fileStoreDir =
         Directory(fileStorePath ?? Constants.defaultFileStorePath);
     App.settings = Settings(
@@ -326,15 +336,8 @@ class _LoadingPageState extends State<LoadingPage> {
       heartbeatInterval:
           heartbeatInterval?.toInt() ?? Constants.heartbeatInterval,
       fileStorePath: fileStoreDir.absolute.normalizePath,
+      saveToPictures: saveToPictures?.toBool() ?? false,
     );
-    //判断路径是否存在，不存在则创建,todo
-    if (!fileStoreDir.existsSync()) {
-      try {
-        fileStoreDir.createSync();
-      } catch (e) {
-        var dirPath = await FilePicker.platform.getDirectoryPath();
-      }
-    }
     if (Platform.isAndroid) {
       if (App.settings.showHistoryFloat) {
         App.androidChannel.invokeMethod("showHistoryFloatWindow");
@@ -366,6 +369,8 @@ class _LoadingPageState extends State<LoadingPage> {
         uid: App.userId,
         type: type,
       );
+      var release = androidInfo.version.release;
+      App.osVersion = RegExp(r"\d+").firstMatch(release)!.group(0)!.toDouble();
     } else if (Platform.isWindows) {
       var windowsInfo = await deviceInfo.windowsInfo;
       var guid = CryptoUtil.toMD5(windowsInfo.deviceId);

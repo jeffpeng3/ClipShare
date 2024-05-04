@@ -20,6 +20,7 @@ import 'clip_detail_dialog.dart';
 class ClipDataCard extends StatefulWidget {
   final ClipData clip;
   final void Function()? onTap;
+  final void Function()? onDoubleTap;
   final void Function() onUpdate;
   final void Function(int id) onRemove;
   final bool routeToSearchOnClickChip;
@@ -31,6 +32,7 @@ class ClipDataCard extends StatefulWidget {
     super.key,
     this.routeToSearchOnClickChip = false,
     this.onTap,
+    this.onDoubleTap,
   });
 
   @override
@@ -40,7 +42,7 @@ class ClipDataCard extends StatefulWidget {
 }
 
 class ClipDataCardState extends State<ClipDataCard> {
-  bool _showSimpleTime = true;
+  var _readyDoubleClick = false;
 
   @override
   void initState() {
@@ -98,10 +100,30 @@ class ClipDataCardState extends State<ClipDataCard> {
         child: InkWell(
           mouseCursor: SystemMouseCursors.basic,
           onTap: () {
-            if (!PlatformExt.isPC) {
+            if (PlatformExt.isPC) {
+              widget.onTap?.call();
               return;
             }
-            widget.onTap?.call();
+            if (widget.onDoubleTap == null) {
+              //未设置双击，直接执行单击
+            } else {
+              //设置了双击，且已经点击过一次，执行双击逻辑
+              if (_readyDoubleClick) {
+                widget.onDoubleTap!.call();
+                //双击结束，恢复状态
+                _readyDoubleClick = false;
+              } else {
+                _readyDoubleClick = true;
+                //设置了双击，但仅点击了一次，延迟一段时间
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  if (_readyDoubleClick) {
+                    //指定时间后仍然没有进行第二次点击，进行单击逻辑
+                  }
+                  //指定时间后无论是否双击，恢复状态
+                  _readyDoubleClick = false;
+                });
+              }
+            }
           },
           onLongPress: () {
             if (!PlatformExt.isMobile) {

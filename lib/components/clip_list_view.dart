@@ -11,6 +11,7 @@ import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:highlighting/languages/all.dart';
@@ -246,6 +247,21 @@ class ClipListViewState extends State<ClipListView>
                                         _rightShowFullPage = false;
                                       });
                                     }
+                                  },
+                                  onDoubleTap: () async {
+                                    App.innerCopy = true;
+                                    var res = await App.clipChannel
+                                        .invokeMethod<bool>(
+                                      "copy",
+                                      _list[i].data.toJson(),
+                                    );
+                                    res = res ?? false;
+                                    if (res) {
+                                      Global.snackBarSuc(context, "复制成功");
+                                    } else {
+                                      Global.snackBarErr(context, "复制失败");
+                                    }
+                                    App.innerCopy = false;
                                   },
                                   onUpdate: () {
                                     widget.onUpdate.call();

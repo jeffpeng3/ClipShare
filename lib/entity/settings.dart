@@ -34,14 +34,21 @@ class Settings {
 
   //标签规则
   final String tagRegulars;
+
   //启用日志记录
   final bool enableLogsRecord;
+
   //历史记录弹窗快捷键
   final String historyWindowHotKeys;
+
   //心跳间隔时长
   final int heartbeatInterval;
+
   //文件存储路径
   final String fileStorePath;
+
+  //保存至相册
+  final bool saveToPictures;
 
   Settings({
     required this.port,
@@ -59,6 +66,7 @@ class Settings {
     required this.historyWindowHotKeys,
     required this.heartbeatInterval,
     required this.fileStorePath,
+    required this.saveToPictures,
   });
 
   Settings copyWith({
@@ -77,6 +85,7 @@ class Settings {
     String? historyWindowHotKeys,
     int? heartbeatInterval,
     String? fileStorePath,
+    bool? saveToPictures,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -94,7 +103,9 @@ class Settings {
       tagRegulars: tagRegulars ?? this.tagRegulars,
       historyWindowHotKeys: historyWindowHotKeys ?? this.historyWindowHotKeys,
       heartbeatInterval: heartbeatInterval ?? this.heartbeatInterval,
-      fileStorePath: Directory(fileStorePath ?? this.fileStorePath).absolute.normalizePath,
+      fileStorePath:
+          Directory(fileStorePath ?? this.fileStorePath).absolute.normalizePath,
+      saveToPictures: saveToPictures ?? this.saveToPictures,
     );
   }
 }

@@ -1,8 +1,10 @@
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/guide/battery_perm_guide.dart';
+import 'package:clipshare/pages/guide/finish_guide.dart';
 import 'package:clipshare/pages/guide/float_perm_guide.dart';
 import 'package:clipshare/pages/guide/notify_perm_guide.dart';
 import 'package:clipshare/pages/guide/shizuku_perm_guide.dart';
+import 'package:clipshare/pages/guide/storage_perm_guide.dart';
 import 'package:clipshare/pages/user_guide.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:flutter/material.dart';
@@ -17,9 +19,11 @@ class WelcomePage extends StatelessWidget {
         builder: (context) => UserGuide(
           guides: [
             FloatPermGuide(),
-            ShizukuPermGuide(),
+            StoragePermGuide(),
+            if (App.osVersion >= 10) ShizukuPermGuide(),
             NotifyPermGuide(),
             BatteryPermGuide(),
+            FinishGuide(),
           ],
         ),
       ),
@@ -47,7 +51,12 @@ class WelcomePage extends StatelessWidget {
                   child: Text("在使用前我们还需要进行一些必要权限请求以及设置"),
                 ),
                 TextButton(
-                  onPressed: gotoUserGuidePage,
+                  onPressed: () {
+                    Future.delayed(
+                      const Duration(milliseconds: 200),
+                      gotoUserGuidePage,
+                    );
+                  },
                   child: const IntrinsicWidth(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,

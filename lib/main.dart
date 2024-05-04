@@ -101,11 +101,11 @@ class App extends StatelessWidget {
   static bool innerCopy = false;
   static late final Version version;
   static const minVersion = Version("1.0.0-alpha", "3");
+  static late double osVersion;
 
   //路径
   static late final String documentPath;
   static late final String cachePath;
-  static late final String logsDirPath;
 
   const App({super.key});
 

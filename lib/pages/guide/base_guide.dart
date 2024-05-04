@@ -7,7 +7,7 @@ abstract class BaseGuide {
   Future<bool> canNext();
 
   BaseGuide({
-    this.widget=const SizedBox.shrink(),
+    this.widget = const SizedBox.shrink(),
     this.allowSkip = false,
   });
 }

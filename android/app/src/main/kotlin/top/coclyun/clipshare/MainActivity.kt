@@ -58,7 +58,8 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
         Shizuku.addRequestPermissionResultListener(this);
         val serviceRunning = isServiceRunning(this, BackgroundService::class.java)
         if (serviceRunning) {
-            stopService(Intent(this, BackgroundService::class.java))
+//            stopService(Intent(this, BackgroundService::class.java))
+            return;
         }
         if (checkShizukuPermission(requestShizukuCode)) {
             Log.d("onCreate", "start Service")
@@ -209,24 +210,31 @@ class MainActivity : FlutterActivity(), Shizuku.OnRequestPermissionResultListene
                         innerCopy = true;
                         val type = args["type"].toString()
                         val content = args["content"].toString()
+                        // 获取剪贴板管理器
+                        val clipboardManager = ContextCompat.getSystemService(
+                            context,
+                            ClipboardManager::class.java
+                        ) as ClipboardManager
                         when (type) {
                             "Text" -> {
-                                // 获取剪贴板管理器
-                                val clipboardManager = ContextCompat.getSystemService(
-                                    context,
-                                    ClipboardManager::class.java
-                                ) as ClipboardManager
                                 // 创建一个剪贴板数据
-                                val clipData = ClipData.newPlainText("ClipboardData", content.toString())
+                                val clipData = ClipData.newPlainText("text", content)
                                 // 将数据放入剪贴板
                                 clipboardManager.setPrimaryClip(clipData)
+                                result.success(true)
                             }
 
                             "Image" -> {
-                                val path = content
+                                val uri =
+                                    Uri.parse("content://top.coclyun.clipshare.FileProvider/$content")
+                                val clipData =
+                                    ClipData.newUri(context.contentResolver, "image", uri)
+                                // 将数据放入剪贴板
+                                clipboardManager.setPrimaryClip(clipData)
+                                result.success(true)
                             }
                         }
-                        result.success(true)
+                        result.success(false)
                     } catch (e: Exception) {
                         innerCopy = false;
                         result.success(false)

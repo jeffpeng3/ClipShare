@@ -59,7 +59,7 @@ open class ClipboardListener(context: Context) {
             val label = description.label;
             var type = ContentType.Text;
             var content = item.coerceToText(context).toString()
-            if (label == "image" && item.uri != null) {
+            if (label.contains("image") && item.uri != null) {
                 type = ContentType.Image;
                 val contentResolver = context.contentResolver
                 val currentTimeMillis = System.currentTimeMillis()

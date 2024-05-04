@@ -4,7 +4,6 @@ import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/guide/base_guide.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
-import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 
 class ShizukuPermGuide extends BaseGuide {
@@ -12,9 +11,11 @@ class ShizukuPermGuide extends BaseGuide {
 
   ShizukuPermGuide() {
     super.widget = PermissionGuide(
-      title: "剪贴板权限",
+      title: "Shizuku 权限",
       icon: Icons.copy_all,
-      description: "${Constants.appName}基于系统日志监听剪贴板变化\n需要通过 Shizuku 进行授权",
+      description: "${Constants.appName}基于系统日志监听剪贴板变化\n"
+          "Android10 及以上系统需要通过 Shizuku 进行授权\n\n"
+          "您的系统版本是 Android${App.osVersion.toInt()}\n",
       grantPerm: null,
       checkPerm: canNext,
       action: (context, hasPerm) {

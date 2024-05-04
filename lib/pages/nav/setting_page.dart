@@ -18,6 +18,7 @@ import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/file_util.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/log.dart';
+import 'package:clipshare/util/permission_helper.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -301,6 +302,10 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                   ref
                                       .notifier(settingProvider)
                                       .setLocalName(str);
+                                  Global.snackBarSuc(
+                                    context,
+                                    "修改后重启软件生效",
+                                  );
                                 },
                               ),
                             );
@@ -330,6 +335,10 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                   ref
                                       .notifier(settingProvider)
                                       .setPort(str.toInt());
+                                  Global.snackBarSuc(
+                                    context,
+                                    "修改后重启软件生效",
+                                  );
                                 },
                               ),
                             );
@@ -510,13 +519,60 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           },
                         ),
                         SettingCard(
-                          main: const Text("图片存储至Pictures文件夹中"),
-                          sub: const Text("Pictures文件夹是Android上的标准图片存储位置"),
-                          value: false,
+                          main: const Text("图片存储至相册中"),
+                          sub: const Text(
+                              "将保存至 Pictures/${Constants.appName} 中"),
+                          value: vm.saveToPictures,
                           action: (v) {
-                            return Switch(value: v, onChanged: (checked) {});
+                            return Switch(
+                              value: v,
+                              onChanged: (checked) async {
+                                if (checked) {
+                                  var path =
+                                      "${Constants.androidPicturesPath}/${Constants.appName}";
+                                  var res = await PermissionHelper
+                                      .testAndroidStoragePerm(path);
+                                  if (res) {
+                                    ref
+                                        .notifier(settingProvider)
+                                        .setSaveToPictures(true);
+                                    return;
+                                  }
+                                  Global.showTipsDialog(
+                                    context: context,
+                                    text: "无读写权限，需要进行授权",
+                                    showCancel: true,
+                                    onOk: () async {
+                                      Navigator.pop(context);
+                                      await PermissionHelper
+                                          .reqAndroidStoragePerm(path);
+                                      if (!await PermissionHelper
+                                          .testAndroidStoragePerm(path)) {
+                                        ref
+                                            .notifier(settingProvider)
+                                            .setSaveToPictures(false);
+                                        Global.showTipsDialog(
+                                          context: context,
+                                          text: "用户取消授权！",
+                                        );
+                                      } else {
+                                        //授权成功
+                                        ref
+                                            .notifier(settingProvider)
+                                            .setSaveToPictures(true);
+                                      }
+                                    },
+                                    okText: "去授权",
+                                  );
+                                } else {
+                                  ref
+                                      .notifier(settingProvider)
+                                      .setSaveToPictures(false);
+                                }
+                              },
+                            );
                           },
-                          show: (v) => Platform.isAndroid || true,
+                          show: (v) => Platform.isAndroid,
                         ),
                         SettingCard(
                           main: const Text("文件存储路径"),
@@ -681,10 +737,12 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                     ),
                                   ),
                                   onTap: () async {
-                                    // late OpenResult res;
+                                    Directory(Constants.logsDirPath)
+                                        .createSync();
                                     try {
-                                      var res =
-                                          await OpenFile.open(App.logsDirPath);
+                                      var res = await OpenFile.open(
+                                        Constants.logsDirPath,
+                                      );
                                       Log.debug(
                                         tag,
                                         "${res.type.name},${res.message}",
@@ -698,7 +756,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                             ],
                           ),
                           sub: Text(
-                            "将会占据额外空间，已产生 ${FileUtil.getDirectorySize(App.logsDirPath).sizeStr} 日志",
+                            "将会占据额外空间，已产生 ${FileUtil.getDirectorySize(Constants.logsDirPath).sizeStr} 日志",
                           ),
                           value: vm.enableLogsRecord,
                           action: (v) {
@@ -726,7 +784,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                           TextButton(
                                             onPressed: () {
                                               FileUtil.deleteDirectoryFiles(
-                                                App.logsDirPath,
+                                                Constants.logsDirPath,
                                               );
                                               Navigator.pop(context);
                                               setState(() {});

@@ -399,7 +399,7 @@ class _$HistoryDao extends HistoryDao {
             _sqliteVariablesForTags +
             ')) = 1 then             1           else             id in (               select distinct hisId                from HistoryTag ht                where tagName in (' +
             _sqliteVariablesForTags +
-            ')             )           end      and case            when ?7 = true then             sync = 0           else             1           end   order by top desc,id desc   limit 20',
+            ')             )           end      and case            when ?7 = 1 then             sync = 0           else             1           end   order by top desc,id desc   limit 20',
         mapper: (Map<String, Object?> row) => History(
             id: row['id'] as int,
             uid: row['uid'] as int,

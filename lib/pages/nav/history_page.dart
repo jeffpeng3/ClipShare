@@ -176,8 +176,11 @@ class HistoryPageState extends State<HistoryPage>
         //移动到设置的路径然后删除临时文件
         var tempFile = File(content);
         size = await tempFile.length();
-        // var fileName = content.replaceFirst(tempFile.absolute.parent.path, "");
         var newPath = "${App.settings.fileStorePath}/${tempFile.fileName}";
+        if (App.settings.saveToPictures) {
+          newPath =
+              "${Constants.androidPicturesPath}/${Constants.appName}/${tempFile.fileName}";
+        }
         var newFile = File(newPath);
         FileUtil.moveFile(content, newPath);
         content = newFile.normalizePath;

@@ -139,4 +139,11 @@ class SettingProvider extends Notifier<Settings> {
       fileStorePath: fileStorePath,
     );
   }
+
+  Future<void> setSaveToPictures(bool saveToPictures) async {
+    await _addOrUpdate("saveToPictures", saveToPictures.toString());
+    App.settings = state = state.copyWith(
+      saveToPictures: saveToPictures,
+    );
+  }
 }

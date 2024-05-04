@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 
@@ -35,9 +36,10 @@ class Constants {
   //默认历史弹窗快捷键（Ctrl + Alt + H）
   static const defaultHistoryWindowKeys = "458976,458978;458763";
 
-  static const androidRootStoragePath = "/storage/emulated/0/";
-  static const androidDownloadPath = "${androidRootStoragePath}Download";
-  static const androidPicturesPath = "${androidRootStoragePath}Pictures";
+  static const androidRootStoragePath = "/storage/emulated/0";
+  static const androidDownloadPath = "$androidRootStoragePath/Download";
+  static const androidPicturesPath = "$androidRootStoragePath/Pictures";
+  static final logsDirPath = Directory("logs").absolute.normalizePath;
 
   //配对时限（秒）
   static const pairingLimit = 60;
@@ -110,7 +112,7 @@ class Constants {
     if (Platform.isAndroid) {
       return "$androidDownloadPath/$appName";
     }
-    return "files/";
+    return "files";
   }
 }
 

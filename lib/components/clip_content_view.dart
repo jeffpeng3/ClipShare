@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_highlighting/flutter_highlighting.dart';
 import 'package:flutter_highlighting/themes/github.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:open_file_plus/open_file_plus.dart';
 
 import '../util/extension.dart';
 
@@ -85,28 +84,35 @@ class _ClipContentViewState extends State<ClipContentView> {
               );
             },
           )
-        : Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: InkWell(
-                  child: Image.file(
-                    File(widget.clipData.data.content),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PreviewPage(
-                          clip: widget.clipData,
-                        ),
+        : LayoutBuilder(
+            builder: (context, constraints) {
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: InkWell(
+                      child: Image.file(
+                        File(widget.clipData.data.content),
+                        fit: BoxFit.contain,
+                        width: constraints.maxWidth,
+                        height: constraints.maxHeight,
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PreviewPage(
+                              clip: widget.clipData,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
           );
   }
 }

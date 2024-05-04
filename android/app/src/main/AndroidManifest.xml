@@ -75,7 +75,11 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-
+        <provider
+            android:name=".provider.FileProvider"
+            android:authorities="top.coclyun.clipshare.FileProvider"
+            android:exported="true"
+            android:multiprocess="true" />
         <provider
             android:name="rikka.shizuku.ShizukuProvider"
             android:authorities="${applicationId}.shizuku"

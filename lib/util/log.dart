@@ -1,7 +1,7 @@
-
 import 'dart:io';
 
 import 'package:clipshare/main.dart';
+import 'package:clipshare/util/constants.dart';
 import 'package:logger/logger.dart';
 
 class Log {
@@ -73,13 +73,17 @@ class Log {
   }
 
   static void writeFiles(String content) {
-    if (!App.settings.enableLogsRecord) {
+    try {
+      if (!App.settings.enableLogsRecord) {
+        return;
+      }
+    } catch (e) {
       return;
     }
     content = "${content.replaceAll(_split, "----")}\n";
     var dateStr = DateTime.now().toString().substring(0, 10);
-    var filePath = "${App.logsDirPath}/$dateStr.txt";
-    Directory(App.logsDirPath).createSync();
+    var filePath = "${Constants.logsDirPath}/$dateStr.txt";
+    Directory(Constants.logsDirPath).createSync();
     var file = File(filePath);
     var f = file.writeAsString(content, mode: FileMode.writeOnlyAppend);
     _writeFuture = _writeFuture.then((v) => f);

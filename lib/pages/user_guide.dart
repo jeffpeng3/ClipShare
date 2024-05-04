@@ -88,7 +88,15 @@ class _UserGuideState extends State<UserGuide> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return !_initFinished
-        ? Container()
+        ? const Center(
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.0,
+              ),
+            ),
+          )
         : GestureDetector(
             onHorizontalDragEnd: (details) async {
               Log.debug("onHorizontalDragEnd", details.primaryVelocity);
