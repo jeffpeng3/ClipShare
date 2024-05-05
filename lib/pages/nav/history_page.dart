@@ -176,10 +176,6 @@ class HistoryPageState extends State<HistoryPage>
         var tempFile = File(content);
         size = await tempFile.length();
         var newPath = "${App.settings.fileStorePath}/${tempFile.fileName}";
-        if (App.settings.saveToPictures) {
-          newPath =
-              "${Constants.androidPicturesPath}/${Constants.appName}/${tempFile.fileName}";
-        }
         var newFile = File(newPath);
         FileUtil.moveFile(content, newPath);
         content = newFile.normalizePath;
@@ -309,6 +305,12 @@ class HistoryPageState extends State<HistoryPage>
           var fileName = content["fileName"];
           var data = content["data"].cast<int>();
           var path = "${App.settings.fileStorePath}/$fileName";
+          Log.debug(tag, "saveToPictures ${App.settings.saveToPictures}");
+          if (App.settings.saveToPictures) {
+            path =
+                "${Constants.androidPicturesPath}/${Constants.appName}/$fileName";
+            Log.debug(tag, "newPath $path");
+          }
           history.content = path;
           await Permission.manageExternalStorage.request();
           await Permission.storage.request();

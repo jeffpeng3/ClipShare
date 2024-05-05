@@ -146,7 +146,7 @@ class SecureSocketClient {
                   var decodeB64 = CryptoUtil.base64DecodeStr(_data);
                   _exchange(decodeB64);
                 }
-              } catch (ex, stack) {
+              } on Exception catch (ex, stack) {
                 //解析出错
                 Log.error("SecureSocketClient", "解析出错：$ex\n$stack");
               } finally {
