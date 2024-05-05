@@ -108,6 +108,21 @@ class App extends StatelessWidget {
   static late final String documentPath;
   static late final String cachePath;
 
+  //文件默认存储路径
+  static String get defaultFileStorePath {
+    if (Platform.isAndroid) {
+      return "${Constants.androidDownloadPath}/${Constants.appName}";
+    }
+    var path = "${Directory(Platform.resolvedExecutable).parent.path}/files";
+    return File(path).normalizePath;
+  }
+  //日志路径
+  static String get logsDirPath {
+    if(Platform.isWindows){
+      return Directory("${Directory(Platform.resolvedExecutable).parent.path}/logs").absolute.normalizePath;
+    }
+    return "${App.cachePath}/logs";
+  }
   const App({super.key});
 
   // This widget is the root of your application.

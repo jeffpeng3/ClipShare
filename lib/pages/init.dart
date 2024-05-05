@@ -322,7 +322,7 @@ class _LoadingPageState extends State<LoadingPage> {
       App.userId,
     );
     var fileStoreDir =
-        Directory(fileStorePath ?? Constants.defaultFileStorePath);
+        Directory(fileStorePath ?? App.defaultFileStorePath);
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
       localName: localName.isNotNullAndEmpty ? localName! : App.devInfo.name,

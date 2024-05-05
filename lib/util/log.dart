@@ -82,8 +82,8 @@ class Log {
     }
     content = "${content.replaceAll(_split, "----")}\n";
     var dateStr = DateTime.now().toString().substring(0, 10);
-    var filePath = "${Constants.logsDirPath}/$dateStr.txt";
-    Directory(Constants.logsDirPath).createSync();
+    var filePath = "${App.logsDirPath}/$dateStr.txt";
+    Directory(App.logsDirPath).createSync();
     var file = File(filePath);
     var f = file.writeAsString(content, mode: FileMode.writeOnlyAppend);
     _writeFuture = _writeFuture.then((v) => f);

@@ -41,12 +41,6 @@ class Constants {
   static const androidRootStoragePath = "/storage/emulated/0";
   static const androidDownloadPath = "$androidRootStoragePath/Download";
   static const androidPicturesPath = "$androidRootStoragePath/Pictures";
-  static String get logsDirPath {
-    if(Platform.isWindows){
-      return Directory("logs").absolute.normalizePath;
-    }
-    return "${App.cachePath}/logs";
-  }
 
   //配对时限（秒）
   static const pairingLimit = 60;
@@ -113,14 +107,6 @@ class Constants {
       "name": "-",
     },
   ];
-
-  //文件默认存储路径
-  static String get defaultFileStorePath {
-    if (Platform.isAndroid) {
-      return "$androidDownloadPath/$appName";
-    }
-    return "files";
-  }
 }
 
 enum Option { add, delete, update }

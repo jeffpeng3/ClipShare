@@ -784,11 +784,11 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                     ),
                                   ),
                                   onTap: () async {
-                                    Directory(Constants.logsDirPath)
+                                    Directory(App.logsDirPath)
                                         .createSync();
                                     try {
                                       var res = await OpenFile.open(
-                                        Constants.logsDirPath,
+                                        App.logsDirPath,
                                       );
                                       Log.debug(
                                         tag,
@@ -803,7 +803,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                             ],
                           ),
                           sub: Text(
-                            "将会占据额外空间，已产生 ${FileUtil.getDirectorySize(Constants.logsDirPath).sizeStr} 日志",
+                            "将会占据额外空间，已产生 ${FileUtil.getDirectorySize(App.logsDirPath).sizeStr} 日志",
                           ),
                           value: vm.enableLogsRecord,
                           action: (v) {
@@ -831,7 +831,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                           TextButton(
                                             onPressed: () {
                                               FileUtil.deleteDirectoryFiles(
-                                                Constants.logsDirPath,
+                                                App.logsDirPath,
                                               );
                                               Navigator.pop(context);
                                               setState(() {});
