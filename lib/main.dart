@@ -27,7 +27,12 @@ void main(List<String> args) async {
   if (PlatformExt.isMobile || !isMultiWindow) {
     ///全局异常捕获
     runZonedGuarded(
-      () => runApp(RefenaScope(child: const App())),
+      () {
+        runApp(RefenaScope(child: const App()));
+        SystemUiOverlayStyle systemUiOverlayStyle =
+            SystemUiOverlayStyle(statusBarColor: Colors.transparent);
+        SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
+      },
       (error, stack) {
         Log.error("App", "$error $stack");
       },
@@ -106,6 +111,7 @@ class App extends StatelessWidget {
 
   //路径
   static late final String documentPath;
+  static late final String androidPrivatePicturesPath;
   static late final String cachePath;
 
   //文件默认存储路径

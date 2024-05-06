@@ -93,6 +93,10 @@ class _LoadingPageState extends State<LoadingPage> {
         type: StorageDirectory.documents,
       ))![0]
           .path;
+      App.androidPrivatePicturesPath = (await getExternalStorageDirectories(
+        type: StorageDirectory.pictures,
+      ))![0]
+          .path;
       // /storage/emulated/0/Android/data/top.coclyun.clipshare/cache
       App.cachePath = (await getExternalCacheDirectories())![0].path;
     } else {
@@ -321,8 +325,7 @@ class _LoadingPageState extends State<LoadingPage> {
       "useAuthentication",
       App.userId,
     );
-    var fileStoreDir =
-        Directory(fileStorePath ?? App.defaultFileStorePath);
+    var fileStoreDir = Directory(fileStorePath ?? App.defaultFileStorePath);
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
       localName: localName.isNotNullAndEmpty ? localName! : App.devInfo.name,

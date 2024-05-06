@@ -74,7 +74,7 @@ abstract class HistoryDao {
     List<String> devIds,
     String startTime,
     String endTime,
-      bool onlyNoSync,
+    bool onlyNoSync,
   );
 
   /// 【废弃】获取某设备未同步的记录
@@ -84,7 +84,8 @@ abstract class HistoryDao {
   Future<List<History>> getMissingHistory(String devId);
 
   ///获取前20条历史记录
-  @Query("select * from history where uid = :uid order by top desc,id desc limit 20")
+  @Query(
+      "select * from history where uid = :uid order by top desc,id desc limit 20")
   Future<List<History>> getHistoriesTop20(int uid);
 
   ///获取前20条历史记录
@@ -120,6 +121,32 @@ abstract class HistoryDao {
   ///根据id获取记录
   @Query("select * from history where id = :id")
   Future<History?> getById(int id);
+
+  ///获取所有图片数量
+  @Query("select count(*) from history where uid = :uid and type = 'Image'")
+  Future<int?> getAllImagesCnt(int uid);
+
+  ///id倒序下获取某张图片的下一张或上一张图片
+  @Query("""
+  select * from history 
+  where uid = :uid
+        and type = 'Image' 
+        and case 
+              when :pre = 1 then id > :id
+              else id < :id
+            end  
+  order by case when :pre = 1 then -id else id end desc 
+  limit 1
+  """)
+  Future<History?> getImageBrotherById(int id, int uid, int pre);
+
+  ///获取图片在倒序 id 的情况下的序号（1开始）
+  @Query("""
+  select count(*) from history
+  where id >= :id and uid = :uid and type = 'Image'
+  order by id desc
+  """)
+  Future<int?> getImageSeqDesc(int id, int uid);
 
   @update
   Future<int> updateHistory(History history);

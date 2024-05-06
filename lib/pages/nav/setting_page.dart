@@ -289,7 +289,33 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       cardList: [
                         SettingCard(
                           main: const Text("设备名称"),
-                          sub: const Text("其他设备显示的名称"),
+                          sub: Row(
+                            children: [
+                              Text("id: ${App.devInfo.guid}"),
+                              const SizedBox(
+                                width: 5,
+                              ),
+                              GestureDetector(
+                                child: const MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: Icon(
+                                    Icons.copy,
+                                    color: Colors.blueGrey,
+                                    size: 15,
+                                  ),
+                                ),
+                                onTap: () async {
+                                  HapticFeedback.mediumImpact();
+                                  Clipboard.setData(
+                                      ClipboardData(text: App.devInfo.guid));
+                                  Global.snackBarSuc(
+                                    context,
+                                    "已复制设备id",
+                                  );
+                                },
+                              )
+                            ],
+                          ),
                           value: vm.localName,
                           action: (v) => Text(v),
                           onTap: () {
@@ -435,13 +461,14 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       cardList: [
                         SettingCard(
                           main: const Text("启用安全认证"),
-                          sub: const Text("密码或生物识别认证"),
+                          sub: const Text("启用密码或生物识别认证"),
                           value: vm.useAuthentication,
                           action: (v) {
                             return Switch(
                               value: v,
                               onChanged: (checked) {
                                 //todo 这里还要验证是否设置了指纹或密码
+                                HapticFeedback.mediumImpact();
                                 ref
                                     .notifier(settingProvider)
                                     .useAuthentication(checked);
@@ -784,8 +811,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                     ),
                                   ),
                                   onTap: () async {
-                                    Directory(App.logsDirPath)
-                                        .createSync();
+                                    Directory(App.logsDirPath).createSync();
                                     try {
                                       var res = await OpenFile.open(
                                         App.logsDirPath,
