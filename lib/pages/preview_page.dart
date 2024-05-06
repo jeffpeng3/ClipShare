@@ -108,6 +108,9 @@ class _PreviewPageState extends State<PreviewPage> {
         color: Colors.black.withOpacity(0.5),
         child: Row(
           children: [
+            const SizedBox(
+              width: 15,
+            ),
             IconButton(
               hoverColor: Colors.white12,
               onPressed: () => Navigator.pop(context),
