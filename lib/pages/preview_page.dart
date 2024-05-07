@@ -6,12 +6,12 @@ import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:pinput/pinput.dart';
 
 class PreviewPage extends StatefulWidget {
   final ClipData clip;
@@ -29,75 +29,48 @@ class _PreviewPageState extends State<PreviewPage> {
   int _current = 1;
   int _total = 1;
   bool _initFinished = false;
-  late History _history;
-  bool _error = false;
   var checkedList = <int>{};
+
+  History get _currentImage => _images[_current - 1];
+  late PageController _pageController;
+
+  bool get _canPre => _current > 1;
+
+  bool get _canNext => _current < _total;
+  final List<History> _images = List.empty(growable: true);
 
   @override
   void initState() {
     super.initState();
-    _history = widget.clip.data;
-    AppDb.inst.historyDao.getAllImagesCnt(App.userId).then(
-      (cnt) {
-        AppDb.inst.historyDao
-            .getImageSeqDesc(_history.id, App.userId)
-            .then((seq) {
-          if (seq == null || seq <= 0) {
-            _error = true;
-          }
-          _total = cnt!;
-          _current = seq!;
-          _initFinished = true;
-          setState(() {});
-        }).catchError(
-          (e) {
-            setState(() {
-              _error = true;
-              _initFinished = true;
-            });
-          },
-        );
-      },
-    ).catchError(
-      (e) {
-        setState(() {
-          _error = true;
-          _initFinished = true;
-        });
-      },
+    AppDb.inst.historyDao.getAllImages(App.userId).then((images) {
+      _images.addAll(images);
+      _total = _images.length;
+      var i = images.indexWhere((item) => item.id == widget.clip.data.id);
+      _current = i + 1;
+      _pageController = PageController(initialPage: i);
+      _initFinished = true;
+      setState(() {});
+    });
+  }
+
+  Future<void> _loadPreImage() async {
+    if (!_canPre) return;
+    _current--;
+    _pageController.previousPage(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.ease,
     );
+    setState(() {});
   }
 
-  void _loadImage(bool pre) {
-    AppDb.inst.historyDao
-        .getImageBrotherById(
-      _history.id,
-      App.userId,
-      pre ? 1 : 0,
-    )
-        .then(
-      (data) {
-        if (data == null) {
-          _error = true;
-          _initFinished = true;
-          setState(() {});
-          return;
-        }
-        _history = data;
-        _current += pre ? -1 : 1;
-        setState(() {});
-      },
+  Future<void> _loadNextImage() async {
+    if (!_canNext) return;
+    _current++;
+    _pageController.nextPage(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.ease,
     );
-  }
-
-  void _loadPreImage() {
-    if (_current <= 1) return;
-    _loadImage(true);
-  }
-
-  void _loadNextImage() {
-    if (_current >= _total) return;
-    _loadImage(false);
+    setState(() {});
   }
 
   @override
@@ -130,7 +103,7 @@ class _PreviewPageState extends State<PreviewPage> {
                     scrollDirection: Axis.horizontal,
                     child: GestureDetector(
                       child: Text(
-                        _error ? "error" : _history.content,
+                        _currentImage.content,
                         style: const TextStyle(
                           fontSize: 18,
                           color: Colors.white,
@@ -138,14 +111,14 @@ class _PreviewPageState extends State<PreviewPage> {
                       ),
                       onLongPress: () {
                         Clipboard.setData(
-                          ClipboardData(text: _history.content),
+                          ClipboardData(text: _currentImage.content),
                         );
                         Global.snackBarSuc(context, "复制路径成功");
                       },
                     ),
                   ),
                   Text(
-                    _error ? "error" : _history.time,
+                    _currentImage.time,
                     style: const TextStyle(fontSize: 15, color: Colors.white70),
                   ),
                 ],
@@ -168,18 +141,16 @@ class _PreviewPageState extends State<PreviewPage> {
               width: 15,
             ),
             Checkbox(
-              value: _error ? false : checkedList.contains(_history.id),
+              value: checkedList.contains(_currentImage.id),
               hoverColor: Colors.white12,
-              onChanged: _error
-                  ? null
-                  : (checked) {
-                      if (checked == null || !checked) {
-                        checkedList.remove(_history.id);
-                      } else {
-                        checkedList.add(_history.id);
-                      }
-                      setState(() {});
-                    },
+              onChanged: (checked) {
+                if (checked == null || !checked) {
+                  checkedList.remove(_currentImage.id);
+                } else {
+                  checkedList.add(_currentImage.id);
+                }
+                setState(() {});
+              },
               side: const BorderSide(color: Colors.white70),
             ),
             const SizedBox(
@@ -197,7 +168,7 @@ class _PreviewPageState extends State<PreviewPage> {
               ),
             ),
             IconButton(
-              onPressed: _error ? null : () => {},
+              onPressed: () => {},
               hoverColor: Colors.white12,
               icon: const Icon(
                 Icons.share,
@@ -233,13 +204,25 @@ class _PreviewPageState extends State<PreviewPage> {
                             child: InteractiveViewer(
                               maxScale: 15.0,
                               transformationController: _controller,
-                              child: _error
-                                  ? const EmptyContent()
-                                  : Image.file(
-                                      File(_history.content),
+                              child: PageView.builder(
+                                itemCount: _images.length,
+                                controller: _pageController,
+                                onPageChanged: (idx) {
+                                  _current = idx + 1;
+                                  setState(() {});
+                                },
+                                itemBuilder: (ctx, idx) {
+                                  var file = File(_images[idx].content);
+                                  if (file.existsSync()) {
+                                    return Image.file(
+                                      file,
                                       width: ct.maxWidth,
                                       height: ct.maxHeight,
-                                    ),
+                                    );
+                                  }
+                                  return const EmptyContent();
+                                },
+                              ),
                             ),
                             onTap: () {},
                             onSecondaryTap: () => Navigator.pop(context),
@@ -249,7 +232,9 @@ class _PreviewPageState extends State<PreviewPage> {
                           ),
                           header,
                           Visibility(
-                            visible: _current > 1 && !_error,
+                            visible: _canPre &&
+                                MediaQuery.of(context).size.width >=
+                                    Constants.smallScreenWidth,
                             child: Positioned(
                               left: 10,
                               top: 0,
@@ -271,8 +256,7 @@ class _PreviewPageState extends State<PreviewPage> {
                                         color: Colors.white,
                                         size: 30,
                                       ),
-                                      onPressed:
-                                          _current <= 1 ? null : _loadPreImage,
+                                      onPressed: _canPre ? _loadPreImage : null,
                                     ),
                                   ),
                                 ],
@@ -280,7 +264,9 @@ class _PreviewPageState extends State<PreviewPage> {
                             ),
                           ),
                           Visibility(
-                            visible: _current < _total && !_error,
+                            visible: _canNext &&
+                                MediaQuery.of(context).size.width >=
+                                    Constants.smallScreenWidth,
                             child: Positioned(
                               right: 10,
                               top: 0,
@@ -302,9 +288,8 @@ class _PreviewPageState extends State<PreviewPage> {
                                         color: Colors.white,
                                         size: 30,
                                       ),
-                                      onPressed: _current >= _total
-                                          ? null
-                                          : _loadNextImage,
+                                      onPressed:
+                                          _canNext ? _loadNextImage : null,
                                     ),
                                   ),
                                 ],

@@ -507,34 +507,20 @@ class _$HistoryDao extends HistoryDao {
   }
 
   @override
-  Future<int?> getAllImagesCnt(int uid) async {
-    return _queryAdapter.query(
-        'select count(*) from history where uid = ?1 and type = \'Image\'',
-        mapper: (Map<String, Object?> row) => row.values.first as int,
+  Future<List<History>> getAllImages(int uid) async {
+    return _queryAdapter.queryList(
+        'select * from history where uid = ?1 and type = \'Image\' order by id desc',
+        mapper: (Map<String, Object?> row) => History(
+            id: row['id'] as int,
+            uid: row['uid'] as int,
+            time: row['time'] as String,
+            content: row['content'] as String,
+            type: row['type'] as String,
+            devId: row['devId'] as String,
+            top: (row['top'] as int) != 0,
+            sync: (row['sync'] as int) != 0,
+            size: row['size'] as int),
         arguments: [uid]);
-  }
-
-  @override
-  Future<History?> getImageBrotherById(
-    int id,
-    int uid,
-    int pre,
-  ) async {
-    return _queryAdapter.query(
-        'select * from history    where uid = ?2         and type = \'Image\'          and case                when ?3 = 1 then id > ?1               else id < ?1             end     order by case when ?3 = 1 then -id else id end desc    limit 1',
-        mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as int, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
-        arguments: [id, uid, pre]);
-  }
-
-  @override
-  Future<int?> getImageSeqDesc(
-    int id,
-    int uid,
-  ) async {
-    return _queryAdapter.query(
-        'select count(*) from history   where id >= ?1 and uid = ?2 and type = \'Image\'   order by id desc',
-        mapper: (Map<String, Object?> row) => row.values.first as int,
-        arguments: [id, uid]);
   }
 
   @override
