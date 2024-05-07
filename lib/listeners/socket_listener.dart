@@ -23,6 +23,7 @@ import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
+import 'package:collection/collection.dart';
 abstract class DevAliveListener {
   //连接成功
   void onConnected(DevInfo info, Version minVersion, Version version);
@@ -82,7 +83,7 @@ class SocketListener {
   late SecureSocketServer _server;
 
   //临时记录链接配对自定义ip设备记录
-  final Set<String> customIpSetTemp = {};
+  final Set<String> ipSetTemp = {};
   final Set<String> _connectingAddress = {};
   Map<String, Future> broadcastProcessChain = {};
 
@@ -174,7 +175,9 @@ class SocketListener {
     }
     //建立连接
     String ip = datagram.address.address;
-    Log.debug(tag, "${dev.name} ip: $ip，port ${msg.data["port"]}");
+    var port = msg.data["port"];
+    Log.debug(tag, "${dev.name} ip: $ip，port $port");
+    ipSetTemp.add("$ip:$port");
     return _connectFromBroadcast(dev, ip, msg.data["port"]);
   }
 
@@ -285,12 +288,12 @@ class SocketListener {
   void _onSocketReceived(SecureSocketClient client, MessageData msg) async {
     Log.debug(tag, msg.key);
     DevInfo dev = msg.send;
-    var address = "";
-    var isCustom = customIpSetTemp.any((v) {
-      var res = v.split(":")[0] == client.ip;
-      address = v;
-      return res;
-    });
+    var address = ipSetTemp.firstWhereOrNull((ip) => ip.split(":")[0] == client.ip);
+    // var isCustom = ipSetTemp.any((v) {
+    //   var res = v.split(":")[0] == client.ip;
+    //   address = v;
+    //   return res;
+    // });
     switch (msg.key) {
       ///客户端连接
       case MsgType.connect:
@@ -403,17 +406,17 @@ class SocketListener {
         String code = msg.data["code"];
         //验证配对码
         var verify = DevPairingHandler.verify(dev.guid, code);
-        _onDevPaired(dev, msg.userId, verify, isCustom ? address : null);
+        _onDevPaired(dev, msg.userId, verify, address);
         //返回配对结果
         sendData(dev, MsgType.paired, {"result": verify});
-        customIpSetTemp.removeWhere((v) => v == address);
+        ipSetTemp.removeWhere((v) => v == address);
         break;
 
       ///获取配对结果
       case MsgType.paired:
         bool result = msg.data["result"];
-        _onDevPaired(dev, msg.userId, result, isCustom ? address : null);
-        customIpSetTemp.removeWhere((v) => v == address);
+        _onDevPaired(dev, msg.userId, result, address);
+        ipSetTemp.removeWhere((v) => v == address);
         break;
       default:
     }
@@ -578,9 +581,7 @@ class SocketListener {
           client.destroy();
           return;
         }
-        if (data.containsKey("custom")) {
-          customIpSetTemp.add("$ip:$port");
-        }
+        ipSetTemp.add("$ip:$port");
         //发送本机信息给对方
         MessageData msg = MessageData(
           userId: App.userId,
@@ -716,7 +717,7 @@ class SocketListener {
 
   ///设备配对成功
   void _onDevPaired(DevInfo dev, int uid, bool result, String? address) {
-    Log.debug(tag, "${dev.name} paired");
+    Log.debug(tag, "${dev.name} paired，address：$address");
     _devSockets[dev.guid]?.isPaired = true;
     for (var listener in _devAliveListeners) {
       try {
