@@ -18,7 +18,6 @@ class _UserGuideState extends State<UserGuide> with WidgetsBindingObserver {
   bool _canNext = false;
   bool _initFinished = false;
   final PageController _pageController = PageController();
-
   @override
   void initState() {
     super.initState();
@@ -137,7 +136,9 @@ class _UserGuideState extends State<UserGuide> with WidgetsBindingObserver {
                               }
                             : null,
                         child: Text(
-                          widget.guides[_current].allowSkip ? "跳过此项" : "",
+                          widget.guides[_current].allowSkip && !_canNext
+                              ? "跳过此项"
+                              : "",
                         ),
                       ),
                     ],
@@ -178,15 +179,17 @@ class _UserGuideState extends State<UserGuide> with WidgetsBindingObserver {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             for (var i = 0; i < widget.guides.length; i++)
-                              SizedBox(
-                                width: 16.0,
+                              AnimatedContainer(
+                                width: i == _current ? 36.0 : 16.0,
                                 height: 16.0,
+                                duration: const Duration(milliseconds: 200),
                                 child: Center(
-                                  child: Container(
-                                    width: 10.0,
+                                  child: AnimatedContainer(
+                                    width: i == _current ? 30.0 : 10.0,
                                     height: 10.0,
+                                    duration: const Duration(milliseconds: 200),
                                     decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
+                                      borderRadius: BorderRadius.circular(50),
                                       color: i <= _current
                                           ? Colors.blue
                                           : Colors.grey,

@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 import 'package:collection/collection.dart';
+
 abstract class DevAliveListener {
   //连接成功
   void onConnected(DevInfo info, Version minVersion, Version version);
@@ -288,7 +289,8 @@ class SocketListener {
   void _onSocketReceived(SecureSocketClient client, MessageData msg) async {
     Log.debug(tag, msg.key);
     DevInfo dev = msg.send;
-    var address = ipSetTemp.firstWhereOrNull((ip) => ip.split(":")[0] == client.ip);
+    var address =
+        ipSetTemp.firstWhereOrNull((ip) => ip.split(":")[0] == client.ip);
     // var isCustom = ipSetTemp.any((v) {
     //   var res = v.split(":")[0] == client.ip;
     //   address = v;
@@ -665,7 +667,7 @@ class SocketListener {
     var versionCode = msg.data["versionCode"];
     var minVersion = Version(minName, minCode);
     var version = Version(versionName, versionCode);
-    Log.debug(tag,"minVersion $minVersion version $version");
+    Log.debug(tag, "minVersion $minVersion version $version");
     //添加到本地
     if (_devSockets.containsKey(dev.guid)) {
       _devSockets[dev.guid]!.isPaired = paired;
@@ -708,7 +710,7 @@ class SocketListener {
     broadcastProcessChain.remove(dev.guid);
     for (var listener in _devAliveListeners) {
       try {
-        listener.onConnected(dev, minVersion,version);
+        listener.onConnected(dev, minVersion, version);
       } catch (e, t) {
         Log.debug(tag, "$e $t");
       }
