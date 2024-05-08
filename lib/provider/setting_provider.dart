@@ -5,6 +5,7 @@ import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/entity/tables/config.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:window_manager/window_manager.dart';
@@ -146,22 +147,34 @@ class SettingProvider extends Notifier<Settings> {
       saveToPictures: saveToPictures,
     );
   }
+
   Future<void> ignoreShizuku() async {
     await _addOrUpdate("ignoreShizuku", true.toString());
     App.settings = state = state.copyWith(
       ignoreShizuku: true,
     );
   }
+
   Future<void> useAuthentication(bool useAuthentication) async {
     await _addOrUpdate("useAuthentication", useAuthentication.toString());
     App.settings = state = state.copyWith(
       useAuthentication: useAuthentication,
     );
   }
+
   Future<void> setAppRevalidateDuration(int appRevalidateDuration) async {
-    await _addOrUpdate("appRevalidateDuration", appRevalidateDuration.toString());
+    await _addOrUpdate(
+        "appRevalidateDuration", appRevalidateDuration.toString());
     App.settings = state = state.copyWith(
       appRevalidateDuration: appRevalidateDuration,
+    );
+  }
+
+  Future<void> setAppPassword(String appPassword) async {
+    appPassword = CryptoUtil.toMD5(appPassword);
+    await _addOrUpdate("appPassword", appPassword);
+    App.settings = state = state.copyWith(
+      appPassword: appPassword,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipshare/components/auth_password_input.dart';
 import 'package:clipshare/components/authentication_time_setting_dialog.dart';
 import 'package:clipshare/components/hot_key_editor.dart';
 import 'package:clipshare/components/regular_setting_add_dialog.dart';
@@ -11,6 +12,7 @@ import 'package:clipshare/handler/hot_key_handler.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/pages/authentication_page.dart';
 import 'package:clipshare/pages/settings/regular_setting_page.dart';
 import 'package:clipshare/pages/update_log_page.dart';
 import 'package:clipshare/provider/setting_provider.dart';
@@ -60,6 +62,22 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       checkPermissions();
     }
+  }
+
+  void _gotoSetPwd() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AuthPasswordInput(
+          onFinished: (a, b) => a == b,
+          onOk: (input) {
+            context.ref.notifier(settingProvider).setAppPassword(input);
+            return true;
+          },
+          again: true,
+        ),
+      ),
+    );
   }
 
   @override
@@ -468,11 +486,21 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                             return Switch(
                               value: v,
                               onChanged: (checked) {
-                                //todo 这里还要验证是否设置了指纹或密码
                                 HapticFeedback.mediumImpact();
-                                ref
-                                    .notifier(settingProvider)
-                                    .useAuthentication(checked);
+                                if (vm.appPassword == null && checked) {
+                                  Global.showTipsDialog(
+                                    context: context,
+                                    text: "请先创建应用密码",
+                                    onOk: _gotoSetPwd,
+                                  );
+                                  ref
+                                      .notifier(settingProvider)
+                                      .useAuthentication(false);
+                                } else {
+                                  ref
+                                      .notifier(settingProvider)
+                                      .useAuthentication(checked);
+                                }
                               },
                             );
                           },
@@ -480,12 +508,30 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                         ),
                         SettingCard(
                           main: const Text("更改密码"),
-                          sub: const Text("更改应用密码"),
-                          value: '',
+                          sub: Text(
+                            "${vm.appPassword == null ? '新建' : '更改'}应用密码",
+                          ),
+                          value: vm.appPassword,
                           action: (v) {
-                            return const TextButton(
-                              onPressed: null,
-                              child: Text("更改"),
+                            return TextButton(
+                              onPressed: () {
+                                if (vm.appPassword == null) {
+                                  _gotoSetPwd();
+                                } else {
+                                  //第一步验证
+                                  App.authenticating = true;
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AuthenticationPage(),
+                                    ),
+                                  ).then((v) {
+                                    _gotoSetPwd();
+                                  });
+                                }
+                              },
+                              child: Text(vm.appPassword == null ? '新建' : '更改'),
                             );
                           },
                           show: (v) => Platform.isAndroid,

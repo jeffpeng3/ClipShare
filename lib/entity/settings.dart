@@ -56,6 +56,8 @@ class Settings {
   final bool useAuthentication;
   //app密码重新验证时长
   final int appRevalidateDuration;
+  //app密码重新验证时长
+  final String? appPassword;
 
   Settings({
     required this.port,
@@ -77,6 +79,7 @@ class Settings {
     required this.ignoreShizuku,
     required this.useAuthentication,
     required this.appRevalidateDuration,
+    this.appPassword,
   });
 
   Settings copyWith({
@@ -99,6 +102,7 @@ class Settings {
     bool? ignoreShizuku,
     bool? useAuthentication,
     int? appRevalidateDuration,
+    String? appPassword,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -122,6 +126,7 @@ class Settings {
       ignoreShizuku: ignoreShizuku ?? this.ignoreShizuku,
       useAuthentication: useAuthentication ?? this.useAuthentication,
       appRevalidateDuration: appRevalidateDuration ?? this.appRevalidateDuration,
+      appPassword: appPassword ?? this.appPassword,
     );
   }
 }

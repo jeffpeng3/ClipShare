@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:clipshare/components/auth_password_input.dart';
 import 'package:clipshare/listeners/screen_opened_listener.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -106,13 +107,12 @@ class _AuthenticationState extends State<AuthenticationPage>
             },
       child: Scaffold(
         body: AuthPasswordInput(
-          again: true,
-          errorText: "两次密码不一致！",
           onFinished: (String input, String? second) {
-            return input == second;
+            return CryptoUtil.toMD5(input) == App.settings.appPassword;
           },
-          onOk: () {
+          onOk: (input) {
             _onAuthenticated();
+            return false;
           },
         ),
       ),
