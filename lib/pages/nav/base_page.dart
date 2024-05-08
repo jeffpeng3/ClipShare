@@ -33,7 +33,7 @@ class BasePage extends StatefulWidget {
 }
 
 class _BasePageState extends State<BasePage>
-    with TrayListener, WindowListener
+    with TrayListener, WindowListener, WidgetsBindingObserver
     implements ScreenOpenedObserver {
   int _index = 0;
   final List<Widget> _pages = List.from([
@@ -71,6 +71,7 @@ class _BasePageState extends State<BasePage>
   late TagSyncer _tagSyncer;
   late HistoryTopSyncer _historyTopSyncer;
   late StreamSubscription _networkListener;
+  DateTime? _pausedTime;
   final _logoImg = Image.asset(
     'assets/images/logo/logo.png',
     width: 24,
@@ -96,6 +97,8 @@ class _BasePageState extends State<BasePage>
       return true;
     }());
     ScreenOpenedListener.inst.register(this);
+    //监听生命周期
+    WidgetsBinding.instance.addObserver(this);
     // 在构建完成后初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initCommon();
@@ -109,16 +112,57 @@ class _BasePageState extends State<BasePage>
   }
 
   @override
-  Future<void> onOpened() async {
-    //此处应该发送socket通知同步剪贴板到本机
-    SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
-    if (App.authenticating || !App.settings.useAuthentication) return;
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    print("state $state");
+    switch (state) {
+      case AppLifecycleState.resumed:
+        if (!App.settings.useAuthentication ||
+            App.authenticating ||
+            _pausedTime == null) {
+          return;
+        }
+        var authDurationSeconds = App.settings.appRevalidateDuration;
+        var now = DateTime.now();
+        // 计算秒数差异
+        int offsetMinutes = now.difference(_pausedTime!).inMinutes;
+        Log.debug(
+          tag,
+          "offsetMinutes $offsetMinutes,authDurationSeconds $authDurationSeconds",
+        );
+        if (offsetMinutes < authDurationSeconds) {
+          return;
+        }
+        _gotoAuthenticationPage();
+        break;
+      case AppLifecycleState.paused:
+        if (App.authenticating) {
+          _pausedTime = null;
+        } else {
+          _pausedTime = DateTime.now();
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  ///跳转验证页面
+  void _gotoAuthenticationPage() {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const AuthenticationPage(),
       ),
     );
+  }
+
+  @override
+  Future<void> onOpened() async {
+    //此处应该发送socket通知同步剪贴板到本机
+    SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
+    if (App.authenticating || !App.settings.useAuthentication) return;
+    _gotoAuthenticationPage();
   }
 
   ///导航至搜索页面
@@ -154,8 +198,8 @@ class _BasePageState extends State<BasePage>
     trayManager.setToolTip(Constants.appName);
     await trayManager.setIcon(
       Platform.isWindows
-          ? 'assets/images/logo/logo.ico'
-          : 'assets/images/logo/logo.png',
+          ? Constants.logoIcoPath
+          : Constants.logoPngPath,
     );
     List<MenuItem> items = [
       MenuItem(

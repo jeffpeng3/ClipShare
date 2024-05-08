@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipshare/components/authentication_time_setting_dialog.dart';
 import 'package:clipshare/components/hot_key_editor.dart';
 import 'package:clipshare/components/regular_setting_add_dialog.dart';
 import 'package:clipshare/components/settings/card/setting_card.dart';
@@ -492,9 +493,31 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                         SettingCard(
                           main: const Text("密码重新验证"),
                           sub: const Text("在后台指定时长后重新验证密码"),
-                          value: '',
+                          value: App.settings.appRevalidateDuration,
+                          onTap: () {
+                            AuthenticationTimeSettingDialog.show(
+                              context: context,
+                              defaultValue: App.settings.appRevalidateDuration,
+                              selected: (v) {
+                                return v == App.settings.appRevalidateDuration;
+                              },
+                              onSelected: (duration) {
+                                Future.delayed(
+                                  const Duration(milliseconds: 100),
+                                ).then(
+                                  (value) {
+                                    ref
+                                        .notifier(settingProvider)
+                                        .setAppRevalidateDuration(duration);
+                                    Navigator.pop(context);
+                                  },
+                                );
+                              },
+                            );
+                          },
                           action: (v) {
-                            return const Text("立即");
+                            var duration = App.settings.appRevalidateDuration;
+                            return Text(duration <= 0 ? "立即" : "$duration 分钟");
                           },
                           show: (v) => Platform.isAndroid,
                         ),
@@ -595,12 +618,14 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                         SettingCard(
                           main: const Text("图片存储至相册中"),
                           sub: const Text(
-                              "将保存至 Pictures/${Constants.appName} 中"),
+                            "将保存至 Pictures/${Constants.appName} 中",
+                          ),
                           value: vm.saveToPictures,
                           action: (v) {
                             return Switch(
                               value: v,
                               onChanged: (checked) async {
+                                HapticFeedback.mediumImpact();
                                 if (checked) {
                                   var path =
                                       "${Constants.androidPicturesPath}/${Constants.appName}";

@@ -158,4 +158,10 @@ class SettingProvider extends Notifier<Settings> {
       useAuthentication: useAuthentication,
     );
   }
+  Future<void> setAppRevalidateDuration(int appRevalidateDuration) async {
+    await _addOrUpdate("appRevalidateDuration", appRevalidateDuration.toString());
+    App.settings = state = state.copyWith(
+      appRevalidateDuration: appRevalidateDuration,
+    );
+  }
 }

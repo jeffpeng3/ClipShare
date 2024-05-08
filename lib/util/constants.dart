@@ -50,7 +50,8 @@ class Constants {
 
   static const smallScreenWidth = 640;
   static const showHistoryRightWidth = 840;
-
+  static const logoPngPath = "assets/images/logo/logo.png";
+  static const logoIcoPath = "assets/images/logo/logo.ico";
   //设备类型图片
   static Map<String, Icon> devTypeIcons = {
     'Windows': const Icon(

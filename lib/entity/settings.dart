@@ -54,6 +54,8 @@ class Settings {
   final bool ignoreShizuku;
   //使用安全认证
   final bool useAuthentication;
+  //app密码重新验证时长
+  final int appRevalidateDuration;
 
   Settings({
     required this.port,
@@ -74,6 +76,7 @@ class Settings {
     required this.saveToPictures,
     required this.ignoreShizuku,
     required this.useAuthentication,
+    required this.appRevalidateDuration,
   });
 
   Settings copyWith({
@@ -95,6 +98,7 @@ class Settings {
     bool? saveToPictures,
     bool? ignoreShizuku,
     bool? useAuthentication,
+    int? appRevalidateDuration,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -117,6 +121,7 @@ class Settings {
       saveToPictures: saveToPictures ?? this.saveToPictures,
       ignoreShizuku: ignoreShizuku ?? this.ignoreShizuku,
       useAuthentication: useAuthentication ?? this.useAuthentication,
+      appRevalidateDuration: appRevalidateDuration ?? this.appRevalidateDuration,
     );
   }
 }

@@ -325,6 +325,10 @@ class _LoadingPageState extends State<LoadingPage> {
       "useAuthentication",
       App.userId,
     );
+    var appRevalidateDuration = await cfg.getConfig(
+      "appRevalidateDuration",
+      App.userId,
+    );
     var fileStoreDir = Directory(fileStorePath ?? App.defaultFileStorePath);
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
@@ -350,6 +354,7 @@ class _LoadingPageState extends State<LoadingPage> {
       saveToPictures: saveToPictures?.toBool() ?? false,
       ignoreShizuku: ignoreShizuku?.toBool() ?? false,
       useAuthentication: useAuthentication?.toBool() ?? false,
+      appRevalidateDuration: appRevalidateDuration?.toInt() ?? 0,
     );
     if (Platform.isAndroid) {
       if (App.settings.showHistoryFloat) {
