@@ -492,6 +492,8 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                     context: context,
                                     text: "请先创建应用密码",
                                     onOk: _gotoSetPwd,
+                                    okText: "去创建",
+                                    showCancel: true,
                                   );
                                   ref
                                       .notifier(settingProvider)

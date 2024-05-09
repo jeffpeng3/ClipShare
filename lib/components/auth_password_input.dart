@@ -1,5 +1,6 @@
+import 'dart:math';
+
 import 'package:clipshare/util/constants.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -149,16 +150,73 @@ class _AuthPasswordInputState extends State<AuthPasswordInput> {
                   ),
                 ),
                 Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      for (var i = 1; i <= 3; i++)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            for (var j = 1; j <= 3; j++)
+                  child: LayoutBuilder(
+                    builder: (ctx, constraints) {
+                      const paddingBottom = 25.0;
+                      var maxWidth = (constraints.maxWidth - 60) / 3;
+                      var maxHeight =
+                          (constraints.maxHeight - 80 - paddingBottom * 4) / 4;
+                      var edgeLen = min(maxHeight, maxWidth);
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          for (var i = 1; i <= 3; i++)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                for (var j = 1; j <= 3; j++)
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      bottom: paddingBottom,
+                                    ),
+                                    child: Ink(
+                                      decoration: const BoxDecoration(
+                                        //颜色放外面的Ink，否则水波纹被遮挡
+                                        color: Color(0Xfff2f2f2),
+                                        borderRadius: BorderRadius.all(
+                                          Radius.circular(50),
+                                        ),
+                                      ),
+                                      child: InkWell(
+                                        borderRadius: const BorderRadius.all(
+                                          Radius.circular(50),
+                                        ),
+                                        child: AnimatedContainer(
+                                          width: edgeLen,
+                                          height: edgeLen,
+                                          duration:
+                                              const Duration(milliseconds: 200),
+                                          child: Center(
+                                            child: Text(
+                                              "${(i - 1) * 3 + j}",
+                                              style: const TextStyle(
+                                                fontSize: 30,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        onTap: () =>
+                                            _onNumberInput((i - 1) * 3 + j),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
                               Padding(
-                                padding: const EdgeInsets.only(bottom: 25),
+                                padding: const EdgeInsets.only(
+                                    bottom: paddingBottom),
+                                child: SizedBox(
+                                  width: edgeLen,
+                                  height: edgeLen,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: paddingBottom),
                                 child: Ink(
                                   decoration: const BoxDecoration(
                                     //颜色放外面的Ink，否则水波纹被遮挡
@@ -172,103 +230,62 @@ class _AuthPasswordInputState extends State<AuthPasswordInput> {
                                       Radius.circular(50),
                                     ),
                                     child: AnimatedContainer(
-                                      width: 100,
-                                      height: 100,
+                                      width: edgeLen,
+                                      height: edgeLen,
                                       duration:
                                           const Duration(milliseconds: 200),
-                                      child: Center(
+                                      child: const Center(
                                         child: Text(
-                                          "${(i - 1) * 3 + j}",
-                                          style: const TextStyle(
+                                          "0",
+                                          style: TextStyle(
                                             fontSize: 30,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                       ),
                                     ),
-                                    onTap: () =>
-                                        _onNumberInput((i - 1) * 3 + j),
+                                    onTap: () => _onNumberInput(0),
                                   ),
                                 ),
                               ),
-                          ],
-                        ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 25),
-                            child: SizedBox(
-                              width: 100,
-                              height: 100,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 25),
-                            child: Ink(
-                              decoration: const BoxDecoration(
-                                //颜色放外面的Ink，否则水波纹被遮挡
-                                color: Color(0Xfff2f2f2),
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(50),
-                                ),
-                              ),
-                              child: InkWell(
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(50),
-                                ),
-                                child: AnimatedContainer(
-                                  width: 100,
-                                  height: 100,
-                                  duration: const Duration(milliseconds: 200),
-                                  child: const Center(
-                                    child: Text(
-                                      "0",
-                                      style: TextStyle(
-                                        fontSize: 30,
-                                        fontWeight: FontWeight.bold,
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: paddingBottom),
+                                child: Ink(
+                                  decoration: const BoxDecoration(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(50),
+                                    ),
+                                  ),
+                                  child: InkWell(
+                                    splashColor: Colors.orange.withOpacity(0.1),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(50),
+                                    ),
+                                    onTap: _onNumberDelete,
+                                    child: AnimatedContainer(
+                                      width: edgeLen,
+                                      height: edgeLen,
+                                      duration:
+                                          const Duration(milliseconds: 200),
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.backspace_outlined,
+                                          color: Colors.orange,
+                                          size: 45,
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
-                                onTap: () => _onNumberInput(0),
                               ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 25),
-                            child: Ink(
-                              decoration: const BoxDecoration(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(50),
-                                ),
-                              ),
-                              child: InkWell(
-                                splashColor: Colors.orange.withOpacity(0.1),
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(50),
-                                ),
-                                onTap: _onNumberDelete,
-                                child: AnimatedContainer(
-                                  width: 100,
-                                  height: 100,
-                                  duration: const Duration(milliseconds: 200),
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.backspace_outlined,
-                                      color: Colors.orange,
-                                      size: 45,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                            ],
+                          )
                         ],
-                      )
-                    ],
+                      );
+                    },
                   ),
-                )
+                ),
               ],
             ),
           ),

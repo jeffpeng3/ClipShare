@@ -3,13 +3,12 @@ import 'dart:io';
 import 'package:clipshare/components/auth_password_input.dart';
 import 'package:clipshare/listeners/screen_opened_listener.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/pages/nav/base_page.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/log.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:local_auth_android/local_auth_android.dart';
 
 class AuthenticationPage extends StatefulWidget {
   const AuthenticationPage({super.key});
@@ -63,28 +62,32 @@ class _AuthenticationState extends State<AuthenticationPage>
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
                 ),
                 Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: TextButton(
-                      child: const Text(
-                        "使用密码",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: TextButton(
+                    child: const Text(
+                      "使用密码",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
                       ),
-                      onPressed: () {
-                        Future.delayed(const Duration(milliseconds: 100), () {
-                          Navigator.pop(context);
-                        });
-                      },
-                    )),
-                GestureDetector(
-                  onTap: onOpened,
-                  child: const Icon(
-                    Icons.fingerprint_outlined,
-                    color: Colors.blueAccent,
-                    size: 100,
+                    ),
+                    onPressed: () {
+                      Future.delayed(const Duration(milliseconds: 100), () {
+                        Navigator.pop(context);
+                      });
+                    },
                   ),
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.fingerprint_outlined,
+                      color: Colors.blueAccent,
+                      size: 100,
+                    ),
+                    TextButton(onPressed: onOpened, child: const Text("开始验证")),
+                  ],
                 ),
               ],
             ),
@@ -123,7 +126,13 @@ class _AuthenticationState extends State<AuthenticationPage>
     if (_supportAuth && !_authenticating) {
       _authenticating = true;
       var authenticated = await _auth.authenticate(
-        localizedReason: 'Let OS determine authentication method',
+        authMessages: [
+          const AndroidAuthMessages(
+            biometricHint: "",
+            signInTitle: "需要身份验证",
+          ),
+        ],
+        localizedReason: '超时验证',
       );
       _authenticating = false;
       Log.debug(tag, "authenticated $authenticated");
@@ -136,6 +145,7 @@ class _AuthenticationState extends State<AuthenticationPage>
     App.authenticating = false;
     setState(() {
       _backPage = true;
+      BasePage.pageKey.currentState?.pausedTime = null;
       Navigator.pop(context);
       if (useSystem) {
         Navigator.pop(context);

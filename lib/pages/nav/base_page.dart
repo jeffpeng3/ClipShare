@@ -71,7 +71,7 @@ class _BasePageState extends State<BasePage>
   late TagSyncer _tagSyncer;
   late HistoryTopSyncer _historyTopSyncer;
   late StreamSubscription _networkListener;
-  DateTime? _pausedTime;
+  DateTime? pausedTime;
   final _logoImg = Image.asset(
     'assets/images/logo/logo.png',
     width: 24,
@@ -119,13 +119,13 @@ class _BasePageState extends State<BasePage>
       case AppLifecycleState.resumed:
         if (!App.settings.useAuthentication ||
             App.authenticating ||
-            _pausedTime == null) {
+            pausedTime == null) {
           return;
         }
         var authDurationSeconds = App.settings.appRevalidateDuration;
         var now = DateTime.now();
         // 计算秒数差异
-        int offsetMinutes = now.difference(_pausedTime!).inMinutes;
+        int offsetMinutes = now.difference(pausedTime!).inMinutes;
         Log.debug(
           tag,
           "offsetMinutes $offsetMinutes,authDurationSeconds $authDurationSeconds",
@@ -137,9 +137,9 @@ class _BasePageState extends State<BasePage>
         break;
       case AppLifecycleState.paused:
         if (App.authenticating) {
-          _pausedTime = null;
+          pausedTime = null;
         } else {
-          _pausedTime = DateTime.now();
+          pausedTime = DateTime.now();
         }
         break;
       default:
