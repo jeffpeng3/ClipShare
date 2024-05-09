@@ -82,7 +82,13 @@ class _AuthPasswordInputState extends State<AuthPasswordInput> {
         }
       } else {
         //需要重复输入且第一次输入完成
-        _secondInput = true;
+        Future.delayed(
+          const Duration(milliseconds: 200),
+          () {
+            _secondInput = true;
+            setState(() {});
+          },
+        );
       }
     } else {
       _error = false;

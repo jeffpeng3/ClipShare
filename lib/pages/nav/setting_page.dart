@@ -526,10 +526,13 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          const AuthenticationPage(),
+                                          const AuthenticationPage(lock: false,),
                                     ),
                                   ).then((v) {
-                                    _gotoSetPwd();
+                                    //null为正常验证，设置密码，否则主动退出
+                                    if(v!=null) {
+                                      _gotoSetPwd();
+                                    }
                                   });
                                 }
                               },

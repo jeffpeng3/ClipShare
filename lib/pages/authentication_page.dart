@@ -11,7 +11,9 @@ import 'package:local_auth/local_auth.dart';
 import 'package:local_auth_android/local_auth_android.dart';
 
 class AuthenticationPage extends StatefulWidget {
-  const AuthenticationPage({super.key});
+  final bool lock;
+
+  const AuthenticationPage({super.key, this.lock = true});
 
   @override
   State<StatefulWidget> createState() {
@@ -30,6 +32,7 @@ class _AuthenticationState extends State<AuthenticationPage>
   @override
   void initState() {
     super.initState();
+    _backPage = !widget.lock;
     App.authenticating = true;
     ScreenOpenedListener.inst.register(this);
     _auth.isDeviceSupported().then((supported) {
@@ -146,9 +149,10 @@ class _AuthenticationState extends State<AuthenticationPage>
     setState(() {
       _backPage = true;
       BasePage.pageKey.currentState?.pausedTime = null;
-      Navigator.pop(context);
+      //正常验证，添加返回值
+      Navigator.of(context).pop(true);
       if (useSystem) {
-        Navigator.pop(context);
+        Navigator.of(context).pop(true);
       }
     });
   }
