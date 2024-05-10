@@ -318,6 +318,11 @@ class HistoryPageState extends State<HistoryPage>
           var file = File(path);
           if (!file.existsSync()) {
             file.writeAsBytesSync(data);
+            if (App.settings.saveToPictures) {
+              App.androidChannel.invokeMethod("notifyMediaScan", {
+                "imagePath": path,
+              });
+            }
           }
           break;
         default:

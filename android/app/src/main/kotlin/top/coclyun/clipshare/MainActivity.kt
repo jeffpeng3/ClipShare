@@ -10,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -332,6 +333,14 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
                     val content = args["content"].toString();
                     Toast.makeText(this, content, Toast.LENGTH_LONG).show();
                     result.success(true);
+                }
+                //图片更新后通知媒体库扫描
+                "notifyMediaScan" -> {
+                    val imagePath = args["imagePath"].toString();
+                    MediaScannerConnection.scanFile(applicationContext, arrayOf(imagePath), null) { path, uri ->
+                        // 扫描完成后的操作，可以在这里添加你的逻辑
+                        Log.i(TAG, "initAndroidChannel: MediaScanner Completed")
+                    }
                 }
             }
         }

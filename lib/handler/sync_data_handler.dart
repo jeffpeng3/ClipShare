@@ -12,8 +12,11 @@ import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/log.dart';
 
 class SyncDataHandler {
+  static const tag = "SyncDataHandler";
+
   static void sendMissingData(DevInfo dev) {
     getData(dev.guid).then((lst) {
       for (var item in lst) {
@@ -83,16 +86,21 @@ class SyncDataHandler {
               item.data = empty.toString();
             }
           } else {
-            var clip = ClipData(v);
-            if (clip.isImage) {
-              var file = File(v.content);
-              var fileName = file.fileName;
-              var bytes = file.readAsBytesSync();
-              v.content = jsonEncode(
-                {"fileName": fileName, "data": bytes},
-              );
+            try {
+              var clip = ClipData(v);
+              if (clip.isImage) {
+                var file = File(v.content);
+                var fileName = file.fileName;
+                var bytes = file.readAsBytesSync();
+                v.content = jsonEncode(
+                  {"fileName": fileName, "data": bytes},
+                );
+              }
+              item.data = v.toString();
+            } catch (e, t) {
+              rmList.add(item);
+              Log.debug(tag, "$e\n$t");
             }
-            item.data = v.toString();
           }
         });
         break;
