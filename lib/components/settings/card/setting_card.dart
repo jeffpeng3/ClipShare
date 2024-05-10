@@ -93,7 +93,10 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
                                       fontSize: 17,
                                       color: Colors.black87,
                                     ),
-                                    child: widget.main,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: widget.main,
+                                    ),
                                   ),
                                 ]
                               : [
@@ -104,7 +107,10 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
                                         fontSize: 17,
                                         color: Colors.black87,
                                       ),
-                                      child: widget.main,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: widget.main,
+                                      ),
                                     ),
                                   ),
                                   Expanded(
@@ -113,7 +119,10 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
                                       style: const TextStyle(
                                         color: Colors.grey,
                                       ),
-                                      child: sub,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: sub,
+                                      ),
                                     ),
                                   ),
                                 ],

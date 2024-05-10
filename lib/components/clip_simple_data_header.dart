@@ -11,8 +11,11 @@ class ClipSimpleDataHeader extends StatefulWidget {
   final ClipData clip;
   final bool routeToSearchOnClickChip;
 
-  const ClipSimpleDataHeader(
-      {super.key, required this.clip, required this.routeToSearchOnClickChip});
+  const ClipSimpleDataHeader({
+    super.key,
+    required this.clip,
+    required this.routeToSearchOnClickChip,
+  });
 
   @override
   State<StatefulWidget> createState() {

@@ -12,7 +12,6 @@ import 'package:clipshare/handler/hot_key_handler.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
-import 'package:clipshare/pages/authentication_page.dart';
 import 'package:clipshare/pages/nav/base_page.dart';
 import 'package:clipshare/pages/settings/regular_setting_page.dart';
 import 'package:clipshare/pages/update_log_page.dart';
@@ -308,10 +307,16 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       icon: const Icon(Icons.wifi),
                       cardList: [
                         SettingCard(
-                          main: const Text("设备名称"),
+                          main: const Text(
+                            "设备名称",
+                            maxLines: 1,
+                          ),
                           sub: Row(
                             children: [
-                              Text("id: ${App.devInfo.guid}"),
+                              Text(
+                                "id: ${App.devInfo.guid}",
+                                maxLines: 1,
+                              ),
                               const SizedBox(
                                 width: 5,
                               ),
@@ -359,9 +364,13 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           },
                         ),
                         SettingCard(
-                          main: const Text("端口号"),
+                          main: const Text(
+                            "端口号",
+                            maxLines: 1,
+                          ),
                           sub: const Text(
                             "默认值 ${Constants.port}。修改后可能无法被自动发现",
+                            maxLines: 1,
                           ),
                           value: vm.port,
                           action: (v) => Text(v.toString()),
@@ -392,9 +401,13 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           },
                         ),
                         SettingCard(
-                          main: const Text("可被发现"),
+                          main: const Text(
+                            "可被发现",
+                            maxLines: 1,
+                          ),
                           sub: const Text(
                             "可以被其它设备自动发现",
+                            maxLines: 1,
                           ),
                           value: vm.allowDiscover,
                           action: (v) => Switch(
@@ -410,7 +423,10 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                         SettingCard(
                           main: Row(
                             children: [
-                              const Text("心跳检测间隔"),
+                              const Text(
+                                "心跳检测间隔",
+                                maxLines: 1,
+                              ),
                               const SizedBox(
                                 width: 5,
                               ),
@@ -438,6 +454,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           ),
                           sub: const Text(
                             "检测设备存活。默认30s，0不检测",
+                            maxLines: 1,
                           ),
                           value: vm.heartbeatInterval,
                           action: (v) => Text(v <= 0 ? '不检测' : '${v}s'),
@@ -480,8 +497,14 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       icon: const Icon(Icons.fingerprint_outlined),
                       cardList: [
                         SettingCard(
-                          main: const Text("启用安全认证"),
-                          sub: const Text("启用密码或生物识别认证"),
+                          main: const Text(
+                            "启用安全认证",
+                            maxLines: 1,
+                          ),
+                          sub: const Text(
+                            "启用密码或生物识别认证",
+                            maxLines: 1,
+                          ),
                           value: vm.useAuthentication,
                           action: (v) {
                             return Switch(
@@ -510,9 +533,13 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           show: (v) => Platform.isAndroid,
                         ),
                         SettingCard(
-                          main: const Text("更改密码"),
+                          main: const Text(
+                            "更改密码",
+                            maxLines: 1,
+                          ),
                           sub: Text(
                             "${vm.appPassword == null ? '新建' : '更改'}应用密码",
+                            maxLines: 1,
                           ),
                           value: vm.appPassword,
                           action: (v) {
@@ -523,9 +550,11 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                 } else {
                                   //第一步验证
                                   App.authenticating = true;
-                                  BasePage.pageKey.currentState?.gotoAuthenticationPage(false).then((v) {
+                                  BasePage.pageKey.currentState
+                                      ?.gotoAuthenticationPage(false)
+                                      .then((v) {
                                     //null为正常验证，设置密码，否则主动退出
-                                    if(v!=null) {
+                                    if (v != null) {
                                       _gotoSetPwd();
                                     }
                                   });
@@ -537,8 +566,14 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           show: (v) => Platform.isAndroid,
                         ),
                         SettingCard(
-                          main: const Text("密码重新验证"),
-                          sub: const Text("在后台指定时长后重新验证密码"),
+                          main: const Text(
+                            "密码重新验证",
+                            maxLines: 1,
+                          ),
+                          sub: const Text(
+                            "在后台指定时长后重新验证密码",
+                            maxLines: 1,
+                          ),
                           value: App.settings.appRevalidateDuration,
                           onTap: () {
                             AuthenticationTimeSettingDialog.show(
@@ -576,8 +611,14 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       icon: const Icon(Icons.keyboard_alt_outlined),
                       cardList: [
                         SettingCard(
-                          main: const Text("历史弹窗"),
-                          sub: const Text("在屏幕任意位置唤起历史记录弹窗"),
+                          main: const Text(
+                            "历史弹窗",
+                            maxLines: 1,
+                          ),
+                          sub: const Text(
+                            "在屏幕任意位置唤起历史记录弹窗",
+                            maxLines: 1,
+                          ),
                           value: vm.historyWindowHotKeys,
                           action: (v) {
                             var keyText = HotKeyEditor.toText(v);
@@ -644,8 +685,14 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       icon: const Icon(Icons.sync_rounded),
                       cardList: [
                         SettingCard(
-                          main: const Text("短信同步"),
-                          sub: const Text("符合规则的短信将自动同步"),
+                          main: const Text(
+                            "短信同步",
+                            maxLines: 1,
+                          ),
+                          sub: const Text(
+                            "符合规则的短信将自动同步",
+                            maxLines: 1,
+                          ),
                           value: false,
                           show: (v) => PlatformExt.isMobile,
                           action: (v) {
@@ -653,8 +700,14 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           },
                         ),
                         SettingCard(
-                          main: const Text("文件同步"),
-                          sub: const Text("符合规则的文件将允许同步"),
+                          main: const Text(
+                            "文件同步",
+                            maxLines: 1,
+                          ),
+                          sub: const Text(
+                            "符合规则的文件将允许同步",
+                            maxLines: 1,
+                          ),
                           value: false,
                           show: (v) => PlatformExt.isPC,
                           action: (v) {
@@ -662,9 +715,13 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           },
                         ),
                         SettingCard(
-                          main: const Text("图片存储至相册中"),
+                          main: const Text(
+                            "图片存储至相册中",
+                            maxLines: 1,
+                          ),
                           sub: const Text(
                             "将保存至 Pictures/${Constants.appName} 中",
+                            maxLines: 1,
                           ),
                           value: vm.saveToPictures,
                           action: (v) {
@@ -720,8 +777,14 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           show: (v) => Platform.isAndroid,
                         ),
                         SettingCard(
-                          main: const Text("文件存储路径"),
-                          sub: Text(vm.fileStorePath),
+                          main: const Text(
+                            "文件存储路径",
+                            maxLines: 1,
+                          ),
+                          sub: Text(
+                            vm.fileStorePath,
+                            maxLines: 1,
+                          ),
                           value: false,
                           action: (v) {
                             return TextButton(
@@ -734,7 +797,10 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                       .setFileStorePath(directory);
                                 }
                               },
-                              child: const Text("选择"),
+                              child: const Text(
+                                "选择",
+                                maxLines: 1,
+                              ),
                             );
                           },
                         ),
@@ -747,8 +813,14 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       icon: const Icon(Icons.assignment_outlined),
                       cardList: [
                         SettingCard(
-                          main: const Text("标签规则"),
-                          sub: const Text("符合规则的记录将会自动打上对应标签"),
+                          main: const Text(
+                            "标签规则",
+                            maxLines: 1,
+                          ),
+                          sub: const Text(
+                            "符合规则的记录将会自动打上对应标签",
+                            maxLines: 1,
+                          ),
                           value: false,
                           action: (v) {
                             return TextButton(
@@ -771,8 +843,14 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                     var key = UniqueKey();
                                     return SettingCard(
                                       key: key,
-                                      main: Text("标签：$tag"),
-                                      sub: Text("规则：$regular"),
+                                      main: Text(
+                                        "标签：$tag",
+                                        maxLines: 1,
+                                      ),
+                                      sub: Text(
+                                        "规则：$regular",
+                                        maxLines: 1,
+                                      ),
                                       value: data,
                                       borderRadius: const BorderRadius.all(
                                         Radius.circular(8.0),
@@ -832,8 +910,14 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           },
                         ),
                         SettingCard(
-                          main: const Text("文件规则"),
-                          sub: const Text("符合指定文件扩展或大小的文件将会允许同步"),
+                          main: const Text(
+                            "文件规则",
+                            maxLines: 1,
+                          ),
+                          sub: const Text(
+                            "符合指定文件扩展或大小的文件将会允许同步",
+                            maxLines: 1,
+                          ),
                           value: false,
                           show: (v) => PlatformExt.isPC,
                           action: (v) {
@@ -844,8 +928,14 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           },
                         ),
                         SettingCard(
-                          main: const Text("短信规则"),
-                          sub: const Text("符合规则的短信将会同步"),
+                          main: const Text(
+                            "短信规则",
+                            maxLines: 1,
+                          ),
+                          sub: const Text(
+                            "符合规则的短信将会同步",
+                            maxLines: 1,
+                          ),
                           value: false,
                           show: (v) => PlatformExt.isMobile,
                           action: (v) {
@@ -866,7 +956,10 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                         SettingCard(
                           main: Row(
                             children: [
-                              const Text("启用日志记录"),
+                              const Text(
+                                "启用日志记录",
+                                maxLines: 1,
+                              ),
                               const SizedBox(
                                 width: 5,
                               ),
@@ -901,6 +994,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           ),
                           sub: Text(
                             "将会占据额外空间，已产生 ${FileUtil.getDirectorySize(App.logsDirPath).sizeStr} 日志",
+                            maxLines: 1,
                           ),
                           value: vm.enableLogsRecord,
                           action: (v) {
@@ -953,8 +1047,14 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       icon: const Icon(Icons.info_outline),
                       cardList: [
                         SettingCard(
-                          main: const Text("关于${Constants.appName}"),
-                          sub: Text("${App.version.name}(${App.version.code})"),
+                          main: const Text(
+                            "关于${Constants.appName}",
+                            maxLines: 1,
+                          ),
+                          sub: Text(
+                            "${App.version.name}(${App.version.code})",
+                            maxLines: 1,
+                          ),
                           value: false,
                           action: (v) => IconButton(
                             onPressed: () {
