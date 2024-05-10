@@ -133,7 +133,7 @@ class _BasePageState extends State<BasePage>
         if (offsetMinutes < authDurationSeconds) {
           return;
         }
-        _gotoAuthenticationPage();
+        gotoAuthenticationPage();
         break;
       case AppLifecycleState.paused:
         if (App.authenticating) {
@@ -148,11 +148,14 @@ class _BasePageState extends State<BasePage>
   }
 
   ///跳转验证页面
-  void _gotoAuthenticationPage() {
-    Navigator.push(
+  Future gotoAuthenticationPage([bool lock = true]) {
+    App.authenticating = true;
+    return Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const AuthenticationPage(),
+        builder: (context) => AuthenticationPage(
+          lock: lock,
+        ),
       ),
     );
   }
@@ -162,7 +165,7 @@ class _BasePageState extends State<BasePage>
     //此处应该发送socket通知同步剪贴板到本机
     SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
     if (App.authenticating || !App.settings.useAuthentication) return;
-    _gotoAuthenticationPage();
+    gotoAuthenticationPage();
   }
 
   ///导航至搜索页面
@@ -197,9 +200,7 @@ class _BasePageState extends State<BasePage>
     trayManager.addListener(this);
     trayManager.setToolTip(Constants.appName);
     await trayManager.setIcon(
-      Platform.isWindows
-          ? Constants.logoIcoPath
-          : Constants.logoPngPath,
+      Platform.isWindows ? Constants.logoIcoPath : Constants.logoPngPath,
     );
     List<MenuItem> items = [
       MenuItem(

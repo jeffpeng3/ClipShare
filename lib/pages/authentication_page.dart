@@ -21,8 +21,7 @@ class AuthenticationPage extends StatefulWidget {
   }
 }
 
-class _AuthenticationState extends State<AuthenticationPage>
-    implements ScreenOpenedObserver {
+class _AuthenticationState extends State<AuthenticationPage> {
   final _auth = LocalAuthentication();
   var _supportAuth = false;
   var _authenticating = false;
@@ -33,8 +32,6 @@ class _AuthenticationState extends State<AuthenticationPage>
   void initState() {
     super.initState();
     _backPage = !widget.lock;
-    App.authenticating = true;
-    ScreenOpenedListener.inst.register(this);
     _auth.isDeviceSupported().then((supported) {
       _supportAuth = supported;
       if (!_supportAuth) {
@@ -89,7 +86,7 @@ class _AuthenticationState extends State<AuthenticationPage>
                       color: Colors.blueAccent,
                       size: 100,
                     ),
-                    TextButton(onPressed: onOpened, child: const Text("开始验证")),
+                    TextButton(onPressed: authenticate, child: const Text("开始验证")),
                   ],
                 ),
               ],
@@ -157,8 +154,7 @@ class _AuthenticationState extends State<AuthenticationPage>
     });
   }
 
-  @override
-  Future<void> onOpened() async {
+  Future<void> authenticate() async {
     checkAuth().then((authenticated) {
       if (authenticated) {
         _onAuthenticated(true);
@@ -169,6 +165,5 @@ class _AuthenticationState extends State<AuthenticationPage>
   @override
   void dispose() {
     super.dispose();
-    ScreenOpenedListener.inst.remove(this);
   }
 }

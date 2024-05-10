@@ -13,6 +13,7 @@ import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/authentication_page.dart';
+import 'package:clipshare/pages/nav/base_page.dart';
 import 'package:clipshare/pages/settings/regular_setting_page.dart';
 import 'package:clipshare/pages/update_log_page.dart';
 import 'package:clipshare/provider/setting_provider.dart';
@@ -522,13 +523,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                 } else {
                                   //第一步验证
                                   App.authenticating = true;
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const AuthenticationPage(lock: false,),
-                                    ),
-                                  ).then((v) {
+                                  BasePage.pageKey.currentState?.gotoAuthenticationPage(false).then((v) {
                                     //null为正常验证，设置密码，否则主动退出
                                     if(v!=null) {
                                       _gotoSetPwd();
