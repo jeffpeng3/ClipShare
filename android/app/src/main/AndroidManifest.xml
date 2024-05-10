@@ -27,7 +27,7 @@
             android:enabled="true"
             android:exported="false" />
         <service
-            android:name=".service.BackgroundService"
+            android:name=".service.ForegroundService"
             android:enabled="true"
             android:exported="false" />
 

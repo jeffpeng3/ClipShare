@@ -3,7 +3,6 @@ package top.coclyun.clipshare.service
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -28,14 +27,14 @@ import java.util.Date
 import java.util.Locale
 
 
-class BackgroundService : Service(),
-    ClipboardListener.ClipboardObserver {
+class ForegroundService : Service(),
+        ClipboardListener.ClipboardObserver {
     companion object {
         @JvmStatic
-        val notificationId = 1
+        val foregroundServiceNotificationId = 1
 
         @JvmStatic
-        val notifyChannelId = "BackgroundService"
+        val foregroundServiceNotifyChannelId = "ForegroundService"
     }
 
     class MyHandler(context: Context) : Handler() {
@@ -54,9 +53,15 @@ class BackgroundService : Service(),
     //mHandler用于弱引用和主线程更新UI，为什么一定要这样搞呢，简单地说就是不这样就会报错、会内存泄漏。
     private var mHandler = MyHandler(this)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("backgroundService", "onStartCommand")
+        Log.d("ForegroundService", "onStartCommand")
         // 在这里执行服务的逻辑
         ClipboardListener.instance(this)!!.registerObserver(this)
+        createNotify();
+        readLogByShizuku()
+        return START_NOT_STICKY
+    }
+
+    private fun createNotify() {
         // 在 Android 8.0 及以上版本，需要创建通知渠道
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
@@ -65,24 +70,22 @@ class BackgroundService : Service(),
         val notification = buildNotification()
 
         val manger = getSystemService(
-            NOTIFICATION_SERVICE
+                NOTIFICATION_SERVICE
         ) as NotificationManager
-        manger.notify(notificationId, notification)
-        startForeground(notificationId, notification)
-        notify("服务正在运行")
-        readLogByShizuku()
-        return START_NOT_STICKY
+        manger.notify(foregroundServiceNotificationId, notification)
+        startForeground(foregroundServiceNotificationId, notification)
+        notifyForeground("服务正在运行")
     }
 
     private fun readLogByShizuku() {
         val timeStamp: String =
-            SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).format(Date())
+                SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).format(Date())
         val cmdStrArr = arrayOf(
-            "logcat",
-            "-T",
-            timeStamp,
-            "ClipboardService:E",
-            "*:S"
+                "logcat",
+                "-T",
+                timeStamp,
+                "ClipboardService:E",
+                "*:S"
         )
         val process = Shizuku.newProcess(cmdStrArr, null, null)
         val t = Thread {
@@ -102,10 +105,12 @@ class BackgroundService : Service(),
                         }
                     }
                 }
-                notify("日志服务异常停止")
+                notifyForeground("日志读取异常停止")
+                MainActivity.commonNotify("日志读取异常停止")
                 Log.d("read_logs", "finished")
             } catch (e: Exception) {
-                notify("Shizuku服务异常停止：" + e.message)
+                notifyForeground("Shizuku服务异常停止：" + e.message)
+                MainActivity.commonNotify("Shizuku服务异常停止：" + e.message)
                 e.printStackTrace()
                 e.message?.let { Log.e("read_logs", it) }
             }
@@ -116,13 +121,13 @@ class BackgroundService : Service(),
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name: CharSequence = "ClipShareMain"
-            val description = "ClipShareMainService"
+            val name: CharSequence = "前台通知"
+            val description = "前台通知服务，告知服务状态允许"
             val importance = NotificationManager.IMPORTANCE_MIN
-            val channel = NotificationChannel(notifyChannelId, name, importance)
+            val channel = NotificationChannel(foregroundServiceNotifyChannelId, name, importance)
             channel.description = description
             val notificationManager = getSystemService(
-                NOTIFICATION_SERVICE
+                    NOTIFICATION_SERVICE
             ) as NotificationManager
             notificationManager.createNotificationChannel(channel)
             Log.d("notify", "createNotificationChannel")
@@ -132,19 +137,19 @@ class BackgroundService : Service(),
     private fun buildNotification(): Notification {
         // 创建通知
         val builder: Notification.Builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Notification.Builder(this, notifyChannelId)
+            Notification.Builder(this, foregroundServiceNotifyChannelId)
         } else {
             Notification.Builder(this)
         }
 
         // 设置通知的标题、内容等
         builder.setContentTitle("ClipShare")
-            .setSmallIcon(R.mipmap.launcher_icon)
-            .setOngoing(true)
-            .setSound(null)
-            .setContentIntent(createPendingIntent())
-            .setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
-            .setContentText("ClipShare 正在运行")
+                .setSmallIcon(R.mipmap.launcher_icon)
+                .setOngoing(true)
+                .setSound(null)
+                .setContentIntent(MainActivity.pendingIntent)
+//            .setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
+                .setContentText("ClipShare 正在运行")
         Log.d("notify", "buildNotification")
         return builder.build()
     }
@@ -158,32 +163,26 @@ class BackgroundService : Service(),
         Log.d("clipboardChanged", "is same $same")
         if (same) return
         MainActivity.clipChannel.invokeMethod(
-            "onClipboardChanged",
-            mapOf("content" to content, "type" to type.name)
+                "onClipboardChanged",
+                mapOf("content" to content, "type" to type.name)
         )
     }
 
-    private fun createPendingIntent(): PendingIntent? {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.putExtra("fromNotification", true)
-        return PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-    }
-
-    private fun notify(content: String) {
+    private fun notifyForeground(content: String) {
         val updatedBuilder: NotificationCompat.Builder =
-            NotificationCompat.Builder(this, notifyChannelId)
-                .setSmallIcon(R.drawable.launcher_icon)
-                .setContentTitle("ClipShare")
-                .setOngoing(true)
-                .setSound(null)
-                .setContentIntent(createPendingIntent())
-                .setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
-                .setContentText(content)
+                NotificationCompat.Builder(this, foregroundServiceNotifyChannelId)
+                        .setSmallIcon(R.drawable.launcher_icon)
+                        .setContentTitle("ClipShare")
+                        .setOngoing(true)
+                        .setSound(null)
+                        .setContentIntent(MainActivity.pendingIntent)
+                        .setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
+                        .setContentText(content)
         val manger = getSystemService(
-            NOTIFICATION_SERVICE
+                NOTIFICATION_SERVICE
         ) as NotificationManager
         // 更新通知
-        manger.notify(notificationId, updatedBuilder.build())
+        manger.notify(foregroundServiceNotificationId, updatedBuilder.build())
     }
 
     override fun onBind(intent: Intent): IBinder? {
