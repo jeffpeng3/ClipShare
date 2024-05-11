@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:clipshare/components/clip_simple_data_content.dart';
 import 'package:clipshare/components/clip_simple_data_extra_info.dart';
 import 'package:clipshare/components/clip_simple_data_header.dart';
@@ -5,6 +7,7 @@ import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/pages/preview_page.dart';
 import 'package:clipshare/pages/tag_edit_page.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
@@ -20,6 +23,7 @@ class ClipDataCard extends StatefulWidget {
   final void Function() onUpdate;
   final void Function(int id) onRemove;
   final bool routeToSearchOnClickChip;
+  final bool imageMode;
 
   const ClipDataCard({
     required this.clip,
@@ -29,6 +33,7 @@ class ClipDataCard extends StatefulWidget {
     this.routeToSearchOnClickChip = false,
     this.onTap,
     this.onDoubleTap,
+    this.imageMode = false,
   });
 
   @override
@@ -140,14 +145,41 @@ class ClipDataCardState extends State<ClipDataCard> {
                     routeToSearchOnClickChip: widget.routeToSearchOnClickChip,
                   ),
                 ),
-                Expanded(
-                  child: Container(
-                    alignment: Alignment.centerLeft,
-                    child: ClipSimpleDataContent(
-                      clip: widget.clip,
-                    ),
-                  ),
-                ),
+                widget.imageMode
+                    ? IntrinsicHeight(
+                        child: GestureDetector(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              4,
+                            ),
+                            child: Image.file(
+                              File(
+                                widget.clip.data.content,
+                              ),
+                              fit: BoxFit.fitWidth,
+                              width: 200,
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PreviewPage(
+                                  clip: widget.clip,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    : Expanded(
+                        child: Container(
+                          alignment: Alignment.centerLeft,
+                          child: ClipSimpleDataContent(
+                            clip: widget.clip,
+                          ),
+                        ),
+                      ),
                 ClipSimpleDataExtraInfo(clip: widget.clip),
               ],
             ),

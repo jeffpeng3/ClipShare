@@ -220,7 +220,9 @@ class _PreviewPageState extends State<PreviewPage> {
                                       height: ct.maxHeight,
                                     );
                                   }
-                                  return const EmptyContent();
+                                  return const EmptyContent(
+                                    description: "图片不存在或已被删除",
+                                  );
                                 },
                               ),
                             ),

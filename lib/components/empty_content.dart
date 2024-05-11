@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class EmptyContent extends StatelessWidget {
-  const EmptyContent({super.key});
+  final String description;
+  const EmptyContent({super.key,this.description="无数据"});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +16,7 @@ class EmptyContent extends StatelessWidget {
             height: 100,
           ),
         ),
-        const Text("无数据",style: TextStyle(color: Colors.grey),),
+        Text(description,style: const TextStyle(color: Colors.grey),),
       ],
     );
   }

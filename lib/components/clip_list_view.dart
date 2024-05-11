@@ -1,10 +1,7 @@
-import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/components/clip_content_view.dart';
 import 'package:clipshare/components/clip_data_card.dart';
-import 'package:clipshare/components/clip_simple_data_extra_info.dart';
-import 'package:clipshare/components/clip_simple_data_header.dart';
 import 'package:clipshare/components/clip_tag_row_view.dart';
 import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/dao/history_dao.dart';
@@ -12,7 +9,6 @@ import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/main.dart';
-import 'package:clipshare/pages/preview_page.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/global.dart';
@@ -54,6 +50,7 @@ class ClipListViewState extends State<ClipListView>
     with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final List<ClipData> _list = List.empty(growable: true);
+  final _scrollPhysics = const AlwaysScrollableScrollPhysics();
   String? language;
   int? _minId;
   late HistoryDao _historyDao;
@@ -199,6 +196,49 @@ class ClipListViewState extends State<ClipListView>
     );
   }
 
+  Widget renderItem(int i) {
+    return ClipDataCard(
+      clip: _list[i],
+      imageMode: widget.imageMasonryGridViewLayout,
+      routeToSearchOnClickChip: widget.enableRouteSearch,
+      onTap: () {
+        var data = _list[i];
+        if (data.data.id != _showHistoryData?.data.id) {
+          _showHistoryData = data;
+          _clipTagRowKey = UniqueKey();
+          setState(() {});
+        } else {
+          setState(() {
+            _showHistoryData = null;
+            _rightShowFullPage = false;
+          });
+        }
+      },
+      onDoubleTap: () async {
+        App.innerCopy = true;
+        var res = await App.clipChannel.invokeMethod<bool>(
+          "copy",
+          _list[i].data.toJson(),
+        );
+        res = res ?? false;
+        if (res) {
+          Global.snackBarSuc(context, "复制成功");
+        } else {
+          Global.snackBarErr(context, "复制失败");
+        }
+        App.innerCopy = false;
+      },
+      onUpdate: () {
+        widget.onUpdate.call();
+        notifyCompactWindow();
+      },
+      onRemove: (id) {
+        widget.onRemove.call(id);
+        notifyCompactWindow();
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -234,69 +274,13 @@ class ClipListViewState extends State<ClipListView>
                                   return MasonryGridView.count(
                                     crossAxisCount: count,
                                     mainAxisSpacing: 4,
+                                    shrinkWrap: true,
                                     crossAxisSpacing: 4,
                                     itemCount: _list.length,
+                                    controller: _scrollController,
+                                    physics: _scrollPhysics,
                                     itemBuilder: (context, index) {
-                                      var clipData = _list[index];
-                                      return MouseRegion(
-                                        cursor: SystemMouseCursors.click,
-                                        child: Card(
-                                          elevation: 0,
-                                          child: InkWell(
-                                            onTap: () {},
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: <Widget>[
-                                                  ClipSimpleDataHeader(
-                                                    clip: clipData,
-                                                    routeToSearchOnClickChip:
-                                                        false,
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  GestureDetector(
-                                                    onTap: () {
-                                                      Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              PreviewPage(
-                                                            clip: clipData,
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
-                                                    child: ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              4),
-                                                      child: Image.file(
-                                                        File(
-                                                          clipData.data.content,
-                                                        ),
-                                                        fit: BoxFit.fitWidth,
-                                                        width: maxWidth,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  ClipSimpleDataExtraInfo(
-                                                    clip: clipData,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      );
+                                      return renderItem(index);
                                     },
                                   );
                                 },
@@ -304,57 +288,18 @@ class ClipListViewState extends State<ClipListView>
                             : ListView.builder(
                                 itemCount: _list.length,
                                 controller: _scrollController,
-                                physics: const AlwaysScrollableScrollPhysics(),
+                                physics: _scrollPhysics,
                                 itemBuilder: (context, i) {
                                   return Container(
                                     padding: const EdgeInsets.only(
-                                        left: 2, right: 2),
+                                      left: 2,
+                                      right: 2,
+                                    ),
                                     constraints: const BoxConstraints(
                                       maxHeight: 150,
                                       minHeight: 80,
                                     ),
-                                    child: ClipDataCard(
-                                      clip: _list[i],
-                                      routeToSearchOnClickChip:
-                                          widget.enableRouteSearch,
-                                      onTap: () {
-                                        var data = _list[i];
-                                        if (data.data.id !=
-                                            _showHistoryData?.data.id) {
-                                          _showHistoryData = data;
-                                          _clipTagRowKey = UniqueKey();
-                                          setState(() {});
-                                        } else {
-                                          setState(() {
-                                            _showHistoryData = null;
-                                            _rightShowFullPage = false;
-                                          });
-                                        }
-                                      },
-                                      onDoubleTap: () async {
-                                        App.innerCopy = true;
-                                        var res = await App.clipChannel
-                                            .invokeMethod<bool>(
-                                          "copy",
-                                          _list[i].data.toJson(),
-                                        );
-                                        res = res ?? false;
-                                        if (res) {
-                                          Global.snackBarSuc(context, "复制成功");
-                                        } else {
-                                          Global.snackBarErr(context, "复制失败");
-                                        }
-                                        App.innerCopy = false;
-                                      },
-                                      onUpdate: () {
-                                        widget.onUpdate.call();
-                                        notifyCompactWindow();
-                                      },
-                                      onRemove: (id) {
-                                        widget.onRemove.call(id);
-                                        notifyCompactWindow();
-                                      },
-                                    ),
+                                    child: renderItem(i),
                                   );
                                 },
                               ),
