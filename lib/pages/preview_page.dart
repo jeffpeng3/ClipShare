@@ -8,10 +8,8 @@ import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/global.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 
 class PreviewPage extends StatefulWidget {
   final ClipData clip;
@@ -31,7 +29,8 @@ class _PreviewPageState extends State<PreviewPage> {
   bool _initFinished = false;
   var checkedList = <int>{};
 
-  History get _currentImage => _images[_current - 1];
+  History get _currentImage =>
+      _images.isEmpty ? widget.clip.data : _images[_current - 1];
   late PageController _pageController;
 
   bool get _canPre => _current > 1;
@@ -183,10 +182,11 @@ class _PreviewPageState extends State<PreviewPage> {
         ),
       ),
     );
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        // systemOverlayStyle: SystemUiOverlayStyle.light,
         backgroundColor: Colors.black,
       ),
       body: Container(
@@ -322,5 +322,16 @@ class _PreviewPageState extends State<PreviewPage> {
         ..translate(-1.5 * focalPoint.dx, -1.5 * focalPoint.dy)
         ..scale(2.5, 2.5);
     }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle.light.copyWith(
+        systemNavigationBarColor: const Color.fromRGBO(245, 245, 245, 1),
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
   }
 }
