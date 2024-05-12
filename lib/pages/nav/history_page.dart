@@ -63,7 +63,7 @@ class HistoryPageState extends State<HistoryPage>
     updating = false;
     _historyDao = AppDb.inst.historyDao;
     //更新上次复制的记录
-    _historyDao.getLatestLocalClip(App.userId).then((his) {
+    updateLatestLocalClip().then((his) {
       _last = his;
       //添加同步监听
       SocketListener.inst.addSyncListener(Module.history, this);
@@ -77,6 +77,13 @@ class HistoryPageState extends State<HistoryPage>
     });
     //监听生命周期
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  Future<History?> updateLatestLocalClip() {
+    return _historyDao.getLatestLocalClip(App.userId).then((his) {
+      _last = his;
+      return his;
+    });
   }
 
   @override
@@ -141,6 +148,7 @@ class HistoryPageState extends State<HistoryPage>
               _list.removeWhere(
                 (element) => element.data.id == id,
               );
+              updateLatestLocalClip();
               debounceSetState();
             },
           );

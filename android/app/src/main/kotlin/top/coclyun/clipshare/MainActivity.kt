@@ -61,20 +61,21 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
         fun commonNotify(content: String) {
             // 构建通知
             val builder = NotificationCompat.Builder(applicationContext, commonNotifyChannelId)
-                    .setSmallIcon(R.drawable.launcher_icon)
-                    .setContentTitle("ClipShare")
-                    .setContentText(content)
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setContentIntent(pendingIntent)
-                    .setFullScreenIntent(pendingIntent, true)
-                    // 点击通知后自动关闭
-                    .setAutoCancel(true)
-                    // 设置为公开可见通知
-                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setSmallIcon(R.drawable.launcher_icon)
+                .setContentTitle("ClipShare")
+                .setContentText(content)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent)
+                .setFullScreenIntent(pendingIntent, true)
+                // 点击通知后自动关闭
+                .setAutoCancel(true)
+                // 设置为公开可见通知
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 builder.setBadgeIconType(R.drawable.launcher_icon)
             }
-            val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager;
+            val notificationManager =
+                applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager;
             // 发送通知
             notificationManager.notify(commonNotifyId++, builder.build())
         }
@@ -107,8 +108,13 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
     private fun createNotifyChannel() {
         // 创建通知渠道（仅适用于 Android 8.0 及更高版本）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(commonNotifyChannelId, "普通通知", NotificationManager.IMPORTANCE_HIGH)
-            val notificationManager = Companion.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager;
+            val channel = NotificationChannel(
+                commonNotifyChannelId,
+                "普通通知",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            val notificationManager =
+                Companion.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager;
             notificationManager.createNotificationChannel(channel)
         }
     }
@@ -138,16 +144,16 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
         MainActivity.pendingIntent = createPendingIntent()
         GeneratedPluginRegistrant.registerWith(flutterEngine)
         commonChannel = MethodChannel(
-                flutterEngine.dartExecutor.binaryMessenger,
-                "top.coclyun.clipshare/common"
+            flutterEngine.dartExecutor.binaryMessenger,
+            "top.coclyun.clipshare/common"
         )
         androidChannel = MethodChannel(
-                flutterEngine.dartExecutor.binaryMessenger,
-                "top.coclyun.clipshare/android"
+            flutterEngine.dartExecutor.binaryMessenger,
+            "top.coclyun.clipshare/android"
         )
         clipChannel = MethodChannel(
-                flutterEngine.dartExecutor.binaryMessenger,
-                "top.coclyun.clipshare/clip"
+            flutterEngine.dartExecutor.binaryMessenger,
+            "top.coclyun.clipshare/clip"
         )
         initCommonChannel()
         initClipChannel()
@@ -232,8 +238,8 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
                         val content = args["content"].toString()
                         // 获取剪贴板管理器
                         val clipboardManager = ContextCompat.getSystemService(
-                                applicationContext,
-                                ClipboardManager::class.java
+                            applicationContext,
+                            ClipboardManager::class.java
                         ) as ClipboardManager
                         when (type) {
                             "Text" -> {
@@ -246,15 +252,21 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
 
                             "Image" -> {
                                 val uri =
-                                        Uri.parse("content://top.coclyun.clipshare.FileProvider/$content")
+                                    Uri.parse("content://top.coclyun.clipshare.FileProvider/$content")
                                 val clipData =
-                                        ClipData.newUri(applicationContext.contentResolver, "image", uri)
+                                    ClipData.newUri(
+                                        applicationContext.contentResolver,
+                                        "image",
+                                        uri
+                                    )
                                 // 将数据放入剪贴板
                                 clipboardManager.setPrimaryClip(clipData)
                                 result.success(true)
                             }
+
+                            else -> result.success(false)
                         }
-                        result.success(false)
+
                     } catch (e: Exception) {
                         innerCopy = false;
                         result.success(false)
@@ -288,8 +300,8 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
                 //授权悬浮窗权限
                 "grantAlertWindowPermission" -> {
                     val intent = Intent(
-                            ACTION_MANAGE_OVERLAY_PERMISSION,
-                            Uri.parse("package:$packageName")
+                        ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:$packageName")
                     );
                     startActivityForResult(intent, requestOverlayResultCode);
                 }
@@ -354,7 +366,11 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
                 //图片更新后通知媒体库扫描
                 "notifyMediaScan" -> {
                     val imagePath = args["imagePath"].toString();
-                    MediaScannerConnection.scanFile(applicationContext, arrayOf(imagePath), null) { path, uri ->
+                    MediaScannerConnection.scanFile(
+                        applicationContext,
+                        arrayOf(imagePath),
+                        null
+                    ) { path, uri ->
                         // 扫描完成后的操作，可以在这里添加你的逻辑
                         Log.i(TAG, "initAndroidChannel: MediaScanner Completed")
                     }
@@ -376,7 +392,7 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
     private fun isIgnoringBatteryOptimizations(): Boolean {
         var isIgnoring = false
         val powerManager: PowerManager? =
-                getSystemService(Context.POWER_SERVICE) as PowerManager?
+            getSystemService(Context.POWER_SERVICE) as PowerManager?
         if (powerManager != null) {
             isIgnoring = powerManager.isIgnoringBatteryOptimizations(getPackageName())
         }
@@ -392,14 +408,14 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
                 //返回设备信息
                 "getBaseInfo" -> {
                     val androId = Settings.System.getString(
-                            contentResolver, Settings.System.ANDROID_ID
+                        contentResolver, Settings.System.ANDROID_ID
                     )
                     result.success(
-                            mapOf(
-                                    "guid" to androId,
-                                    "dev" to Build.MODEL,
-                                    "type" to "Android",
-                            )
+                        mapOf(
+                            "guid" to androId,
+                            "dev" to Build.MODEL,
+                            "type" to "Android",
+                        )
                     );
                 }
             }
@@ -412,9 +428,9 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
             if (resultCode != Activity.RESULT_OK) {
                 if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
                     Toast.makeText(
-                            this,
-                            "请授予悬浮窗权限，否则无法后台读取剪贴板！",
-                            Toast.LENGTH_LONG
+                        this,
+                        "请授予悬浮窗权限，否则无法后台读取剪贴板！",
+                        Toast.LENGTH_LONG
                     ).show()
                 }
             }

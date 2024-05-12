@@ -78,6 +78,10 @@ class ForegroundService : Service(),
     }
 
     private fun readLogByShizuku() {
+        //Android 10以下才需要shizuku
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            return
+        }
         val timeStamp: String =
                 SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).format(Date())
         val cmdStrArr = arrayOf(
@@ -160,8 +164,9 @@ class ForegroundService : Service(),
     }
 
     override fun clipboardChanged(type: ContentType, content: String, same: Boolean) {
-        Log.d("clipboardChanged", "is same $same")
-        if (same) return
+//        Log.d("clipboardChanged", "is same $same")
+//        if (same) return
+        if(MainActivity.innerCopy)return;
         MainActivity.clipChannel.invokeMethod(
                 "onClipboardChanged",
                 mapOf("content" to content, "type" to type.name)
