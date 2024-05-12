@@ -27,11 +27,13 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.GeneratedPluginRegistrant
 import rikka.shizuku.Shizuku
 import top.coclyun.clipshare.broadcast.ScreenReceiver
+import top.coclyun.clipshare.enums.ContentType
 import top.coclyun.clipshare.service.ForegroundService
 import top.coclyun.clipshare.service.HistoryFloatService
 
 
-class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResultListener {
+class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResultListener,
+    ClipboardListener.ClipboardObserver {
     private val requestShizukuCode = 5001
     private val requestOverlayResultCode = 5002
     private lateinit var screenReceiver: ScreenReceiver
@@ -446,6 +448,30 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
         }
     }
 
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        if (!hasFocus) return
+        Log.d("MainActivity", "onResume")
+        val clipboardListener = ClipboardListener.instance(this)!!
+        //若无shizuku权限且需要该权限，回到APP时自动获取最新剪贴板内容并同步
+        if (ForegroundService.needShizuku() && !ForegroundService.logReaderRunning) {
+            clipboardListener.registerObserver(this)
+            clipboardListener.onClipboardChanged()
+            Log.d(
+                "MainActivity",
+                "Automatically read the clipboard with Shizuku permission required but not granted."
+            )
+        } else {
+            clipboardListener.removeObserver(this)
+        }
+    }
+
+    override fun clipboardChanged(type: ContentType, content: String, same: Boolean) {
+        if (innerCopy) return
+        clipChannel.invokeMethod(
+            "onClipboardChanged",
+            mapOf("content" to content, "type" to type.name)
+        )
+    }
 
     override fun onRestart() {
         super.onRestart()
@@ -466,11 +492,13 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
         //MainActivity被销毁时停止服务运行
         stopService(Intent(this, ForegroundService::class.java))
         stopService(Intent(this, HistoryFloatService::class.java))
+        ClipboardListener.instance(this)!!.removeObserver(this)
     }
 
-    fun createPendingIntent(): PendingIntent {
+    private fun createPendingIntent(): PendingIntent {
         val intent = Intent(this, this::class.java)
         intent.putExtra("fromNotification", true)
         return PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
     }
+
 }
