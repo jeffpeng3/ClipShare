@@ -30,7 +30,6 @@ android {
     namespace "top.coclyun.clipshare"
     compileSdk 34
     ndkVersion flutter.ndkVersion
-    ndkVersion "26.1.10909125"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
