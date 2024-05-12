@@ -40,10 +40,13 @@ class Global {
     String title = "提示",
     String okText = "确定",
     String cancelText = "取消",
+    String neutralText = "中立按钮",
     bool showCancel = false,
     bool showOk = true,
+    bool showNeutral = false,
     void Function()? onOk,
     void Function()? onCancel,
+    void Function()? onNeutral,
     bool autoDismiss = true,
   }) {
     showDialog(
@@ -54,26 +57,47 @@ class Global {
           title: Text(title),
           content: Text(text),
           actions: [
-            Visibility(
-              visible: showCancel,
-              child: TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  onCancel?.call();
-                },
-                child: Text(cancelText),
-              ),
-            ),
-            Visibility(
-              visible: showOk,
-              child: TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  onOk?.call();
-                },
-                child: Text(okText),
-              ),
-            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Visibility(
+                  visible: showNeutral,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      onNeutral?.call();
+                    },
+                    child: Text(neutralText),
+                  ),
+                ),
+                IntrinsicWidth(
+                  child: Row(
+                    children: [
+                      Visibility(
+                        visible: showCancel,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            onCancel?.call();
+                          },
+                          child: Text(cancelText),
+                        ),
+                      ),
+                      Visibility(
+                        visible: showOk,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            onOk?.call();
+                          },
+                          child: Text(okText),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )
           ],
         );
       },

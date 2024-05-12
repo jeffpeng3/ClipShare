@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipshare/channels/android_channel.dart';
 import 'package:clipshare/components/clip_list_view.dart';
 import 'package:clipshare/components/loading.dart';
 import 'package:clipshare/dao/history_dao.dart';
@@ -327,9 +328,7 @@ class HistoryPageState extends State<HistoryPage>
           if (!file.existsSync()) {
             file.writeAsBytesSync(data);
             if (App.settings.saveToPictures) {
-              App.androidChannel.invokeMethod("notifyMediaScan", {
-                "imagePath": path,
-              });
+              AndroidChannel.notifyMediaScan(path);
             }
           }
           break;

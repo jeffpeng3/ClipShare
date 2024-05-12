@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:clipshare/channels/android_channel.dart';
 import 'package:clipshare/components/clip_content_view.dart';
 import 'package:clipshare/components/clip_tag_row_view.dart';
 import 'package:clipshare/db/app_db.dart';
@@ -7,9 +9,9 @@ import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../entity/clip_data.dart';
 
@@ -71,46 +73,51 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                         color: Colors.blueGrey,
                       ),
                       onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) {
-                            return AlertDialog(
-                              title: const Text("删除提示"),
-                              content: const Text("确定删除该记录？"),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(ctx);
-                                  },
-                                  child: const Text("取消"),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    var id = widget.clip.data.id;
-                                    //删除tag
-                                    AppDb.inst.historyTagDao
-                                        .removeAllByHisId(id);
-                                    //删除历史
-                                    AppDb.inst.historyDao.delete(id).then((v) {
-                                      if (v == null || v <= 0) return;
-                                      //添加删除记录
-                                      var opRecord = OperationRecord.fromSimple(
-                                        Module.history,
-                                        OpMethod.delete,
-                                        id,
-                                      );
-                                      widget.onRemove(id);
-                                      setState(() {});
-                                      Navigator.pop(widget.dlgContext);
-                                      AppDb.inst.opRecordDao
-                                          .addAndNotify(opRecord);
-                                    });
-                                    Navigator.pop(ctx);
-                                  },
-                                  child: const Text("确定"),
-                                ),
-                              ],
+                        Future removeData() async {
+                          var id = widget.clip.data.id;
+                          //删除tag
+                          await AppDb.inst.historyTagDao.removeAllByHisId(id);
+                          //删除历史
+                          return AppDb.inst.historyDao.delete(id).then((v) {
+                            if (v == null || v <= 0) return 0;
+                            //添加删除记录
+                            var opRecord = OperationRecord.fromSimple(
+                              Module.history,
+                              OpMethod.delete,
+                              id,
                             );
+                            widget.onRemove(id);
+                            setState(() {});
+                            Navigator.pop(widget.dlgContext);
+                            AppDb.inst.opRecordDao.addAndNotify(opRecord);
+                            return v;
+                          });
+                        }
+
+                        Global.showTipsDialog(
+                          context: context,
+                          text: "确定删除该记录？",
+                          title: "删除提示",
+                          showCancel: true,
+                          showNeutral:
+                              widget.clip.isFile || widget.clip.isImage,
+                          neutralText: "连带文件删除",
+                          onOk: () {
+                            removeData();
+                          },
+                          onNeutral: () async {
+                            var n = await removeData();
+                            if (n == null ||
+                                n <= 0 ||
+                                !widget.clip.isImage ||
+                                !Platform.isAndroid) {
+                              return;
+                            }
+                            //如果是图片，删除并更新媒体库
+                            var file = File(widget.clip.data.content);
+                            file.deleteSync();
+                            AndroidChannel.notifyMediaScan(
+                                widget.clip.data.content);
                           },
                         );
                       },
@@ -161,7 +168,8 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                           App.innerCopy = false;
                           setState(() {});
                         });
-                        App.clipChannel.invokeMethod("copy", widget.clip.data.toJson());
+                        App.clipChannel
+                            .invokeMethod("copy", widget.clip.data.toJson());
                       },
                       tooltip: "复制内容",
                     ),
