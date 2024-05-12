@@ -1,3 +1,4 @@
+import 'package:clipshare/channels/android_channel.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/global.dart';
@@ -110,23 +111,14 @@ class ShizukuPermHandler extends AbstractPermissionHandler {
           context: ctx,
           text: "确认不再提示？",
           showCancel: true,
-          onOk: () async{
+          onOk: () async {
             await App.context.ref.notifier(settingProvider).ignoreShizuku();
             print("App.settings.ignoreShizuku ${App.settings.ignoreShizuku}");
           },
         );
       },
       onConfirm: (ctx) {
-        App.androidChannel
-            .invokeMethod<bool>("grantShizukuPermission")
-            .then((res) {
-          if (res == true || App.settings.ignoreShizuku) return;
-          Global.showTipsDialog(
-            context: ctx,
-            title: "权限缺失",
-            text: '请授予 Shizuku 权限，否则无法后台读取剪贴板',
-          );
-        });
+        AndroidChannel.grantShizukuPermission(ctx);
         return true;
       },
     );
@@ -134,8 +126,7 @@ class ShizukuPermHandler extends AbstractPermissionHandler {
 
   @override
   Future<bool> hasPermission() async {
-    var res =
-        await App.androidChannel.invokeMethod<bool>("checkShizukuPermission");
+    var res = await AndroidChannel.checkShizukuPermission();
     if (res == null) return false;
     return res;
   }

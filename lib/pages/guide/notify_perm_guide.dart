@@ -1,3 +1,4 @@
+import 'package:clipshare/channels/android_channel.dart';
 import 'package:clipshare/components/permission_guide.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/main.dart';
@@ -27,7 +28,7 @@ class NotifyPermGuide extends BaseGuide {
     var has = await permHandler.hasPermission();
     if (has) {
       Log.info("NotifyPermGuide", "androidChannel invoke startService");
-      App.androidChannel.invokeMethod("startService");
+      AndroidChannel.startForegroundService();
     }
     hasPerm = has;
     return has;

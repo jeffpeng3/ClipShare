@@ -81,15 +81,18 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
         }
     }
 
-    private fun initService() {
+    private fun initService(restart: Boolean = false) {
         Log.d("onCreate", "initService")
         Shizuku.addRequestPermissionResultListener(this);
         val serviceRunning = isServiceRunning(this, ForegroundService::class.java)
         if (serviceRunning) {
-//            stopService(Intent(this, ForegroundService::class.java))
+            if (restart) {
+                stopService(Intent(this, ForegroundService::class.java))
+            }
             return;
         }
-        if (checkShizukuPermission(requestShizukuCode)) {
+        //需要Shizuku且已授权则启动
+        if (ForegroundService.needShizuku() && checkShizukuPermission(requestShizukuCode)) {
             Log.d("onCreate", "start Service")
             // 创建 Intent 对象
             val serviceIntent = Intent(this, ForegroundService::class.java)
@@ -307,7 +310,12 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
                 }
                 //检查shizuku权限
                 "checkShizukuPermission" -> {
-                    result.success(checkShizukuPermission(requestShizukuCode))
+                    val hasPerm = checkShizukuPermission(requestShizukuCode);
+                    //有权限且未运行则启动
+                    if (hasPerm && !ForegroundService.logReaderRunning) {
+                        initService(true)
+                    }
+                    result.success(hasPerm)
                 }
                 //授权shizuku权限
                 "grantShizukuPermission" -> {
@@ -355,7 +363,8 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
                 }
                 //启动服务
                 "startService" -> {
-                    initService()
+                    val restart = args["restart"] as Boolean;
+                    initService(restart)
                 }
                 //提示
                 "toast" -> {

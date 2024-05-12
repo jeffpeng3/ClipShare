@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Message
+import android.os.RemoteException
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import rikka.shizuku.Shizuku
@@ -35,6 +36,12 @@ class ForegroundService : Service(),
 
         @JvmStatic
         val foregroundServiceNotifyChannelId = "ForegroundService"
+        @JvmStatic
+        var logReaderRunning = false
+        @JvmStatic
+        fun needShizuku():Boolean{
+            return Build.VERSION.SDK_INT > Build.VERSION_CODES.P
+        }
     }
 
     class MyHandler(context: Context) : Handler() {
@@ -79,7 +86,7 @@ class ForegroundService : Service(),
 
     private fun readLogByShizuku() {
         //Android 10以下才需要shizuku
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+        if (!needShizuku()) {
             return
         }
         val timeStamp: String =
@@ -91,11 +98,12 @@ class ForegroundService : Service(),
                 "ClipboardService:E",
                 "*:S"
         )
-        val process = Shizuku.newProcess(cmdStrArr, null, null)
         val t = Thread {
             try {
+                val process = Shizuku.newProcess(cmdStrArr, null, null)
                 Log.d("read_logs", "start")
                 val bufferedReader = BufferedReader(InputStreamReader(process.inputStream))
+                logReaderRunning=true;
                 var line: String?
                 while (bufferedReader.readLine().also { line = it } != null) {
                     line?.let { Log.d("read_logs", it) }
@@ -112,7 +120,11 @@ class ForegroundService : Service(),
                 notifyForeground("日志读取异常停止")
                 MainActivity.commonNotify("日志读取异常停止")
                 Log.d("read_logs", "finished")
+                logReaderRunning=false;
+            } catch (_: RemoteException){
+                stopSelf()
             } catch (e: Exception) {
+                logReaderRunning=false;
                 notifyForeground("Shizuku服务异常停止：" + e.message)
                 MainActivity.commonNotify("Shizuku服务异常停止：" + e.message)
                 e.printStackTrace()
