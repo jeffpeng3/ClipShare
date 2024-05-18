@@ -307,6 +307,10 @@ class _LoadingPageState extends State<LoadingPage> {
       "historyWindowHotKeys",
       App.userId,
     );
+    var syncFileHotKeys = await cfg.getConfig(
+      "syncFileHotKeys",
+      App.userId,
+    );
     var heartbeatInterval = await cfg.getConfig(
       "heartbeatInterval",
       App.userId,
@@ -354,6 +358,7 @@ class _LoadingPageState extends State<LoadingPage> {
       tagRegulars: tagRegulars ?? Constants.defaultTags,
       historyWindowHotKeys:
           historyWindowKeys ?? Constants.defaultHistoryWindowKeys,
+      syncFileHotKeys: syncFileHotKeys ?? Constants.defaultSyncFileHotKeys,
       heartbeatInterval:
           heartbeatInterval?.toInt() ?? Constants.heartbeatInterval,
       fileStorePath: fileStoreDir.absolute.normalizePath,
@@ -420,25 +425,11 @@ class _LoadingPageState extends State<LoadingPage> {
     var hotKey =
         AppHotKeyHandler.toSystemHotKey(App.settings.historyWindowHotKeys);
     AppHotKeyHandler.registerHistoryWindow(hotKey);
-    initGetSelectedFilesHotKey();
+    hotKey =
+        AppHotKeyHandler.toSystemHotKey(App.settings.syncFileHotKeys);
+    AppHotKeyHandler.registerFileSync(hotKey);
   }
-  ///初始化快捷键
-  initGetSelectedFilesHotKey() async {
-    // For hot reload, `unregisterAll()` needs to be called.
-    // await hotKeyManager.unregisterAll();
-    HotKey _hotKey = HotKey(
-      key: PhysicalKeyboardKey.keyC,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-      // Set hotkey scope (default is HotKeyScope.system)
-      scope: HotKeyScope.system,
-    );
-    await hotKeyManager.register(
-      _hotKey,
-      keyDownHandler: (hotKey) async {
-        CommonChannel.getSelectedFiles();
-      },
-    );
-  }
+
   void gotoHomePage() {
     Navigator.push(
       context,

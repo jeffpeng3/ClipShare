@@ -41,6 +41,9 @@ class Settings {
   //历史记录弹窗快捷键
   final String historyWindowHotKeys;
 
+  //文件同步快捷键
+  final String syncFileHotKeys;
+
   //心跳间隔时长
   final int heartbeatInterval;
 
@@ -52,10 +55,13 @@ class Settings {
 
   //忽略Shizuku权限
   final bool ignoreShizuku;
+
   //使用安全认证
   final bool useAuthentication;
+
   //app密码重新验证时长
   final int appRevalidateDuration;
+
   //app密码重新验证时长
   final String? appPassword;
 
@@ -79,6 +85,7 @@ class Settings {
     required this.ignoreShizuku,
     required this.useAuthentication,
     required this.appRevalidateDuration,
+    required this.syncFileHotKeys,
     this.appPassword,
   });
 
@@ -103,6 +110,7 @@ class Settings {
     bool? useAuthentication,
     int? appRevalidateDuration,
     String? appPassword,
+    String? syncFileHotKeys,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -119,13 +127,15 @@ class Settings {
       enableLogsRecord: enableLogsRecord ?? this.enableLogsRecord,
       tagRegulars: tagRegulars ?? this.tagRegulars,
       historyWindowHotKeys: historyWindowHotKeys ?? this.historyWindowHotKeys,
+      syncFileHotKeys: syncFileHotKeys ?? this.syncFileHotKeys,
       heartbeatInterval: heartbeatInterval ?? this.heartbeatInterval,
       fileStorePath:
           Directory(fileStorePath ?? this.fileStorePath).absolute.normalizePath,
       saveToPictures: saveToPictures ?? this.saveToPictures,
       ignoreShizuku: ignoreShizuku ?? this.ignoreShizuku,
       useAuthentication: useAuthentication ?? this.useAuthentication,
-      appRevalidateDuration: appRevalidateDuration ?? this.appRevalidateDuration,
+      appRevalidateDuration:
+          appRevalidateDuration ?? this.appRevalidateDuration,
       appPassword: appPassword ?? this.appPassword,
     );
   }

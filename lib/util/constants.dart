@@ -1,8 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:clipshare/main.dart';
-import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -23,6 +20,7 @@ class Constants {
   //组播心跳时长
   static const heartbeatInterval = 30;
 
+  //默认标签
   static final defaultTags = jsonEncode(
     {
       "version": 1,
@@ -38,6 +36,9 @@ class Constants {
   //默认历史弹窗快捷键（Ctrl + Alt + H）
   static const defaultHistoryWindowKeys = "458976,458978;458763";
 
+  //文件同步快捷键（Ctrl + Shift + C）
+  static const defaultSyncFileHotKeys = "458976,458977;458758";
+
   static const androidRootStoragePath = "/storage/emulated/0";
   static const androidDownloadPath = "$androidRootStoragePath/Download";
   static const androidPicturesPath = "$androidRootStoragePath/Pictures";
@@ -52,8 +53,9 @@ class Constants {
   static const showHistoryRightWidth = 840;
   static const logoPngPath = "assets/images/logo/logo.png";
   static const logoIcoPath = "assets/images/logo/logo.ico";
+
   //设备类型图片
-  static Map<String, Icon> devTypeIcons = {
+  static final Map<String, Icon> devTypeIcons = {
     'Windows': const Icon(
       Icons.laptop_windows_outlined,
       color: Colors.grey,
@@ -207,6 +209,7 @@ enum Module {
   device(moduleName: "设备管理"),
   tag(moduleName: "标签管理"),
   history(moduleName: "历史记录"),
+  rules(moduleName: "规则设置"),
   historyTop(moduleName: "历史记录置顶");
 
   const Module({required this.moduleName});

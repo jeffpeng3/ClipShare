@@ -676,6 +676,72 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           },
                           show: (v) => Platform.isWindows,
                         ),
+                        SettingCard(
+                          main: const Text(
+                            "文件发送",
+                            maxLines: 1,
+                          ),
+                          sub: const Text(
+                            "将选定的文件同步到其他设备（桌面无效）",
+                            maxLines: 1,
+                          ),
+                          value: vm.syncFileHotKeys,
+                          action: (v) {
+                            var keyText = HotKeyEditor.toText(v);
+                            return HotKeyEditor(
+                              hotKey: keyText,
+                              onDone: (modifiers, key, showText, keyCodes) {
+                                if (showText == keyText) return;
+                                if (modifiers.isEmpty || key == null) {
+                                  Global.showTipsDialog(
+                                    context: context,
+                                    text: "快捷键必须是控制键和非控制键的组合！",
+                                  );
+                                } else {
+                                  Global.showTipsDialog(
+                                    context: context,
+                                    text: "是否保存快捷键（$showText）设置？",
+                                    showCancel: true,
+                                    onOk: () {
+                                      var hotkey =
+                                          AppHotKeyHandler.toSystemHotKey(
+                                        keyCodes,
+                                      );
+                                      AppHotKeyHandler.registerFileSync(
+                                        hotkey,
+                                      ).then((v) {
+                                        //设置为新值
+                                        ref
+                                            .notifier(settingProvider)
+                                            .setSyncFileHotKeys(keyCodes);
+                                      }).catchError((err) {
+                                        Global.showTipsDialog(
+                                          context: context,
+                                          text: "设置失败 $err",
+                                        );
+                                        //设置为原始值
+                                        ref
+                                            .notifier(settingProvider)
+                                            .setSyncFileHotKeys(
+                                              vm.syncFileHotKeys,
+                                            );
+                                      });
+                                    },
+                                    onCancel: () {
+                                      //设置为原始值
+                                      ref
+                                          .notifier(settingProvider)
+                                          .setSyncFileHotKeys(
+                                            vm.syncFileHotKeys,
+                                          );
+                                    },
+                                  );
+                                }
+                              },
+                            );
+                          },
+                          show: (v) => Platform.isWindows,
+                        ),
                       ],
                     ),
 

@@ -1,14 +1,18 @@
 import 'dart:math';
 
+import 'package:clipshare/channels/common_channel.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 
 class AppHotKeyHandler {
+  static const tag = "AppHotKeyHandler";
   static const historyWindow = "HistoryWindow";
+  static const fileSync = "fileSync";
   static final Map<String, HotKey> _map = {};
 
   static HotKey toSystemHotKey(String keyCodes) {
@@ -24,8 +28,10 @@ class AppHotKeyHandler {
     );
   }
 
+  /// 历史弹窗
   static Future<void> registerHistoryWindow(HotKey key) async {
-    await unRegister(historyWindow);
+    String hotkeyName = historyWindow;
+    await unRegister(hotkeyName);
     await hotKeyManager.register(
       key,
       keyDownHandler: (hotKey) async {
@@ -56,7 +62,22 @@ class AppHotKeyHandler {
           ..show();
       },
     );
-    _map[historyWindow] = key;
+    _map[hotkeyName] = key;
+  }
+
+  ///同步文件
+  static Future<void> registerFileSync(HotKey key) async {
+    String hotkeyName = fileSync;
+    await unRegister(hotkeyName);
+    await hotKeyManager.register(
+      key,
+      keyDownHandler: (hotKey) async {
+        ///快捷键事件
+        Log.info(tag, "$fileSync hotkey down");
+        CommonChannel.getSelectedFiles();
+      },
+    );
+    _map[hotkeyName] = key;
   }
 
   static Future<void> unRegister(String name) async {

@@ -126,6 +126,12 @@ class SettingProvider extends Notifier<Settings> {
       historyWindowHotKeys: historyWindowHotKeys,
     );
   }
+  Future<void> setSyncFileHotKeys(String syncFileHotKeys) async {
+    await _addOrUpdate("syncFileHotKeys", syncFileHotKeys);
+    App.settings = state = state.copyWith(
+      syncFileHotKeys: syncFileHotKeys,
+    );
+  }
 
   Future<void> setHeartbeatInterval(String heartbeatInterval) async {
     await _addOrUpdate("heartbeatInterval", heartbeatInterval);
