@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipshare/channels/common_channel.dart';
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/main.dart';
-import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
@@ -106,6 +106,15 @@ class _DebugPageState extends State<DebugPage> {
             Global.notify("测试通知");
           },
           child: const Text("测试通知"),
+        ),
+        Container(
+          height: 10,
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            // CommonChannel.getSelectedFiles();
+          },
+          child: const Text("获取选择的文件"),
         ),
       ],
     );

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipshare/channels/common_channel.dart';
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/settings.dart';
@@ -25,6 +26,7 @@ import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -418,8 +420,25 @@ class _LoadingPageState extends State<LoadingPage> {
     var hotKey =
         AppHotKeyHandler.toSystemHotKey(App.settings.historyWindowHotKeys);
     AppHotKeyHandler.registerHistoryWindow(hotKey);
+    initGetSelectedFilesHotKey();
   }
-
+  ///初始化快捷键
+  initGetSelectedFilesHotKey() async {
+    // For hot reload, `unregisterAll()` needs to be called.
+    // await hotKeyManager.unregisterAll();
+    HotKey _hotKey = HotKey(
+      key: PhysicalKeyboardKey.keyC,
+      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+      // Set hotkey scope (default is HotKeyScope.system)
+      scope: HotKeyScope.system,
+    );
+    await hotKeyManager.register(
+      _hotKey,
+      keyDownHandler: (hotKey) async {
+        CommonChannel.getSelectedFiles();
+      },
+    );
+  }
   void gotoHomePage() {
     Navigator.push(
       context,
