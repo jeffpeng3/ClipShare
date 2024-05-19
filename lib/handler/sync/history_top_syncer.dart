@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
+import 'package:clipshare/entity/tables/operation_record.dart';
+import 'package:clipshare/entity/tables/operation_sync.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/util/constants.dart';
 
-import '../entity/tables/operation_record.dart';
-import '../entity/tables/operation_sync.dart';
-import '../main.dart';
 
 /// 记录置顶操作同步处理器
 class HistoryTopSyncer implements SyncListener {

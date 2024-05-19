@@ -1,4 +1,4 @@
-import 'package:clipshare/handler/sync_data_handler.dart';
+import 'package:clipshare/handler/sync/missing_data_syncer.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:floor/floor.dart';
@@ -16,8 +16,8 @@ abstract class OperationRecordDao {
     return add(record).then((cnt) {
       if (cnt == 0) return cnt;
       //发送变更至已连接的所有设备
-      SyncDataHandler.process(record, []).then((v) {
-        SocketListener.inst.sendData(null, MsgType.sync,record.toJson());
+      MissingDataSyncer.process(record, []).then((v) {
+        SocketListener.inst.sendData(null, MsgType.sync, record.toJson());
       });
       return cnt;
     });
@@ -47,4 +47,10 @@ abstract class OperationRecordDao {
     String opMethod,
     int uid,
   );
+
+  /// 删除指定模块的同步记录
+  @Query(
+    "delete from OperationRecord where uid = :uid and module = :module",
+  )
+  Future<int?> removeByModule(String module, int uid);
 }

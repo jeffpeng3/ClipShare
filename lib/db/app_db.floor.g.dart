@@ -510,16 +510,7 @@ class _$HistoryDao extends HistoryDao {
   Future<List<History>> getAllImages(int uid) async {
     return _queryAdapter.queryList(
         'select * from history where uid = ?1 and type = \'Image\' order by id desc',
-        mapper: (Map<String, Object?> row) => History(
-            id: row['id'] as int,
-            uid: row['uid'] as int,
-            time: row['time'] as String,
-            content: row['content'] as String,
-            type: row['type'] as String,
-            devId: row['devId'] as String,
-            top: (row['top'] as int) != 0,
-            sync: (row['sync'] as int) != 0,
-            size: row['size'] as int),
+        mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as int, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
         arguments: [uid]);
   }
 
@@ -892,6 +883,17 @@ class _$OperationRecordDao extends OperationRecordDao {
         'select * from OperationRecord where uid = ?4 and module = ?2 and method = ?3 and data = ?1',
         mapper: (Map<String, Object?> row) => OperationRecord(id: row['id'] as int, uid: row['uid'] as int, module: _moduleTypeConverter.decode(row['module'] as String), method: _opMethodTypeConverter.decode(row['method'] as String), data: row['data'] as String),
         arguments: [id, module, opMethod, uid]);
+  }
+
+  @override
+  Future<int?> removeByModule(
+    String module,
+    int uid,
+  ) async {
+    return _queryAdapter.query(
+        'delete from OperationRecord where uid = ?2 and module = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [module, uid]);
   }
 
   @override

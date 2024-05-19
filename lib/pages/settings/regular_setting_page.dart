@@ -134,7 +134,10 @@ class _RegularSettingPageState extends State<RegularSettingPage> {
                       child: ListView.builder(
                         itemCount: _list.length,
                         itemBuilder: (context, i) {
-                          return _list[i];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 5),
+                            child: _list[i],
+                          );
                         },
                       ),
                     ),

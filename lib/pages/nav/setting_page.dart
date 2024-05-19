@@ -8,6 +8,8 @@ import 'package:clipshare/components/regular_setting_add_dialog.dart';
 import 'package:clipshare/components/settings/card/setting_card.dart';
 import 'package:clipshare/components/settings/card/setting_card_group.dart';
 import 'package:clipshare/components/settings/text_edit_dialog.dart';
+import 'package:clipshare/db/app_db.dart';
+import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/handler/hot_key_handler.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
@@ -939,20 +941,33 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                       onChange: onChange,
                                     );
                                   },
-                                  confirm: (res) {
+                                  confirm: (res) async {
                                     var oldValue = jsonDecode(
                                       App.settings.tagRegulars,
                                     );
-                                    var version = oldValue["version"];
-                                    var json = jsonEncode(
-                                      {
-                                        "version": version + 1,
-                                        "data": res,
-                                      },
+                                    var data = {
+                                      "version": oldValue["version"] + 1,
+                                      "data": res,
+                                    };
+                                    var json = jsonEncode(data);
+                                    var opRecord = OperationRecord.fromSimple(
+                                      Module.rules,
+                                      OpMethod.update,
+                                      jsonEncode({
+                                        "rule": Rule.tag.name,
+                                        "data": data,
+                                      }),
                                     );
-                                    ref
+                                    await AppDb.inst.opRecordDao.removeByModule(
+                                      Module.rules.moduleName,
+                                      App.userId,
+                                    );
+                                    await ref
                                         .notifier(settingProvider)
                                         .setTagRegulars(json);
+
+                                    AppDb.inst.opRecordDao
+                                        .addAndNotify(opRecord);
                                   },
                                   title: "标签规则配置",
                                 );

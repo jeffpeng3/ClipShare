@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:clipshare/handler/history_top_syncer.dart';
 import 'package:clipshare/handler/permission_handler.dart';
-import 'package:clipshare/handler/tag_syncer.dart';
+import 'package:clipshare/handler/sync/history_top_syncer.dart';
+import 'package:clipshare/handler/sync/rules_syncer.dart';
+import 'package:clipshare/handler/sync/tag_syncer.dart';
 import 'package:clipshare/listeners/screen_opened_listener.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/pages/authentication_page.dart';
@@ -70,6 +71,7 @@ class _BasePageState extends State<BasePage>
   bool _trayClick = false;
   late TagSyncer _tagSyncer;
   late HistoryTopSyncer _historyTopSyncer;
+  late RulesSyncer _rulesSyncer;
   late StreamSubscription _networkListener;
   DateTime? pausedTime;
   final _logoImg = Image.asset(
@@ -324,6 +326,7 @@ class _BasePageState extends State<BasePage>
     });
     _tagSyncer = TagSyncer();
     _historyTopSyncer = HistoryTopSyncer();
+    _rulesSyncer = RulesSyncer(context.ref);
     //进入主页面后标记为不是第一次进入
     if (App.settings.firstStartup) {
       context.ref.notifier(settingProvider).setNotFirstStartup();
@@ -336,6 +339,7 @@ class _BasePageState extends State<BasePage>
     windowManager.removeListener(this);
     _tagSyncer.dispose();
     _historyTopSyncer.dispose();
+    _rulesSyncer.dispose();
     _networkListener.cancel();
     ScreenOpenedListener.inst.remove(this);
     super.dispose();

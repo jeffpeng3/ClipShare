@@ -14,7 +14,7 @@ import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 
-class SyncDataHandler {
+class MissingDataSyncer {
   static const tag = "SyncDataHandler";
 
   static void sendMissingData(DevInfo dev) {
@@ -41,7 +41,7 @@ class SyncDataHandler {
   }
 
   static Future process(OperationRecord item, List<OperationRecord> rmList) {
-    Future f;
+    Future f = Future(() => null);
     var id = item.data;
     switch (item.module) {
       case Module.device:
@@ -116,6 +116,9 @@ class SyncDataHandler {
             item.data = v.toString();
           }
         });
+        break;
+      case Module.rules:
+        //什么都不做
         break;
       default:
         return Future.value();

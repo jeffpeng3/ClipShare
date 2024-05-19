@@ -204,6 +204,21 @@ enum OpMethod {
       );
 }
 
+enum Rule {
+  tag,
+  file,
+  message,
+  unknown;
+
+  static Rule getValue(String name) => Rule.values.firstWhere(
+        (e) => e.name == name,
+        orElse: () {
+          Log.debug("Rule", "key '$name' unknown");
+          return Rule.unknown;
+        },
+      );
+}
+
 enum Module {
   unknown(moduleName: "未知"),
   device(moduleName: "设备管理"),
