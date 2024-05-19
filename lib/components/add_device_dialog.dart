@@ -169,7 +169,7 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
               ),
             ],
           ),
-        )
+        ),
       ],
     );
   }

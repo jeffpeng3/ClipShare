@@ -19,8 +19,8 @@ class SecureSocketClient {
   bool _ready = false;
   late final void Function(SecureSocketClient)? _onConnected;
   late final void Function(SecureSocketClient client, String data)? _onMessage;
-  void Function(Exception e)? _onError;
-  void Function()? _onDone;
+  void Function(Exception e,SecureSocketClient client)? _onError;
+  void Function(SecureSocketClient client)? _onDone;
   bool? _cancelOnError;
   late final StreamSubscription _stream;
   late final Encrypter _encrypter;
@@ -28,6 +28,7 @@ class SecureSocketClient {
   late final String _aesKey;
   late final BigInt _prime;
   late final AsymmetricKeyPair _keyPair;
+  late final String tag;
 
   bool get isReady => _ready;
 
@@ -41,7 +42,7 @@ class SecureSocketClient {
         _msgStreamController.close();
         Log.debug("SecureSocketClient", "发送失败：$e");
         Log.debug("SecureSocketClient", "$stack");
-        _onDone?.call();
+        _onDone?.call(this);
       }
     });
   }
@@ -56,12 +57,16 @@ class SecureSocketClient {
     required AsymmetricKeyPair keyPair,
     void Function(SecureSocketClient)? onConnected,
     void Function(SecureSocketClient client, String data)? onMessage,
-    void Function(Exception e)? onError,
-    void Function()? onDone,
+    void Function(Exception e,SecureSocketClient client)? onError,
+    void Function(SecureSocketClient client)? onDone,
     bool? cancelOnError,
+    String tag = "default",
   }) async {
-    var socket =
-        await Socket.connect(ip, port, timeout: const Duration(seconds: 2));
+    var socket = await Socket.connect(
+      ip,
+      port,
+      timeout: const Duration(seconds: 2),
+    );
     var ssc = SecureSocketClient.fromSocket(
       socket: socket,
       prime: prime,
@@ -71,6 +76,7 @@ class SecureSocketClient {
       onError: onError,
       onDone: onDone,
       cancelOnError: cancelOnError,
+      tag: tag,
     );
     //主动连接，发送素数，底数，公钥
     ssc._sendKey();
@@ -84,9 +90,10 @@ class SecureSocketClient {
     int? serverPort,
     void Function(SecureSocketClient)? onConnected,
     required void Function(SecureSocketClient client, String data)? onMessage,
-    void Function(Exception e)? onError,
-    void Function()? onDone,
+    void Function(Exception e,SecureSocketClient client)? onError,
+    void Function(SecureSocketClient client)? onDone,
     bool? cancelOnError,
+    String tag = "default",
   }) {
     var ssc = SecureSocketClient._private(socket.remoteAddress.address);
     if (serverPort != null) {
@@ -101,6 +108,7 @@ class SecureSocketClient {
     ssc._onDone = onDone;
     ssc._cancelOnError = cancelOnError;
     ssc._listen();
+    ssc.tag = tag;
     return ssc;
   }
 
@@ -160,12 +168,12 @@ class SecureSocketClient {
           _data = "";
           Log.error("SecureSocketClient", "error:$e");
           if (_onError != null) {
-            _onError!(e);
+            _onError!(e,this);
           }
         },
         onDone: () {
           if (_ready) {
-            _onDone?.call();
+            _onDone?.call(this);
           }
           Log.debug("SecureSocketClient", "_onDone");
           _socket.close();
@@ -181,8 +189,9 @@ class SecureSocketClient {
   ///密钥交换
   void _exchange(String msg) {
     var data = jsonDecode(msg);
-    //A -------> B
+    //A(client) -------> B(server)
     if (data["seq"] == 1) {
+      tag = data["tag"];
       //接收公钥，素数和底数g
       var key = data["key"];
       var g = BigInt.parse(data["g"]);
@@ -209,7 +218,7 @@ class SecureSocketClient {
       //发送
       send(map);
     }
-    //A <------- B
+    //A(client) <------- B(server)
     if (data["seq"] == 2) {
       //接收公钥
       var key = data["key"];
@@ -236,7 +245,7 @@ class SecureSocketClient {
   }
 
   ///发送数据
-  void send(Map map) {
+  void send(Map map, [bool useSeparator = true]) {
     var data = jsonEncode(map);
     if (_ready) {
       data = CryptoUtil.encryptAES(
@@ -248,13 +257,13 @@ class SecureSocketClient {
       data = CryptoUtil.base64EncodeStr(data);
     }
     try {
-      _msgStreamController.add("$data,");
+      _msgStreamController.add(data + (useSeparator ? "," : ""));
     } catch (e, stack) {
       Log.debug("SecureSocketClient", "发送失败：$e");
       Log.debug("SecureSocketClient", "_onDone ${_onDone == null}");
       Log.debug("SecureSocketClient", "$stack");
       if (_onDone != null) {
-        _onDone!.call();
+        _onDone!.call(this);
       }
     }
   }
@@ -276,6 +285,7 @@ class SecureSocketClient {
       "g": g.toString(),
       "key": _dh.publicKey.toString(),
       "port": App.settings.port,
+      "tag": tag,
     };
     send(map);
   }

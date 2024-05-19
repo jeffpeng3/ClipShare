@@ -12,6 +12,7 @@ import 'package:clipshare/entity/version.dart';
 import 'package:clipshare/handler/dev_pairing_handler.dart';
 import 'package:clipshare/handler/socket/secure_socket_client.dart';
 import 'package:clipshare/handler/socket/secure_socket_server.dart';
+import 'package:clipshare/handler/sync/file_syncer.dart';
 import 'package:clipshare/handler/sync/missing_data_syncer.dart';
 import 'package:clipshare/handler/task_runner.dart';
 import 'package:clipshare/main.dart';
@@ -20,10 +21,9 @@ import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/log.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
-
-import 'package:collection/collection.dart';
 
 abstract class DevAliveListener {
   //连接成功
@@ -215,13 +215,17 @@ class SocketListener {
         var msg = MessageData.fromJson(json);
         _onSocketReceived(client, msg);
       },
-      onDone: () {
+      onDone: (SecureSocketClient client) {
         Log.debug(tag, "从广播连接，服务端连接关闭");
-        _onDevDisConnected(dev.guid);
+        if (client.tag == "default") {
+          _onDevDisConnected(dev.guid);
+        }
       },
-      onError: (error) {
+      onError: (error, client) {
         Log.debug(tag, '从广播连接，发生错误: $error');
-        _onDevDisConnected(dev.guid);
+        if (client.tag == "default") {
+          _onDevDisConnected(dev.guid);
+        }
       },
     );
   }
@@ -245,29 +249,33 @@ class SocketListener {
       onError: (err) {
         Log.error(tag, "服务端内客户端连接，出现错误：$err");
       },
-      onClientError: (e, ip, port) {
+      onClientError: (e, ip, port, client) {
         //此处端口不是客户端的服务端口，是客户端的socket进程端口
         Log.error(tag, "client 出现错误 $ip $port $e");
-        for (var id in _devSockets.keys) {
-          var skt = _devSockets[id]!;
-          if (skt.socket.ip == ip) {
-            _onDevDisConnected(id);
-            break;
+        if (client.tag == "default") {
+          for (var id in _devSockets.keys) {
+            var skt = _devSockets[id]!;
+            if (skt.socket.ip == ip) {
+              _onDevDisConnected(id);
+              break;
+            }
           }
         }
       },
-      onClientDone: (ip, port) {
+      onClientDone: (ip, port, client) {
         //此处端口不是客户端的服务端口，是客户端的socket进程端口
         Log.error(tag, "client done $e $ip $port");
-        for (var id in _devSockets.keys) {
-          var skt = _devSockets[id]!;
-          Log.error(
-            tag,
-            "client done skt $e ${skt.socket.ip} ${skt.socket.port}",
-          );
-          if (skt.socket.ip == ip) {
-            _onDevDisConnected(id);
-            break;
+        if (client.tag == "default") {
+          for (var id in _devSockets.keys) {
+            var skt = _devSockets[id]!;
+            Log.error(
+              tag,
+              "client done skt $e ${skt.socket.ip} ${skt.socket.port}",
+            );
+            if (skt.socket.ip == ip) {
+              _onDevDisConnected(id);
+              break;
+            }
           }
         }
       },
@@ -291,11 +299,6 @@ class SocketListener {
     DevInfo dev = msg.send;
     var address =
         ipSetTemp.firstWhereOrNull((ip) => ip.split(":")[0] == client.ip);
-    // var isCustom = ipSetTemp.any((v) {
-    //   var res = v.split(":")[0] == client.ip;
-    //   address = v;
-    //   return res;
-    // });
     switch (msg.key) {
       ///客户端连接
       case MsgType.connect:
@@ -419,6 +422,17 @@ class SocketListener {
         bool result = msg.data["result"];
         _onDevPaired(dev, msg.userId, result, address);
         ipSetTemp.removeWhere((v) => v == address);
+        break;
+
+      ///文件同步
+      case MsgType.fileBlock:
+      case MsgType.transferDone:
+        // try {
+        //   FileSyncer.recFile(msg);
+        // } catch (err, stack) {
+        //   //传输出错，中断传输，断开连接
+        //   client.destroy();
+        // }
         break;
       default:
     }
@@ -599,21 +613,25 @@ class SocketListener {
         var msg = MessageData.fromJson(json);
         _onSocketReceived(client, msg);
       },
-      onDone: () {
+      onDone: (SecureSocketClient client) {
         Log.debug(tag, "手动连接关闭");
-        for (var devId in _devSockets.keys.toList()) {
-          var skt = _devSockets[devId]!.socket;
-          if (skt.ip == ip && skt.port == port) {
-            _onDevDisConnected(devId);
+        if (client.tag == "default") {
+          for (var devId in _devSockets.keys.toList()) {
+            var skt = _devSockets[devId]!.socket;
+            if (skt.ip == ip && skt.port == port) {
+              _onDevDisConnected(devId);
+            }
           }
         }
       },
-      onError: (error) {
+      onError: (error, client) {
         Log.error(tag, '手动连接发生错误: $error $ip $port');
-        for (var devId in _devSockets.keys.toList()) {
-          var skt = _devSockets[devId]!.socket;
-          if (skt.ip == ip && skt.port == port) {
-            _onDevDisConnected(devId);
+        if (client.tag == "default") {
+          for (var devId in _devSockets.keys.toList()) {
+            var skt = _devSockets[devId]!.socket;
+            if (skt.ip == ip && skt.port == port) {
+              _onDevDisConnected(devId);
+            }
           }
         }
       },
