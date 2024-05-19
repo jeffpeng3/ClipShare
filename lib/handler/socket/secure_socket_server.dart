@@ -14,8 +14,17 @@ class SecureSocketServer {
   late final void Function(String ip, int port) _onConnected;
   late final void Function(SecureSocketClient client, String data) _onMessage;
   Function? _onError;
-  void Function(Exception e, String ip, int port)? _onClientError;
-  void Function(String ip, int port)? _onClientDone;
+  void Function(
+    Exception e,
+    String ip,
+    int port,
+    SecureSocketClient client,
+  )? _onClientError;
+  void Function(
+    String ip,
+    int port,
+    SecureSocketClient client,
+  )? _onClientDone;
   void Function()? _onDone;
   bool? _cancelOnError;
   late final StreamSubscription _stream;
@@ -32,8 +41,9 @@ class SecureSocketServer {
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
-    void Function(Exception e, String ip, int port)? onClientError,
-    void Function(String ip, int port)? onClientDone,
+    void Function(Exception e, String ip, int port, SecureSocketClient client)?
+        onClientError,
+    void Function(String ip, int port, SecureSocketClient client)? onClientDone,
   }) async {
     var sss = SecureSocketServer._private(ip, port);
     sss._server = await ServerSocket.bind(ip, port);
@@ -59,7 +69,8 @@ class SecureSocketServer {
           String ip = client.remoteAddress.address;
           //此处端口不是客户端的服务端口，是客户端的socket进程端口
           int port = client.remotePort;
-          var ssc = SecureSocketClient.fromSocket(
+          late SecureSocketClient ssc;
+          ssc = SecureSocketClient.fromSocket(
             socket: client,
             prime: App.prime,
             keyPair: App.keyPair,
@@ -67,19 +78,19 @@ class SecureSocketServer {
               _onConnected(ssc.ip, ssc.port);
             },
             onMessage: _onMessage,
-            onDone: () {
+            onDone: (SecureSocketClient client) {
               Log.debug(tag, "_onClientDone");
               if (_onClientDone != null) {
-                _onClientDone!.call(ip, port);
+                _onClientDone!.call(ip, port,client);
               }
-              if (_sktList.contains(client)) {
-                _sktList.remove(client);
+              if (_sktList.contains(ssc)) {
+                _sktList.remove(ssc);
               }
             },
-            onError: (e) {
+            onError: (e, SecureSocketClient client) {
               Log.error(tag, "_onClientError error:$e");
               if (_onClientError != null) {
-                _onClientError!(e, ip, port);
+                _onClientError!(e, ip, port,client);
               }
             },
             cancelOnError: _cancelOnError,
