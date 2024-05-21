@@ -19,7 +19,7 @@ class SecureSocketClient {
   bool _ready = false;
   late final void Function(SecureSocketClient)? _onConnected;
   late final void Function(SecureSocketClient client, String data)? _onMessage;
-  void Function(Exception e,SecureSocketClient client)? _onError;
+  void Function(Exception e, SecureSocketClient client)? _onError;
   void Function(SecureSocketClient client)? _onDone;
   bool? _cancelOnError;
   late final StreamSubscription _stream;
@@ -28,7 +28,7 @@ class SecureSocketClient {
   late final String _aesKey;
   late final BigInt _prime;
   late final AsymmetricKeyPair _keyPair;
-  late final String tag;
+  late String tag;
 
   bool get isReady => _ready;
 
@@ -37,7 +37,7 @@ class SecureSocketClient {
   SecureSocketClient._private(this.ip) {
     _msgStreamController.stream.listen((data) {
       try {
-        _socket.writeln(data);
+        _socket.write(data);
       } catch (e, stack) {
         _msgStreamController.close();
         Log.debug("SecureSocketClient", "发送失败：$e");
@@ -57,7 +57,7 @@ class SecureSocketClient {
     required AsymmetricKeyPair keyPair,
     void Function(SecureSocketClient)? onConnected,
     void Function(SecureSocketClient client, String data)? onMessage,
-    void Function(Exception e,SecureSocketClient client)? onError,
+    void Function(Exception e, SecureSocketClient client)? onError,
     void Function(SecureSocketClient client)? onDone,
     bool? cancelOnError,
     String tag = "default",
@@ -90,7 +90,7 @@ class SecureSocketClient {
     int? serverPort,
     void Function(SecureSocketClient)? onConnected,
     required void Function(SecureSocketClient client, String data)? onMessage,
-    void Function(Exception e,SecureSocketClient client)? onError,
+    void Function(Exception e, SecureSocketClient client)? onError,
     void Function(SecureSocketClient client)? onDone,
     bool? cancelOnError,
     String tag = "default",
@@ -122,45 +122,32 @@ class SecureSocketClient {
       _stream = _socket.listen(
         (e) {
           var rec = utf8.decode(e);
-          for (var s in rec.split("\n")) {
-            if (s.isEmpty) {
-              continue;
-            }
-            //未接收到结束符，全部接收，继续等待
-            if (!s.contains(',')) {
-              _data += rec;
-              return;
-            }
-            //以结束符分割数据包
-            var pkgs = s.split(",");
-            for (var pkg in pkgs) {
-              if (pkg.isEmpty) continue;
-              //接收完整的数据包然后进行解析
-              _data += pkg;
-              try {
+          _data += rec;
+          while (_data.contains(",")) {
+            // 以逗号分割数据包，找到第一个完整的数据包
+            var index = _data.indexOf(',');
+            var pkg = _data.substring(0, index);
+            _data = _data.substring(index + 1);
+            try {
+              if (_ready) {
                 //接收完成，进行解码
-                if (_ready) {
-                  //密钥已交换，此处需要解密
-                  var decrypt = CryptoUtil.decryptAES(
-                    key: _aesKey,
-                    encoded: _data,
-                    encrypter: _encrypter,
-                  );
-                  if (_onMessage != null) {
-                    _onMessage(this, decrypt);
-                  }
-                } else {
-                  //密钥未交换
-                  var decodeB64 = CryptoUtil.base64DecodeStr(_data);
-                  _exchange(decodeB64);
+                //密钥已交换，此处需要解密
+                var decrypt = CryptoUtil.decryptAES(
+                  key: _aesKey,
+                  encoded: pkg,
+                  encrypter: _encrypter,
+                );
+                if (_onMessage != null) {
+                  _onMessage(this, decrypt);
                 }
-              } on Exception catch (ex, stack) {
-                //解析出错
-                Log.error("SecureSocketClient", "解析出错：$ex\n$stack");
-              } finally {
-                //无论是否接收完，清空缓冲区，进行下一个数据包接收
-                _data = "";
+              } else {
+                //密钥未交换
+                var decodeB64 = CryptoUtil.base64DecodeStr(pkg);
+                _exchange(decodeB64);
               }
+            } catch (ex, stack) {
+              //解析出错
+              Log.error("SecureSocketClient", "解析出错：$ex\n$stack");
             }
           }
         },
@@ -168,7 +155,7 @@ class SecureSocketClient {
           _data = "";
           Log.error("SecureSocketClient", "error:$e");
           if (_onError != null) {
-            _onError!(e,this);
+            _onError!(e, this);
           }
         },
         onDone: () {
@@ -245,7 +232,7 @@ class SecureSocketClient {
   }
 
   ///发送数据
-  void send(Map map, [bool useSeparator = true]) {
+  void send(Map map) {
     var data = jsonEncode(map);
     if (_ready) {
       data = CryptoUtil.encryptAES(
@@ -257,7 +244,7 @@ class SecureSocketClient {
       data = CryptoUtil.base64EncodeStr(data);
     }
     try {
-      _msgStreamController.add(data + (useSeparator ? "," : ""));
+      _msgStreamController.add("$data,");
     } catch (e, stack) {
       Log.debug("SecureSocketClient", "发送失败：$e");
       Log.debug("SecureSocketClient", "_onDone ${_onDone == null}");

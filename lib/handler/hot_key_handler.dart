@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/channels/common_channel.dart';
+import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -74,7 +77,17 @@ class AppHotKeyHandler {
       keyDownHandler: (hotKey) async {
         ///快捷键事件
         Log.info(tag, "$fileSync hotkey down");
-        CommonChannel.getSelectedFiles();
+        var files = await CommonChannel.getSelectedFiles();
+        for (var filePath in files) {
+          FileSystemEntityType type = await FileSystemEntity.type(filePath);
+          switch (type) {
+            case FileSystemEntityType.file:
+              SocketListener.inst
+                  .sendData(null, MsgType.fileBlock, {"filePath": filePath});
+              break;
+            default:
+          }
+        }
       },
     );
     _map[hotkeyName] = key;

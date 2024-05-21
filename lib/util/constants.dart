@@ -20,8 +20,8 @@ class Constants {
   //组播心跳时长
   static const heartbeatInterval = 30;
 
-  //默认文件传输块大小（256KB）
-  static const fileBlock = 256 * 1024;
+  //默认文件传输块大小
+  static const fileBlock = 1024 * 1024;
 
   //默认标签
   static final defaultTags = jsonEncode(

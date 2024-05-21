@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:clipshare/entity/message_data.dart';
@@ -19,7 +20,7 @@ class FileSyncer {
     void Function(Exception e)? onError,
   }) async {
     try {
-      final ssc = await SecureSocketClient.connect(
+      await SecureSocketClient.connect(
         ip: ip,
         port: port,
         prime: App.prime,
@@ -27,38 +28,54 @@ class FileSyncer {
         tag: "fileSync",
         onError: (e, c) => onError?.call(e),
         onDone: (c) => onDone?.call(),
-      );
-      final file = File(path);
-      if (!file.existsSync()) {
-        throw Exception("file not found");
-      }
-      final fileName = file.fileName;
-      var isFirst = true;
-      final stream = file.openRead();
-      await for (var data in stream) {
-        final msg = MessageData(
-          userId: App.userId,
-          send: App.devInfo,
-          key: MsgType.fileBlock,
-          data: {
-            "fileName": fileName,
-            "isFirst": isFirst,
-            "block": data,
-          },
-        );
-        isFirst = false;
-        ssc.send(msg.toJson(), false);
-      }
-      final endMsg = MessageData(
-        userId: App.userId,
-        send: App.devInfo,
-        key: MsgType.transferDone,
-        data: {
-          "fileName": fileName,
+        onConnected: (client) async {
+          final file = File(path);
+          const bufferSize = Constants.fileBlock;
+          // 使用 transform 设置缓冲区大小
+          Stream<List<int>> stream = file.openRead().transform(
+            StreamTransformer.fromHandlers(
+              handleData: (data, sink) {
+                // 将数据分块处理并发送到 sink
+                for (int i = 0; i < data.length; i += bufferSize) {
+                  int end = (i + bufferSize < data.length)
+                      ? i + bufferSize
+                      : data.length;
+                  sink.add(data.sublist(i, end));
+                }
+              },
+            ),
+          );
+          if (!file.existsSync()) {
+            throw Exception("file not found");
+          }
+          final fileName = file.fileName;
+          var isFirst = true;
+          await for (var data in stream) {
+            final msg = MessageData(
+              userId: App.userId,
+              send: App.devInfo,
+              key: MsgType.fileBlock,
+              data: {
+                "fileName": fileName,
+                "isFirst": isFirst,
+                "block": data,
+              },
+            );
+            isFirst = false;
+            client.send(msg.toJson());
+          }
+          final endMsg = MessageData(
+            userId: App.userId,
+            send: App.devInfo,
+            key: MsgType.transferDone,
+            data: {
+              "fileName": fileName,
+            },
+          );
+          //此处发送完结束消息后，由接收端断开连接
+          client.send(endMsg.toJson());
         },
       );
-      //此处发送完结束消息后，由接收端断开连接
-      ssc.send(endMsg.toJson());
     } catch (err, stack) {
       Log.error(
         tag,
@@ -81,7 +98,7 @@ class FileSyncer {
       _syncingFiles.remove(filePath);
       return;
     }
-    List<int> bytes = data["block"];
+    List<int> bytes = (data["block"] as List<dynamic>).cast<int>();
     bool isFirst = data["isFirst"];
     final file = File(filePath);
     if (isFirst) {
@@ -99,5 +116,17 @@ class FileSyncer {
       _syncingFiles.remove(filePath);
       rethrow;
     }
+  }
+
+  static void clear(MessageData msg) {
+    if (![MsgType.fileBlock, MsgType.transferDone].contains(msg.key)) {
+      return;
+    }
+    final data = msg.data;
+    String fileName = data["fileName"];
+    final filePath = "${App.settings.fileStorePath}/$fileName";
+    var sink = _syncingFiles[filePath];
+    _syncingFiles.remove(filePath);
+    sink?.close();
   }
 }

@@ -427,12 +427,14 @@ class SocketListener {
       ///文件同步
       case MsgType.fileBlock:
       case MsgType.transferDone:
-        // try {
-        //   FileSyncer.recFile(msg);
-        // } catch (err, stack) {
-        //   //传输出错，中断传输，断开连接
-        //   client.destroy();
-        // }
+        try {
+          FileSyncer.recFile(msg);
+        } catch (err, stack) {
+          //传输出错，中断传输，断开连接
+          client.destroy();
+          Log.error(tag, "file sync failed: $err $stack");
+          FileSyncer.clear(msg);
+        }
         break;
       default:
     }
@@ -821,7 +823,16 @@ class SocketListener {
       );
       //批量发送
       for (var skt in list) {
-        skt.socket.send(msg.toJson());
+        if ([MsgType.transferDone, MsgType.fileBlock].contains(key)) {
+          //发送文件
+          FileSyncer.sendFile(
+            ip: skt.socket.ip,
+            port: skt.socket.port,
+            path: data["filePath"],
+          );
+        } else {
+          skt.socket.send(msg.toJson());
+        }
       }
     } else {
       //向指定设备发送消息
@@ -838,7 +849,16 @@ class SocketListener {
         Log.debug(tag, "${dev.name} 与当前设备版本不兼容");
         return;
       }
-      skt.socket.send(msg.toJson());
+      if ([MsgType.transferDone, MsgType.fileBlock].contains(key)) {
+        //发送文件
+        FileSyncer.sendFile(
+          ip: skt.socket.ip,
+          port: skt.socket.port,
+          path: data["filePath"],
+        );
+      } else {
+        skt.socket.send(msg.toJson());
+      }
     }
   }
 
