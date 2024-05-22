@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/channels/common_channel.dart';
+import 'package:clipshare/handler/sync/file_syncer.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
@@ -82,8 +83,7 @@ class AppHotKeyHandler {
           FileSystemEntityType type = await FileSystemEntity.type(filePath);
           switch (type) {
             case FileSystemEntityType.file:
-              SocketListener.inst
-                  .sendData(null, MsgType.fileBlock, {"filePath": filePath});
+              FileSyncer.sendFile(filePath);
               break;
             default:
           }

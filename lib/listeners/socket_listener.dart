@@ -217,15 +217,11 @@ class SocketListener {
       },
       onDone: (SecureSocketClient client) {
         Log.debug(tag, "从广播连接，服务端连接关闭");
-        if (client.tag == "default") {
-          _onDevDisConnected(dev.guid);
-        }
+        _onDevDisConnected(dev.guid);
       },
       onError: (error, client) {
         Log.debug(tag, '从广播连接，发生错误: $error');
-        if (client.tag == "default") {
-          _onDevDisConnected(dev.guid);
-        }
+        _onDevDisConnected(dev.guid);
       },
     );
   }
@@ -252,30 +248,26 @@ class SocketListener {
       onClientError: (e, ip, port, client) {
         //此处端口不是客户端的服务端口，是客户端的socket进程端口
         Log.error(tag, "client 出现错误 $ip $port $e");
-        if (client.tag == "default") {
-          for (var id in _devSockets.keys) {
-            var skt = _devSockets[id]!;
-            if (skt.socket.ip == ip) {
-              _onDevDisConnected(id);
-              break;
-            }
+        for (var id in _devSockets.keys) {
+          var skt = _devSockets[id]!;
+          if (skt.socket.ip == ip) {
+            _onDevDisConnected(id);
+            break;
           }
         }
       },
       onClientDone: (ip, port, client) {
         //此处端口不是客户端的服务端口，是客户端的socket进程端口
         Log.error(tag, "client done $e $ip $port");
-        if (client.tag == "default") {
-          for (var id in _devSockets.keys) {
-            var skt = _devSockets[id]!;
-            Log.error(
-              tag,
-              "client done skt $e ${skt.socket.ip} ${skt.socket.port}",
-            );
-            if (skt.socket.ip == ip) {
-              _onDevDisConnected(id);
-              break;
-            }
+        for (var id in _devSockets.keys) {
+          var skt = _devSockets[id]!;
+          Log.error(
+            tag,
+            "client done skt $e ${skt.socket.ip} ${skt.socket.port}",
+          );
+          if (skt.socket.ip == ip) {
+            _onDevDisConnected(id);
+            break;
           }
         }
       },
@@ -425,15 +417,19 @@ class SocketListener {
         break;
 
       ///文件同步
-      case MsgType.fileBlock:
-      case MsgType.transferDone:
+      case MsgType.file:
+        String ip = client.ip;
+        int port = msg.data["port"];
+        int size = msg.data["size"];
+        String fileName = msg.data["fileName"];
         try {
-          FileSyncer.recFile(msg);
+          await FileSyncer.recFile(ip, port, size, fileName);
         } catch (err, stack) {
-          //传输出错，中断传输，断开连接
-          client.destroy();
-          Log.error(tag, "file sync failed: $err $stack");
-          FileSyncer.clear(msg);
+          Log.debug(
+            tag,
+            "receive file failed. ip:$ip, port: $port, size: $size, fileName: $fileName. "
+            "$err $stack",
+          );
         }
         break;
       default:
@@ -617,23 +613,19 @@ class SocketListener {
       },
       onDone: (SecureSocketClient client) {
         Log.debug(tag, "手动连接关闭");
-        if (client.tag == "default") {
-          for (var devId in _devSockets.keys.toList()) {
-            var skt = _devSockets[devId]!.socket;
-            if (skt.ip == ip && skt.port == port) {
-              _onDevDisConnected(devId);
-            }
+        for (var devId in _devSockets.keys.toList()) {
+          var skt = _devSockets[devId]!.socket;
+          if (skt.ip == ip && skt.port == port) {
+            _onDevDisConnected(devId);
           }
         }
       },
       onError: (error, client) {
         Log.error(tag, '手动连接发生错误: $error $ip $port');
-        if (client.tag == "default") {
-          for (var devId in _devSockets.keys.toList()) {
-            var skt = _devSockets[devId]!.socket;
-            if (skt.ip == ip && skt.port == port) {
-              _onDevDisConnected(devId);
-            }
+        for (var devId in _devSockets.keys.toList()) {
+          var skt = _devSockets[devId]!.socket;
+          if (skt.ip == ip && skt.port == port) {
+            _onDevDisConnected(devId);
           }
         }
       },
@@ -823,16 +815,7 @@ class SocketListener {
       );
       //批量发送
       for (var skt in list) {
-        if ([MsgType.transferDone, MsgType.fileBlock].contains(key)) {
-          //发送文件
-          FileSyncer.sendFile(
-            ip: skt.socket.ip,
-            port: skt.socket.port,
-            path: data["filePath"],
-          );
-        } else {
-          skt.socket.send(msg.toJson());
-        }
+        skt.socket.send(msg.toJson());
       }
     } else {
       //向指定设备发送消息
@@ -849,16 +832,7 @@ class SocketListener {
         Log.debug(tag, "${dev.name} 与当前设备版本不兼容");
         return;
       }
-      if ([MsgType.transferDone, MsgType.fileBlock].contains(key)) {
-        //发送文件
-        FileSyncer.sendFile(
-          ip: skt.socket.ip,
-          port: skt.socket.port,
-          path: data["filePath"],
-        );
-      } else {
-        skt.socket.send(msg.toJson());
-      }
+      skt.socket.send(msg.toJson());
     }
   }
 

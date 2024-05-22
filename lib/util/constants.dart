@@ -20,9 +20,6 @@ class Constants {
   //组播心跳时长
   static const heartbeatInterval = 30;
 
-  //默认文件传输块大小
-  static const fileBlock = 1024 * 1024;
-
   //默认标签
   static final defaultTags = jsonEncode(
     {
@@ -180,10 +177,8 @@ enum MsgType {
   forgetDev,
   //心跳
   heartbeat,
-  //文件块
-  fileBlock,
-  //传输完成
-  transferDone,
+  //文件同步
+  file,
   //未知key
   unknown;
 
