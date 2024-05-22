@@ -1,18 +1,17 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:clipshare/channels/android_channel.dart';
 import 'package:flutter/material.dart';
-
-import '../main.dart';
 
 class Global {
   static void toast(String text) {
-    App.androidChannel.invokeMethod("toast", {"content": text});
+    AndroidChannel.toast(text);
   }
 
   static void notify(String content) {
     if (Platform.isAndroid) {
-      App.androidChannel.invokeMethod("sendNotify", {"content": content});
+      AndroidChannel.sendNotify(content);
     }
   }
 

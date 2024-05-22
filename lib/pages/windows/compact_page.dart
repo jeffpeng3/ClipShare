@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:clipshare/channels/multi_window_channel.dart';
 import 'package:clipshare/components/clip_data_card.dart';
 import 'package:clipshare/components/clip_data_card_compact.dart';
 import 'package:clipshare/entity/clip_data.dart';
@@ -45,7 +46,7 @@ class _CompactPageState extends State<CompactPage> {
       var args = jsonDecode(call.arguments);
       switch (call.method) {
         //更新通知
-        case "notify":
+        case MultiWindowMethod.notify:
           refresh();
           break;
       }
@@ -86,12 +87,11 @@ class _CompactPageState extends State<CompactPage> {
       _loadNewData = true;
     });
     return Future.delayed(const Duration(milliseconds: 500), () {
-      var formId = 0;
+      var fromId = 0;
       if (loadMore) {
-        formId = _list.isEmpty ? 0 : _list.last.data.data.id;
+        fromId = _list.isEmpty ? 0 : _list.last.data.data.id;
       }
-      var args = jsonEncode({"fromId": formId});
-      return DesktopMultiWindow.invokeMethod(0, 'getHistories', args).then(
+      return MultiWindowChannel.getHistories(0, fromId).then(
         (json) {
           var data = jsonDecode(json);
           var devInfos = data["devInfos"] as Map<String, dynamic>;

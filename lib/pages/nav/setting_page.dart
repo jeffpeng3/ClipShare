@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipshare/channels/android_channel.dart';
 import 'package:clipshare/components/auth_password_input.dart';
 import 'package:clipshare/components/authentication_time_setting_dialog.dart';
 import 'package:clipshare/components/hot_key_editor.dart';
@@ -181,11 +182,9 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                             value: vm.showHistoryFloat,
                             onChanged: (checked) {
                               if (checked) {
-                                App.androidChannel
-                                    .invokeMethod("showHistoryFloatWindow");
+                                AndroidChannel.showHistoryFloatWindow();
                               } else {
-                                App.androidChannel
-                                    .invokeMethod("closeHistoryFloatWindow");
+                                AndroidChannel.closeHistoryFloatWindow();
                               }
                               HapticFeedback.mediumImpact();
                               ref
@@ -202,8 +201,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                             value: vm.lockHistoryFloatLoc,
                             onChanged: (checked) {
                               HapticFeedback.mediumImpact();
-                              App.androidChannel.invokeMethod(
-                                "lockHistoryFloatLoc",
+                              AndroidChannel.lockHistoryFloatLoc(
                                 {"loc": checked},
                               );
                               ref

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:clipshare/channels/android_channel.dart';
+import 'package:clipshare/channels/clip_channel.dart';
 import 'package:clipshare/components/clip_content_view.dart';
 import 'package:clipshare/components/clip_tag_row_view.dart';
 import 'package:clipshare/db/app_db.dart';
@@ -168,8 +169,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                           App.innerCopy = false;
                           setState(() {});
                         });
-                        App.clipChannel
-                            .invokeMethod("copy", widget.clip.data.toJson());
+                        ClipChannel.copy(widget.clip.data.toJson());
                       },
                       tooltip: "复制内容",
                     ),

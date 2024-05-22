@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:clipshare/channels/multi_window_channel.dart';
 import 'package:clipshare/components/clip_simple_data_content.dart';
 import 'package:clipshare/components/clip_simple_data_extra_info.dart';
 import 'package:clipshare/components/rounded_chip.dart';
@@ -30,11 +31,7 @@ class ClipDataCardCompact extends StatelessWidget {
           mouseCursor: SystemMouseCursors.basic,
           onTap: () {
             if (isDouble) {
-              DesktopMultiWindow.invokeMethod(
-                0,
-                'copy',
-                jsonEncode({"id": _clip.data.id}),
-              ).then(
+              MultiWindowChannel.copy(0, _clip.data.id).then(
                 (args) => Global.snackBarSuc(context, "复制成功"),
               );
               isDouble = false;

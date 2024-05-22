@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:clipshare/channels/clip_channel.dart';
+import 'package:clipshare/channels/multi_window_channel.dart';
 import 'package:clipshare/components/clip_content_view.dart';
 import 'package:clipshare/components/clip_data_card.dart';
 import 'package:clipshare/components/clip_tag_row_view.dart';
@@ -189,11 +191,7 @@ class ClipListViewState extends State<ClipListView>
     if (App.compactWindow == null) {
       return;
     }
-    DesktopMultiWindow.invokeMethod(
-      App.compactWindow!.windowId,
-      "notify",
-      "{}",
-    );
+    MultiWindowChannel.notify(App.compactWindow!.windowId);
   }
 
   Widget renderItem(int i) {
@@ -216,10 +214,7 @@ class ClipListViewState extends State<ClipListView>
       },
       onDoubleTap: () async {
         App.innerCopy = true;
-        var res = await App.clipChannel.invokeMethod<bool>(
-          "copy",
-          _list[i].data.toJson(),
-        );
+        var res = await ClipChannel.copy(_list[i].data.toJson());
         res = res ?? false;
         if (res) {
           Global.snackBarSuc(context, "复制成功");

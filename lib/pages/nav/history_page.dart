@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:clipshare/channels/android_channel.dart';
+import 'package:clipshare/channels/clip_channel.dart';
+import 'package:clipshare/channels/multi_window_channel.dart';
 import 'package:clipshare/components/clip_list_view.dart';
 import 'package:clipshare/components/loading.dart';
 import 'package:clipshare/dao/history_dao.dart';
@@ -20,7 +22,6 @@ import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/file_util.dart';
 import 'package:clipshare/util/log.dart';
-import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -270,11 +271,7 @@ class HistoryPageState extends State<HistoryPage>
     if (App.compactWindow == null) {
       return;
     }
-    DesktopMultiWindow.invokeMethod(
-      App.compactWindow!.windowId,
-      "notify",
-      "{}",
-    ).catchError((err) {
+    MultiWindowChannel.notify(App.compactWindow!.windowId).catchError((err) {
       if (err.toString().contains("target window not found")) {
         App.compactWindow = null;
       } else {
@@ -342,7 +339,7 @@ class HistoryPageState extends State<HistoryPage>
         //不是批量同步时放入本地剪贴板
         if (msg.key != MsgType.missingData) {
           App.innerCopy = true;
-          App.clipChannel.invokeMethod("copy", history.toJson());
+          ClipChannel.copy(history.toJson());
         }
         break;
       case OpMethod.delete:

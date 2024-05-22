@@ -1,7 +1,7 @@
 import 'dart:io';
 
+import 'package:clipshare/channels/android_channel.dart';
 import 'package:clipshare/components/auth_password_input.dart';
-import 'package:clipshare/listeners/screen_opened_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/nav/base_page.dart';
 import 'package:clipshare/util/crypto.dart';
@@ -86,7 +86,8 @@ class _AuthenticationState extends State<AuthenticationPage> {
                       color: Colors.blueAccent,
                       size: 100,
                     ),
-                    TextButton(onPressed: authenticate, child: const Text("开始验证")),
+                    TextButton(
+                        onPressed: authenticate, child: const Text("开始验证")),
                   ],
                 ),
               ],
@@ -105,7 +106,7 @@ class _AuthenticationState extends State<AuthenticationPage> {
           ? null
           : (bool didPop) {
               if (Platform.isAndroid && App.authenticating) {
-                App.androidChannel.invokeMethod("moveToBg");
+                AndroidChannel.moveToBg();
               }
             },
       child: Scaffold(

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:clipshare/channels/android_channel.dart';
+import 'package:clipshare/channels/clip_channel.dart';
 import 'package:clipshare/components/clip_simple_data_content.dart';
 import 'package:clipshare/components/clip_simple_data_extra_info.dart';
 import 'package:clipshare/components/clip_simple_data_header.dart';
@@ -222,7 +223,7 @@ class ClipDataCardState extends State<ClipDataCard> {
           title: const Text("复制内容"),
           onTap: () {
             App.innerCopy = true;
-            App.clipChannel.invokeMethod("copy", widget.clip.data.toJson());
+            ClipChannel.copy(widget.clip.data.toJson());
             Navigator.of(context).pop();
           },
         ),

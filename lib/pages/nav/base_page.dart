@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:clipshare/channels/android_channel.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/handler/sync/history_top_syncer.dart';
 import 'package:clipshare/handler/sync/rules_syncer.dart';
@@ -385,7 +386,7 @@ class _BasePageState extends State<BasePage>
       canPop: false,
       onPopInvoked: (bool didPop) {
         if (Platform.isAndroid) {
-          App.androidChannel.invokeMethod("moveToBg");
+          AndroidChannel.moveToBg();
         }
       },
       child: Scaffold(

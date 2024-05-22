@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:clipshare/channels/common_channel.dart';
+import 'package:clipshare/channels/android_channel.dart';
+import 'package:clipshare/channels/clip_channel.dart';
+import 'package:clipshare/channels/multi_window_channel.dart';
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/settings.dart';
@@ -20,13 +22,13 @@ import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -117,7 +119,7 @@ class _LoadingPageState extends State<LoadingPage> {
     ) async {
       var args = jsonDecode(call.arguments);
       switch (call.method) {
-        case "getHistories":
+        case MultiWindowMethod.getHistories:
           int fromId = args["fromId"];
           var historyDao = AppDb.inst.historyDao;
           var lst = List<History>.empty();
@@ -134,13 +136,13 @@ class _LoadingPageState extends State<LoadingPage> {
             "devInfos": devMap,
           };
           return jsonEncode(res);
-        case "copy":
+        case MultiWindowMethod.copy:
           int id = args["id"];
           AppDb.inst.historyDao.getById(id).then(
             (res) {
               if (res == null) return;
               App.innerCopy = true;
-              App.clipChannel.invokeMethod("copy", res.toJson());
+              ClipChannel.copy(res.toJson());
             },
           );
           break;
@@ -154,13 +156,13 @@ class _LoadingPageState extends State<LoadingPage> {
     App.clipChannel.setMethodCallHandler((call) async {
       var arguments = call.arguments;
       switch (call.method) {
-        case "onClipboardChanged":
+        case ClipChannelMethod.onClipboardChanged:
           String content = arguments['content'];
           String type = arguments['type'];
           ClipListener.inst.update(ContentType.parse(type), content);
-          debugPrint("clipboard changed: $type: $content");
+          Log.debug(tag, "clipboard changed: $type: $content");
           return Future(() => true);
-        case "getHistory":
+        case ClipChannelMethod.getHistory:
           int fromId = arguments["fromId"];
           var historyDao = AppDb.inst.historyDao;
           var lst = List<History>.empty();
@@ -185,10 +187,10 @@ class _LoadingPageState extends State<LoadingPage> {
       App.androidChannel.setMethodCallHandler((call) async {
         var arguments = call.arguments;
         switch (call.method) {
-          case "onScreenOpened":
+          case AndroidChannelMethod.onScreenOpened:
             ScreenOpenedListener.inst.notify();
             break;
-          case "checkMustPermission":
+          case AndroidChannelMethod.checkMustPermission:
             try {
               if (App.settings.firstStartup || App.settings.ignoreShizuku) {
                 return;
@@ -196,32 +198,14 @@ class _LoadingPageState extends State<LoadingPage> {
             } catch (e) {
               return;
             }
-            showDialog(
+            Global.showTipsDialog(
               context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: const Text('必要权限缺失'),
-                  content: const Text(
-                    '请授权必要权限，由于 Android 10 及以上版本的系统不允许后台读取剪贴板，需要依赖 Shizuku，否则只能被动接收剪贴板数据而不能自动同步',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        context.ref.notifier(settingProvider).ignoreShizuku();
-                        // 关闭弹窗
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('不再提示'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        // 关闭弹窗
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('确定'),
-                    ),
-                  ],
-                );
+              title: '必要权限缺失',
+              text: '请授权必要权限，由于 Android 10 及以上版本的系统不允许后台读取剪贴板，'
+                  '需要依赖 Shizuku，否则只能被动接收剪贴板数据而不能自动同步',
+              cancelText: '不再提示',
+              onCancel: () {
+                context.ref.notifier(settingProvider).ignoreShizuku();
               },
             );
             break;
@@ -370,10 +354,9 @@ class _LoadingPageState extends State<LoadingPage> {
     );
     if (Platform.isAndroid) {
       if (App.settings.showHistoryFloat) {
-        App.androidChannel.invokeMethod("showHistoryFloatWindow");
+        AndroidChannel.showHistoryFloatWindow();
       }
-      App.androidChannel.invokeMethod(
-        "lockHistoryFloatLoc",
+      AndroidChannel.lockHistoryFloatLoc(
         {"loc": App.settings.lockHistoryFloatLoc},
       );
     }
@@ -425,8 +408,7 @@ class _LoadingPageState extends State<LoadingPage> {
     var hotKey =
         AppHotKeyHandler.toSystemHotKey(App.settings.historyWindowHotKeys);
     AppHotKeyHandler.registerHistoryWindow(hotKey);
-    hotKey =
-        AppHotKeyHandler.toSystemHotKey(App.settings.syncFileHotKeys);
+    hotKey = AppHotKeyHandler.toSystemHotKey(App.settings.syncFileHotKeys);
     AppHotKeyHandler.registerFileSync(hotKey);
   }
 
