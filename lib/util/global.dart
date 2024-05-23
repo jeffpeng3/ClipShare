@@ -5,6 +5,7 @@ import 'package:clipshare/channels/android_channel.dart';
 import 'package:flutter/material.dart';
 
 class Global {
+  Global._private();
   static void toast(String text) {
     AndroidChannel.toast(text);
   }

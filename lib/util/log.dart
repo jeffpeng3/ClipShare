@@ -5,6 +5,7 @@ import 'package:clipshare/util/constants.dart';
 import 'package:logger/logger.dart';
 
 class Log {
+  Log._private();
   static Future _writeFuture = Future.value();
   static final _logger = Logger(
     printer: PrettyPrinter(

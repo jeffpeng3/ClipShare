@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/tables/device.dart';
+import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/entity/version.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
@@ -10,8 +11,6 @@ import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
-
-import '../entity/tables/operation_record.dart';
 
 class DeviceCard extends StatefulWidget {
   final Device? dev;
@@ -35,9 +34,9 @@ class DeviceCard extends StatefulWidget {
     required this.version,
   });
 
-  bool get isLowerVersion => minVersion == null || version == null
-      ? false
-      : minVersion! > App.version || version! < App.minVersion;
+  bool get isVersionCompatible => minVersion == null || version == null
+      ? true
+      : minVersion! <= App.version && version! >= App.minVersion;
 
   @override
   State<StatefulWidget> createState() {
@@ -263,8 +262,9 @@ class _DeviceCardState extends State<DeviceCard> {
                               ),
                             ),
                           ),
-                          if (widget.isLowerVersion)
-                            Container(
+                          Visibility(
+                            visible: !widget.isVersionCompatible,
+                            child: Container(
                               margin: const EdgeInsets.only(left: 5),
                               child: Row(
                                 children: <Widget>[
@@ -290,9 +290,8 @@ class _DeviceCardState extends State<DeviceCard> {
                                   ),
                                 ],
                               ),
-                            )
-                          else
-                            const SizedBox.shrink(),
+                            ),
+                          ),
                         ],
                       ),
                     ],

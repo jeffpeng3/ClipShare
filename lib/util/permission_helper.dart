@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
 class PermissionHelper {
+  PermissionHelper._private();
   static const tag = "PermissionHelper";
 
   ///测试存储权限

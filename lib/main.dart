@@ -4,12 +4,14 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:basic_utils/basic_utils.dart';
+import 'package:clipshare/channels/multi_window_channel.dart';
 import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/entity/version.dart';
 import 'package:clipshare/pages/init.dart';
-import 'package:clipshare/pages/windows/compact_page.dart';
+import 'package:clipshare/pages/windows/compact_window.dart';
+import 'package:clipshare/pages/windows/online_devices_window.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
@@ -24,13 +26,13 @@ import 'package:refena_flutter/refena_flutter.dart';
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   var isMultiWindow = args.firstOrNull == 'multi_window';
-  if (PlatformExt.isMobile || !isMultiWindow) {
+  if (!isMultiWindow) {
     ///全局异常捕获
     runZonedGuarded(
       () {
         runApp(RefenaScope(child: const App()));
         SystemUiOverlayStyle systemUiOverlayStyle =
-            SystemUiOverlayStyle(statusBarColor: Colors.transparent);
+            const SystemUiOverlayStyle(statusBarColor: Colors.transparent);
         SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
       },
       (error, stack) {
@@ -43,12 +45,25 @@ void main(List<String> args) async {
     final argument = args[2].isEmpty
         ? const {}
         : jsonDecode(args[2]) as Map<String, dynamic>;
-    runApp(
-      CompactWindow(
-        windowController: WindowController.fromWindowId(windowId),
-        args: argument,
-      ),
-    );
+    String tag = argument["tag"];
+    Widget? widget;
+    switch (tag) {
+      case MultiWindowTag.history:
+        widget = CompactWindow(
+          windowController: WindowController.fromWindowId(windowId),
+          args: argument,
+        );
+        break;
+      case MultiWindowTag.devices:
+        widget = OnlineDevicesWindow(
+          windowController: WindowController.fromWindowId(windowId),
+          args: argument,
+        );
+        break;
+    }
+    if (widget != null) {
+      runApp(widget);
+    }
   }
 }
 
@@ -60,23 +75,8 @@ class MyCustomScrollBehavior extends MaterialScrollBehavior {
   Set<PointerDeviceKind> get dragDevices => {
         PointerDeviceKind.touch,
         PointerDeviceKind.mouse,
-        // etc.
       };
 }
-
-final themeData = ThemeData(
-  colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
-  fontFamily: Platform.isWindows ? 'Microsoft YaHei' : null,
-);
-const locale = Locale("zh", "CH");
-const supportedLocales = [
-  Locale("zh", "CH"),
-  Locale('en', 'US'),
-];
-const localizationsDelegates = [
-  GlobalMaterialLocalizations.delegate,
-  GlobalWidgetsLocalizations.delegate,
-];
 
 class App extends StatelessWidget {
   //通用通道
@@ -92,6 +92,7 @@ class App extends StatelessWidget {
   static final keyPair = CryptoUtils.generateRSAKeyPair();
   static const bgColor = Color.fromARGB(255, 238, 238, 238);
   static WindowController? compactWindow;
+  static WindowController? onlineDevicesWindow;
 
   static bool get isSmallScreen =>
       MediaQuery.of(App.context).size.width <= Constants.smallScreenWidth;
@@ -142,6 +143,20 @@ class App extends StatelessWidget {
     return Directory(path).normalizePath;
   }
 
+  static final themeData = ThemeData(
+    colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
+    fontFamily: Platform.isWindows ? 'Microsoft YaHei' : null,
+  );
+  static const locale = Locale("zh", "CH");
+  static const supportedLocales = [
+    Locale("zh", "CH"),
+    Locale('en', 'US'),
+  ];
+  static const localizationsDelegates = [
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
+
   const App({super.key});
 
   // This widget is the root of your application.
@@ -158,39 +173,6 @@ class App extends StatelessWidget {
       //Material 风格代理配置
       localizationsDelegates: localizationsDelegates,
       home: const LoadingPage(),
-    );
-  }
-}
-
-class CompactWindow extends StatefulWidget {
-  final WindowController windowController;
-  final Map? args;
-
-  const CompactWindow({
-    super.key,
-    required this.windowController,
-    required this.args,
-  });
-
-  @override
-  State<StatefulWidget> createState() {
-    return _CompactWindowState();
-  }
-}
-
-class _CompactWindowState extends State<CompactWindow> {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '历史记录',
-      theme: themeData,
-      //当前运行环境配置
-      locale: locale,
-      //程序支持的语言环境配置
-      supportedLocales: supportedLocales,
-      //Material 风格代理配置
-      localizationsDelegates: localizationsDelegates,
-      home: const CompactPage(),
     );
   }
 }

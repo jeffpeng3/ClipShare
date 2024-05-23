@@ -1,6 +1,7 @@
 import 'dart:io';
 
 class FileUtil {
+  FileUtil._private();
   ///递归获取文件夹大小
   static int getDirectorySize(String directoryPath) {
     Directory directory = Directory(directoryPath);

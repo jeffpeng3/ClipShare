@@ -42,7 +42,9 @@ class _BasePageState extends State<BasePage>
     HistoryPage(
       key: HistoryPage.pageKey,
     ),
-    const DevicesPage(),
+    DevicesPage(
+      key: DevicesPage.pageKey,
+    ),
     const SettingPage(),
   ]);
   final List<BottomNavigationBarItem> _navBarItems = List.from(const [

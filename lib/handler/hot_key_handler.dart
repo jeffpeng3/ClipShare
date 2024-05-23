@@ -1,11 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/channels/common_channel.dart';
-import 'package:clipshare/handler/sync/file_syncer.dart';
-import 'package:clipshare/listeners/socket_listener.dart';
+import 'package:clipshare/channels/multi_window_channel.dart';
 import 'package:clipshare/main.dart';
-import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -46,11 +45,13 @@ class AppHotKeyHandler {
           ids = List.empty();
         }
         //只允许弹窗一次
-        if (ids.isNotEmpty) {
+        if (ids.contains(App.compactWindow?.windowId)) {
           await App.compactWindow?.close();
         }
         //createWindow里面的参数必须传
-        final window = await DesktopMultiWindow.createWindow("");
+        final window = await DesktopMultiWindow.createWindow(
+          jsonEncode({'tag': MultiWindowTag.history}),
+        );
         App.compactWindow = window;
         var offset = await screenRetriever.getCursorScreenPoint();
         //多显示器不知道怎么判断鼠标在哪个显示器中，所以默认主显示器
@@ -79,15 +80,48 @@ class AppHotKeyHandler {
         ///快捷键事件
         Log.info(tag, "$fileSync hotkey down");
         var files = await CommonChannel.getSelectedFiles();
+        List<String> filePaths = List.empty(growable: true);
         for (var filePath in files) {
           FileSystemEntityType type = await FileSystemEntity.type(filePath);
           switch (type) {
             case FileSystemEntityType.file:
-              FileSyncer.sendFile(filePath);
+              filePaths.add(filePath);
               break;
             default:
           }
         }
+        // no files
+        if (filePaths.isEmpty) {
+          return;
+        }
+
+        var ids = List.empty();
+        try {
+          ids = await DesktopMultiWindow.getAllSubWindowIds();
+        } catch (e) {
+          ids = List.empty();
+        }
+        //只允许弹窗一次
+        if (ids.contains(App.onlineDevicesWindow?.windowId)) {
+          await App.compactWindow?.close();
+        }
+        //createWindow里面的参数必须传
+        final window = await DesktopMultiWindow.createWindow(
+          jsonEncode({'tag': MultiWindowTag.devices}),
+        );
+        App.onlineDevicesWindow = window;
+        var offset = await screenRetriever.getCursorScreenPoint();
+        //多显示器不知道怎么判断鼠标在哪个显示器中，所以默认主显示器
+        Size screenSize = (await screenRetriever.getPrimaryDisplay()).size;
+        final [width, height] = [355.0, 630.0];
+        final maxX = screenSize.width - width;
+        final maxY = screenSize.height - height;
+        //限制在屏幕范围内
+        final [x, y] = [min(maxX, offset.dx), min(maxY, offset.dy)];
+        window
+          ..setFrame(Offset(x, y) & Size(width, height))
+          ..setTitle('文件同步')
+          ..show();
       },
     );
     _map[hotkeyName] = key;

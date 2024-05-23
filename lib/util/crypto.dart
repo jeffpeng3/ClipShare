@@ -8,6 +8,7 @@ import 'package:encrypt/encrypt.dart';
 import 'package:pointycastle/key_generators/rsa_key_generator.dart';
 
 class CryptoUtil {
+  CryptoUtil._private();
   static String toMD5(Object obj) {
     var bytes = utf8.encode(obj.toString());
     var digest = md5.convert(bytes);

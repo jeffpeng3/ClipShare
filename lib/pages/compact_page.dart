@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:clipshare/channels/multi_window_channel.dart';
-import 'package:clipshare/components/clip_data_card.dart';
 import 'package:clipshare/components/clip_data_card_compact.dart';
+import 'package:clipshare/components/empty_content.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/main.dart';
@@ -131,17 +131,19 @@ class _CompactPageState extends State<CompactPage> {
       //这个刷新不知道为什么没效果
       body: RefreshIndicator(
         onRefresh: refresh,
-        child: ListView.builder(
-          itemCount: _list.length,
-          controller: _scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          itemBuilder: (ctx, idx) {
-            return ClipDataCardCompact(
-              devName: _list[idx].devName,
-              clip: _list[idx].data,
-            );
-          },
-        ),
+        child: _list.isEmpty
+            ? const EmptyContent()
+            : ListView.builder(
+                itemCount: _list.length,
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemBuilder: (ctx, idx) {
+                  return ClipDataCardCompact(
+                    devName: _list[idx].devName,
+                    clip: _list[idx].data,
+                  );
+                },
+              ),
       ),
       floatingActionButton: _showBackToTopButton
           ? FloatingActionButton(

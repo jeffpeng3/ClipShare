@@ -16,6 +16,7 @@ import 'package:clipshare/handler/socket/secure_socket_client.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/listeners/screen_opened_listener.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/pages/nav/devices_page.dart';
 import 'package:clipshare/pages/welcome_page.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/provider/setting_provider.dart';
@@ -146,6 +147,12 @@ class _LoadingPageState extends State<LoadingPage> {
             },
           );
           break;
+        case MultiWindowMethod.getCompatibleOnlineDevices:
+          var devices =
+              DevicesPage.pageKey.currentState?.getCompatibleOnlineDevices() ??
+                  [];
+          Log.info(tag, "devices $devices");
+          return jsonEncode(devices);
       }
       //都不符合，返回空
       return Future.value();

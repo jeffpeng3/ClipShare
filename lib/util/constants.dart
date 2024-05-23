@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class Constants {
+  Constants._private();
+
   //组播默认端口
   static const int port = 42317;
 

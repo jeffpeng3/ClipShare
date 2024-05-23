@@ -8,11 +8,20 @@ class MultiWindowMethod {
   static const getHistories = "getHistories";
   static const copy = "copy";
   static const notify = "notify";
+  static const getCompatibleOnlineDevices = "getCompatibleOnlineDevices";
+}
+
+class MultiWindowTag {
+  MultiWindowTag._private();
+
+  static const history = "history";
+  static const devices = "devices";
 }
 
 class MultiWindowChannel {
   MultiWindowChannel._private();
 
+  ///获取历史数据
   static Future getHistories(int targetWindowId, int fromId) {
     return DesktopMultiWindow.invokeMethod(
       targetWindowId,
@@ -21,6 +30,7 @@ class MultiWindowChannel {
     );
   }
 
+  ///通知主窗体复制
   static Future copy(int targetWindowId, int historyId) {
     return DesktopMultiWindow.invokeMethod(
       targetWindowId,
@@ -29,10 +39,20 @@ class MultiWindowChannel {
     );
   }
 
+  ///通知子窗体数据变更
   static Future notify(int targetWindowId) {
     return DesktopMultiWindow.invokeMethod(
       targetWindowId,
       MultiWindowMethod.notify,
+      "{}",
+    );
+  }
+
+  ///获取当前在线的兼容版本设备列表
+  static Future getCompatibleOnlineDevices(int targetWindowId) {
+    return DesktopMultiWindow.invokeMethod(
+      targetWindowId,
+      MultiWindowMethod.getCompatibleOnlineDevices,
       "{}",
     );
   }

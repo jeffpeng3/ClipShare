@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:clipshare/channels/multi_window_channel.dart';
 import 'package:clipshare/components/add_device_dialog.dart';
 import 'package:clipshare/components/device_card.dart';
 import 'package:clipshare/dao/device_dao.dart';
@@ -24,13 +25,16 @@ import 'package:pinput/pinput.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 class DevicesPage extends StatefulWidget {
+  static final GlobalKey<DevicesPageState> pageKey =
+      GlobalKey<DevicesPageState>();
+
   const DevicesPage({super.key});
 
   @override
-  State<DevicesPage> createState() => _DevicesPageState();
+  State<DevicesPage> createState() => DevicesPageState();
 }
 
-class _DevicesPageState extends State<DevicesPage>
+class DevicesPageState extends State<DevicesPage>
     with SingleTickerProviderStateMixin
     implements DevAliveListener, SyncListener, DiscoverListener {
   final List<DeviceCard> _discoverList = List.empty(growable: true);
@@ -208,6 +212,16 @@ class _DevicesPageState extends State<DevicesPage>
         ),
       ],
     );
+  }
+
+  List<Device> getCompatibleOnlineDevices() {
+    List<Device> res = List.empty(growable: true);
+    for (var dev in _pairedList) {
+      if (dev.isConnected && dev.isVersionCompatible) {
+        res.add(dev.dev!);
+      }
+    }
+    return res;
   }
 
   void _showBottomDetailSheet(
@@ -511,6 +525,7 @@ class _DevicesPageState extends State<DevicesPage>
           version: version,
         );
         setState(() {});
+        _notifyOnlineDevicesWindow();
         //是已配对的设备，请求所有缺失数据
         // SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
         return;
@@ -557,6 +572,7 @@ class _DevicesPageState extends State<DevicesPage>
       onConnected(dev, forgetDev!.minVersion!, forgetDev.version!);
     }
     setState(() {});
+    _notifyOnlineDevicesWindow();
   }
 
   @override
@@ -573,6 +589,7 @@ class _DevicesPageState extends State<DevicesPage>
       }
     }
     setState(() {});
+    _notifyOnlineDevicesWindow();
   }
 
   @override
@@ -618,6 +635,14 @@ class _DevicesPageState extends State<DevicesPage>
         }
         _addPairedDevInPage(newDev);
       });
+    }
+  }
+
+  void _notifyOnlineDevicesWindow() {
+    //通知弹窗更新设备列表
+    final onlineDevicesWindow = App.onlineDevicesWindow;
+    if (onlineDevicesWindow != null) {
+      MultiWindowChannel.notify(onlineDevicesWindow.windowId);
     }
   }
 
