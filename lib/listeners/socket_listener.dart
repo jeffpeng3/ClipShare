@@ -422,8 +422,9 @@ class SocketListener {
         int port = msg.data["port"];
         int size = msg.data["size"];
         String fileName = msg.data["fileName"];
+        int fileId = msg.data["fileId"];
         try {
-          await FileSyncer.recFile(ip, port, size, fileName);
+          await FileSyncer.recFile(ip, port, size, fileName,msg.send.guid,msg.userId,fileId);
         } catch (err, stack) {
           Log.debug(
             tag,

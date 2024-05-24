@@ -14,7 +14,7 @@ import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/entity/tables/operation_sync.dart';
-import 'package:clipshare/listeners/clip_listener.dart';
+import 'package:clipshare/listeners/clipboard_listener.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/history_tag_provider.dart';
@@ -75,7 +75,7 @@ class HistoryPageState extends State<HistoryPage>
         debounceSetState();
       });
       //剪贴板监听注册
-      ClipListener.inst.register(this);
+      ClipboardListener.inst.register(this);
     });
     //监听生命周期
     WidgetsBinding.instance.addObserver(this);

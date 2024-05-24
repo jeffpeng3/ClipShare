@@ -14,7 +14,7 @@ import 'package:clipshare/entity/version.dart';
 import 'package:clipshare/handler/hot_key_handler.dart';
 import 'package:clipshare/handler/socket/secure_socket_client.dart';
 import 'package:clipshare/handler/sync/file_syncer.dart';
-import 'package:clipshare/listeners/clip_listener.dart';
+import 'package:clipshare/listeners/clipboard_listener.dart';
 import 'package:clipshare/listeners/screen_opened_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/nav/devices_page.dart';
@@ -174,7 +174,7 @@ class _LoadingPageState extends State<LoadingPage> {
         case ClipChannelMethod.onClipboardChanged:
           String content = arguments['content'];
           String type = arguments['type'];
-          ClipListener.inst.update(ContentType.parse(type), content);
+          ClipboardListener.inst.update(ContentType.parse(type), content);
           Log.debug(tag, "clipboard changed: $type: $content");
           return Future(() => true);
         case ClipChannelMethod.getHistory:

@@ -1,7 +1,12 @@
 import 'dart:io';
+import 'dart:math';
 
+import 'package:clipshare/db/app_db.dart';
+import 'package:clipshare/entity/tables/history.dart';
+import 'package:clipshare/listeners/clipboard_listener.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
@@ -27,6 +32,7 @@ class _SyncingFile {
 class FileSyncer {
   static const tag = "FileSyncer";
   late ServerSocket _server;
+  final int _fileId = App.snowflake.nextId();
   Set<int> clients = {};
 
   FileSyncer._private(
@@ -43,8 +49,25 @@ class FileSyncer {
       onReady(this);
       _server.listen((client) async {
         int hash = client.hashCode;
+        DateTime start = DateTime.now();
         clients.add(hash);
-        client.addStream(file.openRead()).catchError((err, stack) {
+        client.addStream(file.openRead()).then((value) {
+          var history = History(
+            id: _fileId,
+            uid: App.userId,
+            devId: App.devInfo.guid,
+            time: start.toString(),
+            content: path,
+            type: ContentType.file.value,
+            size: file.lengthSync(),
+          );
+          var historyPageState = HistoryPage.pageKey.currentState;
+          if (historyPageState == null) {
+            AppDb.inst.historyDao.add(history);
+          } else {
+            historyPageState.addData(history, false);
+          }
+        }).catchError((err, stack) {
           Log.error(tag, "send file failed: $path. $err $stack");
         }).whenComplete(() {
           clients.remove(hash);
@@ -77,6 +100,7 @@ class FileSyncer {
           "fileName": file.fileName,
           "size": totalSize,
           "port": syncer._server.port,
+          "fileId": syncer._fileId,
         });
       },
       onDone,
@@ -96,6 +120,9 @@ class FileSyncer {
     int port,
     int size,
     String fileName,
+    String devId,
+    int userId,
+    int fileId,
   ) async {
     var socket = await Socket.connect(ip, port);
     String filePath = "${App.settings.fileStorePath}/$fileName";
@@ -116,14 +143,36 @@ class FileSyncer {
         sink.add(bytes);
         fileProgress.addSavedBytes(bytes.length);
       },
+      onError: (err, stack) {
+        Log.error(tag, "receive file failed. $err $stack");
+        file.delete();
+      },
+      cancelOnError: true,
       onDone: () {
         var end = DateTime.now();
-        int offset = end.difference(start).inSeconds;
+        int offset = max(end.difference(start).inSeconds, 1);
         int speed = size ~/ offset;
         Log.info(
           tag,
           "onDone $offset seconds, size: ${size.sizeStr}, speed: ${speed.sizeStr}/s",
         );
+        ClipboardListener.inst.update(ContentType.file, filePath);
+
+        var history = History(
+          id: fileId,
+          uid: userId,
+          devId: devId,
+          time: start.toString(),
+          content: filePath,
+          type: ContentType.file.value,
+          size: size,
+        );
+        var historyPageState = HistoryPage.pageKey.currentState;
+        if (historyPageState == null) {
+          AppDb.inst.historyDao.add(history);
+        } else {
+          historyPageState.addData(history, false);
+        }
       },
     );
   }

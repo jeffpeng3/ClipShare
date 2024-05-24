@@ -5,22 +5,22 @@ abstract class ClipObserver {
   void onChanged(ContentType type, String content);
 }
 
-class ClipListener {
-  static const String tag = "ClipListener";
+class ClipboardListener {
+  static const String tag = "ClipboardListener";
 
   static final List<ClipObserver> _list = List.empty(growable: true);
-  static final ClipListener _instance = ClipListener._private();
+  static final ClipboardListener _instance = ClipboardListener._private();
 
-  ClipListener._private();
+  ClipboardListener._private();
 
-  static ClipListener get inst => _instance;
+  static ClipboardListener get inst => _instance;
 
-  ClipListener register(ClipObserver observer) {
+  ClipboardListener register(ClipObserver observer) {
     _list.add(observer);
     return this;
   }
 
-  ClipListener remove(ClipObserver observer) {
+  ClipboardListener remove(ClipObserver observer) {
     _list.remove(observer);
     return this;
   }

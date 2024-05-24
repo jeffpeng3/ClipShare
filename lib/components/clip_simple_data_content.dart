@@ -45,6 +45,18 @@ class ClipSimpleDataContent extends StatelessWidget {
         ),
       );
     }
+    if (clip.isFile) {
+      return Row(
+        children: [
+          const Icon(
+            Icons.file_present_outlined,
+            color: Colors.blue,
+          ),
+          const SizedBox(width: 5,),
+          Text(clip.data.content),
+        ],
+      );
+    }
     return const SizedBox.shrink();
   }
 }

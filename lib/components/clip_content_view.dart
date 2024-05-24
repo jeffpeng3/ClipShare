@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:clipshare/components/clip_simple_data_content.dart';
 import 'package:clipshare/components/large_text.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/pages/preview_page.dart';
@@ -84,35 +85,39 @@ class _ClipContentViewState extends State<ClipContentView> {
               );
             },
           )
-        : LayoutBuilder(
-            builder: (context, constraints) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: InkWell(
-                      child: Image.file(
-                        File(widget.clipData.data.content),
-                        fit: BoxFit.contain,
-                        width: constraints.maxWidth,
-                        height: constraints.maxHeight,
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PreviewPage(
-                              clip: widget.clipData,
-                            ),
+        : widget.clipData.isImage
+            ? LayoutBuilder(
+                builder: (context, constraints) {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: InkWell(
+                          child: Image.file(
+                            File(widget.clipData.data.content),
+                            fit: BoxFit.contain,
+                            width: constraints.maxWidth,
+                            height: constraints.maxHeight,
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PreviewPage(
+                                  clip: widget.clipData,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              )
+            : widget.clipData.isFile
+                ? ClipSimpleDataContent(clip: widget.clipData)
+                : const SizedBox.shrink();
   }
 }

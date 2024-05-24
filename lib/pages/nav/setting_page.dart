@@ -607,7 +607,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
 
                     ///快捷键
                     SettingCardGroup(
-                      groupName: "快捷键",
+                      groupName: "热键",
                       icon: const Icon(Icons.keyboard_alt_outlined),
                       cardList: [
                         SettingCard(
