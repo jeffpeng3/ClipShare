@@ -9,6 +9,7 @@ class MultiWindowMethod {
   static const copy = "copy";
   static const notify = "notify";
   static const getCompatibleOnlineDevices = "getCompatibleOnlineDevices";
+  static const syncFiles = "syncFiles";
 }
 
 class MultiWindowTag {
@@ -54,6 +55,22 @@ class MultiWindowChannel {
       targetWindowId,
       MultiWindowMethod.getCompatibleOnlineDevices,
       "{}",
+    );
+  }
+
+  ///发送待发送文件和设备列表
+  static Future syncFiles(
+    int targetWindowId,
+    List<String> devIds,
+    List<String> files,
+  ) {
+    return DesktopMultiWindow.invokeMethod(
+      targetWindowId,
+      MultiWindowMethod.syncFiles,
+      jsonEncode({
+        "devIds": devIds,
+        "files": files,
+      }),
     );
   }
 }

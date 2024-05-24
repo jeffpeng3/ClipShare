@@ -13,6 +13,7 @@ import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/entity/version.dart';
 import 'package:clipshare/handler/hot_key_handler.dart';
 import 'package:clipshare/handler/socket/secure_socket_client.dart';
+import 'package:clipshare/handler/sync/file_syncer.dart';
 import 'package:clipshare/listeners/clip_listener.dart';
 import 'package:clipshare/listeners/screen_opened_listener.dart';
 import 'package:clipshare/main.dart';
@@ -153,6 +154,13 @@ class _LoadingPageState extends State<LoadingPage> {
                   [];
           Log.info(tag, "devices $devices");
           return jsonEncode(devices);
+        case MultiWindowMethod.syncFiles:
+          var files = (args["files"] as List<dynamic>).cast<String>();
+          var devIds = (args["devIds"] as List<dynamic>).cast<String>();
+          Log.info(tag, "files $files");
+          Log.info(tag, "devIds $devIds");
+          FileSyncer.sendFiles(files);
+          break;
       }
       //都不符合，返回空
       return Future.value();

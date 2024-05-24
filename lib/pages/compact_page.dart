@@ -91,7 +91,7 @@ class _CompactPageState extends State<CompactPage> {
       if (loadMore) {
         fromId = _list.isEmpty ? 0 : _list.last.data.data.id;
       }
-      return MultiWindowChannel.getHistories(0, fromId).then(
+      return MultiWindowChannel.getHistories(App.mainWindowId, fromId).then(
         (json) {
           var data = jsonDecode(json);
           var devInfos = data["devInfos"] as Map<String, dynamic>;

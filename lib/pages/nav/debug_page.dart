@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:clipshare/channels/common_channel.dart';
+import 'package:clipshare/components/device_card_simple.dart';
 import 'package:clipshare/db/app_db.dart';
+import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -18,7 +20,7 @@ class DebugPage extends StatefulWidget {
 class _DebugPageState extends State<DebugPage> {
   final ScrollController _controller = ScrollController();
   double visibleCharacterCount = 0;
-
+  bool showBorder=false;
   @override
   void initState() {
     super.initState();
@@ -107,15 +109,13 @@ class _DebugPageState extends State<DebugPage> {
           },
           child: const Text("测试通知"),
         ),
-        Container(
-          height: 10,
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            // CommonChannel.getSelectedFiles();
-          },
-          child: const Text("获取选择的文件"),
-        ),
+        Container(height: 10,),
+        DeviceCardSimple(dev: Device(guid: '1111', devName: 'Test', uid: 0, type: 'Android'), onTap: (){
+          showBorder=!showBorder;
+          setState(() {
+
+          });
+        },showBorder: showBorder,),
       ],
     );
   }

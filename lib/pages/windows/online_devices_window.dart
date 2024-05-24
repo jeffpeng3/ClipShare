@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 class OnlineDevicesWindow extends StatefulWidget {
   final WindowController windowController;
-  final Map? args;
+  final Map args;
 
   const OnlineDevicesWindow({
     super.key,
@@ -50,7 +50,12 @@ class _OnlineDevicesWindowState extends State<OnlineDevicesWindow>
       supportedLocales: App.supportedLocales,
       //Material 风格代理配置
       localizationsDelegates: App.localizationsDelegates,
-      home: const OnlineDevicesPage(),
+      home: OnlineDevicesPage(
+        syncFiles: (widget.args["files"] as List<dynamic>).cast<String>(),
+        onDone: () {
+          widget.windowController.close();
+        },
+      ),
     );
   }
 }

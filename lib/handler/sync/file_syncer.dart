@@ -15,7 +15,6 @@ class _SyncingFile {
     assert(savedSize >= 0);
     _savedBytes += savedSize;
     if (_savedBytes - _lastFlushBytes > 1024 * 1024) {
-      // sink.flush();
       _lastFlushBytes = _savedBytes;
     }
   }
@@ -30,7 +29,11 @@ class FileSyncer {
   late ServerSocket _server;
   Set<int> clients = {};
 
-  FileSyncer._private(String path, void Function(FileSyncer) onReady) {
+  FileSyncer._private(
+    String path,
+    void Function(FileSyncer) onReady,
+    void Function() onDone,
+  ) {
     final file = File(path);
     if (!file.existsSync()) {
       throw Exception("file not found");
@@ -45,34 +48,47 @@ class FileSyncer {
           Log.error(tag, "send file failed: $path. $err $stack");
         }).whenComplete(() {
           clients.remove(hash);
-          checkClientsIsEmpty();
+          checkClientsIsEmpty(onDone);
           client.close();
         });
       });
-      checkClientsIsEmpty();
+      checkClientsIsEmpty(onDone);
     });
   }
 
   ///在一定时间后检查是否有客户端连接，若无客户端则关闭服务
-  void checkClientsIsEmpty() {
+  void checkClientsIsEmpty(void Function() onDone) {
     Future.delayed(const Duration(seconds: 5), () {
       if (clients.isNotEmpty) return;
       Log.info(tag, "No client connection for more than 5 seconds");
       _server.close();
+      onDone();
     });
   }
 
   ///发送文件
-  static void sendFile(String path) async {
-    FileSyncer._private(path, (syncer) async {
-      final file = File(path);
-      int totalSize = await file.length();
-      SocketListener.inst.sendData(null, MsgType.file, {
-        "fileName": file.fileName,
-        "size": totalSize,
-        "port": syncer._server.port,
-      });
-    });
+  static void sendFile(String path, void Function() onDone) async {
+    FileSyncer._private(
+      path,
+      (syncer) async {
+        final file = File(path);
+        int totalSize = await file.length();
+        SocketListener.inst.sendData(null, MsgType.file, {
+          "fileName": file.fileName,
+          "size": totalSize,
+          "port": syncer._server.port,
+        });
+      },
+      onDone,
+    );
+  }
+
+  ///发送多个文件
+  static sendFiles(List<String> paths, [int i = 0]) {
+    if (i >= paths.length) {
+      return;
+    }
+    sendFile(paths[i], () => sendFiles(paths, i + 1));
   }
 
   static Future<void> recFile(

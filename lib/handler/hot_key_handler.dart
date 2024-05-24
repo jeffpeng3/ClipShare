@@ -107,7 +107,7 @@ class AppHotKeyHandler {
         }
         //createWindow里面的参数必须传
         final window = await DesktopMultiWindow.createWindow(
-          jsonEncode({'tag': MultiWindowTag.devices}),
+          jsonEncode({'tag': MultiWindowTag.devices, "files": filePaths}),
         );
         App.onlineDevicesWindow = window;
         var offset = await screenRetriever.getCursorScreenPoint();
