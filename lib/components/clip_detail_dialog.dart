@@ -162,11 +162,11 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                               color: Colors.blueGrey,
                             ),
                       onPressed: () {
-                        App.innerCopy = true;
+                        App.setInnerCopy(true);
+
                         setState(() {});
                         // 创建一个延迟0.5秒执行一次的定时器
                         Future.delayed(const Duration(milliseconds: 500), () {
-                          App.innerCopy = false;
                           setState(() {});
                         });
                         ClipChannel.copy(widget.clip.data.toJson());

@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/tables/history.dart';
-import 'package:clipshare/listeners/clipboard_listener.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
@@ -60,6 +59,7 @@ class FileSyncer {
             content: path,
             type: ContentType.file.value,
             size: file.lengthSync(),
+            sync: true,
           );
           var historyPageState = HistoryPage.pageKey.currentState;
           if (historyPageState == null) {
@@ -156,8 +156,6 @@ class FileSyncer {
           tag,
           "onDone $offset seconds, size: ${size.sizeStr}, speed: ${speed.sizeStr}/s",
         );
-        ClipboardListener.inst.update(ContentType.file, filePath);
-
         var history = History(
           id: fileId,
           uid: userId,
@@ -166,6 +164,7 @@ class FileSyncer {
           content: filePath,
           type: ContentType.file.value,
           size: size,
+          sync: true,
         );
         var historyPageState = HistoryPage.pageKey.currentState;
         if (historyPageState == null) {

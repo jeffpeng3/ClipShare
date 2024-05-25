@@ -159,7 +159,7 @@ class HistoryPageState extends State<HistoryPage>
   @override
   Future<void> onChanged(ContentType type, String content) async {
     if (App.innerCopy) {
-      App.innerCopy = false;
+      App.setInnerCopy(false);
       return;
     }
     //和上次复制的内容相同
@@ -338,7 +338,7 @@ class HistoryPageState extends State<HistoryPage>
         f = addData(history, false);
         //不是批量同步时放入本地剪贴板
         if (msg.key != MsgType.missingData) {
-          App.innerCopy = true;
+          App.setInnerCopy(true);
           ClipChannel.copy(history.toJson());
         }
         break;

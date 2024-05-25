@@ -105,11 +105,13 @@ class App extends StatelessWidget {
   static late final Snowflake snowflake;
   static late BuildContext context;
   static late Settings settings;
-  static bool innerCopy = false;
+  static bool _innerCopy = false;
   static bool authenticating = false;
   static late final Version version;
   static const minVersion = Version("1.0.0-alpha", "3");
   static late double osVersion;
+
+  static bool get innerCopy => _innerCopy;
 
   //路径
   static late final String documentPath;
@@ -157,6 +159,13 @@ class App extends StatelessWidget {
     GlobalMaterialLocalizations.delegate,
     GlobalWidgetsLocalizations.delegate,
   ];
+
+  static void setInnerCopy(bool innerCopy) {
+    _innerCopy = innerCopy;
+    Future.delayed(const Duration(milliseconds: 300), () {
+      _innerCopy = false;
+    });
+  }
 
   const App({super.key});
 

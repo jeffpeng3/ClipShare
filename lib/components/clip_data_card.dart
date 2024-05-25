@@ -222,7 +222,7 @@ class ClipDataCardState extends State<ClipDataCard> {
           ),
           title: const Text("复制内容"),
           onTap: () {
-            App.innerCopy = true;
+            App.setInnerCopy(true);
             ClipChannel.copy(widget.clip.data.toJson());
             Navigator.of(context).pop();
           },

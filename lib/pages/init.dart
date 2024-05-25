@@ -143,7 +143,7 @@ class _LoadingPageState extends State<LoadingPage> {
           AppDb.inst.historyDao.getById(id).then(
             (res) {
               if (res == null) return;
-              App.innerCopy = true;
+              App.setInnerCopy(true);
               ClipChannel.copy(res.toJson());
             },
           );

@@ -13,8 +13,8 @@ import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/global.dart';
-import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:highlighting/languages/all.dart';
@@ -213,7 +213,10 @@ class ClipListViewState extends State<ClipListView>
         }
       },
       onDoubleTap: () async {
-        App.innerCopy = true;
+        if (PlatformExt.isMobile && _list[i].isFile) {
+          Global.snackBarErr(context, "不支持复制文件");
+        }
+        App.setInnerCopy(true);
         var res = await ClipChannel.copy(_list[i].data.toJson());
         res = res ?? false;
         if (res) {
@@ -221,7 +224,6 @@ class ClipListViewState extends State<ClipListView>
         } else {
           Global.snackBarErr(context, "复制失败");
         }
-        App.innerCopy = false;
       },
       onUpdate: () {
         widget.onUpdate.call();

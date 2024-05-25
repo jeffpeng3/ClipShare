@@ -53,7 +53,7 @@ class ClipSimpleDataContent extends StatelessWidget {
             color: Colors.blue,
           ),
           const SizedBox(width: 5,),
-          Text(clip.data.content),
+          Expanded(child: Text(clip.data.content)),
         ],
       );
     }
