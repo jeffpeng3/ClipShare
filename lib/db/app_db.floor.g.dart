@@ -515,6 +515,14 @@ class _$HistoryDao extends HistoryDao {
   }
 
   @override
+  Future<List<History>> getFiles(int uid) async {
+    return _queryAdapter.queryList(
+        'select * from history where uid = ?1 and type = \'File\' order by id desc',
+        mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as int, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
+        arguments: [uid]);
+  }
+
+  @override
   Future<int> add(History history) {
     return _historyInsertionAdapter.insertAndReturnId(
         history, OnConflictStrategy.replace);

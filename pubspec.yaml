@@ -91,7 +91,9 @@ dependencies:
   # 图标库
   material_design_icons_flutter: ^7.0.7296
   # 本地身份认证
-  local_auth : ^2.2.0
+  local_auth: ^2.2.0
+  # 接受其他应用的分享操作
+  share_handler: ^0.0.21
 dev_dependencies:
   flutter_test:
     sdk: flutter

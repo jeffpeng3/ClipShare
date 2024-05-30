@@ -1,0 +1,257 @@
+import 'dart:io';
+
+import 'package:clipshare/components/segmented_color.dart';
+import 'package:clipshare/entity/syncing_file.dart';
+import 'package:clipshare/entity/tables/device.dart';
+import 'package:clipshare/entity/tables/history.dart';
+import 'package:clipshare/main.dart';
+import 'package:clipshare/provider/device_info_provider.dart';
+import 'package:clipshare/provider/syncing_file_progress_providr.dart';
+import 'package:clipshare/util/extension.dart';
+import 'package:flutter/material.dart';
+import 'package:open_file_plus/open_file_plus.dart';
+import 'package:refena_flutter/refena_flutter.dart';
+
+class SyncFileStatus extends StatelessWidget {
+  final SyncingFile syncingFile;
+  final double factor;
+  final bool isLocal;
+
+  const SyncFileStatus({
+    super.key,
+    required this.syncingFile,
+    required this.factor,
+    this.isLocal = false,
+  });
+
+  factory SyncFileStatus.fromHistory(BuildContext context, History history) {
+    Device dev =
+        context.ref.read(DeviceInfoProvider.inst).getById(history.devId);
+    return SyncFileStatus(
+      syncingFile: SyncingFile(
+        totalSize: history.size,
+        context: context,
+        filePath: history.content,
+        fromDev: dev,
+        isSender: true,
+        startTime: DateTime.parse(history.time).format("yyyy-MM-dd HH:mm:ss"),
+      ),
+      factor: 1,
+      isLocal: true,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      child: Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12.0),
+          onTap: () async {
+            if (PlatformExt.isPC) {
+              return;
+            }
+            final file = File(syncingFile.filePath);
+            await OpenFile.open(
+              file.normalizePath,
+            );
+          },
+          onDoubleTap: () async {
+            if (PlatformExt.isMobile) {
+              return;
+            }
+            final file = File(syncingFile.filePath);
+            await OpenFile.open(
+              file.normalizePath,
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              File(syncingFile.filePath).fileName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Visibility(
+                                visible: isLocal,
+                                child: Visibility(
+                                  visible: syncingFile.fromDev.guid ==
+                                      App.device.guid,
+                                  replacement: const Icon(
+                                    Icons.download,
+                                    color: Colors.blue,
+                                  ),
+                                  child: const Icon(
+                                    Icons.upload,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ),
+                              Visibility(
+                                visible: isLocal,
+                                child: Tooltip(
+                                  message: "打开文件夹",
+                                  child: IconButton(
+                                    onPressed: () async {
+                                      final path = File(syncingFile.filePath)
+                                          .parent
+                                          .normalizePath;
+                                      await OpenFile.open(path);
+                                    },
+                                    icon: const Icon(
+                                      color: Colors.blueGrey,
+                                      Icons.folder_copy_outlined,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Visibility(
+                                visible: !isLocal,
+                                child: Tooltip(
+                                  message: "停止",
+                                  child: IconButton(
+                                    onPressed: () async {
+                                      syncingFile.close(false);
+                                      context.ref
+                                          .read(syncingFileProgressProvider)
+                                          .removeSyncingFile(
+                                        syncingFile.filePath,
+                                      );
+                                    },
+                                    icon: const Icon(
+                                      color: Colors.red,
+                                      Icons.stop_circle_outlined,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      TweenAnimationBuilder(
+                        tween: Tween<double>(
+                          begin: isLocal ? 1 : 0.0,
+                          end: isLocal ? 1 : factor,
+                        ),
+                        duration: const Duration(milliseconds: 300),
+                        builder: (context, value, child) {
+                          return Stack(
+                            children: [
+                              LinearProgressIndicator(
+                                value: value,
+                                minHeight: 20,
+                                color:
+                                    syncingFile.state == SyncingFileState.error
+                                        ? Colors.red
+                                        : null,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                child: SizedBox(
+                                  height: 20,
+                                  child: SegmentedTextColorContainer(
+                                    segmentedColor: Colors.white,
+                                    widthFactor: value,
+                                    defaultTextStyle:
+                                        const TextStyle(color: Colors.black),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(
+                                              syncingFile.totalSize.sizeStr,
+                                            ),
+                                            Visibility(
+                                              visible: !isLocal,
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    width: 1,
+                                                    height: 10,
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                      left: 5,
+                                                      right: 5,
+                                                    ),
+                                                    color: Colors.grey,
+                                                  ),
+                                                  Text(
+                                                    "${syncingFile.speed.sizeStr}/s",
+                                                  ),
+                                                  Container(
+                                                    width: 1,
+                                                    height: 10,
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                      left: 5,
+                                                      right: 5,
+                                                    ),
+                                                    color: Colors.grey,
+                                                  ),
+                                                  Text(
+                                                    syncingFile.lessTime
+                                                        .to24HFormatStr,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          syncingFile.state ==
+                                                  SyncingFileState.error
+                                              ? '失败'
+                                              : "${(factor * 10000).round() / 100}%",
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              DateTime.parse(
+                                                syncingFile.startTime,
+                                              ).simpleStr,
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" package="top.coclyun.clipshare">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="top.coclyun.clipshare">
 
     <!-- 声明网络权限 -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -14,14 +15,14 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
 
     <application
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
-        android:requestLegacyExternalStorage="true"
-        android:label="ClipShare">
+        android:label="ClipShare"
+        android:requestLegacyExternalStorage="true">
         <service
             android:name=".service.HistoryFloatService"
             android:enabled="true"
@@ -64,6 +65,17 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!--share_handler-->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".ClipboardFocusActivity"
@@ -77,6 +89,7 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
         <provider
             android:name=".provider.FileProvider"
             android:authorities="top.coclyun.clipshare.FileProvider"

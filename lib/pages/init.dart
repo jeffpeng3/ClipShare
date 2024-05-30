@@ -18,6 +18,8 @@ import 'package:clipshare/listeners/clipboard_listener.dart';
 import 'package:clipshare/listeners/screen_opened_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/nav/devices_page.dart';
+import 'package:clipshare/pages/online_devices_page.dart';
+import 'package:clipshare/pages/syncing_file_page.dart';
 import 'package:clipshare/pages/welcome_page.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/provider/setting_provider.dart';
@@ -34,6 +36,7 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:refena_flutter/refena_flutter.dart';
+import 'package:share_handler/share_handler.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'nav/base_page.dart';
@@ -80,6 +83,7 @@ class _LoadingPageState extends State<LoadingPage> {
     }
     // 初始化channel
     initChannel();
+    initShareHandler();
     try {
       //不知道为什么必须调用一次connect，不论是否成功，否则进入主页时必定卡顿两秒钟
       SecureSocketClient.connect(
@@ -156,10 +160,17 @@ class _LoadingPageState extends State<LoadingPage> {
           return jsonEncode(devices);
         case MultiWindowMethod.syncFiles:
           var files = (args["files"] as List<dynamic>).cast<String>();
-          var devIds = (args["devIds"] as List<dynamic>).cast<String>();
+          var devices = List<Device>.empty(growable: true);
+          for (var devMap in (args["devices"] as List<dynamic>)) {
+            devices.add(Device.fromJson(devMap));
+          }
           Log.info(tag, "files $files");
-          Log.info(tag, "devIds $devIds");
-          FileSyncer.sendFiles(files);
+          Log.info(tag, "devIds $devices");
+          FileSyncer.sendFiles(
+            devices: devices,
+            paths: files,
+            context: context,
+          );
           break;
       }
       //都不符合，返回空
@@ -249,6 +260,47 @@ class _LoadingPageState extends State<LoadingPage> {
       }
     });
     return Future<void>.value();
+  }
+
+  Future<void> initShareHandler() async {
+    if (!Platform.isAndroid) {
+      return;
+    }
+    final handler = ShareHandlerPlatform.instance;
+    App.shareHandlerStream?.cancel();
+    App.shareHandlerStream =
+        handler.sharedMediaStream.listen((SharedMedia media) {
+      Log.info(tag, media);
+      if (media.attachments == null) {
+        return;
+      }
+      var files = media.attachments!
+          .where((attachment) => attachment != null)
+          .map((attachment) => attachment!.path)
+          .toList();
+      Log.debug(tag, files);
+      if (files.isEmpty) {
+        return;
+      }
+      var devices =
+          DevicesPage.pageKey.currentState?.getCompatibleOnlineDevices() ?? [];
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OnlineDevicesPage(
+            showAppBar: true,
+            devices: devices,
+            onSendClicked: (List<Device> selectedDevices) {
+              FileSyncer.sendFiles(
+                devices: selectedDevices,
+                paths: files,
+                context: context,
+              );
+            },
+          ),
+        ),
+      );
+    });
   }
 
   ///加载配置信息

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:clipshare/entity/tables/device.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 
 class MultiWindowMethod {
@@ -61,14 +62,14 @@ class MultiWindowChannel {
   ///发送待发送文件和设备列表
   static Future syncFiles(
     int targetWindowId,
-    List<String> devIds,
+    List<Device> devices,
     List<String> files,
   ) {
     return DesktopMultiWindow.invokeMethod(
       targetWindowId,
       MultiWindowMethod.syncFiles,
       jsonEncode({
-        "devIds": devIds,
+        "devices": devices,
         "files": files,
       }),
     );

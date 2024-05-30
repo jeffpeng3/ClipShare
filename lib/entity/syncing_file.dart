@@ -1,0 +1,109 @@
+import 'dart:io';
+
+import 'package:clipshare/entity/tables/device.dart';
+import 'package:clipshare/provider/syncing_file_progress_providr.dart';
+import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/log.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:refena_flutter/refena_flutter.dart';
+
+enum SyncingFileState {
+  syncing(0, "同步中"),
+  wait(1, "等待"),
+  error(2, "错误"),
+  done(3, "完成");
+
+  final int order;
+  final String name;
+
+  const SyncingFileState(this.order, this.name);
+}
+
+class SyncingFile {
+  static const tag = "SyncingFile";
+  final Device fromDev;
+  final int totalSize;
+  int _lastFlushBytes = 0;
+  int _savedBytes = 0;
+  DateTime _startTime = DateTime.now();
+  final BuildContext context;
+  final String filePath;
+  final IOSink? _sink;
+  final bool isSender;
+  double speed = 0.0;
+  final String _fileStartTime;
+  SyncingFileState _state = SyncingFileState.wait;
+  void Function(bool done)? onClose;
+
+  SyncingFile({
+    required this.totalSize,
+    required this.context,
+    required this.filePath,
+    required this.fromDev,
+    IOSink? sink,
+    required this.isSender,
+    startTime,
+    this.onClose,
+  })  : _sink = sink,
+        assert(totalSize >= 0),
+        assert(isSender || sink != null),
+        _fileStartTime =
+            startTime ?? DateTime.now().format("yyyy-MM-dd HH:mm:ss");
+
+  String get startTime => _fileStartTime;
+
+  int get lessTime => speed == 0 ? -1 : (totalSize - _savedBytes) ~/ speed;
+
+  void addBytes(List<int> bytes) {
+    if (_state == SyncingFileState.error) {
+      return;
+    }
+    if (_state != SyncingFileState.syncing) {
+      _state = SyncingFileState.syncing;
+      context.ref.read(syncingFileProgressProvider).updateSyncingFile(this);
+    }
+    if (!isSender) {
+      try {
+        _sink!.add(bytes);
+      } catch (err, stack) {
+        Log.error(tag, "$filePath sync error. $err $stack");
+        _state = SyncingFileState.error;
+        context.ref.read(syncingFileProgressProvider).updateSyncingFile(this);
+        return;
+      }
+    }
+    final len = bytes.length;
+    _savedBytes += len;
+    final now = DateTime.now();
+    final offsetSeconds = now.difference(_startTime).inSeconds;
+    final offsetMs = now.difference(_startTime).inMilliseconds;
+    if (_savedBytes == totalSize || offsetSeconds >= 1) {
+      _startTime = now;
+      int offsetBytes = _savedBytes - _lastFlushBytes;
+      speed = offsetBytes / (offsetMs / 1000);
+      _lastFlushBytes = _savedBytes;
+      context.ref.read(syncingFileProgressProvider).updateSyncingFile(this);
+    }
+  }
+
+  int get savedBytes => _savedBytes;
+
+  SyncingFileState get state => _state;
+
+  void setState(SyncingFileState state) {
+    assert(isSender);
+    _state = state;
+    context.ref.read(syncingFileProgressProvider).updateSyncingFile(this);
+  }
+
+  void close(bool done) {
+    if (done) {
+      _state = SyncingFileState.done;
+    } else {
+      _state = SyncingFileState.error;
+    }
+    context.ref.read(syncingFileProgressProvider).updateSyncingFile(this);
+    onClose?.call(done);
+    _sink?.close();
+  }
+}

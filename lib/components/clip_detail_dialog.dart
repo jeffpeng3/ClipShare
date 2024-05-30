@@ -10,9 +10,11 @@ import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file_plus/open_file_plus.dart';
 
 import '../entity/clip_data.dart';
 
@@ -151,50 +153,83 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                       },
                       tooltip: widget.clip.data.top ? "取消置顶" : "置顶",
                     ),
-                    IconButton(
-                      icon: App.innerCopy
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.blueGrey,
-                            )
-                          : const Icon(
-                              Icons.copy,
-                              color: Colors.blueGrey,
-                            ),
-                      onPressed: () {
-                        App.setInnerCopy(true);
+                    Visibility(
+                      visible: !widget.clip.isFile,
+                      child: IconButton(
+                        icon: App.innerCopy
+                            ? const Icon(
+                                Icons.check,
+                                color: Colors.blueGrey,
+                              )
+                            : const Icon(
+                                Icons.copy,
+                                color: Colors.blueGrey,
+                              ),
+                        onPressed: () {
+                          App.setInnerCopy(true);
 
-                        setState(() {});
-                        // 创建一个延迟0.5秒执行一次的定时器
-                        Future.delayed(const Duration(milliseconds: 500), () {
                           setState(() {});
-                        });
-                        ClipChannel.copy(widget.clip.data.toJson());
-                      },
-                      tooltip: "复制内容",
-                    ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.sync,
-                        color: Colors.blueGrey,
+                          // 创建一个延迟0.5秒执行一次的定时器
+                          Future.delayed(const Duration(milliseconds: 500), () {
+                            setState(() {});
+                          });
+                          ClipChannel.copy(widget.clip.data.toJson());
+                        },
+                        tooltip: "复制内容",
                       ),
-                      onPressed: () {
-                        AppDb.inst.opRecordDao
-                            .getByDataId(
-                          widget.clip.data.id,
-                          Module.history.moduleName,
-                          OpMethod.add.name,
-                          App.userId,
-                        )
-                            .then((op) {
-                          Log.debug(tag, op.toString());
-                          if (op == null) return;
-                          op.data = widget.clip.data.toString();
-                          SocketListener.inst
-                              .sendData(null, MsgType.sync, op.toJson());
-                        });
-                      },
-                      tooltip: widget.clip.data.top ? "重新同步" : "同步记录",
+                    ),
+                    Visibility(
+                      visible: !widget.clip.isFile,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.sync,
+                          color: Colors.blueGrey,
+                        ),
+                        onPressed: () {
+                          AppDb.inst.opRecordDao
+                              .getByDataId(
+                            widget.clip.data.id,
+                            Module.history.moduleName,
+                            OpMethod.add.name,
+                            App.userId,
+                          )
+                              .then((op) {
+                            Log.debug(tag, op.toString());
+                            if (op == null) return;
+                            op.data = widget.clip.data.toString();
+                            SocketListener.inst
+                                .sendData(null, MsgType.sync, op.toJson());
+                          });
+                        },
+                        tooltip: widget.clip.data.top ? "重新同步" : "同步记录",
+                      ),
+                    ),
+                    Visibility(
+                      visible: widget.clip.isFile,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.file_open,
+                          color: Colors.blueGrey,
+                        ),
+                        onPressed: () async {
+                          final file = File(widget.clip.data.content);
+                          await OpenFile.open(
+                            file.normalizePath,
+                          );
+                        },
+                        tooltip: "打开文件",
+                      ),
+                    ),
+                    Visibility(
+                      visible: widget.clip.isFile,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.share,
+                          color: Colors.blueGrey,
+                        ),
+                        onPressed: () {},
+                        tooltip: "分享文件",
+                      ),
                     ),
                   ],
                 ),

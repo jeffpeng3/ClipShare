@@ -16,6 +16,7 @@ import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:contextmenu/contextmenu.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file_plus/open_file_plus.dart';
 
 import 'clip_detail_dialog.dart';
 
@@ -215,34 +216,73 @@ class ClipDataCardState extends State<ClipDataCard> {
             });
           },
         ),
-        ListTile(
-          leading: const Icon(
-            Icons.copy,
-            color: Colors.blueGrey,
+        Visibility(
+          visible: !widget.clip.isFile,
+          child: ListTile(
+            leading: const Icon(
+              Icons.copy,
+              color: Colors.blueGrey,
+            ),
+            title: const Text("复制内容"),
+            onTap: () {
+              App.setInnerCopy(true);
+              ClipChannel.copy(widget.clip.data.toJson());
+              Navigator.of(context).pop();
+            },
           ),
-          title: const Text("复制内容"),
-          onTap: () {
-            App.setInnerCopy(true);
-            ClipChannel.copy(widget.clip.data.toJson());
-            Navigator.of(context).pop();
-          },
         ),
-        ListTile(
-          title: Text(widget.clip.data.sync ? "重新同步" : "同步记录"),
-          leading: const Icon(
-            Icons.sync,
-            color: Colors.blueGrey,
+        Visibility(
+          visible: !widget.clip.isFile,
+          child: ListTile(
+            title: Text(widget.clip.data.sync ? "重新同步" : "同步记录"),
+            leading: const Icon(
+              Icons.sync,
+              color: Colors.blueGrey,
+            ),
+            onTap: () {
+              Navigator.of(context).pop();
+              var opRecord = OperationRecord.fromSimple(
+                Module.history,
+                OpMethod.add,
+                widget.clip.data.id.toString(),
+              );
+              AppDb.inst.opRecordDao.addAndNotify(opRecord);
+            },
           ),
-          onTap: () {
-            Navigator.of(context).pop();
-            var opRecord = OperationRecord.fromSimple(
-              Module.history,
-              OpMethod.add,
-              widget.clip.data.id.toString(),
-            );
-            AppDb.inst.opRecordDao.addAndNotify(opRecord);
-          },
         ),
+        Visibility(
+          visible: widget.clip.isFile,
+          child: ListTile(
+            title: const Text("打开所在文件夹"),
+            leading: const Icon(
+              Icons.folder,
+              color: Colors.blueGrey,
+            ),
+            onTap: () async {
+              Navigator.of(context).pop();
+              final file = File(widget.clip.data.content);
+              await OpenFile.open(
+                file.parent.normalizePath,
+              );
+            },
+          ),
+        ),
+        Visibility(
+            visible: widget.clip.isFile,
+            child: ListTile(
+              title: const Text("打开文件"),
+              leading: const Icon(
+                Icons.file_open,
+                color: Colors.blueGrey,
+              ),
+              onTap: () async {
+                Navigator.of(context).pop();
+                final file = File(widget.clip.data.content);
+                await OpenFile.open(
+                  file.normalizePath,
+                );
+              },
+            )),
         ListTile(
           title: const Text("标签管理"),
           leading: const Icon(
@@ -279,6 +319,7 @@ class ClipDataCardState extends State<ClipDataCard> {
                 return v;
               });
             }
+
             Navigator.pop(context);
             Global.showTipsDialog(
               context: context,
@@ -292,7 +333,10 @@ class ClipDataCardState extends State<ClipDataCard> {
               },
               onNeutral: () async {
                 final n = await removeData();
-                if (n==null || n <= 0 || !widget.clip.isImage || !Platform.isAndroid) {
+                if (n == null ||
+                    n <= 0 ||
+                    !widget.clip.isImage ||
+                    !Platform.isAndroid) {
                   return;
                 }
                 //如果是图片，删除并更新媒体库

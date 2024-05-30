@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:url_launcher/url_launcher.dart';
 
 extension StringExt on String {
@@ -116,6 +117,9 @@ extension StringNilExt on String? {
 
 extension IntExt on int {
   String get sizeStr {
+    if (this < 0) {
+      return '-';
+    }
     const kb = 1024;
     const mb = kb * 1024;
     const gb = mb * 1024;
@@ -129,6 +133,75 @@ extension IntExt on int {
     } else {
       return '$this B';
     }
+  }
+
+  String get to24HFormatStr {
+    // 计算天、小时、分钟、秒
+    int days = this ~/ (24 * 3600);
+    int hours = (this % (24 * 3600)) ~/ 3600;
+    int minutes = (this % 3600) ~/ 60;
+    int seconds = this % 60;
+
+    // 构造时间字符串
+    StringBuffer timeString = StringBuffer();
+
+    // 如果时间表示需要到天和小时
+    if (days > 0) {
+      timeString.write('$days 天 ');
+    }
+    if (days > 0 || hours > 0) {
+      timeString.write('${hours.toString().padLeft(2, '0')}:');
+    }
+    timeString.write('${minutes.toString().padLeft(2, '0')}:');
+    timeString.write(seconds.toString().padLeft(2, '0'));
+
+    return timeString.toString();
+  }
+}
+
+extension DoubleExt on double {
+  String get sizeStr {
+    if (this < 0) {
+      return '-';
+    }
+    const kb = 1024;
+    const mb = kb * 1024;
+    const gb = mb * 1024;
+
+    if (this >= gb) {
+      return '${(this / gb).toStringAsFixed(2)} GB';
+    } else if (this >= mb) {
+      return '${(this / mb).toStringAsFixed(2)} MB';
+    } else if (this >= kb) {
+      return '${(this / kb).toStringAsFixed(2)} KB';
+    } else {
+      return '$this B';
+    }
+  }
+}
+
+extension DateTimeExt on DateTime {
+  String format(String format) {
+    return intl.DateFormat(format).format(this);
+  }
+
+  String get simpleStr {
+    String time = "";
+    DateTime now = DateTime.now();
+    Duration difference = now.difference(this);
+
+    if (difference.inMinutes < 1) {
+      time = "刚刚";
+    } else if (difference.inHours < 1) {
+      int minutes = difference.inMinutes;
+      time = "$minutes分钟前";
+    } else if (difference.inHours < 24) {
+      int hours = difference.inHours;
+      time = "$hours小时前";
+    } else {
+      time = toString().substring(0, 19); // 使用默认的日期时间格式
+    }
+    return time;
   }
 }
 

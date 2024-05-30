@@ -22,6 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:refena_flutter/refena_flutter.dart';
+import 'package:share_handler_platform_interface/src/data/messages.dart';
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -94,6 +95,8 @@ class App extends StatelessWidget {
   static WindowController? compactWindow;
   static WindowController? onlineDevicesWindow;
   static const mainWindowId = 0;
+
+  static StreamSubscription<SharedMedia>? shareHandlerStream;
 
   static bool get isSmallScreen =>
       MediaQuery.of(App.context).size.width <= Constants.smallScreenWidth;

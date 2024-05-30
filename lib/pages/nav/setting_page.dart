@@ -869,6 +869,11 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                               ),
                             );
                           },
+                          onDoubleTap: () async {
+                            await OpenFile.open(
+                              vm.fileStorePath,
+                            );
+                          },
                         ),
                       ],
                     ),

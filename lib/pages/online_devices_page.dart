@@ -1,19 +1,22 @@
-import 'dart:convert';
-
-import 'package:clipshare/channels/multi_window_channel.dart';
 import 'package:clipshare/components/device_card_simple.dart';
 import 'package:clipshare/components/empty_content.dart';
 import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
-import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class OnlineDevicesPage extends StatefulWidget {
-  final List<String> syncFiles;
-  final Function() onDone;
-  const OnlineDevicesPage({super.key, required this.syncFiles, required this.onDone});
+  final List<Device> devices;
+  final bool showAppBar;
+  final Function(List<Device> selectedDevives) onSendClicked;
+
+  const OnlineDevicesPage({
+    super.key,
+    required this.devices,
+    required this.onSendClicked,
+    this.showAppBar = false,
+  });
 
   @override
   State<StatefulWidget> createState() {
@@ -22,45 +25,23 @@ class OnlineDevicesPage extends StatefulWidget {
 }
 
 class _OnlineDevicesPageState extends State<OnlineDevicesPage> {
-  List<Device> _list = List.empty();
   static const tag = "OnlineDevicesPage";
-  final Set<String> _selectedDevices = {};
+  final Set<String> _selectedDevIds = {};
 
   @override
   void initState() {
     super.initState();
-    //处理弹窗事件
-    DesktopMultiWindow.setMethodHandler((
-      MethodCall call,
-      int fromWindowId,
-    ) async {
-      var args = jsonDecode(call.arguments);
-      switch (call.method) {
-        //更新通知
-        case MultiWindowMethod.notify:
-          refresh();
-          break;
-      }
-      //都不符合，返回空
-      return Future.value();
-    });
-    refresh();
-  }
-
-  void refresh() async {
-    var json = await MultiWindowChannel.getCompatibleOnlineDevices(0);
-    var data = (jsonDecode(json) as List<dynamic>).cast<Map<String, dynamic>>();
-    List<Device> devices = List.empty(growable: true);
-    for (var dev in data) {
-      devices.add(Device.fromJson(dev));
-    }
-    _list = devices;
-    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: widget.showAppBar
+          ? AppBar(
+              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+              title: const Text("文件发送"),
+            )
+          : null,
       backgroundColor: App.bgColor,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,22 +54,22 @@ class _OnlineDevicesPageState extends State<OnlineDevicesPage> {
             ),
           ),
           Expanded(
-            child: _list.isEmpty
+            child: widget.devices.isEmpty
                 ? const EmptyContent()
                 : ListView.builder(
-                    itemCount: _list.length,
+                    itemCount: widget.devices.length,
                     physics: const AlwaysScrollableScrollPhysics(),
                     itemBuilder: (ctx, idx) {
-                      var dev = _list[idx];
-                      final selected = _selectedDevices.contains(dev.guid);
+                      var dev = widget.devices[idx];
+                      final selected = _selectedDevIds.contains(dev.guid);
                       return DeviceCardSimple(
                         dev: dev,
                         showBorder: selected,
                         onTap: () {
                           if (selected) {
-                            _selectedDevices.remove(dev.guid);
+                            _selectedDevIds.remove(dev.guid);
                           } else {
-                            _selectedDevices.add(dev.guid);
+                            _selectedDevIds.add(dev.guid);
                           }
                           setState(() {});
                           Log.info(tag, dev.guid);
@@ -103,14 +84,14 @@ class _OnlineDevicesPageState extends State<OnlineDevicesPage> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Visibility(
-            visible: _selectedDevices.length < _list.length,
+            visible: _selectedDevIds.length < widget.devices.length,
             child: Tooltip(
               message: '全选',
               child: FloatingActionButton(
                 shape: const CircleBorder(),
                 onPressed: () {
-                  for (var dev in _list) {
-                    _selectedDevices.add(dev.guid);
+                  for (var dev in widget.devices) {
+                    _selectedDevIds.add(dev.guid);
                   }
                   setState(() {});
                 },
@@ -119,20 +100,20 @@ class _OnlineDevicesPageState extends State<OnlineDevicesPage> {
             ),
           ),
           Visibility(
-            visible: _selectedDevices.isNotEmpty,
+            visible: _selectedDevIds.isNotEmpty,
             child: Container(
               margin: const EdgeInsets.only(left: 10),
               child: Tooltip(
                 message: '发送',
                 child: FloatingActionButton(
                   shape: const CircleBorder(),
-                  onPressed: () async {
-                    await MultiWindowChannel.syncFiles(
-                      App.mainWindowId,
-                      List.from(_selectedDevices),
-                      widget.syncFiles,
-                    );
-                    widget.onDone();
+                  onPressed: () {
+                    var selectedDevices = widget.devices
+                        .where(
+                          (dev) => _selectedDevIds.contains(dev.guid),
+                        )
+                        .toList();
+                    widget.onSendClicked(selectedDevices);
                   },
                   child: const Icon(Icons.send),
                 ),

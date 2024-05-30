@@ -13,6 +13,7 @@ import 'package:clipshare/pages/nav/debug_page.dart';
 import 'package:clipshare/pages/nav/devices_page.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/pages/nav/setting_page.dart';
+import 'package:clipshare/pages/syncing_file_page.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
@@ -45,6 +46,7 @@ class _BasePageState extends State<BasePage>
     DevicesPage(
       key: DevicesPage.pageKey,
     ),
+    const SyncingFilePage(),
     const SettingPage(),
   ]);
   final List<BottomNavigationBarItem> _navBarItems = List.from(const [
@@ -55,6 +57,10 @@ class _BasePageState extends State<BasePage>
     BottomNavigationBarItem(
       icon: Icon(Icons.devices_rounded),
       label: '我的设备',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.sync_alt_outlined),
+      label: '传输',
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.settings),
@@ -119,7 +125,6 @@ class _BasePageState extends State<BasePage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    print("state $state");
     switch (state) {
       case AppLifecycleState.resumed:
         if (!App.settings.useAuthentication ||
@@ -195,6 +200,25 @@ class _BasePageState extends State<BasePage>
             devId: devId,
             tagName: tagName,
           ),
+        ),
+      );
+    }
+  }
+
+  ///导航至文件同步页面
+  void gotoFileSyncPage() {
+    if (_showLeftBar) {
+      var i = _navBarItems.indexWhere(
+          (element) => (element.icon as Icon).icon == Icons.sync_alt_outlined);
+      setState(() {
+        _index = i;
+        _pages[i] = const SyncingFilePage();
+      });
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const SyncingFilePage(),
         ),
       );
     }

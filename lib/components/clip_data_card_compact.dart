@@ -1,13 +1,11 @@
-import 'dart:convert';
-
 import 'package:clipshare/channels/multi_window_channel.dart';
 import 'package:clipshare/components/clip_simple_data_content.dart';
 import 'package:clipshare/components/clip_simple_data_extra_info.dart';
 import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/entity/clip_data.dart';
 import 'package:clipshare/util/global.dart';
-import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file_plus/open_file_plus.dart';
 
 ///多窗口下一些数据拿不到所以单独写一个
 class ClipDataCardCompact extends StatelessWidget {
@@ -29,8 +27,12 @@ class ClipDataCardCompact extends StatelessWidget {
         elevation: 0,
         child: InkWell(
           mouseCursor: SystemMouseCursors.basic,
-          onTap: () {
+          onTap: () async {
             if (isDouble) {
+              if (_clip.isFile) {
+                await OpenFile.open(_clip.data.content);
+                return;
+              }
               MultiWindowChannel.copy(0, _clip.data.id).then(
                 (args) => Global.snackBarSuc(context, "复制成功"),
               );

@@ -18,6 +18,7 @@ import 'package:clipshare/util/global.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:highlighting/languages/all.dart';
+import 'package:open_file_plus/open_file_plus.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 import 'empty_content.dart';
@@ -213,8 +214,9 @@ class ClipListViewState extends State<ClipListView>
         }
       },
       onDoubleTap: () async {
-        if (PlatformExt.isMobile && _list[i].isFile) {
-          Global.snackBarErr(context, "不支持复制文件");
+        if (_list[i].isFile) {
+          await OpenFile.open(_list[i].data.content);
+          return;
         }
         App.setInnerCopy(true);
         var res = await ClipChannel.copy(_list[i].data.toJson());

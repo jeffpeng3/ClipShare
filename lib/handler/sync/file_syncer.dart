@@ -1,44 +1,35 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/db/app_db.dart';
+import 'package:clipshare/entity/dev_info.dart';
+import 'package:clipshare/entity/syncing_file.dart';
+import 'package:clipshare/entity/tables/device.dart';
 import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
+import 'package:clipshare/provider/syncing_file_progress_providr.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
-
-class _SyncingFile {
-  final int totalSize;
-  int _lastFlushBytes = 0;
-  int _savedBytes = 0;
-
-  void addSavedBytes(int savedSize) {
-    assert(savedSize >= 0);
-    _savedBytes += savedSize;
-    if (_savedBytes - _lastFlushBytes > 1024 * 1024) {
-      _lastFlushBytes = _savedBytes;
-    }
-  }
-
-  int get getSavedBytes => _savedBytes;
-
-  _SyncingFile(this.totalSize) : assert(totalSize >= 0);
-}
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
+import 'package:refena_flutter/refena_flutter.dart';
 
 class FileSyncer {
   static const tag = "FileSyncer";
   late ServerSocket _server;
   final int _fileId = App.snowflake.nextId();
-  Set<int> clients = {};
+  bool hasClient = false;
 
-  FileSyncer._private(
-    String path,
-    void Function(FileSyncer) onReady,
-    void Function() onDone,
-  ) {
+  FileSyncer._private({
+    required String path,
+    required void Function(FileSyncer) onReady,
+    required void Function() onDone,
+    required BuildContext context,
+  }) {
     final file = File(path);
     if (!file.existsSync()) {
       throw Exception("file not found");
@@ -47,10 +38,39 @@ class FileSyncer {
       _server = server;
       onReady(this);
       _server.listen((client) async {
-        int hash = client.hashCode;
+        hasClient = true;
         DateTime start = DateTime.now();
-        clients.add(hash);
-        client.addStream(file.openRead()).then((value) {
+        SyncingFile syncingFile = SyncingFile(
+          totalSize: file.lengthSync(),
+          context: context,
+          filePath: file.normalizePath,
+          fromDev: App.device,
+          isSender: true,
+          startTime: DateTime.now().format("yyyy-MM-dd HH:mm:ss"),
+          onClose: (done) {
+            if (done) {
+              return;
+            }
+            client.destroy();
+            context.ref
+                .notifier(syncingFileProgressProvider)
+                .removeSyncingFile(path);
+          },
+        );
+        //添加到provider
+        context.ref
+            .read(syncingFileProgressProvider)
+            .updateSyncingFile(syncingFile);
+        var stream = file.openRead().transform(
+          StreamTransformer<List<int>, List<int>>.fromHandlers(
+            handleData: (data, sink) {
+              syncingFile.addBytes(data);
+              sink.add(data);
+            },
+          ),
+        );
+        syncingFile.setState(SyncingFileState.syncing);
+        client.addStream(stream).then((value) {
           var history = History(
             id: _fileId,
             uid: App.userId,
@@ -67,22 +87,24 @@ class FileSyncer {
           } else {
             historyPageState.addData(history, false);
           }
+          syncingFile.setState(SyncingFileState.done);
         }).catchError((err, stack) {
+          syncingFile.setState(SyncingFileState.error);
           Log.error(tag, "send file failed: $path. $err $stack");
         }).whenComplete(() {
-          clients.remove(hash);
-          checkClientsIsEmpty(onDone);
           client.close();
+          _server.close();
+          onDone();
         });
       });
-      checkClientsIsEmpty(onDone);
+      checkHasClient(onDone);
     });
   }
 
   ///在一定时间后检查是否有客户端连接，若无客户端则关闭服务
-  void checkClientsIsEmpty(void Function() onDone) {
+  void checkHasClient(void Function() onDone) {
     Future.delayed(const Duration(seconds: 5), () {
-      if (clients.isNotEmpty) return;
+      if (hasClient) return;
       Log.info(tag, "No client connection for more than 5 seconds");
       _server.close();
       onDone();
@@ -90,45 +112,127 @@ class FileSyncer {
   }
 
   ///发送文件
-  static void sendFile(String path, void Function() onDone) async {
+  ///[device] 发送的设备
+  ///[path] 发送的文件地址
+  static void sendFile({
+    required Device device,
+    required String path,
+    required void Function() onDone,
+    required BuildContext context,
+  }) async {
     FileSyncer._private(
-      path,
-      (syncer) async {
+      path: path,
+      context: context,
+      onReady: (syncer) async {
         final file = File(path);
         int totalSize = await file.length();
-        SocketListener.inst.sendData(null, MsgType.file, {
+        SocketListener.inst.sendData(DevInfo.fromDevice(device), MsgType.file, {
           "fileName": file.fileName,
           "size": totalSize,
           "port": syncer._server.port,
           "fileId": syncer._fileId,
         });
       },
-      onDone,
+      onDone: onDone,
     );
   }
 
-  ///发送多个文件
-  static sendFiles(List<String> paths, [int i = 0]) {
-    if (i >= paths.length) {
+  ///给多个设备发送多个文件
+  ///[devices] 发送的设备列表
+  ///[paths] 发送的文件列表
+  ///[i] 发送第几个文件
+  static sendFiles({
+    required List<Device> devices,
+    required List<String> paths,
+    required BuildContext context,
+    int i = 0,
+  }) {
+    if (i >= devices.length) {
       return;
     }
-    sendFile(paths[i], () => sendFiles(paths, i + 1));
+    //给每个设备发送文件
+    sendDevFiles(
+      device: devices[i],
+      paths: paths,
+      context: context,
+      onDone: () => sendFiles(
+        devices: devices,
+        paths: paths,
+        i: i + 1,
+        context: context,
+      ),
+    );
   }
 
-  static Future<void> recFile(
-    String ip,
-    int port,
-    int size,
-    String fileName,
-    String devId,
-    int userId,
-    int fileId,
-  ) async {
+  ///给设备发送多个文件
+  ///[device] 发送的设备
+  ///[paths] 发送的文件列表
+  ///[onDone] 发送完成事件
+  ///[i] 发送第几个文件
+  static sendDevFiles({
+    required Device device,
+    required List<String> paths,
+    required void Function() onDone,
+    required BuildContext context,
+    int i = 0,
+  }) {
+    if (i >= paths.length) {
+      onDone();
+      return;
+    }
+    sendFile(
+      device: device,
+      path: paths[i],
+      context: context,
+      onDone: () => sendDevFiles(
+        device: device,
+        paths: paths,
+        onDone: onDone,
+        i: i + 1,
+        context: context,
+      ),
+    );
+  }
+
+  static Future<void> recFile({
+    required String ip,
+    required int port,
+    required int size,
+    required String fileName,
+    required String devId,
+    required int userId,
+    required int fileId,
+    required BuildContext context,
+  }) async {
+    Device? dev = await AppDb.inst.deviceDao.getById(devId, App.userId);
+    if (dev == null) {
+      Log.error(tag, "dev:$devId not found");
+      return;
+    }
     var socket = await Socket.connect(ip, port);
     String filePath = "${App.settings.fileStorePath}/$fileName";
     File file = File(filePath);
-    IOSink sink = file.openWrite();
-    _SyncingFile fileProgress = _SyncingFile(size);
+    SyncingFile syncingFile = SyncingFile(
+      totalSize: size,
+      context: context,
+      filePath: filePath,
+      fromDev: dev,
+      sink: file.openWrite(),
+      isSender: false,
+      startTime: DateTime.now().format("yyyy-MM-dd HH:mm:ss"),
+      onClose: (done) {
+        if (done) {
+          return;
+        }
+        socket.destroy();
+        context.ref
+            .notifier(syncingFileProgressProvider)
+            .removeSyncingFile(filePath);
+      },
+    );
+    context.ref
+        .read(syncingFileProgressProvider)
+        .updateSyncingFile(syncingFile);
     var start = DateTime.now();
 
     ///文件存在处理策略（待定）
@@ -140,12 +244,12 @@ class FileSyncer {
     // }
     socket.listen(
       (bytes) {
-        sink.add(bytes);
-        fileProgress.addSavedBytes(bytes.length);
+        syncingFile.addBytes(bytes);
       },
       onError: (err, stack) {
         Log.error(tag, "receive file failed. $err $stack");
         file.delete();
+        syncingFile.close(false);
       },
       cancelOnError: true,
       onDone: () {
@@ -156,6 +260,7 @@ class FileSyncer {
           tag,
           "onDone $offset seconds, size: ${size.sizeStr}, speed: ${speed.sizeStr}/s",
         );
+        syncingFile.close(true);
         var history = History(
           id: fileId,
           uid: userId,

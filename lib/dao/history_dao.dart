@@ -123,11 +123,16 @@ abstract class HistoryDao {
   Future<History?> getById(int id);
 
   ///获取所有图片
-  @Query("select * from history where uid = :uid and type = 'Image' order by id desc")
+  @Query(
+      "select * from history where uid = :uid and type = 'Image' order by id desc")
   Future<List<History>> getAllImages(int uid);
-
-
 
   @update
   Future<int> updateHistory(History history);
+
+  ///获取所有文件
+  @Query(
+    "select * from history where uid = :uid and type = 'File' order by id desc",
+  )
+  Future<List<History>> getFiles(int uid);
 }
