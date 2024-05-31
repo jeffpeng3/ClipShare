@@ -88,7 +88,7 @@ class _OnlineDevicesWindowState extends State<OnlineDevicesWindow>
       localizationsDelegates: App.localizationsDelegates,
       home: OnlineDevicesPage(
         devices: _devices,
-        onSendClicked: (selectedDevices) async {
+        onSendClicked: (context, selectedDevices) async {
           await MultiWindowChannel.syncFiles(
             App.mainWindowId,
             selectedDevices,

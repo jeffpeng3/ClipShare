@@ -17,6 +17,7 @@ class AndroidChannelMethod {
   static const moveToBg = "moveToBg";
   static const toast = "toast";
   static const sendNotify = "sendNotify";
+  static const copyFileFromUri = "copyFileFromUri";
 }
 
 class AndroidChannel {
@@ -104,6 +105,17 @@ class AndroidChannel {
     App.androidChannel.invokeMethod(
       AndroidChannelMethod.sendNotify,
       {"content": content},
+    );
+  }
+
+  ///复制content文件到指定路径
+  static Future<String?> copyFileFromUri(String content, String savedPath) {
+    return App.androidChannel.invokeMethod<String?>(
+      AndroidChannelMethod.copyFileFromUri,
+      {
+        "content": content,
+        "savedPath": savedPath,
+      },
     );
   }
 }

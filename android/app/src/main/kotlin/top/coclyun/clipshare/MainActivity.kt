@@ -21,6 +21,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.documentfile.provider.DocumentFile
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -30,6 +31,9 @@ import top.coclyun.clipshare.broadcast.ScreenReceiver
 import top.coclyun.clipshare.enums.ContentType
 import top.coclyun.clipshare.service.ForegroundService
 import top.coclyun.clipshare.service.HistoryFloatService
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStream
 
 
 class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResultListener,
@@ -373,6 +377,36 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
                     val content = args["content"].toString();
                     Toast.makeText(this, content, Toast.LENGTH_LONG).show();
                     result.success(true);
+                }
+                //从content中复制文件到指定路径
+                "copyFileFromUri" -> {
+                    var savedPath: String? = null
+                    try {
+                        val content = args["content"].toString()
+                        val uri = Uri.parse(content);
+                        val documentFile = DocumentFile.fromSingleUri(this, uri)
+                        val fileName = documentFile!!.name
+                        savedPath = args["savedPath"].toString() + "/${fileName}";
+                        val inputStream = contentResolver.openInputStream(uri)
+                        if (inputStream == null) {
+                            Log.e(TAG, "Failed to open input stream for URI: $content")
+                            result.success(null)
+                            return@setMethodCallHandler
+                        }
+                        val destFile = File(savedPath)
+                        val outputStream: OutputStream = FileOutputStream(destFile)
+                        val buffer = ByteArray(1024 * 10)
+                        var length: Int
+                        while (inputStream.read(buffer).also { length = it } > 0) {
+                            outputStream.write(buffer, 0, length)
+                        }
+                        inputStream.close()
+                        outputStream.close()
+                    } catch (e: Exception) {
+                        e.printStackTrace();
+                        result.success(null)
+                    }
+                    result.success(savedPath)
                 }
                 //图片更新后通知媒体库扫描
                 "notifyMediaScan" -> {

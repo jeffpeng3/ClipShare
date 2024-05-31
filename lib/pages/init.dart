@@ -19,7 +19,6 @@ import 'package:clipshare/listeners/screen_opened_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/nav/devices_page.dart';
 import 'package:clipshare/pages/online_devices_page.dart';
-import 'package:clipshare/pages/syncing_file_page.dart';
 import 'package:clipshare/pages/welcome_page.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/provider/setting_provider.dart';
@@ -271,36 +270,67 @@ class _LoadingPageState extends State<LoadingPage> {
     App.shareHandlerStream =
         handler.sharedMediaStream.listen((SharedMedia media) {
       Log.info(tag, media);
-      if (media.attachments == null) {
+      if (media.attachments != null) {
+        var files = media.attachments!
+            .where((attachment) => attachment != null)
+            .map((attachment) => attachment!.path)
+            .toList();
+        Log.debug(tag, files);
+        if (files.isEmpty) {
+          return;
+        }
+        gotoOnlineDevicesPage(files);
+      } else if (media.content != null) {
+        Global.showTipsDialog(
+          context: context,
+          text: "该文件无法直接读取\n\n是否先保存到【文件存储路径】？",
+          okText: "保存",
+          autoDismiss: false,
+          onOk: () async {
+            var filePath = await AndroidChannel.copyFileFromUri(
+              media.content!,
+              App.settings.fileStorePath,
+            );
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
+
+            Log.debug(tag, filePath);
+            if (filePath != null) {
+              gotoOnlineDevicesPage([filePath]);
+            }
+          },
+          onCancel: () {
+            Navigator.pop(context);
+          },
+        );
+      } else {
+        Global.showTipsDialog(context: context, text: "不支持的类型");
         return;
       }
-      var files = media.attachments!
-          .where((attachment) => attachment != null)
-          .map((attachment) => attachment!.path)
-          .toList();
-      Log.debug(tag, files);
-      if (files.isEmpty) {
-        return;
-      }
-      var devices =
-          DevicesPage.pageKey.currentState?.getCompatibleOnlineDevices() ?? [];
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OnlineDevicesPage(
-            showAppBar: true,
-            devices: devices,
-            onSendClicked: (List<Device> selectedDevices) {
-              FileSyncer.sendFiles(
-                devices: selectedDevices,
-                paths: files,
-                context: context,
-              );
-            },
-          ),
-        ),
-      );
     });
+  }
+
+  void gotoOnlineDevicesPage(List<String> files) {
+    var devices =
+        DevicesPage.pageKey.currentState?.getCompatibleOnlineDevices() ?? [];
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OnlineDevicesPage(
+          showAppBar: true,
+          devices: devices,
+          onSendClicked: (BuildContext context,List<Device> selectedDevices) {
+            FileSyncer.sendFiles(
+              devices: selectedDevices,
+              paths: files,
+              context: context,
+            );
+            Navigator.pop(context);
+          },
+        ),
+      ),
+    );
   }
 
   ///加载配置信息

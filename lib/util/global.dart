@@ -64,7 +64,9 @@ class Global {
                   visible: showNeutral,
                   child: TextButton(
                     onPressed: () {
-                      Navigator.pop(context);
+                      if(autoDismiss) {
+                        Navigator.pop(context);
+                      }
                       onNeutral?.call();
                     },
                     child: Text(neutralText),
@@ -77,7 +79,9 @@ class Global {
                         visible: showCancel,
                         child: TextButton(
                           onPressed: () {
-                            Navigator.pop(context);
+                            if(autoDismiss) {
+                              Navigator.pop(context);
+                            }
                             onCancel?.call();
                           },
                           child: Text(cancelText),
@@ -87,7 +91,9 @@ class Global {
                         visible: showOk,
                         child: TextButton(
                           onPressed: () {
-                            Navigator.pop(context);
+                            if(autoDismiss) {
+                              Navigator.pop(context);
+                            }
                             onOk?.call();
                           },
                           child: Text(okText),

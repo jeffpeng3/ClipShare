@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 class OnlineDevicesPage extends StatefulWidget {
   final List<Device> devices;
   final bool showAppBar;
-  final Function(List<Device> selectedDevives) onSendClicked;
+  final Function(BuildContext context,List<Device> selectedDevives) onSendClicked;
 
   const OnlineDevicesPage({
     super.key,
@@ -113,7 +113,7 @@ class _OnlineDevicesPageState extends State<OnlineDevicesPage> {
                           (dev) => _selectedDevIds.contains(dev.guid),
                         )
                         .toList();
-                    widget.onSendClicked(selectedDevices);
+                    widget.onSendClicked(context,selectedDevices);
                   },
                   child: const Icon(Icons.send),
                 ),
