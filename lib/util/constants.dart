@@ -122,6 +122,7 @@ enum ContentType {
   text(label: "文本", value: "Text"),
   image(label: "图片", value: "Image"),
   richText(label: "富文本", value: "RichText"),
+  sms(label: "短信", value: "Sms"),
   file(label: "文件", value: "File");
 
   const ContentType({required this.label, required this.value});

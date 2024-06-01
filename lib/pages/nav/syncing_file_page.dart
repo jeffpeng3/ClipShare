@@ -157,10 +157,13 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                             return Column(
                               children: [
                                 historyList[i],
-                                const Divider(
-                                  height: 0,
-                                  indent: 10,
-                                  endIndent: 10,
+                                Visibility(
+                                  visible: i != historyList.length - 1,
+                                  child: const Divider(
+                                    height: 0,
+                                    indent: 10,
+                                    endIndent: 10,
+                                  ),
                                 ),
                               ],
                             );

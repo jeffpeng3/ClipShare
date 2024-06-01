@@ -13,7 +13,7 @@ class ClipSimpleDataContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (clip.isText) {
+    if (clip.isText || clip.isSms) {
       return Text(
         clip.data.content.substringMinLen(0, 200),
         textAlign: TextAlign.left,

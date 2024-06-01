@@ -556,7 +556,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  for (var type in ["全部", "文本", "图片", "文件"])
+                  for (var type in ["全部", "文本", "图片", "文件","短信"])
                     Row(
                       children: [
                         RoundedChip(

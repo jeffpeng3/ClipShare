@@ -126,6 +126,7 @@ class SettingProvider extends Notifier<Settings> {
       historyWindowHotKeys: historyWindowHotKeys,
     );
   }
+
   Future<void> setSyncFileHotKeys(String syncFileHotKeys) async {
     await _addOrUpdate("syncFileHotKeys", syncFileHotKeys);
     App.settings = state = state.copyWith(
@@ -181,6 +182,13 @@ class SettingProvider extends Notifier<Settings> {
     await _addOrUpdate("appPassword", appPassword);
     App.settings = state = state.copyWith(
       appPassword: appPassword,
+    );
+  }
+
+  Future<void> setEnableSmsSync(bool enableSmsSync) async {
+    await _addOrUpdate("enableSmsSync", enableSmsSync.toString());
+    App.settings = state = state.copyWith(
+      enableSmsSync: enableSmsSync,
     );
   }
 }

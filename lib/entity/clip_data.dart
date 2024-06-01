@@ -15,13 +15,15 @@ class ClipData {
 
   bool get isFile => _data.type == ContentType.file.value;
 
+  bool get isSms => _data.type == ContentType.sms.value;
+
   String get timeStr => getTimeStr();
 
   bool get isRichText => _data.type == ContentType.richText.value;
 
   String get sizeText {
     int size = data.size;
-    if (isText || isRichText) return "$size 字";
+    if (isText || isRichText || isSms) return "$size 字";
     return size.sizeStr;
   }
 

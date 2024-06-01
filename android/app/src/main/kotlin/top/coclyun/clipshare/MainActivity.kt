@@ -14,6 +14,7 @@ import android.content.pm.PackageManager
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
 import android.os.PowerManager
 import android.provider.Settings
 import android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION
@@ -29,6 +30,7 @@ import io.flutter.plugins.GeneratedPluginRegistrant
 import rikka.shizuku.Shizuku
 import top.coclyun.clipshare.broadcast.ScreenReceiver
 import top.coclyun.clipshare.enums.ContentType
+import top.coclyun.clipshare.observer.SmsObserver
 import top.coclyun.clipshare.service.ForegroundService
 import top.coclyun.clipshare.service.HistoryFloatService
 import java.io.File
@@ -42,6 +44,7 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
     private val requestOverlayResultCode = 5002
     private lateinit var screenReceiver: ScreenReceiver
     private val TAG: String = "MainActivity";
+    private var smsObserver: SmsObserver? = null;
 
     companion object {
         lateinit var commonChannel: MethodChannel;
@@ -112,6 +115,24 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
             androidChannel.invokeMethod("checkMustPermission", null)
         }
         createNotifyChannel();
+    }
+
+    private fun registerSmsObserver() {
+        if (smsObserver != null) {
+            unRegisterSmsObserver()
+        }
+        val handler = Handler()
+        val observer = SmsObserver(this, handler)
+        smsObserver = observer
+        contentResolver.registerContentObserver(Uri.parse("content://sms/"), true, observer)
+    }
+
+    private fun unRegisterSmsObserver() {
+        if (smsObserver == null) return
+        smsObserver?.let {
+            contentResolver.unregisterContentObserver(it)
+        }
+        smsObserver = null
     }
 
     private fun createNotifyChannel() {
@@ -416,9 +437,16 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
                         arrayOf(imagePath),
                         null
                     ) { path, uri ->
-                        // 扫描完成后的操作，可以在这里添加你的逻辑
                         Log.i(TAG, "initAndroidChannel: MediaScanner Completed")
                     }
+                }
+                //开启短信监听
+                "startSmsListen" -> {
+                    registerSmsObserver()
+                }
+                //停止短信监听
+                "stopSmsListen" -> {
+                    unRegisterSmsObserver()
                 }
             }
         }
@@ -450,19 +478,6 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
     private fun initCommonChannel() {
         commonChannel.setMethodCallHandler { call, result ->
             when (call.method) {
-                //返回设备信息
-                "getBaseInfo" -> {
-                    val androId = Settings.System.getString(
-                        contentResolver, Settings.System.ANDROID_ID
-                    )
-                    result.success(
-                        mapOf(
-                            "guid" to androId,
-                            "dev" to Build.MODEL,
-                            "type" to "Android",
-                        )
-                    );
-                }
             }
         }
     }
@@ -501,6 +516,10 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
 
     override fun clipboardChanged(type: ContentType, content: String, same: Boolean) {
         if (innerCopy) return
+        sendClipData(type, content)
+    }
+
+    fun sendClipData(type: ContentType, content: String) {
         clipChannel.invokeMethod(
             "onClipboardChanged",
             mapOf("content" to content, "type" to type.name)
@@ -527,6 +546,7 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
         stopService(Intent(this, ForegroundService::class.java))
         stopService(Intent(this, HistoryFloatService::class.java))
         ClipboardListener.instance(this)!!.removeObserver(this)
+        unRegisterSmsObserver()
     }
 
     private fun createPendingIntent(): PendingIntent {

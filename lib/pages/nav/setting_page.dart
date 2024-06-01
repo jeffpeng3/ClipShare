@@ -58,6 +58,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
   bool hasShizukuPerm = false;
   bool hasFloatPerm = false;
   bool hasIgnoreBattery = false;
+  bool hasSmsReadPerm = true;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -113,6 +114,12 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
           hasIgnoreBattery = v;
         });
       });
+      PermissionHelper.testAndroidReadSms().then(
+        (granted) {
+          //有权限或者不需要读取短信则视为有权限
+          hasSmsReadPerm = granted || !App.settings.enableSmsSync;
+        },
+      );
     }
   }
 
@@ -296,6 +303,19 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                             if (!hasIgnoreBattery) {
                               ignoreBatteryHandler.request();
                             }
+                          },
+                        ),
+                        SettingCard(
+                          main: const Text("短信读取"),
+                          sub: const Text("已开启短信同步功能，请授予短信读取权限"),
+                          value: hasSmsReadPerm,
+                          action: (val) => Icon(
+                            val ? Icons.check_circle : Icons.help,
+                            color: val ? Colors.green : Colors.orange,
+                          ),
+                          show: (v) => Platform.isAndroid && !v,
+                          onTap: () {
+                            PermissionHelper.reqAndroidReadSms();
                           },
                         ),
                       ],
@@ -759,25 +779,43 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                             "符合规则的短信将自动同步",
                             maxLines: 1,
                           ),
-                          value: false,
-                          show: (v) => PlatformExt.isMobile,
+                          value: vm.enableSmsSync,
+                          show: (v) => Platform.isAndroid,
                           action: (v) {
-                            return Switch(value: v, onChanged: (checked) {});
-                          },
-                        ),
-                        SettingCard(
-                          main: const Text(
-                            "文件同步",
-                            maxLines: 1,
-                          ),
-                          sub: const Text(
-                            "符合规则的文件将允许同步",
-                            maxLines: 1,
-                          ),
-                          value: false,
-                          show: (v) => PlatformExt.isPC,
-                          action: (v) {
-                            return Switch(value: v, onChanged: (checked) {});
+                            return Switch(
+                              value: v,
+                              onChanged: (checked) async {
+                                if (checked) {
+                                  var isGranted = await PermissionHelper
+                                      .testAndroidReadSms();
+                                  if (!isGranted) {
+                                    Global.showTipsDialog(
+                                      context: context,
+                                      text: "请先授予短信读取权限",
+                                      okText: "去授权",
+                                      showCancel: true,
+                                      onOk: () async {
+                                        await PermissionHelper
+                                            .reqAndroidReadSms();
+                                        if (await PermissionHelper
+                                            .testAndroidReadSms()) {
+                                          context.ref
+                                              .notifier(settingProvider)
+                                              .setEnableSmsSync(true);
+                                          AndroidChannel.startSmsListen();
+                                        }
+                                      },
+                                    );
+                                    return;
+                                  }
+                                } else {
+                                  AndroidChannel.stopSmsListen();
+                                }
+                                context.ref
+                                    .notifier(settingProvider)
+                                    .setEnableSmsSync(checked);
+                              },
+                            );
                           },
                         ),
                         SettingCard(

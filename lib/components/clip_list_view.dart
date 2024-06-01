@@ -356,7 +356,7 @@ class ClipListViewState extends State<ClipListView>
                                       });
                                     },
                                     icon: const Icon(
-                                        Icons.keyboard_double_arrow_right),
+                                        Icons.keyboard_double_arrow_right,),
                                   ),
                                 ),
                                 const Padding(

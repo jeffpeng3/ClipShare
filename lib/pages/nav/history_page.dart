@@ -195,6 +195,12 @@ class HistoryPageState extends State<HistoryPage>
         break;
       case ContentType.file:
         break;
+      case ContentType.sms:
+        //todo 判断是否符合短信同步规则，符合则继续，否则终止
+        if (false) {
+          return;
+        }
+        break;
       default:
         throw Exception("UnSupport Type: ${type.label}-${type.value}");
     }
@@ -227,18 +233,21 @@ class HistoryPageState extends State<HistoryPage>
         history.id.toString(),
       );
       AppDb.inst.opRecordDao.addAndNotify(opRecord);
-      if (ContentType.parse(history.type) == ContentType.text) {
-        var regulars = jsonDecode(App.settings.tagRegulars)["data"];
-        for (var reg in regulars) {
-          if (history.content.matchRegExp(reg["regular"])) {
-            //添加标签
-            var tag = HistoryTag(
-              reg["name"],
-              history.id,
-            );
-            context.ref.notifier(HistoryTagProvider.inst).add(tag);
+      switch (ContentType.parse(history.type)) {
+        case ContentType.text:
+          var regulars = jsonDecode(App.settings.tagRegulars)["data"];
+          for (var reg in regulars) {
+            if (history.content.matchRegExp(reg["regular"])) {
+              //添加标签
+              var tag = HistoryTag(
+                reg["name"],
+                history.id,
+              );
+              context.ref.notifier(HistoryTagProvider.inst).add(tag);
+            }
           }
-        }
+          break;
+        default:
       }
       return cnt;
     });

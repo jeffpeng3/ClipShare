@@ -420,6 +420,10 @@ class _LoadingPageState extends State<LoadingPage> {
       "appPassword",
       App.userId,
     );
+    var enableSmsSync = await cfg.getConfig(
+      "enableSmsSync",
+      App.userId,
+    );
     var fileStoreDir = Directory(fileStorePath ?? App.defaultFileStorePath);
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
@@ -448,6 +452,7 @@ class _LoadingPageState extends State<LoadingPage> {
       useAuthentication: useAuthentication?.toBool() ?? false,
       appRevalidateDuration: appRevalidateDuration?.toInt() ?? 0,
       appPassword: appPassword,
+      enableSmsSync: enableSmsSync?.toBool()??false,
     );
     if (Platform.isAndroid) {
       if (App.settings.showHistoryFloat) {

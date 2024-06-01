@@ -130,8 +130,8 @@ class SyncFileStatus extends StatelessWidget {
                                       context.ref
                                           .read(syncingFileProgressProvider)
                                           .removeSyncingFile(
-                                        syncingFile.filePath,
-                                      );
+                                            syncingFile.filePath,
+                                          );
                                     },
                                     icon: const Icon(
                                       color: Colors.red,
@@ -198,8 +198,11 @@ class SyncFileStatus extends StatelessWidget {
                                                     ),
                                                     color: Colors.grey,
                                                   ),
-                                                  Text(
-                                                    "${syncingFile.speed.sizeStr}/s",
+                                                  Visibility(
+                                                    visible: !isLocal,
+                                                    child: Text(
+                                                      "${syncingFile.speed.sizeStr}/s",
+                                                    ),
                                                   ),
                                                   Container(
                                                     width: 1,
@@ -220,11 +223,14 @@ class SyncFileStatus extends StatelessWidget {
                                             ),
                                           ],
                                         ),
-                                        Text(
-                                          syncingFile.state ==
-                                                  SyncingFileState.error
-                                              ? '失败'
-                                              : "${(factor * 10000).round() / 100}%",
+                                        Visibility(
+                                          visible: !isLocal,
+                                          child: Text(
+                                            syncingFile.state ==
+                                                    SyncingFileState.error
+                                                ? '失败'
+                                                : "${(factor * 10000).round() / 100}%",
+                                          ),
                                         ),
                                         Row(
                                           children: [

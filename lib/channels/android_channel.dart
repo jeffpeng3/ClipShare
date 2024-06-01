@@ -18,6 +18,8 @@ class AndroidChannelMethod {
   static const toast = "toast";
   static const sendNotify = "sendNotify";
   static const copyFileFromUri = "copyFileFromUri";
+  static const startSmsListen = "startSmsListen";
+  static const stopSmsListen = "stopSmsListen";
 }
 
 class AndroidChannel {
@@ -116,6 +118,20 @@ class AndroidChannel {
         "content": content,
         "savedPath": savedPath,
       },
+    );
+  }
+
+  ///开启短信监听
+  static Future<void> startSmsListen() {
+    return App.androidChannel.invokeMethod<String?>(
+      AndroidChannelMethod.startSmsListen,
+    );
+  }
+
+  ///关闭短信监听
+  static Future<void> stopSmsListen() {
+    return App.androidChannel.invokeMethod<String?>(
+      AndroidChannelMethod.stopSmsListen,
     );
   }
 }

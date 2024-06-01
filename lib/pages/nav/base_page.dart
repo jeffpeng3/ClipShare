@@ -13,10 +13,11 @@ import 'package:clipshare/pages/nav/debug_page.dart';
 import 'package:clipshare/pages/nav/devices_page.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/pages/nav/setting_page.dart';
-import 'package:clipshare/pages/syncing_file_page.dart';
+import 'package:clipshare/pages/nav/syncing_file_page.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/log.dart';
+import 'package:clipshare/util/permission_helper.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -323,7 +324,7 @@ class _BasePageState extends State<BasePage>
   }
 
   ///初始化 initAndroid 平台
-  void _initAndroid() {
+  Future<void> _initAndroid() async {
     //检查权限
     var permHandlers = [
       FloatPermHandler(),
@@ -336,6 +337,11 @@ class _BasePageState extends State<BasePage>
           handler.request();
         }
       });
+    }
+    //如果开启短信同步且有短信权限则启动短信监听
+    if (App.settings.enableSmsSync &&
+        await PermissionHelper.testAndroidReadSms()) {
+      AndroidChannel.startSmsListen();
     }
   }
 

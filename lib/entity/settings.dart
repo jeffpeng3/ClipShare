@@ -62,8 +62,11 @@ class Settings {
   //app密码重新验证时长
   final int appRevalidateDuration;
 
-  //app密码重新验证时长
+  //app密码
   final String? appPassword;
+
+  //是否启用短信同步
+  final bool enableSmsSync;
 
   Settings({
     required this.port,
@@ -86,6 +89,7 @@ class Settings {
     required this.useAuthentication,
     required this.appRevalidateDuration,
     required this.syncFileHotKeys,
+    required this.enableSmsSync,
     this.appPassword,
   });
 
@@ -111,6 +115,7 @@ class Settings {
     int? appRevalidateDuration,
     String? appPassword,
     String? syncFileHotKeys,
+    bool? enableSmsSync,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -137,6 +142,7 @@ class Settings {
       appRevalidateDuration:
           appRevalidateDuration ?? this.appRevalidateDuration,
       appPassword: appPassword ?? this.appPassword,
+      enableSmsSync: enableSmsSync ?? this.enableSmsSync,
     );
   }
 }

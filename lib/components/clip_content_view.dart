@@ -29,7 +29,7 @@ class _ClipContentViewState extends State<ClipContentView> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.clipData.isText
+    return widget.clipData.isText || widget.clipData.isSms
         ? LargeText(
             text: widget.clipData.data.content,
             blockSize: 5000,

@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 class PermissionHelper {
   PermissionHelper._private();
+
   static const tag = "PermissionHelper";
 
   ///测试存储权限
@@ -61,5 +62,18 @@ class PermissionHelper {
         return false;
       }
     }
+  }
+
+  ///Android短信读取权限
+  static Future<bool> testAndroidReadSms() async {
+    if (!Platform.isAndroid) return false;
+    return await Permission.sms.isGranted;
+  }
+
+  ///Android短信读取权限请求
+  static Future<void> reqAndroidReadSms() async {
+    if (!Platform.isAndroid) return;
+    var status = await Permission.sms.request();
+    Log.info(tag, "request AndroidReadSms: $status");
   }
 }
