@@ -1,22 +1,19 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:clipshare/channels/android_channel.dart';
 import 'package:clipshare/components/auth_password_input.dart';
 import 'package:clipshare/components/authentication_time_setting_dialog.dart';
 import 'package:clipshare/components/hot_key_editor.dart';
-import 'package:clipshare/components/regular_setting_add_dialog.dart';
 import 'package:clipshare/components/settings/card/setting_card.dart';
 import 'package:clipshare/components/settings/card/setting_card_group.dart';
 import 'package:clipshare/components/settings/text_edit_dialog.dart';
-import 'package:clipshare/db/app_db.dart';
-import 'package:clipshare/entity/tables/operation_record.dart';
 import 'package:clipshare/handler/hot_key_handler.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/nav/base_page.dart';
-import 'package:clipshare/pages/settings/regular_setting_page.dart';
+import 'package:clipshare/pages/settings/sms_rules_setting_page.dart';
+import 'package:clipshare/pages/settings/tag_rules_setting_page.dart';
 import 'package:clipshare/pages/update_log_page.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
@@ -513,7 +510,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
 
                     ///安全设置
                     SettingCardGroup(
-                      groupName: "安全设置",
+                      groupName: "安全",
                       icon: const Icon(Icons.fingerprint_outlined),
                       cardList: [
                         SettingCard(
@@ -571,7 +568,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                   //第一步验证
                                   App.authenticating = true;
                                   BasePage.pageKey.currentState
-                                      ?.gotoAuthenticationPage(false)
+                                      ?.gotoAuthenticationPage("身份验证", false)
                                       .then((v) {
                                     //null为正常验证，设置密码，否则主动退出
                                     if (v != null) {
@@ -788,7 +785,9 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                 if (checked) {
                                   var isGranted = await PermissionHelper
                                       .testAndroidReadSms();
-                                  if (!isGranted) {
+                                  if (isGranted) {
+                                    AndroidChannel.startSmsListen();
+                                  } else {
                                     Global.showTipsDialog(
                                       context: context,
                                       text: "请先授予短信读取权限",
@@ -934,84 +933,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                           action: (v) {
                             return TextButton(
                               onPressed: () {
-                                var page = RegularSettingPage(
-                                  initData: jsonDecode(
-                                    App.settings.tagRegulars,
-                                  )["data"],
-                                  onAdd: (data, remove) {
-                                    var tag = data["name"] as String?;
-                                    var regular = data["regular"] as String?;
-                                    if (tag.isNullOrEmpty ||
-                                        regular.isNullOrEmpty) {
-                                      Global.showTipsDialog(
-                                        context: context,
-                                        text: "请输入完整！",
-                                      );
-                                      return null;
-                                    }
-                                    var key = UniqueKey();
-                                    return SettingCard(
-                                      key: key,
-                                      main: Text(
-                                        "标签：$tag",
-                                        maxLines: 1,
-                                      ),
-                                      sub: Text(
-                                        "规则：$regular",
-                                        maxLines: 1,
-                                      ),
-                                      value: data,
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(8.0),
-                                      ),
-                                      action: (data) {
-                                        return IconButton(
-                                          onPressed: () {
-                                            remove(key);
-                                          },
-                                          icon: const Icon(
-                                            Icons.delete_outline,
-                                            color: Colors.red,
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                  editDialogLayout: (onChange) {
-                                    return RegularSettingAddDialog(
-                                      onChange: onChange,
-                                    );
-                                  },
-                                  confirm: (res) async {
-                                    var oldValue = jsonDecode(
-                                      App.settings.tagRegulars,
-                                    );
-                                    var data = {
-                                      "version": oldValue["version"] + 1,
-                                      "data": res,
-                                    };
-                                    var json = jsonEncode(data);
-                                    var opRecord = OperationRecord.fromSimple(
-                                      Module.rules,
-                                      OpMethod.update,
-                                      jsonEncode({
-                                        "rule": Rule.tag.name,
-                                        "data": data,
-                                      }),
-                                    );
-                                    await AppDb.inst.opRecordDao.removeByModule(
-                                      Module.rules.moduleName,
-                                      App.userId,
-                                    );
-                                    await ref
-                                        .notifier(settingProvider)
-                                        .setTagRegulars(json);
-
-                                    AppDb.inst.opRecordDao
-                                        .addAndNotify(opRecord);
-                                  },
-                                  title: "标签规则配置",
-                                );
+                                var page = const TagRuleSettingPage();
                                 if (App.isSmallScreen) {
                                   Navigator.push(
                                     context,
@@ -1033,36 +955,34 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                         ),
                         SettingCard(
                           main: const Text(
-                            "文件规则",
-                            maxLines: 1,
-                          ),
-                          sub: const Text(
-                            "符合指定文件扩展或大小的文件将会允许同步",
-                            maxLines: 1,
-                          ),
-                          value: false,
-                          show: (v) => PlatformExt.isPC,
-                          action: (v) {
-                            return TextButton(
-                              onPressed: true ? null : () {},
-                              child: const Text("配置"),
-                            );
-                          },
-                        ),
-                        SettingCard(
-                          main: const Text(
                             "短信规则",
                             maxLines: 1,
                           ),
                           sub: const Text(
-                            "符合规则的短信将会同步",
+                            "符合规则的短信将会同步，若未配置则全部同步",
                             maxLines: 1,
                           ),
                           value: false,
-                          show: (v) => PlatformExt.isMobile,
+                          show: (v) => Platform.isAndroid || true,
                           action: (v) {
                             return TextButton(
-                              onPressed: true ? null : () {},
+                              onPressed: () {
+                                var page = const SmsRuleSettingPage();
+                                if (App.isSmallScreen) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => page,
+                                    ),
+                                  );
+                                } else {
+                                  Global.showDialogPage(
+                                    context: context,
+                                    child: page,
+                                    dismissible: false,
+                                  );
+                                }
+                              },
                               child: const Text("配置"),
                             );
                           },

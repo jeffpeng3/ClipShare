@@ -44,22 +44,34 @@ class RulesSyncer implements SyncListener {
     Rule rule = Rule.getValue(json["rule"]);
     Map<String, dynamic> data = json["data"];
     int newVersion = data["version"];
-
+    dynamic localTagRules = {};
     switch (rule) {
       case Rule.tag:
-        var localTagRules = jsonDecode(App.settings.tagRegulars);
-        var localVersion = localTagRules["version"];
-        if (localVersion <= newVersion) {
-          //小于发送过来的版本，更新本地
-          f.then((v) {
-            ref.notifier(settingProvider).setTagRegulars(jsonEncode(data));
-          });
-        }
+        localTagRules = jsonDecode(App.settings.tagRules);
+        break;
+      case Rule.sms:
+        localTagRules = jsonDecode(App.settings.smsRules);
         break;
       default:
         return;
     }
 
+    var localVersion = localTagRules["version"];
+    if (localVersion <= newVersion) {
+      //小于发送过来的版本，更新本地
+      f.then((v) {
+        switch (rule) {
+          case Rule.tag:
+            ref.notifier(settingProvider).setTagRules(jsonEncode(data));
+            break;
+          case Rule.sms:
+            ref.notifier(settingProvider).setSmsRules(jsonEncode(data));
+            break;
+          default:
+            return;
+        }
+      });
+    }
     f.then((cnt) {
       //发送同步确认
       SocketListener.inst.sendData(

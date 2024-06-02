@@ -1,32 +1,33 @@
 import 'package:clipshare/util/extension.dart';
 import 'package:flutter/material.dart';
 
-class RegularSettingAddDialog extends StatefulWidget {
+class RuleSettingAddDialog extends StatefulWidget {
   final Function(Map<String, dynamic>) onChange;
-
-  const RegularSettingAddDialog({super.key, required this.onChange});
+  final String labelText;
+  final String hintText;
+  const RuleSettingAddDialog({super.key, required this.onChange, required this.labelText, required this.hintText});
 
   @override
   State<StatefulWidget> createState() {
-    return _RegularSettingAddDialogState();
+    return _RuleSettingAddDialogState();
   }
 }
 
-class _RegularSettingAddDialogState extends State<RegularSettingAddDialog> {
+class _RuleSettingAddDialogState extends State<RuleSettingAddDialog> {
   final TextEditingController _tagController = TextEditingController();
-  final TextEditingController _regularController = TextEditingController();
+  final TextEditingController _ruleController = TextEditingController();
   final TextEditingController _verifyController = TextEditingController();
   String _tagName = "";
-  String _regular = "";
+  String _rule = "";
   bool _showTagErr = false;
-  bool _showRegularErr = false;
+  bool _showRuleErr = false;
   bool _showVerifyErr = false;
   bool _useVerify = false;
 
   void _onChange() {
     widget.onChange({
       "name": _tagName,
-      "regular": _regular,
+      "rule": _rule,
     });
   }
 
@@ -40,9 +41,9 @@ class _RegularSettingAddDialogState extends State<RegularSettingAddDialog> {
             controller: _tagController,
             autofocus: true,
             decoration: InputDecoration(
-              labelText: "标签名",
-              hintText: "请输入标签名",
-              errorText: _showTagErr ? "标签名不能为空" : null,
+              labelText: widget.labelText,
+              hintText: widget.hintText,
+              errorText: _showTagErr ? "${widget.labelText}不能为空" : null,
               border: const OutlineInputBorder(),
             ),
             onChanged: (txt) {
@@ -57,23 +58,23 @@ class _RegularSettingAddDialogState extends State<RegularSettingAddDialog> {
             height: 10,
           ),
           TextField(
-            controller: _regularController,
+            controller: _ruleController,
             decoration: InputDecoration(
               labelText: "规则",
               hintText: "请输入正则表达式",
-              errorText: _showRegularErr ? "规则不能为空" : null,
+              errorText: _showRuleErr ? "规则不能为空" : null,
               border: const OutlineInputBorder(),
             ),
             onChanged: (txt) {
-              _regular = txt;
+              _rule = txt;
               _onChange();
               setState(() {
-                _showRegularErr = txt == "";
+                _showRuleErr = txt == "";
               });
               setState(() {
                 try {
                   _showVerifyErr =
-                      !_verifyController.text.matchRegExp(_regular);
+                      !_verifyController.text.matchRegExp(_rule);
                 } catch (e) {
                   _showVerifyErr = true;
                 }
@@ -123,7 +124,7 @@ class _RegularSettingAddDialogState extends State<RegularSettingAddDialog> {
               onChanged: (txt) {
                 setState(() {
                   try {
-                    _showVerifyErr = !txt.matchRegExp(_regular);
+                    _showVerifyErr = !txt.matchRegExp(_rule);
                   } catch (e) {
                     _showVerifyErr = true;
                   }

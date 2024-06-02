@@ -196,8 +196,19 @@ class HistoryPageState extends State<HistoryPage>
       case ContentType.file:
         break;
       case ContentType.sms:
-        //todo 判断是否符合短信同步规则，符合则继续，否则终止
-        if (false) {
+        //判断是否符合短信同步规则，符合则继续，否则终止
+        var rules = jsonDecode(
+          App.settings.smsRules,
+        )["data"] as List<dynamic>;
+        var hasMatch = false;
+        for (var rule in rules) {
+          if (content.matchRegExp(rule["rule"])) {
+            hasMatch = true;
+            break;
+          }
+        }
+        //规则列表不为空且未匹配成功，忽略
+        if (rules.isNotEmpty && !hasMatch) {
           return;
         }
         break;
@@ -235,12 +246,12 @@ class HistoryPageState extends State<HistoryPage>
       AppDb.inst.opRecordDao.addAndNotify(opRecord);
       switch (ContentType.parse(history.type)) {
         case ContentType.text:
-          var regulars = jsonDecode(App.settings.tagRegulars)["data"];
-          for (var reg in regulars) {
-            if (history.content.matchRegExp(reg["regular"])) {
+          var rules = jsonDecode(App.settings.tagRules)["data"];
+          for (var rule in rules) {
+            if (history.content.matchRegExp(rule["rule"])) {
               //添加标签
               var tag = HistoryTag(
-                reg["name"],
+                rule["name"],
                 history.id,
               );
               context.ref.notifier(HistoryTagProvider.inst).add(tag);

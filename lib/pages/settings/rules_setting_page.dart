@@ -6,7 +6,7 @@ import 'package:clipshare/main.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:flutter/material.dart';
 
-class RegularSettingPage extends StatefulWidget {
+class RuleSettingPage extends StatefulWidget {
   final SettingCard<Map<String, dynamic>>? Function(
     Map<String, dynamic>,
     Function(Key),
@@ -17,7 +17,7 @@ class RegularSettingPage extends StatefulWidget {
   final List<dynamic> initData;
   final String title;
 
-  const RegularSettingPage({
+  const RuleSettingPage({
     super.key,
     required this.onAdd,
     required this.confirm,
@@ -28,11 +28,11 @@ class RegularSettingPage extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return _RegularSettingPageState();
+    return _RuleSettingPageState();
   }
 }
 
-class _RegularSettingPageState extends State<RegularSettingPage> {
+class _RuleSettingPageState extends State<RuleSettingPage> {
   final List<SettingCard<Map<String, dynamic>>> _list =
       List.empty(growable: true);
   Map<String, dynamic> _addData = {};

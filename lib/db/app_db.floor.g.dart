@@ -905,6 +905,17 @@ class _$OperationRecordDao extends OperationRecordDao {
   }
 
   @override
+  Future<int?> removeRuleRecord(
+    String rule,
+    int uid,
+  ) async {
+    return _queryAdapter.query(
+        'delete from OperationRecord where uid = ?2 and module = \'规则设置\' and substr(data,instr(data,\':\') + 2,instr(data,\',\') - 3 - instr(data,\':\')) = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [rule, uid]);
+  }
+
+  @override
   Future<int> add(OperationRecord record) {
     return _operationRecordInsertionAdapter.insertAndReturnId(
         record, OnConflictStrategy.abort);

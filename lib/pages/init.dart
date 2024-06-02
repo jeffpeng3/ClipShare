@@ -320,7 +320,7 @@ class _LoadingPageState extends State<LoadingPage> {
         builder: (context) => OnlineDevicesPage(
           showAppBar: true,
           devices: devices,
-          onSendClicked: (BuildContext context,List<Device> selectedDevices) {
+          onSendClicked: (BuildContext context, List<Device> selectedDevices) {
             FileSyncer.sendFiles(
               devices: selectedDevices,
               paths: files,
@@ -380,8 +380,12 @@ class _LoadingPageState extends State<LoadingPage> {
       "enableLogsRecord",
       App.userId,
     );
-    var tagRegulars = await cfg.getConfig(
-      "tagRegulars",
+    var tagRules = await cfg.getConfig(
+      "tagRules",
+      App.userId,
+    );
+    var smsRules = await cfg.getConfig(
+      "smsRules",
       App.userId,
     );
     var historyWindowKeys = await cfg.getConfig(
@@ -440,7 +444,8 @@ class _LoadingPageState extends State<LoadingPage> {
       rememberWindowSize: rememberWindowSize?.toBool() ?? false,
       lockHistoryFloatLoc: lockHistoryFloatLoc?.toBool() ?? true,
       enableLogsRecord: enableLogsRecord?.toBool() ?? false,
-      tagRegulars: tagRegulars ?? Constants.defaultTags,
+      tagRules: tagRules ?? Constants.defaultTagRules,
+      smsRules: smsRules ?? Constants.defaultSmsRules,
       historyWindowHotKeys:
           historyWindowKeys ?? Constants.defaultHistoryWindowKeys,
       syncFileHotKeys: syncFileHotKeys ?? Constants.defaultSyncFileHotKeys,
@@ -452,7 +457,7 @@ class _LoadingPageState extends State<LoadingPage> {
       useAuthentication: useAuthentication?.toBool() ?? false,
       appRevalidateDuration: appRevalidateDuration?.toInt() ?? 0,
       appPassword: appPassword,
-      enableSmsSync: enableSmsSync?.toBool()??false,
+      enableSmsSync: enableSmsSync?.toBool() ?? false,
     );
     if (Platform.isAndroid) {
       if (App.settings.showHistoryFloat) {

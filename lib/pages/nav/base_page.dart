@@ -144,7 +144,7 @@ class _BasePageState extends State<BasePage>
         if (offsetMinutes < authDurationSeconds) {
           return;
         }
-        gotoAuthenticationPage();
+        gotoAuthenticationPage("超时验证");
         break;
       case AppLifecycleState.paused:
         if (App.authenticating) {
@@ -159,13 +159,14 @@ class _BasePageState extends State<BasePage>
   }
 
   ///跳转验证页面
-  Future gotoAuthenticationPage([bool lock = true]) {
+  Future gotoAuthenticationPage(localizedReason, [bool lock = true]) {
     App.authenticating = true;
     return Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => AuthenticationPage(
           lock: lock,
+          localizedReason: localizedReason,
         ),
       ),
     );
@@ -176,7 +177,7 @@ class _BasePageState extends State<BasePage>
     //此处应该发送socket通知同步剪贴板到本机
     SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
     if (App.authenticating || !App.settings.useAuthentication) return;
-    gotoAuthenticationPage();
+    gotoAuthenticationPage("超时验证");
   }
 
   ///导航至搜索页面

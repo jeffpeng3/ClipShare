@@ -33,7 +33,10 @@ class Settings {
   final bool rememberWindowSize;
 
   //标签规则
-  final String tagRegulars;
+  final String tagRules;
+
+  //短信规则
+  final String smsRules;
 
   //启用日志记录
   final bool enableLogsRecord;
@@ -80,7 +83,8 @@ class Settings {
     required this.rememberWindowSize,
     required this.lockHistoryFloatLoc,
     required this.enableLogsRecord,
-    required this.tagRegulars,
+    required this.tagRules,
+    required this.smsRules,
     required this.historyWindowHotKeys,
     required this.heartbeatInterval,
     required this.fileStorePath,
@@ -105,7 +109,8 @@ class Settings {
     bool? rememberWindowSize,
     bool? lockHistoryFloatLoc,
     bool? enableLogsRecord,
-    String? tagRegulars,
+    String? tagRules,
+    String? smsRules,
     String? historyWindowHotKeys,
     int? heartbeatInterval,
     String? fileStorePath,
@@ -130,7 +135,8 @@ class Settings {
       rememberWindowSize: rememberWindowSize ?? this.rememberWindowSize,
       lockHistoryFloatLoc: lockHistoryFloatLoc ?? this.lockHistoryFloatLoc,
       enableLogsRecord: enableLogsRecord ?? this.enableLogsRecord,
-      tagRegulars: tagRegulars ?? this.tagRegulars,
+      tagRules: tagRules ?? this.tagRules,
+      smsRules: smsRules ?? this.smsRules,
       historyWindowHotKeys: historyWindowHotKeys ?? this.historyWindowHotKeys,
       syncFileHotKeys: syncFileHotKeys ?? this.syncFileHotKeys,
       heartbeatInterval: heartbeatInterval ?? this.heartbeatInterval,

@@ -22,16 +22,23 @@ class Constants {
   //组播心跳时长
   static const heartbeatInterval = 30;
 
-  //默认标签
-  static final defaultTags = jsonEncode(
+  //默认标签规则
+  static final defaultTagRules = jsonEncode(
     {
       "version": 1,
       "data": [
         {
           "name": "链接",
-          "regular": r"[a-zA-z]+://[^\s]*",
+          "rule": r"[a-zA-z]+://[^\s]*",
         }
       ],
+    },
+  );
+  //默认短信规则
+  static final defaultSmsRules = jsonEncode(
+    {
+      "version": 0,
+      "data": [],
     },
   );
 
@@ -211,8 +218,7 @@ enum OpMethod {
 
 enum Rule {
   tag,
-  file,
-  message,
+  sms,
   unknown;
 
   static Rule getValue(String name) => Rule.values.firstWhere(

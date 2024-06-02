@@ -53,4 +53,10 @@ abstract class OperationRecordDao {
     "delete from OperationRecord where uid = :uid and module = :module",
   )
   Future<int?> removeByModule(String module, int uid);
+
+  /// 删除指定模块的同步记录(Android 不支持 json_extract)
+  @Query(
+    r"delete from OperationRecord where uid = :uid and module = '规则设置' and substr(data,instr(data,':') + 2,instr(data,',') - 3 - instr(data,':')) = :rule",
+  )
+  Future<int?> removeRuleRecord(String rule, int uid);
 }

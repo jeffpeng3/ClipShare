@@ -113,10 +113,17 @@ class SettingProvider extends Notifier<Settings> {
     );
   }
 
-  Future<void> setTagRegulars(String tagRegulars) async {
-    await _addOrUpdate("tagRegulars", tagRegulars);
+  Future<void> setTagRules(String tagRules) async {
+    await _addOrUpdate("tagRules", tagRules);
     App.settings = state = state.copyWith(
-      tagRegulars: tagRegulars,
+      tagRules: tagRules,
+    );
+  }
+
+  Future<void> setSmsRules(String smsRules) async {
+    await _addOrUpdate("smsRules", smsRules);
+    App.settings = state = state.copyWith(
+      smsRules: smsRules,
     );
   }
 

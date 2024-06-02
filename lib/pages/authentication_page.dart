@@ -12,8 +12,9 @@ import 'package:local_auth_android/local_auth_android.dart';
 
 class AuthenticationPage extends StatefulWidget {
   final bool lock;
+  final String localizedReason;
 
-  const AuthenticationPage({super.key, this.lock = true});
+  const AuthenticationPage({super.key, this.lock = true, required this.localizedReason});
 
   @override
   State<StatefulWidget> createState() {
@@ -133,7 +134,7 @@ class _AuthenticationState extends State<AuthenticationPage> {
             signInTitle: "需要身份验证",
           ),
         ],
-        localizedReason: '超时验证',
+        localizedReason: widget.localizedReason,
       );
       _authenticating = false;
       Log.debug(tag, "authenticated $authenticated");
