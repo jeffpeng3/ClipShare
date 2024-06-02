@@ -14,7 +14,8 @@ class AuthenticationPage extends StatefulWidget {
   final bool lock;
   final String localizedReason;
 
-  const AuthenticationPage({super.key, this.lock = true, required this.localizedReason});
+  const AuthenticationPage(
+      {super.key, this.lock = true, required this.localizedReason});
 
   @override
   State<StatefulWidget> createState() {
@@ -51,6 +52,7 @@ class _AuthenticationState extends State<AuthenticationPage> {
       isDismissible: false,
       elevation: 100,
       builder: (BuildContext context) {
+        authenticate();
         return Container(
           constraints: const BoxConstraints(minWidth: 500),
           padding: const EdgeInsets.only(bottom: 30, top: 10),
@@ -88,7 +90,9 @@ class _AuthenticationState extends State<AuthenticationPage> {
                       size: 100,
                     ),
                     TextButton(
-                        onPressed: authenticate, child: const Text("开始验证")),
+                      onPressed: authenticate,
+                      child: const Text("开始验证"),
+                    ),
                   ],
                 ),
               ],

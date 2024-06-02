@@ -11,6 +11,7 @@ import 'package:clipshare/handler/hot_key_handler.dart';
 import 'package:clipshare/handler/permission_handler.dart';
 import 'package:clipshare/listeners/socket_listener.dart';
 import 'package:clipshare/main.dart';
+import 'package:clipshare/pages/log/log_list_page.dart';
 import 'package:clipshare/pages/nav/base_page.dart';
 import 'package:clipshare/pages/settings/sms_rules_setting_page.dart';
 import 'package:clipshare/pages/settings/tag_rules_setting_page.dart';
@@ -1039,6 +1040,22 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                             maxLines: 1,
                           ),
                           value: vm.enableLogsRecord,
+                          onTap: () {
+                            var page = const LogListPage();
+                            if (App.isSmallScreen) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => page,
+                                ),
+                              );
+                            } else {
+                              Global.showDialogPage(
+                                context: context,
+                                child: page,
+                              );
+                            }
+                          },
                           action: (v) {
                             return Switch(
                               value: v,

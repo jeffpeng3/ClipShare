@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 class Global {
   Global._private();
+
   static void toast(String text) {
     AndroidChannel.toast(text);
   }
@@ -64,7 +65,7 @@ class Global {
                   visible: showNeutral,
                   child: TextButton(
                     onPressed: () {
-                      if(autoDismiss) {
+                      if (autoDismiss) {
                         Navigator.pop(context);
                       }
                       onNeutral?.call();
@@ -79,7 +80,7 @@ class Global {
                         visible: showCancel,
                         child: TextButton(
                           onPressed: () {
-                            if(autoDismiss) {
+                            if (autoDismiss) {
                               Navigator.pop(context);
                             }
                             onCancel?.call();
@@ -91,7 +92,7 @@ class Global {
                         visible: showOk,
                         child: TextButton(
                           onPressed: () {
-                            if(autoDismiss) {
+                            if (autoDismiss) {
                               Navigator.pop(context);
                             }
                             onOk?.call();
@@ -114,6 +115,7 @@ class Global {
     required BuildContext context,
     required Widget child,
     dismissible = true,
+    double? maxWidth=350,
   }) {
     showDialog(
       context: context,
@@ -123,8 +125,8 @@ class Global {
         return Center(
           child: Container(
             constraints: BoxConstraints(
-              maxWidth: 350,
-              maxHeight: min(h * 0.7, 350 * 1.618),
+              maxWidth: maxWidth ?? double.infinity,
+              maxHeight: min(h * 0.7, (maxWidth ?? 350) * 1.618),
             ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
