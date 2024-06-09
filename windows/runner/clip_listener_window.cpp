@@ -305,6 +305,17 @@ bool DIBToPNG(const HBITMAP hbtmip, const std::wstring* outputPath)
 	return true;
 }
 
+std::wstring getExecutableDir() {
+	wchar_t buffer[MAX_PATH];
+	DWORD length = GetModuleFileNameW(NULL, buffer, MAX_PATH);
+	if (length == 0) {
+		// Handle error
+		return L"";
+	}
+	std::wstring path(buffer, length);
+	size_t pos = path.find_last_of(L"\\/");
+	return (std::wstring::npos == pos) ? L"" : path.substr(0, pos + 1);
+}
 std::wstring* GetClipboardImg()
 {
 	// 尝试获取剪贴板中的数据
@@ -337,8 +348,9 @@ std::wstring* GetClipboardImg()
 	reg = std::regex(" +");
 	currentTime = std::regex_replace(currentTime, reg, "_");
 	auto timeStr = std::wstring(currentTime.begin(), currentTime.end());
+	auto execDir = getExecutableDir();
 	// 拼接图片临时存储路径
-	const auto path = new std::wstring(L"tmp/" + timeStr + L".png");
+	const auto path = new std::wstring(execDir + L"tmp/" + timeStr + L".png");
 	//位图转PNG存储
 	auto res = DIBToPNG(hBitmap, path);
 	ReleaseDC(nullptr, hdc);
