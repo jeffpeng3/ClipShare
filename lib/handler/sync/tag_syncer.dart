@@ -37,42 +37,34 @@ class TagSyncer implements SyncListener {
     var opRecord = OperationRecord.fromJson(msg.data);
     Map<String, dynamic> json = jsonDecode(opRecord.data);
     HistoryTag tag = HistoryTag.fromJson(json);
-    Future? f;
+    Future f = Future(() => null);
     switch (opRecord.method) {
       case OpMethod.add:
         f = AppDb.inst.historyTagDao.add(tag).then((cnt) {
           App.context.notifier(HistoryTagProvider.inst).add(tag, false);
+          return cnt;
         });
         break;
       case OpMethod.delete:
-        AppDb.inst.historyTagDao.removeById(tag.id).then((cnt) {
+        f = AppDb.inst.historyTagDao.removeById(tag.id).then((cnt) {
           App.context.notifier(HistoryTagProvider.inst).remove(tag, false);
+          return cnt;
         });
-        break;
-      case OpMethod.update:
-        //todo 应该没有更新操作
-        f = AppDb.inst.historyTagDao.updateTag(tag);
         break;
       default:
         return;
     }
 
-    if (f == null) {
+    f.then((cnt) {
+      if (cnt != null && cnt > 0) {
+        AppDb.inst.opRecordDao.add(opRecord.copyWith(tag.id.toString()));
+      }
       //发送同步确认
       SocketListener.inst.sendData(
         send,
         MsgType.ackSync,
         {"id": opRecord.id, "module": Module.tag.moduleName},
       );
-    } else {
-      f.then((cnt) {
-        //发送同步确认
-        SocketListener.inst.sendData(
-          send,
-          MsgType.ackSync,
-          {"id": opRecord.id, "module": Module.tag.moduleName},
-        );
-      });
-    }
+    });
   }
 }

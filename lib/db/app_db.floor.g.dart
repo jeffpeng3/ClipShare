@@ -76,7 +76,7 @@ class _$_AppDb extends _AppDb {
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 1,
+      version: 2,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -104,7 +104,7 @@ class _$_AppDb extends _AppDb {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `HistoryTag` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `tagName` TEXT NOT NULL, `hisId` INTEGER NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `OperationRecord` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` INTEGER NOT NULL, `module` TEXT NOT NULL, `method` TEXT NOT NULL, `data` TEXT NOT NULL, `time` TEXT NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `OperationRecord` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` INTEGER NOT NULL, `devId` TEXT NOT NULL, `module` TEXT NOT NULL, `method` TEXT NOT NULL, `data` TEXT NOT NULL, `time` TEXT NOT NULL)');
         await database.execute(
             'CREATE UNIQUE INDEX `index_HistoryTag_tagName_hisId` ON `HistoryTag` (`tagName`, `hisId`)');
         await database.execute(
@@ -848,6 +848,7 @@ class _$OperationRecordDao extends OperationRecordDao {
             (OperationRecord item) => <String, Object?>{
                   'id': item.id,
                   'uid': item.uid,
+                  'devId': item.devId,
                   'module': _moduleTypeConverter.encode(item.module),
                   'method': _opMethodTypeConverter.encode(item.method),
                   'data': item.data,
@@ -866,11 +867,18 @@ class _$OperationRecordDao extends OperationRecordDao {
   Future<List<OperationRecord>> getSyncRecord(
     int uid,
     String devId,
+    List<String> devIds,
   ) async {
+    const offset = 3;
+    final _sqliteVariablesForDevIds =
+        Iterable<String>.generate(devIds.length, (i) => '?${i + offset}')
+            .join(',');
     return _queryAdapter.queryList(
-        'select * from OperationRecord record   where not exists (     select 1 from OperationSync opsync     where opsync.uid = ?1 and opsync.devId = ?2 and opsync.opId = record.id   )   order by id desc',
-        mapper: (Map<String, Object?> row) => OperationRecord(id: row['id'] as int, uid: row['uid'] as int, module: _moduleTypeConverter.decode(row['module'] as String), method: _opMethodTypeConverter.decode(row['method'] as String), data: row['data'] as String),
-        arguments: [uid, devId]);
+        'select * from OperationRecord record   where not exists (     select 1 from OperationSync opsync     where opsync.uid = ?1 and opsync.devId = ?2 and opsync.opId = record.id   ) and devId in (' +
+            _sqliteVariablesForDevIds +
+            ')   order by id desc',
+        mapper: (Map<String, Object?> row) => OperationRecord(id: row['id'] as int, uid: row['uid'] as int, devId: row['devId'] as String, module: _moduleTypeConverter.decode(row['module'] as String), method: _opMethodTypeConverter.decode(row['method'] as String), data: row['data'] as String),
+        arguments: [uid, devId, ...devIds]);
   }
 
   @override
@@ -889,7 +897,7 @@ class _$OperationRecordDao extends OperationRecordDao {
   ) async {
     return _queryAdapter.query(
         'select * from OperationRecord where uid = ?4 and module = ?2 and method = ?3 and data = ?1',
-        mapper: (Map<String, Object?> row) => OperationRecord(id: row['id'] as int, uid: row['uid'] as int, module: _moduleTypeConverter.decode(row['module'] as String), method: _opMethodTypeConverter.decode(row['method'] as String), data: row['data'] as String),
+        mapper: (Map<String, Object?> row) => OperationRecord(id: row['id'] as int, uid: row['uid'] as int, devId: row['devId'] as String, module: _moduleTypeConverter.decode(row['module'] as String), method: _opMethodTypeConverter.decode(row['method'] as String), data: row['data'] as String),
         arguments: [id, module, opMethod, uid]);
   }
 
@@ -918,7 +926,7 @@ class _$OperationRecordDao extends OperationRecordDao {
   @override
   Future<int> add(OperationRecord record) {
     return _operationRecordInsertionAdapter.insertAndReturnId(
-        record, OnConflictStrategy.abort);
+        record, OnConflictStrategy.ignore);
   }
 }
 

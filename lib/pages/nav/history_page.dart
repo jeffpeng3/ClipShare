@@ -166,7 +166,7 @@ class HistoryPageState extends State<HistoryPage>
     if (_last?.content == content && _last?.type == type.value) {
       return;
     }
-    Log.debug("ClipData onChanged", content);
+    Log.debug(tag, content);
     int size = content.length;
     switch (type) {
       case ContentType.text:
@@ -356,15 +356,15 @@ class HistoryPageState extends State<HistoryPage>
     switch (opRecord.method) {
       case OpMethod.add:
         f = addData(history, false);
-        //不是批量同步时放入本地剪贴板
+        //不是缺失数据的同步时放入本地剪贴板
         if (msg.key != MsgType.missingData) {
           App.setInnerCopy(true);
           ClipChannel.copy(history.toJson());
         }
         break;
       case OpMethod.delete:
-        AppDb.inst.historyDao.delete(history.id).then((cnt) {
-          if (cnt == null || cnt == 0) return;
+        f = AppDb.inst.historyDao.delete(history.id).then((cnt) {
+          if (cnt == null || cnt == 0) return 0;
           _list.removeWhere((element) => element.data.id == history.id);
           //删除以后判断是否是最近复制的，如果是，更新_last
           if (_last?.id == history.id) {
@@ -379,20 +379,27 @@ class HistoryPageState extends State<HistoryPage>
             }
           }
           debounceSetState();
+          return cnt;
         });
         break;
       case OpMethod.update:
         f = AppDb.inst.historyDao.updateHistory(history).then((cnt) {
-          if (cnt == 0) return;
+          if (cnt == 0) return 0;
           var i = _list.indexWhere((element) => element.data.id == history.id);
-          if (i == -1) return;
+          if (i == -1) return cnt;
           _list[i] = ClipData(history);
           debounceSetState();
+          return cnt;
         });
         break;
       default:
         return;
     }
+    f.then((cnt) {
+      if (cnt == null && cnt <= 0) return;
+      //将同步过来的数据添加到本地操作记录
+      AppDb.inst.opRecordDao.add(opRecord.copyWith(history.id.toString()));
+    });
     notifyCompactWindow();
     f.whenComplete(() {
       //发送同步确认

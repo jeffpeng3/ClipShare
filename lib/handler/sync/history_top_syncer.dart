@@ -10,7 +10,6 @@ import 'package:clipshare/main.dart';
 import 'package:clipshare/pages/nav/history_page.dart';
 import 'package:clipshare/util/constants.dart';
 
-
 /// 记录置顶操作同步处理器
 class HistoryTopSyncer implements SyncListener {
   HistoryTopSyncer() {
@@ -50,6 +49,11 @@ class HistoryTopSyncer implements SyncListener {
     }
 
     f.then((cnt) {
+      if (cnt != null && cnt > 0) {
+        //同步成功后在本地也记录一次
+        var originOpRecord = opRecord.copyWith(history.id.toString());
+        AppDb.inst.opRecordDao.add(originOpRecord);
+      }
       HistoryPage.pageKey.currentState?.updatePage(
         (his) => his.id == history.id,
         (his) => his.top = history.top,

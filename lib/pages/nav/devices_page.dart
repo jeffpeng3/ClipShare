@@ -605,7 +605,7 @@ class DevicesPageState extends State<DevicesPage>
     //关闭配对弹窗
     Navigator.of(context).pop();
     //已配对，请求所有缺失数据
-    SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
+    SocketListener.inst.reqMissingData();
     var newDev = Device(
       guid: dev.guid,
       devName: dev.name,

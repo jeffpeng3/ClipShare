@@ -17,16 +17,16 @@ import 'package:clipshare/util/log.dart';
 class MissingDataSyncer {
   static const tag = "SyncDataHandler";
 
-  static void sendMissingData(DevInfo dev) {
-    getData(dev.guid).then((lst) {
+  static void sendMissingData(DevInfo targetDev,List<String> devIds) {
+    getData(targetDev.guid,devIds).then((lst) {
       for (var item in lst) {
-        SocketListener.inst.sendData(dev, MsgType.missingData, {"data": item});
+        SocketListener.inst.sendData(targetDev, MsgType.missingData, {"data": item});
       }
     });
   }
 
-  static Future<List<OperationRecord>> getData(String devId) {
-    return AppDb.inst.opRecordDao.getSyncRecord(App.userId, devId).then((lst) {
+  static Future<List<OperationRecord>> getData(String targetDev,List<String> devIds) {
+    return AppDb.inst.opRecordDao.getSyncRecord(App.userId, targetDev,devIds).then((lst) {
       var future = Future.value();
       var rmList = <OperationRecord>[];
       for (var item in lst) {

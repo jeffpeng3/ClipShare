@@ -20,6 +20,9 @@ class OperationRecord {
   ///用户 id
   late int uid;
 
+  ///记录来自哪台设备
+  late String devId;
+
   ///操作模块
   @TypeConverters([ModuleTypeConverter])
   late Module module;
@@ -37,6 +40,7 @@ class OperationRecord {
   OperationRecord({
     required this.id,
     required this.uid,
+    required this.devId,
     required this.module,
     required this.method,
     required this.data,
@@ -45,6 +49,7 @@ class OperationRecord {
   OperationRecord.fromSimple(this.module, this.method, Object data) {
     id = App.snowflake.nextId();
     uid = App.userId;
+    devId = App.device.guid;
     this.data = data.toString();
   }
 
@@ -55,9 +60,11 @@ class OperationRecord {
     var method = OpMethod.getValue(map["method"]);
     var data = map["data"];
     var time = map["time"];
+    var devId = map["devId"];
     var record = OperationRecord(
       id: id,
       uid: uid,
+      devId: devId,
       module: module,
       method: method,
       data: data,
@@ -70,11 +77,16 @@ class OperationRecord {
     return {
       "id": id,
       "uid": uid,
+      "devId": devId,
       "module": module.moduleName,
       "method": method.name,
       "data": data,
       "time": time,
     };
+  }
+
+  OperationRecord copyWith(String data) {
+    return fromJson(toJson())..data = data;
   }
 
   @override

@@ -66,10 +66,10 @@ class _LoadingPageState extends State<LoadingPage> {
 
   Future<void> init() async {
     App.context = context;
-    //初始化数据库
-    await AppDb.inst.init();
     //初始化本机设备信息
     await initDevInfo();
+    //初始化数据库
+    await AppDb.inst.init();
     //加载配置信息
     await loadConfigs();
     // 初始化App路径

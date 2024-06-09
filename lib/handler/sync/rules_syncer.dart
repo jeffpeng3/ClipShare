@@ -59,7 +59,7 @@ class RulesSyncer implements SyncListener {
     var localVersion = localTagRules["version"];
     if (localVersion <= newVersion) {
       //小于发送过来的版本，更新本地
-      f.then((v) {
+      f.then((v) async {
         switch (rule) {
           case Rule.tag:
             ref.notifier(settingProvider).setTagRules(jsonEncode(data));
@@ -70,6 +70,12 @@ class RulesSyncer implements SyncListener {
           default:
             return;
         }
+        //本地插入一条操作记录，先移除旧的再插入
+        await AppDb.inst.opRecordDao.removeRuleRecord(
+          Rule.tag.name,
+          App.userId,
+        );
+        AppDb.inst.opRecordDao.add(opRecord);
       });
     }
     f.then((cnt) {

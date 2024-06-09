@@ -354,7 +354,8 @@ class SocketListener {
 
       ///请求批量同步
       case MsgType.reqMissingData:
-        MissingDataSyncer.sendMissingData(dev);
+        var devIds = (msg.data["devIds"] as List<dynamic>).cast<String>();
+        MissingDataSyncer.sendMissingData(dev,devIds);
         break;
 
       ///请求配对我方，生成四位配对码
@@ -712,12 +713,20 @@ class SocketListener {
       minVersion,
       version,
     );
-    if (paired) {
-      //已配对，获取该设备未同步记录
-      sendData(dev, MsgType.reqMissingData, {});
+    if(paired){
+      //已配对，请求所有缺失数据
+      reqMissingData();
     }
   }
-
+  Future<void> reqMissingData() async {
+    var devices = await AppDb.inst.deviceDao.getAllDevices(App.userId);
+    var devIds = devices.where((dev) => dev.isPaired).map((e) => e.guid).toList();
+    if (devIds.isNotEmpty) {
+      SocketListener.inst.sendData(null, MsgType.reqMissingData, {
+        "devIds": devIds,
+      });
+    }
+  }
   ///设备连接成功
   void _onDevConnected(
     DevInfo dev,
@@ -872,14 +881,6 @@ class SocketListener {
       }
     } catch (e, stacktrace) {
       Log.debug(tag, "$e $stacktrace");
-    }
-  }
-
-  ///发送缺失记录至已连接设备
-  void sendMissingData() {
-    var lst = _devSockets.values.where((element) => element.isPaired);
-    for (var ds in lst) {
-      MissingDataSyncer.sendMissingData(ds.dev);
     }
   }
 

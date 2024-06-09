@@ -9,6 +9,7 @@ import 'package:clipshare/dao/user_dao.dart';
 import 'package:clipshare/entity/tables/history_tag.dart';
 import 'package:clipshare/entity/tables/operation_sync.dart';
 import 'package:clipshare/entity/views/v_history_tag_hold.dart';
+import 'package:clipshare/main.dart';
 import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 
@@ -33,7 +34,7 @@ part 'app_db.floor.g.dart';
 ///
 /// 2. 直接执行 /scripts/db_gen.bat 一键完成
 @Database(
-  version: 1,
+  version: 2,
   entities: [
     Config,
     Device,
@@ -98,7 +99,10 @@ class AppDb {
       var dirPath = Directory(Platform.resolvedExecutable).parent.path;
       databasesPath = "$dirPath\\$databasesPath";
     }
-    return $Floor_AppDb.databaseBuilder(databasesPath).build().then((value) {
+    return $Floor_AppDb.databaseBuilder(databasesPath)
+        .addMigrations([migration1to2])
+        .build()
+        .then((value) {
       _db = value;
       _inited = true;
       _initing = false;
@@ -124,8 +128,11 @@ class AppDb {
 
   OperationRecordDao get opRecordDao => _db.operationRecordDao;
 
-//迁移策略,数据库版本1->2
-// final migration1to2 = Migration(1, 2, (database) async {
-//   // await database.execute('ALTER TABLE PhoneBean ADD COLUMN os INTEGER');
-// });
+  ///----- 迁移策略 更新数据库版本后需要重新生成数据库代码 -----
+  ///数据库版本 1 -> 2
+  ///操作记录表新增设备id字段，用于从连接设备同步其他已配对设备数据
+  final migration1to2 = Migration(1, 2, (database) async {
+    await database.execute('ALTER TABLE OperationRecord ADD COLUMN devId TEXT');
+    await database.execute("UPDATE OperationRecord SET devId = '${App.device.guid}'");
+  });
 }

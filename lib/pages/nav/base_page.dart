@@ -175,7 +175,7 @@ class _BasePageState extends State<BasePage>
   @override
   Future<void> onOpened() async {
     //此处应该发送socket通知同步剪贴板到本机
-    SocketListener.inst.sendData(null, MsgType.reqMissingData, {});
+    SocketListener.inst.reqMissingData();
     if (App.authenticating || !App.settings.useAuthentication) return;
     gotoAuthenticationPage("超时验证");
   }
