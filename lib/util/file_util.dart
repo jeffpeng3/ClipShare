@@ -2,6 +2,7 @@ import 'dart:io';
 
 class FileUtil {
   FileUtil._private();
+
   ///递归获取文件夹大小
   static int getDirectorySize(String directoryPath) {
     Directory directory = Directory(directoryPath);
@@ -32,6 +33,9 @@ class FileUtil {
   static void moveFile(String sourcePath, String destinationPath) {
     File sourceFile = File(sourcePath);
     File destFile = File(destinationPath);
+    if (!destFile.parent.existsSync()) {
+      destFile.parent.createSync();
+    }
     destFile.writeAsBytesSync(sourceFile.readAsBytesSync());
     sourceFile.deleteSync();
   }

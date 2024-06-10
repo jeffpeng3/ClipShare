@@ -110,7 +110,7 @@ class _DebugPageState extends State<DebugPage> {
           child: const Text("测试通知"),
         ),
         Container(height: 10,),
-        DeviceCardSimple(dev: Device(guid: '1111', devName: 'Test', uid: 0, type: 'Android'), onTap: (){
+        DeviceCardSimple(dev: Device(guid: '1111', devName: 'Test11111111111111111111111111111111111111111111111111111111111111111111111111111111111111', uid: 0, type: 'Android'), onTap: (){
           showBorder=!showBorder;
           setState(() {
 
