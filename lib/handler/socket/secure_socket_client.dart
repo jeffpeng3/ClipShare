@@ -26,8 +26,8 @@ class SecureSocketClient {
   late final Encrypter _encrypter;
   late final DiffieHellman _dh;
   late final String _aesKey;
-  late final BigInt _prime;
-  late final AsymmetricKeyPair _keyPair;
+  late final BigInt _prime1;
+  late final BigInt _prime2;
   late String tag;
 
   bool get isReady => _ready;
@@ -53,8 +53,8 @@ class SecureSocketClient {
   static Future<SecureSocketClient> connect({
     required String ip,
     required int port,
-    required BigInt prime,
-    required AsymmetricKeyPair keyPair,
+    required BigInt prime1,
+    required BigInt prime2,
     void Function(SecureSocketClient)? onConnected,
     void Function(SecureSocketClient client, String data)? onMessage,
     void Function(Exception e, SecureSocketClient client)? onError,
@@ -69,8 +69,8 @@ class SecureSocketClient {
     );
     var ssc = SecureSocketClient.fromSocket(
       socket: socket,
-      prime: prime,
-      keyPair: keyPair,
+      prime1: prime1,
+      prime2: prime2,
       onConnected: onConnected,
       onMessage: onMessage,
       onError: onError,
@@ -85,8 +85,8 @@ class SecureSocketClient {
 
   factory SecureSocketClient.fromSocket({
     required Socket socket,
-    required BigInt prime,
-    required AsymmetricKeyPair keyPair,
+    required BigInt prime1,
+    required BigInt prime2,
     int? serverPort,
     void Function(SecureSocketClient)? onConnected,
     required void Function(SecureSocketClient client, String data)? onMessage,
@@ -99,8 +99,8 @@ class SecureSocketClient {
     if (serverPort != null) {
       ssc._port = serverPort;
     }
-    ssc._prime = prime;
-    ssc._keyPair = keyPair;
+    ssc._prime1 = prime1;
+    ssc._prime2 = prime2;
     ssc._socket = socket;
     ssc._onMessage = onMessage;
     ssc._onConnected = onConnected;
@@ -183,11 +183,9 @@ class SecureSocketClient {
       var key = data["key"];
       var g = BigInt.parse(data["g"]);
       var prime = BigInt.parse(data["prime"]);
-      //生成自己的RSA私钥
-      var privateKey = _keyPair.privateKey as RSAPrivateKey;
       //使用素数，底数，自己的私钥创
       //建一个DH对象
-      _dh = DiffieHellman(prime, g, privateKey.n!);
+      _dh = DiffieHellman(prime, g, _prime2);
       //根据接收的公钥使用dh算法生成共享秘钥
       var otherPublicKey = BigInt.parse(key);
       //SharedSecretKey
@@ -260,15 +258,14 @@ class SecureSocketClient {
     if (_ready) {
       throw Exception("already ready");
     }
-    var privateKey = _keyPair.privateKey as RSAPrivateKey;
     //底数g
     var g = BigInt.from(65537);
     //创建DH对象
-    _dh = DiffieHellman(_prime, g, privateKey.n!);
+    _dh = DiffieHellman(_prime1, g, _prime2);
     //发送素数，底数，公钥
     Map<String, dynamic> map = {
       "seq": 1,
-      "prime": _prime.toString(),
+      "prime": _prime1.toString(),
       "g": g.toString(),
       "key": _dh.publicKey.toString(),
       "port": App.settings.port,

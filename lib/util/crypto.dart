@@ -56,7 +56,7 @@ class CryptoUtil {
   }
 
   ///获取一个指定长度的素数
-  static BigInt getPrim([int len = 2048]) {
+  static BigInt getPrime([int len = 2048]) {
     return generateProbablePrime(len, 1, CryptoUtils.getSecureRandom());
   }
 

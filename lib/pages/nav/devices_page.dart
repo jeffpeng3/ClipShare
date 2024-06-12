@@ -344,9 +344,15 @@ class DevicesPageState extends State<DevicesPage>
                               }
                               //更新配对状态为未配对
                               device.isPaired = false;
-                              //更新UI
-                              setState(() {});
-                              AppDb.inst.deviceDao.updateDevice(device);
+                              AppDb.inst.deviceDao
+                                  .updateDevice(device)
+                                  .then((cnt) {
+                                if (cnt <= 0) return;
+                                onForget(
+                                  DevInfo.fromDevice(device),
+                                  App.userId,
+                                );
+                              });
                               Navigator.pop(context);
                             },
                             showCancel: true,
@@ -604,8 +610,6 @@ class DevicesPageState extends State<DevicesPage>
     }
     //关闭配对弹窗
     Navigator.of(context).pop();
-    //已配对，请求所有缺失数据
-    SocketListener.inst.reqMissingData();
     var newDev = Device(
       guid: dev.guid,
       devName: dev.name,
@@ -621,6 +625,8 @@ class DevicesPageState extends State<DevicesPage>
       _ref.notifier(DeviceInfoProvider.inst).addOrUpdate(dbDev).then((res) {
         if (res) {
           _addPairedDevInPage(dbDev);
+          //已配对，请求所有缺失数据
+          SocketListener.inst.reqMissingData();
           return;
         }
         Global.snackBarErr(context, "设备添加失败");
@@ -634,6 +640,8 @@ class DevicesPageState extends State<DevicesPage>
           return;
         }
         _addPairedDevInPage(newDev);
+        //已配对，请求所有缺失数据
+        SocketListener.inst.reqMissingData();
       });
     }
   }

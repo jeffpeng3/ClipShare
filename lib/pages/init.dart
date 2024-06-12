@@ -88,8 +88,8 @@ class _LoadingPageState extends State<LoadingPage> {
       SecureSocketClient.connect(
         ip: "0.0.0.0",
         port: Constants.port,
-        prime: App.prime,
-        keyPair: App.keyPair,
+        prime1: App.prime1,
+        prime2: App.prime2,
       );
     } catch (e) {}
     return Future.value();

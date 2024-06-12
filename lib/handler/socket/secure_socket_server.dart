@@ -72,8 +72,8 @@ class SecureSocketServer {
           late SecureSocketClient ssc;
           ssc = SecureSocketClient.fromSocket(
             socket: client,
-            prime: App.prime,
-            keyPair: App.keyPair,
+            prime1: App.prime1,
+            prime2: App.prime2,
             onConnected: (SecureSocketClient ssc) {
               _onConnected(ssc.ip, ssc.port);
             },

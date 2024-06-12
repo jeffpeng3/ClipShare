@@ -188,8 +188,8 @@ class SocketListener {
     return SecureSocketClient.connect(
       ip: ip,
       port: port,
-      prime: App.prime,
-      keyPair: App.keyPair,
+      prime1: App.prime1,
+      prime2: App.prime2,
       onConnected: (client) async {
         Log.debug(tag, '已连接到服务器');
         //本地是否已配对
@@ -598,8 +598,8 @@ class SocketListener {
     return SecureSocketClient.connect(
       ip: ip,
       port: port,
-      prime: App.prime,
-      keyPair: App.keyPair,
+      prime1: App.prime1,
+      prime2: App.prime2,
       onConnected: (SecureSocketClient client) {
         //外部终止连接
         if (data.containsKey('stop') && data['stop'] == true) {
