@@ -60,7 +60,7 @@ class ClipListViewState extends State<ClipListView>
   var _showBackToTopButton = false;
   final String tag = "ClipListView";
   bool _selectMode = false;
-  Set<int> _selectedIds = {};
+  final Set<int> _selectedIds = {};
   Key? _clipTagRowKey;
   bool _rightShowFullPage = false;
   ClipData? _showHistoryData;
@@ -248,9 +248,9 @@ class ClipListViewState extends State<ClipListView>
         var res = await ClipChannel.copy(_list[i].data.toJson());
         res = res ?? false;
         if (res) {
-          Global.snackBarSuc(context, "复制成功");
+          Global.showSnackBarSuc(context, "复制成功");
         } else {
-          Global.snackBarErr(context, "复制失败");
+          Global.showSnackBarErr(context, "复制失败");
         }
       },
       onUpdate: () {
@@ -387,7 +387,33 @@ class ClipListViewState extends State<ClipListView>
                                     context: context,
                                     text: "是否删除选中的 ${_selectedIds.length} 项？",
                                     showCancel: true,
+                                    autoDismiss: false,
+                                    onCancel: () {
+                                      Navigator.pop(context);
+                                    },
                                     onOk: () {
+                                      Navigator.pop(context);
+                                      Global.showLoadingDialog(
+                                          context: context,
+                                          loadingText: "删除中...");
+                                      AppDb.inst.historyDao
+                                          .deleteByIds(
+                                              _selectedIds.toList(), App.userId)
+                                          .then((cnt) {
+                                        if (cnt != null && cnt > 0) {
+                                          _loadMoreData();
+                                          Navigator.pop(context);
+                                          Global.showSnackBarSuc(
+                                            context,
+                                            "删除成功",
+                                          );
+                                        } else {
+                                          Global.showSnackBarErr(
+                                            context,
+                                            "删除失败",
+                                          );
+                                        }
+                                      });
                                       _selectedIds.clear();
                                       _selectMode = false;
                                       setState(() {});

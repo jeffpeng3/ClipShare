@@ -8,17 +8,20 @@ import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/provider/syncing_file_progress_providr.dart';
 import 'package:clipshare/util/extension.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file_plus/open_file_plus.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 class SyncFileStatus extends StatelessWidget {
+  static const tag = "SyncFileStatus";
   final SyncingFile syncingFile;
   final double factor;
   final bool isLocal;
   final bool selectMode;
   final bool selected;
   final int? historyId;
+
   const SyncFileStatus({
     super.key,
     required this.syncingFile,
@@ -140,7 +143,11 @@ class SyncFileStatus extends StatelessWidget {
                                       final path = File(syncingFile.filePath)
                                           .parent
                                           .normalizePath;
-                                      await OpenFile.open(path);
+                                      var result = await OpenFile.open(path);
+                                      Log.debug(
+                                        tag,
+                                        "type: ${result.type}, msg: ${result.message}",
+                                      );
                                     },
                                     icon: const Icon(
                                       color: Colors.blueGrey,

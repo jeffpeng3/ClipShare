@@ -34,7 +34,7 @@ class ClipDataCardCompact extends StatelessWidget {
                 return;
               }
               MultiWindowChannel.copy(0, _clip.data.id).then(
-                (args) => Global.snackBarSuc(context, "复制成功"),
+                (args) => Global.showSnackBarSuc(context, "复制成功"),
               );
               isDouble = false;
             } else {

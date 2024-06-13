@@ -16,6 +16,7 @@ import 'package:clipshare/pages/nav/setting_page.dart';
 import 'package:clipshare/pages/nav/syncing_file_page.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/permission_helper.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';

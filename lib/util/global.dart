@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/channels/android_channel.dart';
+import 'package:clipshare/components/loading.dart';
 import 'package:flutter/material.dart';
 
 class Global {
@@ -17,22 +18,25 @@ class Global {
     }
   }
 
-  static void snackBarSuc(BuildContext context, String text) {
+  static void showSnackBarSuc(BuildContext context, String text) {
+    showSnackBar(context, text, Colors.lightBlue);
+  }
+
+  static void showSnackBar(BuildContext context, String text, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(text),
-        backgroundColor: Colors.lightBlue,
+        backgroundColor: color,
       ),
     );
   }
 
-  static void snackBarErr(BuildContext context, String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(text),
-        backgroundColor: Colors.redAccent,
-      ),
-    );
+  static void showSnackBarErr(BuildContext context, String text) {
+    showSnackBar(context, text, Colors.redAccent);
+  }
+
+  static void showSnackBarWarn(BuildContext context, String text) {
+    showSnackBar(context, text, Colors.orange);
   }
 
   static void showTipsDialog({
@@ -115,7 +119,7 @@ class Global {
     required BuildContext context,
     required Widget child,
     dismissible = true,
-    double? maxWidth=350,
+    double? maxWidth = 350,
   }) {
     showDialog(
       context: context,
@@ -134,6 +138,48 @@ class Global {
             ),
             child: child,
           ),
+        );
+      },
+    );
+  }
+
+  static void showLoadingDialog({
+    required BuildContext context,
+    bool dismissible = false,
+    bool showCancel = false,
+    String? loadingText,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: dismissible,
+      builder: (context) {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AlertDialog(
+              content: SizedBox(
+                height: 80,
+                child: Loading(
+                  width: 32,
+                  description: loadingText != null ? Text(loadingText) : null,
+                ),
+              ),
+            ),
+            Visibility(
+              visible: showCancel,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text("取消"),
+                  ),
+                ],
+              ),
+            ),
+          ],
         );
       },
     );

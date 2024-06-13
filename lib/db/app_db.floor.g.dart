@@ -523,6 +523,23 @@ class _$HistoryDao extends HistoryDao {
   }
 
   @override
+  Future<int?> deleteByIds(
+    List<int> ids,
+    int uid,
+  ) async {
+    const offset = 2;
+    final _sqliteVariablesForIds =
+        Iterable<String>.generate(ids.length, (i) => '?${i + offset}')
+            .join(',');
+    return _queryAdapter.query(
+        'delete from history where uid = ?1 and id in (' +
+            _sqliteVariablesForIds +
+            ')',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [uid, ...ids]);
+  }
+
+  @override
   Future<int> add(History history) {
     return _historyInsertionAdapter.insertAndReturnId(
         history, OnConflictStrategy.replace);

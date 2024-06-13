@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:clipshare/components/empty_content.dart';
 import 'package:clipshare/components/sync_file_status.dart';
 import 'package:clipshare/db/app_db.dart';
@@ -5,6 +7,7 @@ import 'package:clipshare/entity/syncing_file.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/syncing_file_progress_providr.dart';
 import 'package:clipshare/util/global.dart';
+import 'package:clipshare/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
@@ -26,7 +29,9 @@ class _SyncingFilePageTab {
 
 class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
   bool _selectMode = false;
-  Set<String> _selectedSet = {};
+  final Set<String> _selectedPathSet = {};
+  final Set<int> _selectedIds = {};
+  static const tag = "SyncingFilePage";
   var _count = 0;
   List<_SyncingFilePageTab> tabs = [
     _SyncingFilePageTab(
@@ -55,6 +60,12 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
   @override
   void initState() {
     super.initState();
+  }
+
+  Future refreshHistoryFiles() {
+    _count++;
+    setState(() {});
+    return Future(() => null);
   }
 
   @override
@@ -150,11 +161,7 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                   child: const EmptyContent(),
                 ),
                 RefreshIndicator(
-                  onRefresh: () {
-                    _count++;
-                    setState(() {});
-                    return Future(() => null);
-                  },
+                  onRefresh: refreshHistoryFiles,
                   child: Visibility(
                     visible: historyList.isEmpty,
                     replacement: Stack(
@@ -163,7 +170,8 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                           itemCount: historyList.length,
                           itemBuilder: (context, i) {
                             var path = historyList[i].syncingFile.filePath;
-                            var selected = _selectedSet.contains(path);
+                            var data = historyList[i];
+                            var selected = _selectedPathSet.contains(path);
                             return Column(
                               children: [
                                 InkWell(
@@ -172,16 +180,18 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                                     selected: selected,
                                   ),
                                   onLongPress: () {
-                                    _selectedSet.add(path);
+                                    _selectedPathSet.add(path);
+                                    _selectedIds.add(data.historyId!);
                                     _selectMode = true;
                                     setState(() {});
                                   },
                                   onTap: () {
-                                    print(123);
-                                    if (_selectedSet.contains(path)) {
-                                      _selectedSet.remove(path);
+                                    if (_selectedPathSet.contains(path)) {
+                                      _selectedPathSet.remove(path);
+                                      _selectedIds.remove(data.historyId!);
                                     } else {
-                                      _selectedSet.add(path);
+                                      _selectedPathSet.add(path);
+                                      _selectedIds.add(data.historyId!);
                                     }
                                     setState(() {});
                                   },
@@ -217,7 +227,7 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 10),
                                       child: Text(
-                                        "${_selectedSet.length} / ${historyList.length}",
+                                        "${_selectedPathSet.length} / ${historyList.length}",
                                         style: const TextStyle(
                                           fontSize: 20,
                                           color: Colors.black45,
@@ -235,7 +245,8 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                                     margin: const EdgeInsets.only(right: 10),
                                     child: FloatingActionButton(
                                       onPressed: () {
-                                        _selectedSet.clear();
+                                        _selectedPathSet.clear();
+                                        _selectedIds.clear();
                                         _selectMode = false;
                                         setState(() {});
                                       },
@@ -245,24 +256,89 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                                 ),
                               ),
                               Visibility(
-                                visible: _selectMode && _selectedSet.isNotEmpty,
+                                visible:
+                                    _selectMode && _selectedPathSet.isNotEmpty,
                                 child: Tooltip(
                                   message: "删除",
                                   child: FloatingActionButton(
                                     onPressed: () {
+                                      deleteRecord(bool withFile) {
+                                        Navigator.pop(context);
+                                        Global.showLoadingDialog(
+                                          context: context,
+                                          loadingText: "删除中...",
+                                        );
+                                        AppDb.inst.historyDao
+                                            .deleteByIds(
+                                          _selectedIds.toList(),
+                                          App.userId,
+                                        )
+                                            .then((cnt) {
+                                          if (cnt != null && cnt > 0) {
+                                            bool hasError = false;
+                                            if (withFile) {
+                                              //删除本地文件
+                                              for (var filePath
+                                                  in _selectedPathSet) {
+                                                try {
+                                                  var file = File(filePath);
+                                                  if (file.existsSync()) {
+                                                    file.deleteSync();
+                                                  }
+                                                } catch (e, stack) {
+                                                  Log.error(
+                                                    tag,
+                                                    "删除文件 $filePath 失败: $e $stack",
+                                                  );
+                                                  hasError = true;
+                                                }
+                                              }
+                                            }
+                                            refreshHistoryFiles();
+                                            Navigator.pop(context);
+                                            if (hasError) {
+                                              Global.showSnackBarWarn(
+                                                context,
+                                                "部分删除失败",
+                                              );
+                                            } else {
+                                              Global.showSnackBarSuc(
+                                                context,
+                                                "删除成功",
+                                              );
+                                            }
+                                          } else {
+                                            Global.showSnackBarErr(
+                                              context,
+                                              "删除失败",
+                                            );
+                                          }
+                                        });
+                                      }
+
                                       Global.showTipsDialog(
                                         context: context,
                                         text:
-                                            "是否删除选中的 ${_selectedSet.length} 项？",
+                                            "是否删除选中的 ${_selectedPathSet.length} 项？",
                                         showCancel: true,
+                                        showNeutral: true,
                                         neutralText: "连带文件删除",
                                         okText: "仅删除记录",
+                                        autoDismiss: false,
                                         onOk: () {
-                                          _selectedSet.clear();
+                                          deleteRecord(false);
+                                          _selectedPathSet.clear();
+                                          _selectedIds.clear();
                                           _selectMode = false;
                                           setState(() {});
                                         },
-                                        onNeutral: () {},
+                                        onNeutral: () {
+                                          deleteRecord(true);
+                                          _selectedPathSet.clear();
+                                          _selectedIds.clear();
+                                          _selectMode = false;
+                                          setState(() {});
+                                        },
                                       );
                                     },
                                     child: const Icon(Icons.delete_forever),
@@ -274,7 +350,7 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                         ),
                       ],
                     ),
-                    child: const EmptyContent(),
+                    child: Stack(children: [const EmptyContent(),ListView()],),
                   ),
                 ),
               ],

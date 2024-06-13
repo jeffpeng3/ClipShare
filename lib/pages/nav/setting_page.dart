@@ -351,7 +351,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                   HapticFeedback.mediumImpact();
                                   Clipboard.setData(
                                       ClipboardData(text: App.devInfo.guid));
-                                  Global.snackBarSuc(
+                                  Global.showSnackBarSuc(
                                     context,
                                     "已复制设备id",
                                   );
@@ -372,7 +372,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                   ref
                                       .notifier(settingProvider)
                                       .setLocalName(str);
-                                  Global.snackBarSuc(
+                                  Global.showSnackBarSuc(
                                     context,
                                     "修改后重启软件生效",
                                   );
@@ -409,7 +409,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                                   ref
                                       .notifier(settingProvider)
                                       .setPort(str.toInt());
-                                  Global.snackBarSuc(
+                                  Global.showSnackBarSuc(
                                     context,
                                     "修改后重启软件生效",
                                   );

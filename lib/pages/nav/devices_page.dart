@@ -629,14 +629,14 @@ class DevicesPageState extends State<DevicesPage>
           SocketListener.inst.reqMissingData();
           return;
         }
-        Global.snackBarErr(context, "设备添加失败");
+        Global.showSnackBarErr(context, "设备添加失败");
       });
     } else {
       //新设备
       _ref.notifier(DeviceInfoProvider.inst).addOrUpdate(newDev).then((res) {
         if (!res) {
           Log.debug(tag, "Device information addition failed");
-          Global.snackBarErr(context, "设备添加失败");
+          Global.showSnackBarErr(context, "设备添加失败");
           return;
         }
         _addPairedDevInPage(newDev);

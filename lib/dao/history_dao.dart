@@ -135,4 +135,10 @@ abstract class HistoryDao {
     "select * from history where uid = :uid and type = 'File' order by id desc",
   )
   Future<List<History>> getFiles(int uid);
+
+  ///根据 id 删除记录
+  @Query(
+    "delete from history where uid = :uid and id in (:ids)",
+  )
+  Future<int?> deleteByIds(List<int> ids, int uid);
 }
