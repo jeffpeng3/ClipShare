@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:clipshare/channels/android_channel.dart';
@@ -23,11 +24,14 @@ import 'clip_detail_dialog.dart';
 class ClipDataCard extends StatefulWidget {
   final ClipData clip;
   final void Function()? onTap;
+  final void Function()? onLongPress;
   final void Function()? onDoubleTap;
   final void Function() onUpdate;
   final void Function(int id) onRemove;
   final bool routeToSearchOnClickChip;
   final bool imageMode;
+  final bool selectMode;
+  final bool selected;
 
   const ClipDataCard({
     required this.clip,
@@ -36,8 +40,11 @@ class ClipDataCard extends StatefulWidget {
     super.key,
     this.routeToSearchOnClickChip = false,
     this.onTap,
+    this.onLongPress,
     this.onDoubleTap,
     this.imageMode = false,
+    this.selectMode = false,
+    this.selected = false,
   });
 
   @override
@@ -48,10 +55,14 @@ class ClipDataCard extends StatefulWidget {
 
 class ClipDataCardState extends State<ClipDataCard> {
   var _readyDoubleClick = false;
+  static const _borderWidth = 2.0;
+  static const _borderRadius = 12.0;
+  bool _selected = false;
 
   @override
   void initState() {
     super.initState();
+    _selected = widget.selected;
   }
 
   void _showDetail(ClipData chip) {
@@ -96,7 +107,12 @@ class ClipDataCardState extends State<ClipDataCard> {
       },
     );
   }
-
+  void _onTap(){
+    if (!PlatformExt.isMobile) {
+      return;
+    }
+    _showDetail(widget.clip);
+  }
   @override
   Widget build(BuildContext context) {
     return ContextMenuArea(
@@ -105,12 +121,18 @@ class ClipDataCardState extends State<ClipDataCard> {
         child: InkWell(
           mouseCursor: SystemMouseCursors.basic,
           onTap: () {
+            if (widget.selectMode) {
+              setState(() {
+                _selected = !_selected;
+              });
+            }
             if (PlatformExt.isPC) {
               widget.onTap?.call();
               return;
             }
             if (widget.onDoubleTap == null) {
               //未设置双击，直接执行单击
+              _onTap();
             } else {
               //设置了双击，且已经点击过一次，执行双击逻辑
               if (_readyDoubleClick) {
@@ -123,6 +145,7 @@ class ClipDataCardState extends State<ClipDataCard> {
                 Future.delayed(const Duration(milliseconds: 300), () {
                   if (_readyDoubleClick) {
                     //指定时间后仍然没有进行第二次点击，进行单击逻辑
+                    _onTap();
                   }
                   //指定时间后无论是否双击，恢复状态
                   _readyDoubleClick = false;
@@ -131,61 +154,72 @@ class ClipDataCardState extends State<ClipDataCard> {
             }
           },
           onLongPress: () {
-            if (!PlatformExt.isMobile) {
-              return;
-            }
-            _showDetail(widget.clip);
+            widget.onLongPress?.call();
           },
-          borderRadius: BorderRadius.circular(12.0),
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: ClipSimpleDataHeader(
-                    clip: widget.clip,
-                    routeToSearchOnClickChip: widget.routeToSearchOnClickChip,
+          borderRadius: BorderRadius.circular(_borderRadius),
+          child: Container(
+            margin: widget.selectMode && _selected
+                ? null
+                : const EdgeInsets.all(_borderWidth),
+            decoration: widget.selectMode && _selected
+                ? BoxDecoration(
+                    border: Border.all(
+                      color: Colors.blue,
+                      width: _borderWidth,
+                    ),
+                    borderRadius: BorderRadius.circular(_borderRadius),
+                  )
+                : null,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: ClipSimpleDataHeader(
+                      clip: widget.clip,
+                      routeToSearchOnClickChip: widget.routeToSearchOnClickChip,
+                    ),
                   ),
-                ),
-                widget.imageMode
-                    ? IntrinsicHeight(
-                        child: GestureDetector(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              4,
-                            ),
-                            child: Image.file(
-                              File(
-                                widget.clip.data.content,
+                  widget.imageMode
+                      ? IntrinsicHeight(
+                          child: GestureDetector(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                4,
                               ),
-                              fit: BoxFit.fitWidth,
-                              width: 200,
-                            ),
-                          ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PreviewPage(
-                                  clip: widget.clip,
+                              child: Image.file(
+                                File(
+                                  widget.clip.data.content,
                                 ),
+                                fit: BoxFit.fitWidth,
+                                width: 200,
                               ),
-                            );
-                          },
-                        ),
-                      )
-                    : Expanded(
-                        child: Container(
-                          alignment: Alignment.centerLeft,
-                          child: ClipSimpleDataContent(
-                            clip: widget.clip,
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PreviewPage(
+                                    clip: widget.clip,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      : Expanded(
+                          child: Container(
+                            alignment: Alignment.centerLeft,
+                            child: ClipSimpleDataContent(
+                              clip: widget.clip,
+                            ),
                           ),
                         ),
-                      ),
-                ClipSimpleDataExtraInfo(clip: widget.clip),
-              ],
+                  ClipSimpleDataExtraInfo(clip: widget.clip),
+                ],
+              ),
             ),
           ),
         ),

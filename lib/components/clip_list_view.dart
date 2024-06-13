@@ -13,7 +13,6 @@ import 'package:clipshare/entity/tables/history.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/device_info_provider.dart';
 import 'package:clipshare/util/constants.dart';
-import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -60,6 +59,8 @@ class ClipListViewState extends State<ClipListView>
   static bool _loadNewData = false;
   var _showBackToTopButton = false;
   final String tag = "ClipListView";
+  bool _selectMode = false;
+  Set<int> _selectedIds = {};
   Key? _clipTagRowKey;
   bool _rightShowFullPage = false;
   ClipData? _showHistoryData;
@@ -117,6 +118,7 @@ class ClipListViewState extends State<ClipListView>
     }
   }
 
+  ///加载更多数据
   void _loadMoreData() {
     if (_loadNewData || _minId == null) {
       return;
@@ -143,6 +145,7 @@ class ClipListViewState extends State<ClipListView>
     });
   }
 
+  ///移除重复项
   void removeDuplicates() {
     Map<int, ClipData> map = {};
     for (var clip in _list) {
@@ -152,6 +155,7 @@ class ClipListViewState extends State<ClipListView>
     _list.addAll(map.values);
   }
 
+  ///滚动监听
   void _scrollListener() {
     if (_scrollController.offset == 0) {
       Future.delayed(const Duration(milliseconds: 100), () {
@@ -183,11 +187,13 @@ class ClipListViewState extends State<ClipListView>
     }
   }
 
+  ///排序 list
   void _sortList() {
     _list.sort((a, b) => b.data.compareTo(a.data));
     setState(() {});
   }
 
+  ///通知子窗体
   void notifyCompactWindow() {
     if (App.compactWindow == null) {
       return;
@@ -195,23 +201,43 @@ class ClipListViewState extends State<ClipListView>
     MultiWindowChannel.notify(App.compactWindow!.windowId);
   }
 
+  ///渲染列表项
   Widget renderItem(int i) {
+    var id = _list[i].data.id;
+    var selected = _selectedIds.contains(id);
     return ClipDataCard(
       clip: _list[i],
+      key: UniqueKey(),
       imageMode: widget.imageMasonryGridViewLayout,
       routeToSearchOnClickChip: widget.enableRouteSearch,
+      selectMode: _selectMode,
+      selected: selected,
       onTap: () {
-        var data = _list[i];
-        if (data.data.id != _showHistoryData?.data.id) {
-          _showHistoryData = data;
-          _clipTagRowKey = UniqueKey();
+        if (_selectMode) {
+          if (_selectedIds.contains(id)) {
+            _selectedIds.remove(id);
+          } else {
+            _selectedIds.add(id);
+          }
           setState(() {});
         } else {
-          setState(() {
-            _showHistoryData = null;
-            _rightShowFullPage = false;
-          });
+          var data = _list[i];
+          if (data.data.id != _showHistoryData?.data.id) {
+            _showHistoryData = data;
+            _clipTagRowKey = UniqueKey();
+            setState(() {});
+          } else {
+            setState(() {
+              _showHistoryData = null;
+              _rightShowFullPage = false;
+            });
+          }
         }
+      },
+      onLongPress: () {
+        _selectMode = true;
+        _selectedIds.add(id);
+        setState(() {});
       },
       onDoubleTap: () async {
         if (_list[i].isFile) {
@@ -290,10 +316,8 @@ class ClipListViewState extends State<ClipListView>
                                 physics: _scrollPhysics,
                                 itemBuilder: (context, i) {
                                   return Container(
-                                    padding: const EdgeInsets.only(
-                                      left: 2,
-                                      right: 2,
-                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 2),
                                     constraints: const BoxConstraints(
                                       maxHeight: 150,
                                       minHeight: 80,
@@ -303,25 +327,100 @@ class ClipListViewState extends State<ClipListView>
                                 },
                               ),
                   ),
-                  _showBackToTopButton
-                      ? Positioned(
-                          bottom: 16,
-                          right: 16,
-                          child: FloatingActionButton(
-                            onPressed: () {
-                              Future.delayed(const Duration(milliseconds: 100),
-                                  () {
-                                _scrollController.animateTo(
-                                  0,
-                                  duration: const Duration(milliseconds: 500),
-                                  curve: Curves.easeInOut,
-                                );
-                              });
-                            },
-                            child: const Icon(Icons.arrow_upward), // 可以选择其他图标
+                  Positioned(
+                    bottom: 16,
+                    right: 16,
+                    child: Row(
+                      children: [
+                        Visibility(
+                          visible: _selectMode,
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.lightBlue.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            margin: const EdgeInsets.only(right: 10),
+                            child: Center(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Text(
+                                  "${_selectedIds.length} / ${_list.length}",
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    color: Colors.black45,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        )
-                      : const SizedBox.shrink(),
+                        ),
+                        Visibility(
+                          visible: _selectMode,
+                          child: Tooltip(
+                            message: "取消选择",
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 10),
+                              child: FloatingActionButton(
+                                onPressed: () {
+                                  _selectedIds.clear();
+                                  _selectMode = false;
+                                  setState(() {});
+                                },
+                                child: const Icon(Icons.close),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Visibility(
+                          visible: _selectMode && _selectedIds.isNotEmpty,
+                          child: Tooltip(
+                            message: "删除",
+                            child: Container(
+                              margin: _showBackToTopButton
+                                  ? const EdgeInsets.only(right: 10)
+                                  : null,
+                              child: FloatingActionButton(
+                                onPressed: () {
+                                  Global.showTipsDialog(
+                                    context: context,
+                                    text: "是否删除选中的 ${_selectedIds.length} 项？",
+                                    showCancel: true,
+                                    onOk: () {
+                                      _selectedIds.clear();
+                                      _selectMode = false;
+                                      setState(() {});
+                                    },
+                                  );
+                                },
+                                child: const Icon(Icons.delete_forever),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Visibility(
+                          visible: _showBackToTopButton,
+                          child: Tooltip(
+                            message: "返回顶部",
+                            child: FloatingActionButton(
+                              onPressed: () {
+                                Future.delayed(
+                                    const Duration(milliseconds: 100), () {
+                                  _scrollController.animateTo(
+                                    0,
+                                    duration: const Duration(milliseconds: 500),
+                                    curve: Curves.easeInOut,
+                                  );
+                                });
+                              },
+                              child: const Icon(Icons.arrow_upward), // 可以选择其他图标
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -356,7 +455,8 @@ class ClipListViewState extends State<ClipListView>
                                       });
                                     },
                                     icon: const Icon(
-                                        Icons.keyboard_double_arrow_right,),
+                                      Icons.keyboard_double_arrow_right,
+                                    ),
                                   ),
                                 ),
                                 const Padding(

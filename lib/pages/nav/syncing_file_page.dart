@@ -4,6 +4,7 @@ import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/syncing_file.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/syncing_file_progress_providr.dart';
+import 'package:clipshare/util/global.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
@@ -24,8 +25,9 @@ class _SyncingFilePageTab {
 }
 
 class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
-  var factor = 1;
-  var count = 0;
+  bool _selectMode = false;
+  Set<String> _selectedSet = {};
+  var _count = 0;
   List<_SyncingFilePageTab> tabs = [
     _SyncingFilePageTab(
       name: "接收",
@@ -133,30 +135,57 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
             ),
             body: TabBarView(
               children: [
-                recList.isEmpty
-                    ? const EmptyContent()
-                    : ListView(
-                        children: recList,
-                      ),
-                sendList.isEmpty
-                    ? const EmptyContent()
-                    : ListView(
-                        children: sendList,
-                      ),
+                Visibility(
+                  visible: recList.isEmpty,
+                  replacement: ListView(
+                    children: recList,
+                  ),
+                  child: const EmptyContent(),
+                ),
+                Visibility(
+                  visible: sendList.isEmpty,
+                  replacement: ListView(
+                    children: sendList,
+                  ),
+                  child: const EmptyContent(),
+                ),
                 RefreshIndicator(
                   onRefresh: () {
-                    count++;
+                    _count++;
                     setState(() {});
                     return Future(() => null);
                   },
-                  child: historyList.isEmpty
-                      ? const EmptyContent()
-                      : ListView.builder(
+                  child: Visibility(
+                    visible: historyList.isEmpty,
+                    replacement: Stack(
+                      children: [
+                        ListView.builder(
                           itemCount: historyList.length,
                           itemBuilder: (context, i) {
+                            var path = historyList[i].syncingFile.filePath;
+                            var selected = _selectedSet.contains(path);
                             return Column(
                               children: [
-                                historyList[i],
+                                InkWell(
+                                  child: historyList[i].copyWith(
+                                    selectMode: _selectMode,
+                                    selected: selected,
+                                  ),
+                                  onLongPress: () {
+                                    _selectedSet.add(path);
+                                    _selectMode = true;
+                                    setState(() {});
+                                  },
+                                  onTap: () {
+                                    print(123);
+                                    if (_selectedSet.contains(path)) {
+                                      _selectedSet.remove(path);
+                                    } else {
+                                      _selectedSet.add(path);
+                                    }
+                                    setState(() {});
+                                  },
+                                ),
                                 Visibility(
                                   visible: i != historyList.length - 1,
                                   child: const Divider(
@@ -169,6 +198,84 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                             );
                           },
                         ),
+                        Positioned(
+                          bottom: 16,
+                          right: 16,
+                          child: Row(
+                            children: [
+                              Visibility(
+                                visible: _selectMode,
+                                child: Container(
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: Colors.lightBlue.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  margin: const EdgeInsets.only(right: 10),
+                                  child: Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10),
+                                      child: Text(
+                                        "${_selectedSet.length} / ${historyList.length}",
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.black45,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Visibility(
+                                visible: _selectMode,
+                                child: Tooltip(
+                                  message: "取消选择",
+                                  child: Container(
+                                    margin: const EdgeInsets.only(right: 10),
+                                    child: FloatingActionButton(
+                                      onPressed: () {
+                                        _selectedSet.clear();
+                                        _selectMode = false;
+                                        setState(() {});
+                                      },
+                                      child: const Icon(Icons.close),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Visibility(
+                                visible: _selectMode && _selectedSet.isNotEmpty,
+                                child: Tooltip(
+                                  message: "删除",
+                                  child: FloatingActionButton(
+                                    onPressed: () {
+                                      Global.showTipsDialog(
+                                        context: context,
+                                        text:
+                                            "是否删除选中的 ${_selectedSet.length} 项？",
+                                        showCancel: true,
+                                        neutralText: "连带文件删除",
+                                        okText: "仅删除记录",
+                                        onOk: () {
+                                          _selectedSet.clear();
+                                          _selectMode = false;
+                                          setState(() {});
+                                        },
+                                        onNeutral: () {},
+                                      );
+                                    },
+                                    child: const Icon(Icons.delete_forever),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    child: const EmptyContent(),
+                  ),
                 ),
               ],
             ),

@@ -16,12 +16,17 @@ class SyncFileStatus extends StatelessWidget {
   final SyncingFile syncingFile;
   final double factor;
   final bool isLocal;
-
+  final bool selectMode;
+  final bool selected;
+  final int? historyId;
   const SyncFileStatus({
     super.key,
     required this.syncingFile,
     required this.factor,
     this.isLocal = false,
+    this.selectMode = false,
+    this.selected = false,
+    this.historyId,
   });
 
   factory SyncFileStatus.fromHistory(BuildContext context, History history) {
@@ -38,6 +43,17 @@ class SyncFileStatus extends StatelessWidget {
       ),
       factor: 1,
       isLocal: true,
+      historyId: history.id,
+    );
+  }
+
+  SyncFileStatus copyWith({bool? selected, bool? selectMode}) {
+    return SyncFileStatus(
+      syncingFile: syncingFile,
+      factor: factor,
+      isLocal: isLocal,
+      selected: selected ?? this.selected,
+      selectMode: selectMode ?? this.selectMode,
     );
   }
 
@@ -50,24 +66,28 @@ class SyncFileStatus extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12.0),
-          onTap: () async {
-            if (PlatformExt.isPC) {
-              return;
-            }
-            final file = File(syncingFile.filePath);
-            await OpenFile.open(
-              file.normalizePath,
-            );
-          },
-          onDoubleTap: () async {
-            if (PlatformExt.isMobile) {
-              return;
-            }
-            final file = File(syncingFile.filePath);
-            await OpenFile.open(
-              file.normalizePath,
-            );
-          },
+          onTap: selectMode
+              ? null
+              : () async {
+                  if (PlatformExt.isPC) {
+                    return;
+                  }
+                  final file = File(syncingFile.filePath);
+                  await OpenFile.open(
+                    file.normalizePath,
+                  );
+                },
+          onDoubleTap: selectMode
+              ? null
+              : () async {
+                  if (PlatformExt.isMobile) {
+                    return;
+                  }
+                  final file = File(syncingFile.filePath);
+                  await OpenFile.open(
+                    file.normalizePath,
+                  );
+                },
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -103,7 +123,16 @@ class SyncFileStatus extends StatelessWidget {
                                 ),
                               ),
                               Visibility(
-                                visible: isLocal,
+                                visible: isLocal && !selectMode,
+                                replacement: IconButton(
+                                  icon: Icon(
+                                    selected
+                                        ? Icons.check_box
+                                        : Icons.check_box_outline_blank,
+                                    color: const Color(0xFF33A0E3),
+                                  ),
+                                  onPressed: null,
+                                ),
                                 child: Tooltip(
                                   message: "打开文件夹",
                                   child: IconButton(

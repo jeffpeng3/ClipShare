@@ -58,8 +58,8 @@ class Constants {
   static const channelClip = "top.coclyun.clipshare/clip";
   static const channelAndroid = "top.coclyun.clipshare/android";
 
-  static const smallScreenWidth = 640;
-  static const showHistoryRightWidth = 840;
+  static const smallScreenWidth = 640.0;
+  static const showHistoryRightWidth = 840.0;
   static const logoPngPath = "assets/images/logo/logo.png";
   static const logoIcoPath = "assets/images/logo/logo.ico";
 

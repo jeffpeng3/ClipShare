@@ -30,6 +30,7 @@ import 'package:clipshare/util/log.dart';
 import 'package:clipshare/util/snowflake.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -244,10 +245,18 @@ class _LoadingPageState extends State<LoadingPage> {
     WidgetsFlutterBinding.ensureInitialized();
     // 必须加上这一行。
     await windowManager.ensureInitialized();
-    final [weight, height] =
+    final [width, height] =
         App.settings.windowSize.split("x").map((e) => e.toDouble()).toList();
+    bool useMinimumSize = true;
+    assert(() {
+      useMinimumSize = false;
+      return true;
+    }());
     WindowOptions windowOptions = WindowOptions(
-      size: Size(weight, height),
+      size: Size(width, height),
+      minimumSize: kReleaseMode
+          ? const Size(Constants.showHistoryRightWidth * 1.0, 200)
+          : null,
       center: true,
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.normal,
