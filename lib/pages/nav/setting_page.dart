@@ -135,7 +135,7 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                 padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
                 child: ListView(
                   children: [
-                    ///常规
+                    ///region 常规
                     SettingCardGroup(
                       groupName: "常规",
                       icon: const Icon(Icons.discount_outlined),
@@ -237,7 +237,9 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       ],
                     ),
 
-                    ///权限
+                    ///endregion
+
+                    ///region 权限
                     SettingCardGroup(
                       groupName: "权限",
                       icon: const Icon(Icons.admin_panel_settings),
@@ -319,7 +321,9 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       ],
                     ),
 
-                    ///发现
+                    ///endregion
+
+                    ///region 发现
                     SettingCardGroup(
                       groupName: "发现",
                       icon: const Icon(Icons.wifi),
@@ -509,7 +513,101 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       ],
                     ),
 
-                    ///安全设置
+                    ///endregion
+
+                    ///region 中转
+                    SettingCardGroup(
+                      groupName: "中转",
+                      icon: const Icon(Icons.cloud_sync_outlined),
+                      cardList: [
+                        SettingCard(
+                          main: const Text(
+                            "启用中转服务器",
+                            maxLines: 1,
+                          ),
+                          sub: const Text(
+                            "中转服务器可在公网环境下进行数据同步",
+                            maxLines: 1,
+                          ),
+                          value: false,
+                          action: (v) {
+                            return Switch(
+                              value: v,
+                              onChanged: (checked) {
+                                HapticFeedback.mediumImpact();
+                                //todo 启用中转服务器前先校验是否填写服务器地址
+                              },
+                            );
+                          },
+                        ),
+                        SettingCard(
+                          main: const Text(
+                            "本机识别码",
+                            maxLines: 1,
+                          ),
+                          sub: const Text(
+                            "用于中转服务器连接和配对身份验证",
+                            maxLines: 1,
+                          ),
+                          value: false,
+                          action: (v) {
+                            return Text("${App.device.guid.hashCode}");
+                          },
+                        ),
+                        SettingCard(
+                          main: const Text(
+                            "本机验证码",
+                            maxLines: 1,
+                          ),
+                          sub: const Text(
+                            "用于中转服务器连接和配对身份验证",
+                            maxLines: 1,
+                          ),
+                          value: false,
+                          action: (v) {
+                            return Text("xxxxx");
+                          },
+                        ),
+                        SettingCard(
+                          main: const Text(
+                            "重新生成验证码",
+                            maxLines: 1,
+                          ),
+                          sub: const Text(
+                            "重启App后重新生成验证码",
+                            maxLines: 1,
+                          ),
+                          value: false,
+                          action: (v) {
+                            return Switch(
+                              value: v,
+                              onChanged: (checked) {
+                                HapticFeedback.mediumImpact();
+                                //todo 重启App后重新生成验证码
+                              },
+                            );
+                          },
+                        ),
+                        SettingCard(
+                          main: const Text(
+                            "中转服务器地址",
+                            maxLines: 1,
+                          ),
+                          sub: const Text(
+                            "请使用可信地址或自行搭建",
+                            maxLines: 1,
+                          ),
+                          value: false,
+                          action: (v) {
+                            return Text("未配置");
+                          },
+                        ),
+                      ],
+                    ),
+
+                    ///endregion
+
+                    ///region 安全设置
                     SettingCardGroup(
                       groupName: "安全",
                       icon: const Icon(Icons.fingerprint_outlined),
@@ -623,7 +721,9 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       ],
                     ),
 
-                    ///快捷键
+                    ///endregion
+
+                    ///region 快捷键
                     SettingCardGroup(
                       groupName: "热键",
                       icon: const Icon(Icons.keyboard_alt_outlined),
@@ -763,7 +863,9 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       ],
                     ),
 
-                    ///同步设置
+                    ///endregion
+
+                    ///region 同步设置
                     SettingCardGroup(
                       groupName: "同步",
                       icon: const Icon(Icons.sync_rounded),
@@ -916,7 +1018,9 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       ],
                     ),
 
-                    ///规则设置
+                    ///endregion
+
+                    ///region 规则设置
                     SettingCardGroup(
                       groupName: "规则",
                       icon: const Icon(Icons.assignment_outlined),
@@ -991,7 +1095,9 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       ],
                     ),
 
-                    ///日志
+                    ///endregion
+
+                    ///region 日志
                     SettingCardGroup(
                       groupName: "日志",
                       icon: const Icon(Icons.bug_report_outlined),
@@ -1100,7 +1206,9 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       ],
                     ),
 
-                    ///关于
+                    ///endregion
+
+                    ///region 关于
                     SettingCardGroup(
                       groupName: "关于",
                       icon: const Icon(Icons.info_outline),
@@ -1130,6 +1238,8 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                         ),
                       ],
                     ),
+
+                    ///endregion
                     const SizedBox(
                       height: 10,
                     ),
