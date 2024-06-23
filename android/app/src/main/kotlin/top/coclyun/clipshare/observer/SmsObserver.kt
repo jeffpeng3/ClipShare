@@ -16,10 +16,10 @@ class SmsObserver(private val mainActivity: MainActivity, handler: Handler) :
     private var lastSmsId: Long = -1
     override fun onChange(selfChange: Boolean, uri: Uri?) {
         super.onChange(selfChange, uri)
-        if (uri.toString().startsWith("content://sms/inbox")) {
-            Log.d(tag, uri.toString())
-            readSms();
-        }
+        Log.d(tag, uri.toString())
+        readSms();
+//        if (uri.toString().startsWith("content://sms/inbox")) {
+//        }
     }
 
     /**
@@ -42,9 +42,11 @@ class SmsObserver(private val mainActivity: MainActivity, handler: Handler) :
             lastSmsId = smsId
             val address = cursor.getString(cursor.getColumnIndex("address"))
             val body = cursor.getString(cursor.getColumnIndex("body"))
-            Log.d("SmsContentObserver", "Sender: $address, Message: $body")
+            Log.d(tag, "Sender: $address, Message: $body")
             cursor.close()
             mainActivity.sendClipData(ContentType.Sms, body)
+        }else{
+            Log.d(tag, "no result")
         }
     }
 }

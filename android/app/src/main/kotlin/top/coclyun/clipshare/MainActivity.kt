@@ -123,6 +123,7 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
         }
         val handler = Handler()
         val observer = SmsObserver(this, handler)
+        Log.d(TAG, "registerSmsObserver")
         smsObserver = observer
         contentResolver.registerContentObserver(Uri.parse("content://sms/"), true, observer)
     }
@@ -133,6 +134,7 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
             contentResolver.unregisterContentObserver(it)
         }
         smsObserver = null
+        Log.d(TAG, "unRegisterSmsObserver")
     }
 
     private fun createNotifyChannel() {
