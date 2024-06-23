@@ -18,7 +18,7 @@ extension StringExt on String {
 
   bool get isIPv4 {
     return matchRegExp(
-      r"((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}",
+      r"^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$",
     );
   }
 
@@ -38,6 +38,14 @@ extension StringExt on String {
     try {
       var port = int.parse(this);
       return port >= 0 && port <= 65535;
+    } catch (e) {
+      return false;
+    }
+  }
+  bool get isPortNot0 {
+    try {
+      var port = int.parse(this);
+      return port > 0 && port <= 65535;
     } catch (e) {
       return false;
     }

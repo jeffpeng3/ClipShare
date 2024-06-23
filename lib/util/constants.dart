@@ -22,6 +22,9 @@ class Constants {
   //组播心跳时长
   static const heartbeatInterval = 30;
 
+  //中转程序下载地址
+  static const forwardDownloadUrl = "http://www.coclyun.top";
+
   //默认标签规则
   static final defaultTagRules = jsonEncode(
     {
@@ -34,6 +37,7 @@ class Constants {
       ],
     },
   );
+
   //默认短信规则
   static final defaultSmsRules = jsonEncode(
     {

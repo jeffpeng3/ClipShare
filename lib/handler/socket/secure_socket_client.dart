@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:clipshare/enum/connection_mode.dart';
-import 'package:clipshare/enum/transfer_msg_type.dart';
+import 'package:clipshare/enum/forward_msg_type.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/crypto.dart';
 import 'package:clipshare/util/extension.dart';
@@ -34,13 +34,13 @@ class SecureSocketClient {
   late final String _targetDevId;
   late final String _selfDevId;
   late final ConnectionMode _connectionMode;
-  bool _transferReady = false;
+  bool _forwardReady = false;
 
   bool get isReady => _keyIsExchanged;
 
-  bool get isTransferMode => _connectionMode == ConnectionMode.transfer;
+  bool get isForwardMode => _connectionMode == ConnectionMode.forward;
 
-  String get _endChar => isTransferMode && !_transferReady ? '\n' : ',';
+  String get _endChar => isForwardMode && !_forwardReady ? '\n' : ',';
   final StreamController<String> _msgStreamController = StreamController();
 
   SecureSocketClient._private(this.ip) {
@@ -118,8 +118,8 @@ class SecureSocketClient {
     void Function(SecureSocketClient client)? onDone,
     bool? cancelOnError,
   }) {
-    final isTransfer = connectionMode == ConnectionMode.transfer;
-    if (isTransfer) {
+    final isForward = connectionMode == ConnectionMode.forward;
+    if (isForward) {
       assert(targetDevId.isNotNullAndEmpty);
       assert(selfDevId.isNotNullAndEmpty);
     }
@@ -160,24 +160,24 @@ class SecureSocketClient {
             _data = _data.substring(index + 1);
             //接收完成，进行解码
             try {
-              if (isTransferMode && !_transferReady) {
+              if (isForwardMode && !_forwardReady) {
                 //中转未准备好
                 var json = jsonDecode(pkg);
-                var type = TransferMsgType.getValue(json["type"]);
+                var type = ForwardMsgType.getValue(json["type"]);
                 Log.debug(tag, "forward ${type.name}");
                 switch (type) {
-                  case TransferMsgType.bothConnected:
-                    send({"type": TransferMsgType.bothConnected.name});
+                  case ForwardMsgType.bothConnected:
+                    send({"type": ForwardMsgType.bothConnected.name});
                     String sender = json["sender"];
                     if (sender != _selfDevId) {
-                      _transferReady = true;
+                      _forwardReady = true;
                     }
                     break;
-                  case TransferMsgType.forwardReady:
-                    _transferReady = true;
+                  case ForwardMsgType.forwardReady:
+                    _forwardReady = true;
                     sendKey();
                     break;
-                  case TransferMsgType.alreadyConnected:
+                  case ForwardMsgType.alreadyConnected:
                     close();
                     break;
                   default:
@@ -287,7 +287,7 @@ class SecureSocketClient {
   ///发送数据
   void send(Map map) {
     String data = jsonEncode(map);
-    if (!isTransferMode || _transferReady) {
+    if (!isForwardMode || _forwardReady) {
       //region 直连模式
       if (_keyIsExchanged) {
         data = CryptoUtil.encryptAES(

@@ -437,6 +437,14 @@ class _LoadingPageState extends State<LoadingPage> {
       "enableSmsSync",
       App.userId,
     );
+    var enableForward = await cfg.getConfig(
+      "enableForward",
+      App.userId,
+    );
+    var forwardServer = await cfg.getConfig(
+      "forwardServer",
+      App.userId,
+    );
     var fileStoreDir = Directory(fileStorePath ?? App.defaultFileStorePath);
     App.settings = Settings(
       port: port?.toInt() ?? Constants.port,
@@ -467,6 +475,8 @@ class _LoadingPageState extends State<LoadingPage> {
       appRevalidateDuration: appRevalidateDuration?.toInt() ?? 0,
       appPassword: appPassword,
       enableSmsSync: enableSmsSync?.toBool() ?? false,
+      enableForward: enableForward?.toBool() ?? false,
+      forwardServer: forwardServer,
     );
     if (Platform.isAndroid) {
       if (App.settings.showHistoryFloat) {

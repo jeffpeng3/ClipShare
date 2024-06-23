@@ -198,4 +198,18 @@ class SettingProvider extends Notifier<Settings> {
       enableSmsSync: enableSmsSync,
     );
   }
+
+  Future<void> setEnableForward(bool enableForward) async {
+    await _addOrUpdate("enableForward", enableForward.toString());
+    App.settings = state = state.copyWith(
+      enableForward: enableForward,
+    );
+  }
+
+  Future<void> setForwardServer(String forwardServer) async {
+    await _addOrUpdate("forwardServer", forwardServer.toString());
+    App.settings = state = state.copyWith(
+      forwardServer: forwardServer,
+    );
+  }
 }

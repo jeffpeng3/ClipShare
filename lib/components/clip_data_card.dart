@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:io';
 
 import 'package:clipshare/channels/android_channel.dart';
@@ -107,12 +106,14 @@ class ClipDataCardState extends State<ClipDataCard> {
       },
     );
   }
-  void _onTap(){
+
+  void _onTap() {
     if (!PlatformExt.isMobile) {
       return;
     }
     _showDetail(widget.clip);
   }
+
   @override
   Widget build(BuildContext context) {
     return ContextMenuArea(
@@ -125,6 +126,8 @@ class ClipDataCardState extends State<ClipDataCard> {
               setState(() {
                 _selected = !_selected;
               });
+              widget.onTap?.call();
+              return;
             }
             if (PlatformExt.isPC) {
               widget.onTap?.call();

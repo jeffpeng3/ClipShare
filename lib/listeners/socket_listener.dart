@@ -13,7 +13,7 @@ import 'package:clipshare/enum/connection_mode.dart';
 import 'package:clipshare/handler/dev_pairing_handler.dart';
 import 'package:clipshare/handler/socket/secure_socket_client.dart';
 import 'package:clipshare/handler/socket/secure_socket_server.dart';
-import 'package:clipshare/handler/socket/transfer_socket_client.dart';
+import 'package:clipshare/handler/socket/forward_socket_client.dart';
 import 'package:clipshare/handler/sync/file_syncer.dart';
 import 'package:clipshare/handler/sync/missing_data_syncer.dart';
 import 'package:clipshare/handler/task_runner.dart';
@@ -21,6 +21,7 @@ import 'package:clipshare/main.dart';
 import 'package:clipshare/provider/setting_provider.dart';
 import 'package:clipshare/util/constants.dart';
 import 'package:clipshare/util/crypto.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/global.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:collection/collection.dart';
@@ -95,8 +96,6 @@ class SocketListener {
   final List<ForwardStatusListener> _forwardStatusListener =
       List.empty(growable: true);
 
-  final transferIp = "101.43.188.139";
-  final transferPort = 9999;
   final Map<String, DevSocket> _devSockets = {};
   late SecureSocketServer _server;
   ForwardSocketClient? _forwardClient;
@@ -115,6 +114,19 @@ class SocketListener {
   static bool _isInit = false;
 
   Settings get settings => _ref.read(settingProvider);
+
+  String? get forwardServerIp {
+    var arr = settings.forwardServer?.split(":");
+    if (arr == null || arr.length < 2) return null;
+    return arr[0];
+  }
+
+  int? get forwardServerPort {
+    var arr = settings.forwardServer?.split(":");
+    if (arr == null || arr.length < 2) return null;
+    return arr[1].toInt();
+  }
+
   List<RawDatagramSocket> multicasts = [];
 
   Future<SocketListener> init(Ref ref) async {
@@ -125,7 +137,7 @@ class SocketListener {
     _runSocketServer();
     //连接中转服务器
     await connectForwardServer();
-    startDiscoverDevice();
+    startDiscoveringDevices();
     startHeartbeatTest();
     _isInit = true;
     return this;
@@ -306,12 +318,14 @@ class SocketListener {
   }
 
   ///连接中转服务器
-  Future<void> connectForwardServer() async {
-    _forwardClient?.close();
+  Future<void> connectForwardServer([bool startDiscovering = false]) async {
+    disConnectForwardServer();
+    if (!settings.enableForward) return;
+    if (forwardServerIp == null || forwardServerPort == null) return;
     _forwardClient = await ForwardSocketClient.connect(
-      ip: transferIp,
-      port: transferPort,
-      onMessage: (self, data) async {
+      ip: forwardServerIp!,
+      port: forwardServerPort!,
+      onMessage: (self, data) {
         Log.debug(tag, "forwardClient onMessage $data");
       },
       onDone: (self) {
@@ -329,29 +343,37 @@ class SocketListener {
         for (var listener in _forwardStatusListener) {
           listener.onForwardServerConnected();
         }
+        //中转服务器连接成功后发送本机信息
+        self.send({
+          "connType": "keepAlive",
+          "self": App.device.guid,
+        });
+        if (startDiscovering) {
+          Future.delayed(const Duration(seconds: 1), () async {
+            //发现中转设备
+            TaskRunner<void>(
+              initialTasks: await _forwardDiscover(),
+              onFinish: () async {},
+              concurrency: 50,
+            );
+          });
+        }
       },
     );
-    //中转服务器连接成功后发送本机信息
-    _forwardClient!.send({
-      "connType": "keepAlive",
-      "self": App.device.guid,
-    });
+  }
 
-    ///以下测试中转程序
-    const op7 = "8c3a1a02bb596a8b5132937485f31052";
-    const omen5 = "5b044f01998c5af758fbfe785a47779a";
-    //测试连接one plus 7
-    var targetDevId = App.device.guid != op7 ? op7 : omen5;
-    // manualConnect(
-    //   transferIp,
-    //   port: transferPort,
-    //   forward: true,
-    //   targetDevId: targetDevId,
-    //   onErr: (err) {
-    //     Log.debug(tag, '中转连接，发生错误:$err');
-    //     _onDevDisConnected(targetDevId);
-    //   },
-    // );
+  ///断开中转服务器
+  void disConnectForwardServer() {
+    _forwardClient?.close();
+    _forwardClient = null;
+    for (var listener in _forwardStatusListener) {
+      listener.onForwardServerDisconnect();
+    }
+    for (var devId in _devSockets.keys) {
+      var skt = _devSockets[devId];
+      if (skt == null || !skt.socket.isForwardMode) continue;
+      _onDevDisConnected(devId);
+    }
   }
 
   ///socket 监听消息处理
@@ -477,9 +499,6 @@ class SocketListener {
         //返回配对结果
         sendData(dev, MsgType.paired, {"result": verify});
         ipSetTemp.removeWhere((v) {
-          // if(client.isTransferMode){
-          //   return v == '$address:${client.}';
-          // }
           return v == address;
         });
         break;
@@ -546,7 +565,7 @@ class SocketListener {
   TaskRunner? _taskRunner;
 
   ///发现设备
-  void startDiscoverDevice([bool restart = false]) async {
+  void startDiscoveringDevices([bool restart = false]) async {
     if (_discovering) {
       Log.debug(tag, "正在发现设备");
       return;
@@ -598,7 +617,7 @@ class SocketListener {
   }
 
   ///停止发现设备
-  Future<void> stopDiscoverDevice([bool restart = false]) async {
+  Future<void> stopDiscoveringDevices([bool restart = false]) async {
     Log.debug(tag, "停止发现设备");
     _taskRunner?.stop();
     _taskRunner = null;
@@ -611,10 +630,10 @@ class SocketListener {
   }
 
   ///重新发现设备
-  void restartDiscoverDevice() async {
+  void restartDiscoveringDevices() async {
     Log.debug(tag, "重新开始发现设备");
-    await stopDiscoverDevice(true);
-    startDiscoverDevice(true);
+    await stopDiscoveringDevices(true);
+    startDiscoveringDevices(true);
   }
 
   ///组播发现设备
@@ -678,10 +697,11 @@ class SocketListener {
     var lst = await _deviceDao.getAllDevices(App.userId);
     var offlineList = lst.where((dev) => !_devSockets.keys.contains(dev.guid));
     for (var dev in offlineList) {
+      if (forwardServerIp == null || forwardServerPort == null) continue;
       tasks.add(
         () => manualConnect(
-          transferIp,
-          port: transferPort,
+          forwardServerIp!,
+          port: forwardServerPort,
           forward: true,
           targetDevId: dev.guid,
           onErr: (err) {
@@ -719,7 +739,7 @@ class SocketListener {
       prime2: App.prime2,
       targetDevId: forward ? targetDevId : null,
       selfDevId: forward ? App.device.guid : null,
-      connectionMode: forward ? ConnectionMode.transfer : ConnectionMode.direct,
+      connectionMode: forward ? ConnectionMode.forward : ConnectionMode.direct,
       onConnected: (SecureSocketClient client) {
         //外部终止连接
         if (data.containsKey('stop') && data['stop'] == true) {
@@ -876,7 +896,7 @@ class SocketListener {
           dev,
           minVersion,
           version,
-          ip == transferIp,
+          ip == forwardServerIp,
         );
       } catch (e, t) {
         Log.debug(tag, "$e $t");

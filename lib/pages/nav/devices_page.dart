@@ -182,9 +182,9 @@ class DevicesPageState extends State<DevicesPage>
                           if (_discovering) {
                             _rotationReverse = !_rotationReverse;
                             _setRotationAnimation();
-                            SocketListener.inst.restartDiscoverDevice();
+                            SocketListener.inst.restartDiscoveringDevices();
                           } else {
-                            SocketListener.inst.startDiscoverDevice();
+                            SocketListener.inst.startDiscoveringDevices();
                           }
                           setState(() {});
                         },
@@ -212,7 +212,7 @@ class DevicesPageState extends State<DevicesPage>
                           message: "停止发现",
                           child: IconButton(
                             onPressed: () {
-                              SocketListener.inst.stopDiscoverDevice();
+                              SocketListener.inst.stopDiscoveringDevices();
                             },
                             icon: const Icon(
                               Icons.stop,
@@ -631,6 +631,7 @@ class DevicesPageState extends State<DevicesPage>
           isConnected: false,
           minVersion: null,
           version: null,
+          isForward: false,
         );
       }
     }

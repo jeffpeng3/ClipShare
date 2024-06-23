@@ -71,6 +71,10 @@ class Settings {
   //是否启用短信同步
   final bool enableSmsSync;
 
+  //是否启用短信同步
+  final bool enableForward;
+  final String? forwardServer;
+
   Settings({
     required this.port,
     required this.localName,
@@ -95,6 +99,8 @@ class Settings {
     required this.syncFileHotKeys,
     required this.enableSmsSync,
     this.appPassword,
+    required this.enableForward,
+    this.forwardServer,
   });
 
   Settings copyWith({
@@ -121,6 +127,8 @@ class Settings {
     String? appPassword,
     String? syncFileHotKeys,
     bool? enableSmsSync,
+    bool? enableForward,
+    String? forwardServer,
   }) {
     return Settings(
       port: port ?? this.port,
@@ -149,6 +157,8 @@ class Settings {
           appRevalidateDuration ?? this.appRevalidateDuration,
       appPassword: appPassword ?? this.appPassword,
       enableSmsSync: enableSmsSync ?? this.enableSmsSync,
+      enableForward: enableForward ?? this.enableForward,
+      forwardServer: forwardServer ?? this.forwardServer,
     );
   }
 }

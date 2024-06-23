@@ -1,1 +1,1 @@
-enum ConnectionMode { direct, transfer }
+enum ConnectionMode { direct, forward }

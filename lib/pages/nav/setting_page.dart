@@ -521,69 +521,60 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                       icon: const Icon(Icons.cloud_sync_outlined),
                       cardList: [
                         SettingCard(
-                          main: const Text(
-                            "启用中转服务器",
-                            maxLines: 1,
+                          main: Row(
+                            children: [
+                              const Text(
+                                "启用中转服务器",
+                                maxLines: 1,
+                              ),
+                              const SizedBox(
+                                width: 5,
+                              ),
+                              Tooltip(
+                                message: "下载中转程序",
+                                child: GestureDetector(
+                                  child: const MouseRegion(
+                                    cursor: SystemMouseCursors.click,
+                                    child: Icon(
+                                      Icons.download_rounded,
+                                      color: Colors.blueGrey,
+                                      size: 15,
+                                    ),
+                                  ),
+                                  onTap: () async {
+                                    Constants.forwardDownloadUrl.askOpenUrl();
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
                           sub: const Text(
                             "中转服务器可在公网环境下进行数据同步",
                             maxLines: 1,
                           ),
-                          value: false,
+                          value: vm.enableForward,
                           action: (v) {
                             return Switch(
                               value: v,
-                              onChanged: (checked) {
+                              onChanged: (checked) async {
                                 HapticFeedback.mediumImpact();
-                                //todo 启用中转服务器前先校验是否填写服务器地址
-                              },
-                            );
-                          },
-                        ),
-                        SettingCard(
-                          main: const Text(
-                            "本机识别码",
-                            maxLines: 1,
-                          ),
-                          sub: const Text(
-                            "用于中转服务器连接和配对身份验证",
-                            maxLines: 1,
-                          ),
-                          value: false,
-                          action: (v) {
-                            return Text("${App.device.guid.hashCode}");
-                          },
-                        ),
-                        SettingCard(
-                          main: const Text(
-                            "本机验证码",
-                            maxLines: 1,
-                          ),
-                          sub: const Text(
-                            "用于中转服务器连接和配对身份验证",
-                            maxLines: 1,
-                          ),
-                          value: false,
-                          action: (v) {
-                            return Text("xxxxx");
-                          },
-                        ),
-                        SettingCard(
-                          main: const Text(
-                            "重新生成验证码",
-                            maxLines: 1,
-                          ),
-                          sub: const Text(
-                            "重启App后重新生成验证码",
-                            maxLines: 1,
-                          ),
-                          value: false,
-                          action: (v) {
-                            return Switch(
-                              value: v,
-                              onChanged: (checked) {
-                                HapticFeedback.mediumImpact();
-                                //todo 重启App后重新生成验证码
+                                //启用中转服务器前先校验是否填写服务器地址
+                                if (vm.forwardServer.isNullOrEmpty) {
+                                  Global.showSnackBarErr(
+                                    context,
+                                    "请先设置中转服务器地址",
+                                  );
+                                  return;
+                                }
+                                await ref
+                                    .notifier(settingProvider)
+                                    .setEnableForward(checked);
+                                if (checked) {
+                                  SocketListener.inst
+                                      .connectForwardServer(true);
+                                } else {
+                                  SocketListener.inst.disConnectForwardServer();
+                                }
                               },
                             );
                           },
@@ -597,9 +588,41 @@ class _SettingPageState extends State<SettingPage> with WidgetsBindingObserver {
                             "请使用可信地址或自行搭建",
                             maxLines: 1,
                           ),
-                          value: false,
+                          value: vm.forwardServer,
                           action: (v) {
-                            return Text("未配置");
+                            String text = "更改";
+                            if (vm.forwardServer.isNullOrEmpty) {
+                              text = "配置";
+                            }
+                            return TextButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => TextEditDialog(
+                                    title: "配置中转服务器",
+                                    labelText: "中转地址",
+                                    hint: "格式 ip:port",
+                                    initStr: vm.forwardServer ?? '',
+                                    verify: (str) {
+                                      if (str.isNullOrEmpty) return false;
+                                      if (!str.contains(":")) return false;
+                                      final [ip, port] = str.trim().split(':');
+                                      return ip.isIPv4 && port.isPortNot0;
+                                    },
+                                    errorText: "请输入合法的地址",
+                                    onOk: (str) async {
+                                      if (str.trim() == vm.forwardServer) {
+                                        return;
+                                      }
+                                      await ref
+                                          .notifier(settingProvider)
+                                          .setForwardServer(str);
+                                    },
+                                  ),
+                                );
+                              },
+                              child: Text(text),
+                            );
                           },
                         ),
                       ],

@@ -62,11 +62,11 @@ class _BasePageState extends State<BasePage>
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.sync_alt_outlined),
-      label: '传输',
+      label: '传输记录',
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.settings),
-      label: '设置',
+      label: '应用设置',
     ),
   ]);
 
@@ -356,7 +356,7 @@ class _BasePageState extends State<BasePage>
         .listen((ConnectivityResult result) {
       Log.debug(tag, "网络变化 -> ${result.name}");
       if (result != ConnectivityResult.none) {
-        SocketListener.inst.restartDiscoverDevice();
+        SocketListener.inst.restartDiscoveringDevices();
       }
     });
     _tagSyncer = TagSyncer();
@@ -392,7 +392,7 @@ class _BasePageState extends State<BasePage>
           i,
           const BottomNavigationBarItem(
             icon: Icon(Icons.search),
-            label: "搜索",
+            label: "搜索历史",
           ),
         );
         _pages.insert(
