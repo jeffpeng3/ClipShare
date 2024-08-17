@@ -9,9 +9,11 @@ import 'package:clipshare/entity/dev_info.dart';
 import 'package:clipshare/entity/message_data.dart';
 import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/entity/version.dart';
+import 'package:clipshare/enum/connection_mode.dart';
 import 'package:clipshare/handler/dev_pairing_handler.dart';
 import 'package:clipshare/handler/socket/secure_socket_client.dart';
 import 'package:clipshare/handler/socket/secure_socket_server.dart';
+import 'package:clipshare/handler/socket/transfer_socket_client.dart';
 import 'package:clipshare/handler/sync/file_syncer.dart';
 import 'package:clipshare/handler/sync/missing_data_syncer.dart';
 import 'package:clipshare/handler/task_runner.dart';
@@ -82,6 +84,7 @@ class SocketListener {
 
   final Map<String, DevSocket> _devSockets = {};
   late SecureSocketServer _server;
+  TransferSocketClient? _transferClient;
 
   //临时记录链接配对自定义ip设备记录
   final Set<String> ipSetTemp = {};
@@ -105,6 +108,8 @@ class SocketListener {
     _deviceDao = AppDb.inst.deviceDao;
     // 初始化，创建socket监听
     _runSocketServer();
+    //连接中转服务器
+    connectTransferServer();
     startHeartbeatTest();
     _isInit = true;
     return this;
@@ -285,6 +290,76 @@ class SocketListener {
     );
   }
 
+  ///连接中转服务器
+  void connectTransferServer() async {
+    _transferClient?.close();
+    const transferIp = "101.43.188.139";
+    const transferPort = 9999;
+    _transferClient = await TransferSocketClient.connect(
+      ip: transferIp,
+      port: transferPort,
+      onMessage: (self, data) async {
+        Log.debug(tag, "transferClient onMessage $data");
+      },
+      onDone: (self) {
+        Log.debug(tag, "transferClient done");
+      },
+      onError: (ex, self) {
+        Log.debug(tag, "transferClient onError $ex");
+      },
+      onConnected: (self) {
+        Log.debug(tag, "transferClient onConnected");
+      },
+    );
+    //中转服务器连接成功后发送本机信息
+    _transferClient!.send({
+      "connType": "keepAlive",
+      "self": App.device.guid,
+    });
+
+    ///以下测试中转程序
+    const op7 = "8c3a1a02bb596a8b5132937485f31052";
+    const omen5 = "5b044f01998c5af758fbfe785a47779a";
+    //测试连接one plus 7
+    var targetDevId = App.device.guid != op7 ? op7 : omen5;
+    manualConnect(
+      transferIp,
+      port: transferPort,
+      forward: true,
+      targetDevId: targetDevId,
+      onErr: (err) {
+        Log.debug(tag, '中转连接，发生错误:$err');
+        _onDevDisConnected(targetDevId);
+      },
+    );
+    // await SecureSocketClient.connect(
+    //   ip: transferIp,
+    //   port: transferPort,
+    //   prime1: App.prime1,
+    //   prime2: App.prime2,
+    //   targetDevId: targetDevId,
+    //   selfDevId: App.device.guid,
+    //   connectionMode: ConnectionMode.transfer,
+    //   onConnected: (client) async {
+    //     Log.debug(tag, '已连接到中转服务器');
+    //   },
+    //   onMessage: (client, data) {
+    //     Map<String, dynamic> json = jsonDecode(data);
+    //     var msg = MessageData.fromJson(json);
+    //     Log.debug(tag, '$msg transferSSC');
+    //     _onSocketReceived(client, msg);
+    //   },
+    //   onDone: (SecureSocketClient client) {
+    //     Log.debug(tag, "中转连接，服务端连接关闭");
+    //     _onDevDisConnected(targetDevId);
+    //   },
+    //   onError: (error, client) {
+    //     Log.debug(tag, '中转连接，发生错误: $error');
+    //     _onDevDisConnected(targetDevId);
+    //   },
+    // );
+  }
+
   ///socket 监听消息处理
   void _onSocketReceived(SecureSocketClient client, MessageData msg) async {
     Log.debug(tag, msg.key);
@@ -355,7 +430,7 @@ class SocketListener {
       ///请求批量同步
       case MsgType.reqMissingData:
         var devIds = (msg.data["devIds"] as List<dynamic>).cast<String>();
-        MissingDataSyncer.sendMissingData(dev,devIds);
+        MissingDataSyncer.sendMissingData(dev, devIds);
         break;
 
       ///请求配对我方，生成四位配对码
@@ -473,6 +548,7 @@ class SocketListener {
 
   ///发现设备
   void startDiscoverDevice([bool restart = false]) async {
+    return;
     if (_discovering) {
       Log.debug(tag, "正在发现设备");
       return;
@@ -585,9 +661,11 @@ class SocketListener {
     int? port,
     Function? onErr,
     Map<String, dynamic> data = const {},
+    bool forward = false,
+    String? targetDevId,
   }) {
     port = port ?? Constants.port;
-    String address = "$ip:$port";
+    String address = "$ip:$port:$targetDevId";
     if (_connectingAddress.contains(address)) {
       return Future(() => null);
     }
@@ -600,6 +678,9 @@ class SocketListener {
       port: port,
       prime1: App.prime1,
       prime2: App.prime2,
+      targetDevId: forward ? targetDevId : null,
+      selfDevId: forward ? App.device.guid : null,
+      connectionMode: forward ? ConnectionMode.transfer : ConnectionMode.direct,
       onConnected: (SecureSocketClient client) {
         //外部终止连接
         if (data.containsKey('stop') && data['stop'] == true) {
@@ -623,20 +704,28 @@ class SocketListener {
         _onSocketReceived(client, msg);
       },
       onDone: (SecureSocketClient client) {
-        Log.debug(tag, "手动连接关闭");
-        for (var devId in _devSockets.keys.toList()) {
-          var skt = _devSockets[devId]!.socket;
-          if (skt.ip == ip && skt.port == port) {
-            _onDevDisConnected(devId);
+        Log.debug(tag, "${forward ? '中转' : '手动'}连接关闭");
+        if (forward) {
+          _onDevDisConnected(targetDevId!);
+        } else {
+          for (var devId in _devSockets.keys.toList()) {
+            var skt = _devSockets[devId]!.socket;
+            if (skt.ip == ip && skt.port == port) {
+              _onDevDisConnected(devId);
+            }
           }
         }
       },
       onError: (error, client) {
-        Log.error(tag, '手动连接发生错误: $error $ip $port');
-        for (var devId in _devSockets.keys.toList()) {
-          var skt = _devSockets[devId]!.socket;
-          if (skt.ip == ip && skt.port == port) {
-            _onDevDisConnected(devId);
+        Log.error(tag, '${forward ? '中转' : '手动'}连接发生错误: $error $ip $port');
+        if (forward) {
+          _onDevDisConnected(targetDevId!);
+        } else {
+          for (var devId in _devSockets.keys.toList()) {
+            var skt = _devSockets[devId]!.socket;
+            if (skt.ip == ip && skt.port == port) {
+              _onDevDisConnected(devId);
+            }
           }
         }
       },
@@ -713,20 +802,23 @@ class SocketListener {
       minVersion,
       version,
     );
-    if(paired){
+    if (paired) {
       //已配对，请求所有缺失数据
       reqMissingData();
     }
   }
+
   Future<void> reqMissingData() async {
     var devices = await AppDb.inst.deviceDao.getAllDevices(App.userId);
-    var devIds = devices.where((dev) => dev.isPaired).map((e) => e.guid).toList();
+    var devIds =
+        devices.where((dev) => dev.isPaired).map((e) => e.guid).toList();
     if (devIds.isNotEmpty) {
       SocketListener.inst.sendData(null, MsgType.reqMissingData, {
         "devIds": devIds,
       });
     }
   }
+
   ///设备连接成功
   void _onDevConnected(
     DevInfo dev,

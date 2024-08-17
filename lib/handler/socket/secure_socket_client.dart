@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:basic_utils/basic_utils.dart';
+import 'package:clipshare/enum/connection_mode.dart';
+import 'package:clipshare/enum/transfer_msg_type.dart';
 import 'package:clipshare/main.dart';
 import 'package:clipshare/util/crypto.dart';
+import 'package:clipshare/util/extension.dart';
 import 'package:clipshare/util/log.dart';
 import 'package:encrypt/encrypt.dart';
 
@@ -16,7 +18,7 @@ class SecureSocketClient {
   late final Socket _socket;
   bool _listening = false;
   String _data = "";
-  bool _ready = false;
+  bool _keyIsExchanged = false;
   late final void Function(SecureSocketClient)? _onConnected;
   late final void Function(SecureSocketClient client, String data)? _onMessage;
   void Function(Exception e, SecureSocketClient client)? _onError;
@@ -28,10 +30,17 @@ class SecureSocketClient {
   late final String _aesKey;
   late final BigInt _prime1;
   late final BigInt _prime2;
-  late String tag;
+  static const tag = "SecureSocketClient";
+  late final String _targetDevId;
+  late final String _selfDevId;
+  late final ConnectionMode _connectionMode;
+  bool _transferReady = false;
 
-  bool get isReady => _ready;
+  bool get isReady => _keyIsExchanged;
 
+  bool get isTransferMode => _connectionMode == ConnectionMode.transfer;
+
+  String get _endChar => isTransferMode && !_transferReady ? '\n' : ',';
   final StreamController<String> _msgStreamController = StreamController();
 
   SecureSocketClient._private(this.ip) {
@@ -55,12 +64,14 @@ class SecureSocketClient {
     required int port,
     required BigInt prime1,
     required BigInt prime2,
+    ConnectionMode connectionMode = ConnectionMode.direct,
+    String? targetDevId,
+    String? selfDevId,
     void Function(SecureSocketClient)? onConnected,
     void Function(SecureSocketClient client, String data)? onMessage,
     void Function(Exception e, SecureSocketClient client)? onError,
     void Function(SecureSocketClient client)? onDone,
     bool? cancelOnError,
-    String tag = "default",
   }) async {
     var socket = await Socket.connect(
       ip,
@@ -71,15 +82,25 @@ class SecureSocketClient {
       socket: socket,
       prime1: prime1,
       prime2: prime2,
+      connectionMode: connectionMode,
+      targetDevId: targetDevId,
+      selfDevId: selfDevId,
       onConnected: onConnected,
       onMessage: onMessage,
       onError: onError,
       onDone: onDone,
       cancelOnError: cancelOnError,
-      tag: tag,
     );
-    //主动连接，发送素数，底数，公钥
-    ssc._sendKey();
+    if (ssc._connectionMode == ConnectionMode.direct) {
+      //直连模式主动连接，发送素数，底数，公钥
+      ssc.sendKey();
+    } else {
+      //中转模式发送初始信息
+      ssc.send({
+        "self": selfDevId,
+        "target": targetDevId,
+      });
+    }
     return ssc;
   }
 
@@ -87,18 +108,28 @@ class SecureSocketClient {
     required Socket socket,
     required BigInt prime1,
     required BigInt prime2,
+    ConnectionMode connectionMode = ConnectionMode.direct,
+    String? targetDevId,
+    String? selfDevId,
     int? serverPort,
     void Function(SecureSocketClient)? onConnected,
     required void Function(SecureSocketClient client, String data)? onMessage,
     void Function(Exception e, SecureSocketClient client)? onError,
     void Function(SecureSocketClient client)? onDone,
     bool? cancelOnError,
-    String tag = "default",
   }) {
+    final isTransfer = connectionMode == ConnectionMode.transfer;
+    if (isTransfer) {
+      assert(targetDevId.isNotNullAndEmpty);
+      assert(selfDevId.isNotNullAndEmpty);
+    }
     var ssc = SecureSocketClient._private(socket.remoteAddress.address);
     if (serverPort != null) {
       ssc._port = serverPort;
     }
+    ssc._connectionMode = connectionMode;
+    ssc._targetDevId = targetDevId!;
+    ssc._selfDevId = selfDevId!;
     ssc._prime1 = prime1;
     ssc._prime2 = prime2;
     ssc._socket = socket;
@@ -108,7 +139,6 @@ class SecureSocketClient {
     ssc._onDone = onDone;
     ssc._cancelOnError = cancelOnError;
     ssc._listen();
-    ssc.tag = tag;
     return ssc;
   }
 
@@ -123,27 +153,53 @@ class SecureSocketClient {
         (e) {
           var rec = utf8.decode(e);
           _data += rec;
-          while (_data.contains(",")) {
-            // 以逗号分割数据包，找到第一个完整的数据包
-            var index = _data.indexOf(',');
+          while (_data.contains(_endChar)) {
+            // 以结束符分割数据包，找到第一个完整的数据包
+            var index = _data.indexOf(_endChar);
             var pkg = _data.substring(0, index);
             _data = _data.substring(index + 1);
+            //接收完成，进行解码
             try {
-              if (_ready) {
-                //接收完成，进行解码
-                //密钥已交换，此处需要解密
-                var decrypt = CryptoUtil.decryptAES(
-                  key: _aesKey,
-                  encoded: pkg,
-                  encrypter: _encrypter,
-                );
-                if (_onMessage != null) {
-                  _onMessage(this, decrypt);
+              if (isTransferMode && !_transferReady) {
+                //中转未准备好
+                var json = jsonDecode(pkg);
+                var type = TransferMsgType.getValue(json["type"]);
+                Log.debug(tag, "forward ${type.name}");
+                switch (type) {
+                  case TransferMsgType.bothConnected:
+                    send({"type": TransferMsgType.bothConnected.name});
+                    String sender = json["sender"];
+                    if (sender != _selfDevId) {
+                      _transferReady = true;
+                    }
+                    break;
+                  case TransferMsgType.forwardReady:
+                    _transferReady = true;
+                    sendKey();
+                    break;
+                  case TransferMsgType.alreadyConnected:
+                    close();
+                    break;
+                  default:
                 }
               } else {
-                //密钥未交换
-                var decodeB64 = CryptoUtil.base64DecodeStr(pkg);
-                _exchange(decodeB64);
+                //region 数据处理
+                if (_keyIsExchanged) {
+                  //密钥已交换，此处需要解密
+                  var decrypt = CryptoUtil.decryptAES(
+                    key: _aesKey,
+                    encoded: pkg,
+                    encrypter: _encrypter,
+                  );
+                  if (_onMessage != null) {
+                    _onMessage(this, decrypt);
+                  }
+                } else {
+                  //密钥未交换
+                  var decodeB64 = CryptoUtil.base64DecodeStr(pkg);
+                  _exchange(decodeB64);
+                }
+                //endregion
               }
             } catch (ex, stack) {
               //解析出错
@@ -159,7 +215,7 @@ class SecureSocketClient {
           }
         },
         onDone: () {
-          if (_ready) {
+          if (_keyIsExchanged) {
             _onDone?.call(this);
           }
           Log.debug("SecureSocketClient", "_onDone");
@@ -178,7 +234,6 @@ class SecureSocketClient {
     var data = jsonDecode(msg);
     //A(client) -------> B(server)
     if (data["seq"] == 1) {
-      tag = data["tag"];
       //接收公钥，素数和底数g
       var key = data["key"];
       var g = BigInt.parse(data["g"]);
@@ -215,15 +270,15 @@ class SecureSocketClient {
       _aesKey = ssk.toString().substring(0, 32);
       _encrypter = CryptoUtil.getEncrypter(_aesKey);
     }
-    _setReady();
+    _setKeyIsExchanged();
   }
 
   ///密钥已交换
-  void _setReady() {
-    if (_ready) {
+  void _setKeyIsExchanged() {
+    if (_keyIsExchanged) {
       throw Exception("already ready");
     }
-    _ready = true;
+    _keyIsExchanged = true;
     if (_onConnected != null) {
       _onConnected(this);
     }
@@ -231,22 +286,26 @@ class SecureSocketClient {
 
   ///发送数据
   void send(Map map) {
-    var data = jsonEncode(map);
-    if (_ready) {
-      data = CryptoUtil.encryptAES(
-        key: _aesKey,
-        input: data,
-        encrypter: _encrypter,
-      );
-    } else {
-      data = CryptoUtil.base64EncodeStr(data);
+    String data = jsonEncode(map);
+    if (!isTransferMode || _transferReady) {
+      //region 直连模式
+      if (_keyIsExchanged) {
+        data = CryptoUtil.encryptAES(
+          key: _aesKey,
+          input: data,
+          encrypter: _encrypter,
+        );
+      } else {
+        data = CryptoUtil.base64EncodeStr(data);
+      }
+      //endregion
     }
     try {
-      _msgStreamController.add("$data,");
+      _msgStreamController.add("$data$_endChar");
     } catch (e, stack) {
-      Log.debug("SecureSocketClient", "发送失败：$e");
-      Log.debug("SecureSocketClient", "_onDone ${_onDone == null}");
-      Log.debug("SecureSocketClient", "$stack");
+      Log.debug(tag, "发送失败：$e");
+      Log.debug(tag, "_onDone ${_onDone == null}");
+      Log.debug(tag, "$stack");
       if (_onDone != null) {
         _onDone!.call(this);
       }
@@ -254,8 +313,8 @@ class SecureSocketClient {
   }
 
   ///DH 算法发送 key 和 素数、底数
-  void _sendKey() {
-    if (_ready) {
+  void sendKey() {
+    if (_keyIsExchanged) {
       throw Exception("already ready");
     }
     //底数g
@@ -269,7 +328,6 @@ class SecureSocketClient {
       "g": g.toString(),
       "key": _dh.publicKey.toString(),
       "port": App.settings.port,
-      "tag": tag,
     };
     send(map);
   }
