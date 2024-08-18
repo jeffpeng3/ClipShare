@@ -11,9 +11,9 @@ import 'package:clipshare/entity/settings.dart';
 import 'package:clipshare/entity/version.dart';
 import 'package:clipshare/enum/connection_mode.dart';
 import 'package:clipshare/handler/dev_pairing_handler.dart';
+import 'package:clipshare/handler/socket/forward_socket_client.dart';
 import 'package:clipshare/handler/socket/secure_socket_client.dart';
 import 'package:clipshare/handler/socket/secure_socket_server.dart';
-import 'package:clipshare/handler/socket/forward_socket_client.dart';
 import 'package:clipshare/handler/sync/file_syncer.dart';
 import 'package:clipshare/handler/sync/missing_data_syncer.dart';
 import 'package:clipshare/handler/task_runner.dart';
@@ -372,6 +372,7 @@ class SocketListener {
     for (var devId in _devSockets.keys) {
       var skt = _devSockets[devId];
       if (skt == null || !skt.socket.isForwardMode) continue;
+      skt.socket.destroy();
       _onDevDisConnected(devId);
     }
   }
