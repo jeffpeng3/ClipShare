@@ -29,7 +29,12 @@ import 'package:refena_flutter/refena_flutter.dart';
 
 abstract class DevAliveListener {
   //连接成功
-  void onConnected(DevInfo info, Version minVersion, Version version);
+  void onConnected(
+    DevInfo info,
+    Version minVersion,
+    Version version,
+    bool isForward,
+  );
 
   //断开连接
   void onDisConnected(String devId);
@@ -57,6 +62,12 @@ abstract class DiscoverListener {
   void onDiscoverFinished();
 }
 
+abstract class ForwardStatusListener {
+  void onForwardServerConnected();
+
+  void onForwardServerDisconnect();
+}
+
 class DevSocket {
   DevInfo dev;
   SecureSocketClient socket;
@@ -81,10 +92,14 @@ class SocketListener {
   Timer? _heartbeatTimer;
   final List<DevAliveListener> _devAliveListeners = List.empty(growable: true);
   final List<DiscoverListener> _discoverListeners = List.empty(growable: true);
+  final List<ForwardStatusListener> _forwardStatusListener =
+      List.empty(growable: true);
 
+  final transferIp = "101.43.188.139";
+  final transferPort = 9999;
   final Map<String, DevSocket> _devSockets = {};
   late SecureSocketServer _server;
-  TransferSocketClient? _transferClient;
+  ForwardSocketClient? _forwardClient;
 
   //临时记录链接配对自定义ip设备记录
   final Set<String> ipSetTemp = {};
@@ -109,7 +124,8 @@ class SocketListener {
     // 初始化，创建socket监听
     _runSocketServer();
     //连接中转服务器
-    connectTransferServer();
+    await connectForwardServer();
+    startDiscoverDevice();
     startHeartbeatTest();
     _isInit = true;
     return this;
@@ -123,7 +139,6 @@ class SocketListener {
     }
     //重新监听
     multicasts = await _getSockets(Constants.multicastGroup, settings.port);
-    // startDiscoverDevice();
     for (var multicast in multicasts) {
       multicast.listen((event) {
         final datagram = multicast.receive();
@@ -291,28 +306,33 @@ class SocketListener {
   }
 
   ///连接中转服务器
-  void connectTransferServer() async {
-    _transferClient?.close();
-    const transferIp = "101.43.188.139";
-    const transferPort = 9999;
-    _transferClient = await TransferSocketClient.connect(
+  Future<void> connectForwardServer() async {
+    _forwardClient?.close();
+    _forwardClient = await ForwardSocketClient.connect(
       ip: transferIp,
       port: transferPort,
       onMessage: (self, data) async {
-        Log.debug(tag, "transferClient onMessage $data");
+        Log.debug(tag, "forwardClient onMessage $data");
       },
       onDone: (self) {
-        Log.debug(tag, "transferClient done");
+        _forwardClient = null;
+        for (var listener in _forwardStatusListener) {
+          listener.onForwardServerDisconnect();
+        }
+        Log.debug(tag, "forwardClient done");
       },
       onError: (ex, self) {
-        Log.debug(tag, "transferClient onError $ex");
+        Log.debug(tag, "forwardClient onError $ex");
       },
       onConnected: (self) {
-        Log.debug(tag, "transferClient onConnected");
+        Log.debug(tag, "forwardClient onConnected");
+        for (var listener in _forwardStatusListener) {
+          listener.onForwardServerConnected();
+        }
       },
     );
     //中转服务器连接成功后发送本机信息
-    _transferClient!.send({
+    _forwardClient!.send({
       "connType": "keepAlive",
       "self": App.device.guid,
     });
@@ -322,39 +342,13 @@ class SocketListener {
     const omen5 = "5b044f01998c5af758fbfe785a47779a";
     //测试连接one plus 7
     var targetDevId = App.device.guid != op7 ? op7 : omen5;
-    manualConnect(
-      transferIp,
-      port: transferPort,
-      forward: true,
-      targetDevId: targetDevId,
-      onErr: (err) {
-        Log.debug(tag, '中转连接，发生错误:$err');
-        _onDevDisConnected(targetDevId);
-      },
-    );
-    // await SecureSocketClient.connect(
-    //   ip: transferIp,
+    // manualConnect(
+    //   transferIp,
     //   port: transferPort,
-    //   prime1: App.prime1,
-    //   prime2: App.prime2,
+    //   forward: true,
     //   targetDevId: targetDevId,
-    //   selfDevId: App.device.guid,
-    //   connectionMode: ConnectionMode.transfer,
-    //   onConnected: (client) async {
-    //     Log.debug(tag, '已连接到中转服务器');
-    //   },
-    //   onMessage: (client, data) {
-    //     Map<String, dynamic> json = jsonDecode(data);
-    //     var msg = MessageData.fromJson(json);
-    //     Log.debug(tag, '$msg transferSSC');
-    //     _onSocketReceived(client, msg);
-    //   },
-    //   onDone: (SecureSocketClient client) {
-    //     Log.debug(tag, "中转连接，服务端连接关闭");
-    //     _onDevDisConnected(targetDevId);
-    //   },
-    //   onError: (error, client) {
-    //     Log.debug(tag, '中转连接，发生错误: $error');
+    //   onErr: (err) {
+    //     Log.debug(tag, '中转连接，发生错误:$err');
     //     _onDevDisConnected(targetDevId);
     //   },
     // );
@@ -482,7 +476,12 @@ class SocketListener {
         _onDevPaired(dev, msg.userId, verify, address);
         //返回配对结果
         sendData(dev, MsgType.paired, {"result": verify});
-        ipSetTemp.removeWhere((v) => v == address);
+        ipSetTemp.removeWhere((v) {
+          // if(client.isTransferMode){
+          //   return v == '$address:${client.}';
+          // }
+          return v == address;
+        });
         break;
 
       ///获取配对结果
@@ -548,7 +547,6 @@ class SocketListener {
 
   ///发现设备
   void startDiscoverDevice([bool restart = false]) async {
-    return;
     if (_discovering) {
       Log.debug(tag, "正在发现设备");
       return;
@@ -563,19 +561,34 @@ class SocketListener {
     //重新更新广播监听
     await _startListenMulticast();
     //先发现自添加设备
-    List<Future<void> Function()> tasks = await _customDiscover();
+    List<Future<void> Function()> tasks = [];
+    tasks.addAll(await _customDiscover());
+    //广播发现
     tasks.addAll(_multicastDiscover());
+    // tasks = [];
+    //并行处理
     _taskRunner = TaskRunner<void>(
       initialTasks: tasks,
       onFinish: () async {
+        //发现子网设备
+        tasks = await _subNetDiscover();
+        // tasks = [];
         _taskRunner = TaskRunner<void>(
-          initialTasks: await _subNetDiscover(),
-          onFinish: () {
-            _taskRunner = null;
-            _discovering = false;
-            for (var listener in _discoverListeners) {
-              listener.onDiscoverFinished();
-            }
+          initialTasks: tasks,
+          onFinish: () async {
+            //发现中转设备
+            tasks = await _forwardDiscover();
+            _taskRunner = TaskRunner<void>(
+              initialTasks: tasks,
+              onFinish: () async {
+                _taskRunner = null;
+                _discovering = false;
+                for (var listener in _discoverListeners) {
+                  listener.onDiscoverFinished();
+                }
+              },
+              concurrency: 50,
+            );
           },
           concurrency: 50,
         );
@@ -608,12 +621,15 @@ class SocketListener {
   List<Future<void> Function()> _multicastDiscover() {
     List<Future<void> Function()> tasks = List.empty(growable: true);
     for (var ms in const [100, 500, 2000, 5000]) {
-      var f = Future.delayed(Duration(milliseconds: ms), () {
-        // 广播本机socket信息
-        Map<String, dynamic> map = {"port": _server.port};
-        sendMulticastMsg(MsgType.broadcastInfo, map);
-      });
-      tasks.add(() => f);
+      f() {
+        return Future.delayed(Duration(milliseconds: ms), () {
+          // 广播本机socket信息
+          Map<String, dynamic> map = {"port": _server.port};
+          sendMulticastMsg(MsgType.broadcastInfo, map);
+        });
+      }
+
+      tasks.add(() => f());
     }
     return tasks;
   }
@@ -651,6 +667,29 @@ class SocketListener {
     for (var dev in devices) {
       var [ip, port] = dev.address!.split(":");
       tasks.add(() => manualConnect(ip, port: int.parse(port)));
+    }
+    return tasks;
+  }
+
+  ///中转连接
+  Future<List<Future<void> Function()>> _forwardDiscover() async {
+    List<Future<void> Function()> tasks = List.empty(growable: true);
+    if (_forwardClient == null) return tasks;
+    var lst = await _deviceDao.getAllDevices(App.userId);
+    var offlineList = lst.where((dev) => !_devSockets.keys.contains(dev.guid));
+    for (var dev in offlineList) {
+      tasks.add(
+        () => manualConnect(
+          transferIp,
+          port: transferPort,
+          forward: true,
+          targetDevId: dev.guid,
+          onErr: (err) {
+            Log.debug(tag, '${dev.guid} 中转连接，发生错误:$err');
+            _onDevDisConnected(dev.guid);
+          },
+        ),
+      );
     }
     return tasks;
   }
@@ -833,7 +872,12 @@ class SocketListener {
     broadcastProcessChain.remove(dev.guid);
     for (var listener in _devAliveListeners) {
       try {
-        listener.onConnected(dev, minVersion, version);
+        listener.onConnected(
+          dev,
+          minVersion,
+          version,
+          ip == transferIp,
+        );
       } catch (e, t) {
         Log.debug(tag, "$e $t");
       }
@@ -1009,6 +1053,16 @@ class SocketListener {
   ///移除设备发现监听
   void removeDiscoverListener(DiscoverListener listener) {
     _discoverListeners.remove(listener);
+  }
+
+  ///添加中转连接状态监听
+  void addForwardStatusListener(ForwardStatusListener listener) {
+    _forwardStatusListener.add(listener);
+  }
+
+  ///移除中转连接状态监听
+  void removeForwardStatusListener(ForwardStatusListener listener) {
+    _forwardStatusListener.remove(listener);
   }
 
   Future<List<RawDatagramSocket>> _getSockets(

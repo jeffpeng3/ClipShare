@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clipshare/components/dot.dart';
 import 'package:clipshare/components/rounded_chip.dart';
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/tables/device.dart';
@@ -21,6 +22,7 @@ class DeviceCard extends StatefulWidget {
   final bool isConnected;
   final Version? minVersion;
   final Version? version;
+  final bool isForward;
 
   const DeviceCard({
     super.key,
@@ -32,6 +34,7 @@ class DeviceCard extends StatefulWidget {
     required this.isSelf,
     required this.minVersion,
     required this.version,
+    this.isForward = false,
   });
 
   bool get isVersionCompatible => minVersion == null || version == null
@@ -52,6 +55,7 @@ class DeviceCard extends StatefulWidget {
     bool? isSelf,
     Version? minVersion,
     Version? version,
+    bool? isForward,
   }) {
     isConnected = isConnected ?? this.isConnected;
     return DeviceCard(
@@ -63,6 +67,7 @@ class DeviceCard extends StatefulWidget {
       onLongPress: onLongPress ?? this.onLongPress,
       minVersion: !isConnected ? null : minVersion ?? this.minVersion,
       version: !isConnected ? null : version ?? this.version,
+      isForward: isForward ?? this.isForward,
     );
   }
 }
@@ -104,6 +109,7 @@ class _DeviceCardState extends State<DeviceCard> {
     super.dispose();
   }
 
+  ///重命名弹窗
   void _showRenameDialog() {
     var dev = widget.dev!;
     var textController = TextEditingController();
@@ -236,15 +242,11 @@ class _DeviceCardState extends State<DeviceCard> {
                             visible: !_empty && widget.isPaired,
                             child: Container(
                               margin: const EdgeInsets.only(right: 10),
-                              child: Container(
-                                width: 6.0 * 2,
-                                height: 6.0 * 2,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: widget.isConnected
-                                      ? _connColor
-                                      : Colors.grey,
-                                ),
+                              child: Dot(
+                                radius: 6.0,
+                                color: widget.isConnected
+                                    ? _connColor
+                                    : Colors.grey,
                               ),
                             ),
                           ),
@@ -258,6 +260,16 @@ class _DeviceCardState extends State<DeviceCard> {
                               margin: const EdgeInsets.only(left: 5),
                               child: const RoundedChip(
                                 label: Text("本机"),
+                                backgroundColor: chipColor,
+                              ),
+                            ),
+                          ),
+                          Visibility(
+                            visible: widget.isForward,
+                            child: Container(
+                              margin: const EdgeInsets.only(left: 5),
+                              child: const RoundedChip(
+                                label: Text("中转"),
                                 backgroundColor: chipColor,
                               ),
                             ),

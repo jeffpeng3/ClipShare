@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:clipshare/channels/multi_window_channel.dart';
 import 'package:clipshare/components/add_device_dialog.dart';
 import 'package:clipshare/components/device_card.dart';
+import 'package:clipshare/components/dot.dart';
 import 'package:clipshare/dao/device_dao.dart';
 import 'package:clipshare/db/app_db.dart';
 import 'package:clipshare/entity/dev_info.dart';
@@ -36,13 +37,18 @@ class DevicesPage extends StatefulWidget {
 
 class DevicesPageState extends State<DevicesPage>
     with SingleTickerProviderStateMixin
-    implements DevAliveListener, SyncListener, DiscoverListener {
+    implements
+        DevAliveListener,
+        SyncListener,
+        DiscoverListener,
+        ForwardStatusListener {
   final List<DeviceCard> _discoverList = List.empty(growable: true);
   final List<DeviceCard> _pairedList = List.empty(growable: true);
   late StateSetter _pairingState;
   bool _pairingFailed = false;
   bool _pairing = false;
   bool _discovering = true;
+  bool forwardConnected = false;
   late DeviceDao _deviceDao;
   late AnimationController _rotationController;
   var _rotationReverse = false;
@@ -55,6 +61,7 @@ class DevicesPageState extends State<DevicesPage>
     super.initState();
     SocketListener.inst.addDevAliveListener(this);
     SocketListener.inst.addDiscoverListener(this);
+    SocketListener.inst.addForwardStatusListener(this);
     SocketListener.inst.addSyncListener(Module.device, this);
     // 旋转动画
     _rotationController = AnimationController(
@@ -87,6 +94,7 @@ class DevicesPageState extends State<DevicesPage>
             isSelf: false,
             minVersion: null,
             version: null,
+            isForward: false,
           ),
         );
       }
@@ -102,6 +110,8 @@ class DevicesPageState extends State<DevicesPage>
   @override
   void dispose() {
     SocketListener.inst.removeDevAliveListener(this);
+    SocketListener.inst.removeDiscoverListener(this);
+    SocketListener.inst.removeForwardStatusListener(this);
     SocketListener.inst.removeSyncListener(Module.device, this);
     super.dispose();
   }
@@ -112,28 +122,46 @@ class DevicesPageState extends State<DevicesPage>
       children: [
         Column(
           children: <Widget>[
-            _pairedList.isEmpty
-                ? const SizedBox.shrink()
-                : Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 12),
-                        child: Row(
+            if (_pairedList.isEmpty)
+              const SizedBox.shrink()
+            else
+              Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "我的设备(${_pairedList.length})",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: "宋体",
+                          ),
+                        ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text(
-                              "我的设备(${_pairedList.length})",
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                fontFamily: "宋体",
+                            Container(
+                              margin: const EdgeInsets.only(right: 5),
+                              child: Dot(
+                                radius: 6.0,
+                                color: forwardConnected
+                                    ? Colors.green
+                                    : Colors.grey,
                               ),
                             ),
+                            const Text("中转连接"),
+                            const SizedBox(width: 10),
                           ],
-                        ),
-                      ),
-                      ..._pairedList,
-                    ],
+                        )
+                      ],
+                    ),
                   ),
+                  ..._pairedList,
+                ],
+              ),
             Padding(
               padding: const EdgeInsets.only(left: 12),
               child: Row(
@@ -517,7 +545,12 @@ class DevicesPageState extends State<DevicesPage>
   }
 
   @override
-  void onConnected(DevInfo info, Version minVersion, Version version) async {
+  void onConnected(
+    DevInfo info,
+    Version minVersion,
+    Version version,
+    bool isForward,
+  ) async {
     var dev = await Device.fromDevInfo(info);
     for (var i = 0; i < _pairedList.length; i++) {
       var paired = _pairedList[i];
@@ -529,6 +562,7 @@ class DevicesPageState extends State<DevicesPage>
           dev: paired.dev,
           minVersion: minVersion,
           version: version,
+          isForward: isForward,
         );
         setState(() {});
         _notifyOnlineDevicesWindow();
@@ -558,6 +592,7 @@ class DevicesPageState extends State<DevicesPage>
         isPaired: false,
         isConnected: true,
         isSelf: false,
+        isForward: isForward,
       ),
     );
     setState(() {});
@@ -575,7 +610,12 @@ class DevicesPageState extends State<DevicesPage>
     forgetDev = forgetDev?.copyWith(isPaired: false);
     if (forgetDev?.isConnected ?? false) {
       // 已经连接，minVersion必定不空
-      onConnected(dev, forgetDev!.minVersion!, forgetDev.version!);
+      onConnected(
+        dev,
+        forgetDev!.minVersion!,
+        forgetDev.version!,
+        forgetDev.isForward,
+      );
     }
     setState(() {});
     _notifyOnlineDevicesWindow();
@@ -757,5 +797,19 @@ class DevicesPageState extends State<DevicesPage>
       context: context,
       builder: (context) => const AddDeviceDialog(),
     );
+  }
+
+  @override
+  void onForwardServerConnected() {
+    setState(() {
+      forwardConnected = true;
+    });
+  }
+
+  @override
+  void onForwardServerDisconnect() {
+    setState(() {
+      forwardConnected = false;
+    });
   }
 }

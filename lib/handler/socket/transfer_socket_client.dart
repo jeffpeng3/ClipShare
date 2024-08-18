@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:clipshare/util/log.dart';
 
-class TransferSocketClient {
+class ForwardSocketClient {
   final String ip;
   late final int _port;
 
@@ -13,17 +13,17 @@ class TransferSocketClient {
   bool _listening = false;
   String _data = "";
   static const endChar = "\n";
-  late final void Function(TransferSocketClient client, String data)?
+  late final void Function(ForwardSocketClient client, String data)?
       _onMessage;
-  void Function(Exception e, TransferSocketClient client)? _onError;
-  void Function(TransferSocketClient client)? _onDone;
+  void Function(Exception e, ForwardSocketClient client)? _onError;
+  void Function(ForwardSocketClient client)? _onDone;
   bool? _cancelOnError;
   late final StreamSubscription _stream;
-  static const String tag = "TransferSocketClient";
+  static const String tag = "ForwardSocketClient";
 
   final StreamController<String> _msgStreamController = StreamController();
 
-  TransferSocketClient._private(this.ip) {
+  ForwardSocketClient._private(this.ip) {
     _msgStreamController.stream.listen((data) {
       try {
         _socket.writeln(data);
@@ -36,17 +36,17 @@ class TransferSocketClient {
     });
   }
 
-  static TransferSocketClient empty =
-      TransferSocketClient._private("127.0.0.1");
+  static ForwardSocketClient empty =
+      ForwardSocketClient._private("127.0.0.1");
 
   ///连接 socket
-  static Future<TransferSocketClient> connect({
+  static Future<ForwardSocketClient> connect({
     required String ip,
     required int port,
-    void Function(TransferSocketClient)? onConnected,
-    void Function(TransferSocketClient client, String data)? onMessage,
-    void Function(Exception e, TransferSocketClient client)? onError,
-    void Function(TransferSocketClient client)? onDone,
+    void Function(ForwardSocketClient)? onConnected,
+    void Function(ForwardSocketClient client, String data)? onMessage,
+    void Function(Exception e, ForwardSocketClient client)? onError,
+    void Function(ForwardSocketClient client)? onDone,
     bool? cancelOnError,
   }) async {
     var socket = await Socket.connect(
@@ -54,7 +54,7 @@ class TransferSocketClient {
       port,
       timeout: const Duration(seconds: 2),
     );
-    var ssc = TransferSocketClient.fromSocket(
+    var ssc = ForwardSocketClient.fromSocket(
       socket: socket,
       onMessage: onMessage,
       onError: onError,
@@ -65,15 +65,15 @@ class TransferSocketClient {
     return ssc;
   }
 
-  factory TransferSocketClient.fromSocket({
+  factory ForwardSocketClient.fromSocket({
     required Socket socket,
     int? serverPort,
-    required void Function(TransferSocketClient self, String data)? onMessage,
-    void Function(Exception e, TransferSocketClient self)? onError,
-    void Function(TransferSocketClient self)? onDone,
+    required void Function(ForwardSocketClient self, String data)? onMessage,
+    void Function(Exception e, ForwardSocketClient self)? onError,
+    void Function(ForwardSocketClient self)? onDone,
     bool? cancelOnError,
   }) {
-    var ssc = TransferSocketClient._private(socket.remoteAddress.address);
+    var ssc = ForwardSocketClient._private(socket.remoteAddress.address);
     if (serverPort != null) {
       ssc._port = serverPort;
     }
@@ -89,7 +89,7 @@ class TransferSocketClient {
   ///监听消息
   void _listen() {
     if (_listening) {
-      throw Exception("TransferSocketClient has started listening");
+      throw Exception("ForwardSocketClient has started listening");
     }
     _listening = true;
     try {

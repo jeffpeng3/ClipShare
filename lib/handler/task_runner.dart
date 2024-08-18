@@ -45,6 +45,9 @@ class TaskRunner<T> {
 
   /// Starts multiple runners until [concurrency].
   void _fireRunners() {
+    if (_queue.isEmpty) {
+      onFinish?.call();
+    }
     while (_queue.isNotEmpty &&
         _runnerCount < concurrency &&
         !_streamController.isClosed) {
