@@ -10,60 +10,21 @@ abstract class HistoryDao {
 
   /// 根据条件查询，一次查 20 条，置顶优先，id 降序
   @Query("""
-  select * from History
-  where uid = :uid
-     and case
-          when :fromId != 0
-            then
-              id < :fromId
-            else
-              id > 0
-          end
-     and case 
-          when :content = ''
-           then 
-             1
-           else 
-             content like '%'||:content||'%'
-          end
-     and case 
-          when :type = ''
-           then 
-             1
-           else 
-             type = :type
-          end
-     and case 
-          when :startTime = '' or :endTime = ''
-           then 
-             1
-           else 
-             date(time) between :startTime and :endTime
-          end
-     and case 
-          when length(null in (:devIds)) = 1 then
-            1
-          else
-            devId in (:devIds)
-          end
-     and case 
-          when length(null in (:tags)) = 1 then
-            1
-          else
-            id in (
-              select distinct hisId 
-              from HistoryTag ht 
-              where tagName in (:tags)
-            )
-          end
-     and case 
-          when :onlyNoSync = 1 then
-            sync = 0
-          else
-            1
-          end
-  order by top desc,id desc
-  limit 20
+  SELECT * FROM History
+  WHERE uid = :uid
+    AND (:fromId = 0 OR id < :fromId)
+    AND (:content = '' OR content LIKE '%' || :content || '%')
+    AND (:type = '' OR type = :type)
+    AND (:startTime = '' OR :endTime = '' OR date(time) BETWEEN :startTime AND :endTime)
+    AND (length(null in (:devIds)) = 1 OR devId IN (:devIds))
+    AND (length(null in (:tags)) = 1 OR id IN (
+      SELECT DISTINCT hisId
+      FROM HistoryTag
+      WHERE tagName IN (:tags)
+    ))
+    AND (:onlyNoSync = 1 AND sync = 0 OR :onlyNoSync != 1)
+  ORDER BY top DESC, id DESC
+  LIMIT 20
   """)
   Future<List<History>> getHistoriesPageByWhere(
     int uid,
