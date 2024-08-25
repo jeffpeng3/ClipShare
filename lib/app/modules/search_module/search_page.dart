@@ -1,0 +1,501 @@
+import 'package:clipshare/app/modules/search_module/search_controller.dart'
+    as search_module;
+import 'package:clipshare/app/services/config_service.dart';
+import 'package:clipshare/app/widgets/clip_list_view.dart';
+import 'package:clipshare/app/widgets/loading.dart';
+import 'package:clipshare/app/widgets/rounded_chip.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+/**
+ * GetX Template Generator - fb.com/htngu.99
+ * */
+
+class SearchPage extends GetView<search_module.SearchController> {
+  final appConfig = Get.find<ConfigService>();
+
+  @override
+  Widget build(BuildContext context) {
+    controller.screenWidth = MediaQuery.of(context).size.width;
+    return Obx(
+      () => Scaffold(
+        backgroundColor: appConfig.bgColor,
+        appBar: AppBar(
+          scrolledUnderElevation: controller.showLeftBar ? 0 : null,
+          automaticallyImplyLeading: !controller.showLeftBar,
+          backgroundColor: controller.showLeftBar
+              ? Colors.transparent
+              : Theme.of(context).colorScheme.inversePrimary,
+          title: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller.textController,
+                  focusNode: controller.searchFocus,
+                  autofocus: true,
+                  textAlignVertical: TextAlignVertical.center,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: const EdgeInsets.only(
+                      left: 8,
+                      right: 8,
+                    ),
+                    hintText: "搜索",
+                    border: controller.showLeftBar
+                        ? OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(4), // 边框圆角
+                            borderSide: const BorderSide(
+                              color: Colors.blue,
+                              width: 1.0,
+                            ), // 边框样式
+                          )
+                        : InputBorder.none,
+                    suffixIcon: InkWell(
+                      onTap: () {
+                        controller.refreshData();
+                      },
+                      splashColor: Colors.black12,
+                      highlightColor: Colors.black12,
+                      borderRadius: BorderRadius.circular(50),
+                      child: const Tooltip(
+                        message: "搜索",
+                        child: Icon(
+                          Icons.search_rounded,
+                          size: 25,
+                        ),
+                      ),
+                    ),
+                  ),
+                  onSubmitted: (value) {
+                    controller.refreshData();
+                  },
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.only(left: 5, right: 5),
+                child: IconButton(
+                  onPressed: () async {
+                    await controller.loadSearchCondition();
+                    _showExtendSearchDialog();
+                  },
+                  tooltip: "更多筛选项",
+                  icon: Icon(
+                    controller.hasCondition
+                        ? Icons.playlist_add_check_outlined
+                        : Icons.menu_rounded,
+                    color: controller.hasCondition ? Colors.blueAccent : null,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.fromLTRB(5, 5, 5, 0),
+          child: Column(
+            children: [
+              const SizedBox(
+                height: 5,
+              ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (var type in ["全部", "文本", "图片", "文件", "短信"])
+                      Row(
+                        children: [
+                          RoundedChip(
+                            selected: controller.searchType == type,
+                            onPressed: () {
+                              if (controller.searchType == type) {
+                                return;
+                              }
+                              controller.loading.value = true;
+                              controller.searchType = type;
+                              Future.delayed(
+                                const Duration(milliseconds: 200),
+                                controller.refreshData,
+                              );
+                            },
+                            selectedColor: controller.searchType == type
+                                ? Colors.blue[100]
+                                : null,
+                            label: Text(type),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(
+                height: 5,
+              ),
+              Expanded(
+                child: controller.loading.value
+                    ? const Loading()
+                    : ClipListView(
+                        list: controller.list,
+                        onRefreshData: controller.refreshData,
+                        onUpdate: controller.sortList,
+                        onRemove: (id) {
+                          controller.list.removeWhere(
+                            (element) => element.data.id == id,
+                          );
+                        },
+                        onLoadMoreData: (minId) {
+                          return controller.loadData(minId);
+                        },
+                        detailBorderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(4),
+                          topRight: Radius.circular(4),
+                        ),
+                        imageMasonryGridViewLayout:
+                            controller.searchType == "图片",
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  ///加载扩展搜索底部弹窗
+  void _showExtendSearchDialog() {
+    showModalBottomSheet(
+      isScrollControlled: true,
+      clipBehavior: Clip.antiAlias,
+      context: Get.context!,
+      elevation: 100,
+      builder: (context) {
+        var start = controller.searchStartDate == ""
+            ? "开始日期"
+            : controller.searchStartDate;
+        var end =
+            controller.searchEndDate == "" ? "结束日期" : controller.searchEndDate;
+        var now = DateTime.now();
+        var nowDayStr = now.toString().substring(0, 10);
+        var tags = Set<String>.from(controller.selectedTags);
+        var devs = Set<String>.from(controller.selectedDevIds);
+        bool searchOnlyNoSync = false;
+        onDateRangeClick(state) async {
+          //显示时间选择器
+          DateTimeRange? range = await showDateRangePicker(
+            //语言环境
+            locale: const Locale("zh", "CH"),
+            context: context,
+            //开始时间
+            firstDate: DateTime(1970, 1),
+            //结束时间
+            lastDate: DateTime(2100, 12),
+            cancelText: "取消",
+            confirmText: "确定",
+            useRootNavigator: true,
+            //初始的时间范围选择
+            initialDateRange: DateTimeRange(
+              start: DateTime.now(),
+              end: DateTime.now(),
+            ),
+            builder: (context, child) {
+              return Theme(
+                data: Theme.of(context),
+                child: child!,
+              );
+            },
+          );
+          if (range != null) {
+            start = range.start.toString().substring(0, 10);
+            end = range.end.toString().substring(0, 10);
+          }
+          state(() {});
+        }
+
+        return StatefulBuilder(
+          builder: (context, setInnerState) {
+            return Container(
+              padding: const EdgeInsets.all(8),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 300),
+                child: ListView(
+                  children: [
+                    //筛选日期 label
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 5),
+                      child: Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              "筛选日期",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              TextButton.icon(
+                                icon: Icon(
+                                  searchOnlyNoSync
+                                      ? Icons.check_box
+                                      : Icons.check_box_outline_blank_sharp,
+                                ),
+                                label: const Text(
+                                  "仅未同步",
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                                onPressed: () {
+                                  setInnerState(() {
+                                    searchOnlyNoSync = !searchOnlyNoSync;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              var hasCondition = false;
+                              //判断是否加入了筛选条件
+                              if (!start.contains("日期") ||
+                                  !end.contains("日期") ||
+                                  tags.isNotEmpty ||
+                                  devs.isNotEmpty ||
+                                  searchOnlyNoSync) {
+                                hasCondition = true;
+                              }
+                              controller.searchStartDate =
+                                  start.contains("日期") ? "" : start;
+                              controller.searchEndDate =
+                                  end.contains("日期") ? "" : end;
+                              controller.selectedTags.clear();
+                              controller.selectedTags.addAll(tags);
+                              controller.selectedDevIds.clear();
+                              controller.selectedDevIds.addAll(devs);
+                              controller.searchOnlyNoSync = searchOnlyNoSync;
+                              controller.hasCondition = hasCondition;
+                              controller.refreshData();
+                            },
+                            child: const Text("确定"),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    Row(
+                      children: [
+                        RoundedChip(
+                          onPressed: () => onDateRangeClick(setInnerState),
+                          label: Text(
+                            start,
+                            style: TextStyle(
+                              color: controller.searchStartDate == "" &&
+                                      start == "开始日期"
+                                  ? Colors.grey
+                                  : null,
+                            ),
+                          ),
+                          avatar: const Icon(Icons.date_range_outlined),
+                          deleteIcon: Icon(
+                            start != nowDayStr || start == "开始日期"
+                                ? Icons.location_on
+                                : Icons.close,
+                            size: 17,
+                            color: Colors.blue,
+                          ),
+                          deleteButtonTooltipMessage:
+                              start != nowDayStr || start == "开始日期"
+                                  ? "定位到今天"
+                                  : "清除",
+                          onDeleted: start != nowDayStr
+                              ? () {
+                                  start = DateTime.now()
+                                      .toString()
+                                      .substring(0, 10);
+                                  setInnerState(() {});
+                                }
+                              : () {
+                                  start = "开始日期";
+                                  setInnerState(() {});
+                                },
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(right: 10, left: 10),
+                          child: const Text("-"),
+                        ),
+                        RoundedChip(
+                          onPressed: () => onDateRangeClick(setInnerState),
+                          label: Text(
+                            end,
+                            style: TextStyle(
+                              color: controller.searchEndDate == "" &&
+                                      end == "结束日期"
+                                  ? Colors.grey
+                                  : null,
+                            ),
+                          ),
+                          avatar: const Icon(Icons.date_range_outlined),
+                          deleteIcon: Icon(
+                            end != nowDayStr || end == "结束日期"
+                                ? Icons.location_on
+                                : Icons.close,
+                            size: 17,
+                            color: Colors.blue,
+                          ),
+                          deleteButtonTooltipMessage:
+                              end != nowDayStr || end == "结束日期"
+                                  ? "定位到今天"
+                                  : "清除",
+                          onDeleted: end != nowDayStr || end == "结束日期"
+                              ? () {
+                                  end = DateTime.now()
+                                      .toString()
+                                      .substring(0, 10);
+                                  setInnerState(() {});
+                                }
+                              : () {
+                                  end = "结束日期";
+                                  setInnerState(() {});
+                                },
+                        ),
+                      ],
+                    ),
+                    //筛选设备
+                    Row(
+                      children: <Widget>[
+                        Container(
+                          margin: const EdgeInsets.only(top: 10, bottom: 10),
+                          child: const Text(
+                            "筛选设备",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        devs.isNotEmpty
+                            ? SizedBox(
+                                height: 25,
+                                width: 25,
+                                child: IconButton(
+                                  padding: const EdgeInsets.all(2),
+                                  tooltip: "清除",
+                                  iconSize: 13,
+                                  color: Colors.blueGrey,
+                                  onPressed: () {
+                                    devs.clear();
+                                    setInnerState(() {});
+                                  },
+                                  icon: const Icon(
+                                    Icons.cleaning_services_sharp,
+                                  ),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    Wrap(
+                      direction: Axis.horizontal,
+                      children: [
+                        for (var dev in controller.allDevices)
+                          Container(
+                            margin: const EdgeInsets.only(right: 5, bottom: 5),
+                            child: RoundedChip(
+                              onPressed: () {
+                                var guid = dev.guid;
+                                if (devs.contains(guid)) {
+                                  devs.remove(guid);
+                                } else {
+                                  devs.add(guid);
+                                }
+                                setInnerState(() {});
+                              },
+                              selectedColor: Colors.blue[100],
+                              selected: devs.contains(dev.guid),
+                              label: Text(dev.name),
+                            ),
+                          ),
+                      ],
+                    ),
+                    //筛选标签
+                    Row(
+                      children: <Widget>[
+                        Container(
+                          margin: const EdgeInsets.only(top: 10, bottom: 10),
+                          child: const Text(
+                            "筛选标签",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        tags.isNotEmpty
+                            ? SizedBox(
+                                height: 25,
+                                width: 25,
+                                child: IconButton(
+                                  padding: const EdgeInsets.all(2),
+                                  tooltip: "清除",
+                                  iconSize: 13,
+                                  color: Colors.blueGrey,
+                                  onPressed: () {
+                                    tags.clear();
+                                    setInnerState(() {});
+                                  },
+                                  icon: const Icon(
+                                    Icons.cleaning_services_sharp,
+                                  ),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    Wrap(
+                      direction: Axis.horizontal,
+                      children: [
+                        for (var tag in controller.allTagNames)
+                          Container(
+                            margin: const EdgeInsets.only(right: 5, bottom: 5),
+                            child: RoundedChip(
+                              onPressed: () {
+                                if (tags.contains(tag)) {
+                                  tags.remove(tag);
+                                } else {
+                                  tags.add(tag);
+                                }
+                                setInnerState(() {});
+                              },
+                              selectedColor: Colors.blue[100],
+                              selected: tags.contains(tag),
+                              label: Text(tag),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}

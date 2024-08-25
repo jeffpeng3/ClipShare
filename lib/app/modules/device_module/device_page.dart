@@ -1,0 +1,166 @@
+import 'package:clipshare/app/modules/device_module/device_controller.dart';
+import 'package:clipshare/app/services/socket_service.dart';
+import 'package:clipshare/app/widgets/add_device_dialog.dart';
+import 'package:clipshare/app/widgets/device_card.dart';
+import 'package:clipshare/app/widgets/dot.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+/**
+ * GetX Template Generator - fb.com/htngu.99
+ * */
+
+class DevicePage extends GetView<DeviceController> {
+  final sktService = Get.find<SocketService>();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: [
+        Column(
+          children: <Widget>[
+            Obx(
+              () => Visibility(
+                visible: controller.pairedList.isNotEmpty,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "我的设备(${controller.pairedList.length})",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: "宋体",
+                            ),
+                          ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.only(right: 5),
+                                child: Dot(
+                                  radius: 6.0,
+                                  color: controller.forwardConnected.value
+                                      ? Colors.green
+                                      : Colors.grey,
+                                ),
+                              ),
+                              const Text("中转连接"),
+                              const SizedBox(width: 10),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                    ...controller.pairedList,
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Row(
+                children: [
+                  Obx(
+                    () => Text(
+                      "发现设备(${controller.discoverList.length})",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Tooltip(
+                    message: "重新发现设备",
+                    child: Obx(
+                      () => RotationTransition(
+                        turns: controller.animation.value,
+                        child: IconButton(
+                          onPressed: () {
+                            if (controller.discovering.value) {
+                              controller.rotationReverse.value =
+                                  !controller.rotationReverse.value;
+                              controller.setRotationAnimation();
+                              sktService.restartDiscoveringDevices();
+                            } else {
+                              sktService.startDiscoveringDevices();
+                            }
+                          },
+                          icon: const Icon(
+                            Icons.sync,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Tooltip(
+                    message: "手动添加设备",
+                    child: IconButton(
+                      onPressed: () {
+                        _showAddDeviceDialog(context);
+                      },
+                      icon: const Icon(
+                        Icons.add,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  Obx(
+                    () => Visibility(
+                      visible: controller.discovering.value,
+                      child: Tooltip(
+                        message: "停止发现",
+                        child: IconButton(
+                          onPressed: () {
+                            sktService.stopDiscoveringDevices();
+                          },
+                          icon: const Icon(
+                            Icons.stop,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Obx(
+              () => Visibility(
+                visible: controller.discoverList.isEmpty,
+                replacement: Column(
+                  children: controller.discoverList,
+                ),
+                child: DeviceCard(
+                  dev: null,
+                  isPaired: false,
+                  isConnected: false,
+                  isSelf: false,
+                  minVersion: null,
+                  version: null,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  //region 页面方法
+
+  ///显示添加设备弹窗
+  void _showAddDeviceDialog(BuildContext context) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) => const AddDeviceDialog(),
+    );
+  }
+
+//endregion
+}

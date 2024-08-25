@@ -32,6 +32,7 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  get: ^4.6.6
   # 数据库框架
   floor: ^1.4.2
   sqflite: any
