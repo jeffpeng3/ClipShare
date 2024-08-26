@@ -3,7 +3,7 @@ import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:get/get.dart';
 
-class DeviceService extends GetxService {
+class DeviceService extends GetxController {
   final _dbService = Get.find<DbService>();
   final _appConfig = Get.find<ConfigService>();
   final _devices = <String, Device>{}.obs;

@@ -10,12 +10,10 @@ import 'package:get/get.dart';
 class HistoryPage extends GetView<HistoryController> {
   @override
   Widget build(BuildContext context) {
-    print("update historylist");
     return Obx(
       () => Visibility(
         visible: controller.loading,
         replacement: ClipListView(
-          key: controller.key.value,
           list: controller.list,
           onRefreshData: controller.refreshData,
           enableRouteSearch: true,

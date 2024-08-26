@@ -80,9 +80,9 @@ Future<void> initServices() async {
   Get.put(ClipChannelService().init());
   Get.put(CommonChannelService().init());
   Get.put(MultiWindowChannelService());
-  Get.put(DeviceService(), permanent: true);
-  Get.put(TagService(), permanent: true);
-  Get.put(SyncingFileProgressService(), permanent: true);
+  Get.putAsync(() => DeviceService().init(), permanent: true);
+  Get.putAsync(() => TagService().init(), permanent: true);
+  Get.putAsync(() => SyncingFileProgressService().init(), permanent: true);
   if (PlatformExt.isPC) {
     await Get.putAsync(() => WindowService().init());
     await Get.putAsync(() => TrayService().init());

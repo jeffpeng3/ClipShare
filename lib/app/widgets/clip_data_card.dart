@@ -195,9 +195,7 @@ class ClipDataCardState extends State<ClipDataCard> {
                       ? IntrinsicHeight(
                           child: GestureDetector(
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                4,
-                              ),
+                              borderRadius: BorderRadius.circular(4),
                               child: Image.file(
                                 File(
                                   widget.clip.data.content,

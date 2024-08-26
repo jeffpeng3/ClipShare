@@ -24,7 +24,7 @@ import 'package:open_file_plus/open_file_plus.dart';
 import 'empty_content.dart';
 
 class ClipListView extends StatefulWidget {
-  final List<ClipData> list;
+  final RxList<ClipData> list;
   final void Function() onRefreshData;
   final bool enableRouteSearch;
   final BorderRadiusGeometry? detailBorderRadius;
@@ -52,7 +52,6 @@ class ClipListView extends StatefulWidget {
 class ClipListViewState extends State<ClipListView>
     with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
-  final List<ClipData> _list = List.empty(growable: true);
   final _scrollPhysics = const AlwaysScrollableScrollPhysics();
   String? language;
   int? _minId;
@@ -83,9 +82,8 @@ class ClipListViewState extends State<ClipListView>
   void initState() {
     super.initState();
     _loadNewData = false;
-    _list.addAll(widget.list);
-    if (_list.isNotEmpty) {
-      _minId = _list.last.data.id;
+    if (widget.list.isNotEmpty) {
+      _minId = widget.list.last.data.id;
     }
     //监听生命周期
     WidgetsBinding.instance.addObserver(this);
@@ -109,21 +107,6 @@ class ClipListViewState extends State<ClipListView>
     }
   }
 
-  @Deprecated('废弃')
-  void updatePage(
-    bool Function(History history) where,
-    void Function(History history) cb,
-  ) {
-    for (var item in _list) {
-      //查找符合条件的数据
-      if (where(item.data)) {
-        //更新数据
-        cb(item.data);
-        _sortList();
-      }
-    }
-  }
-
   ///加载更多数据
   void _loadMoreData() {
     if (_loadNewData || _minId == null) {
@@ -141,7 +124,7 @@ class ClipListViewState extends State<ClipListView>
     f.then((List<ClipData> list) {
       if (list.isNotEmpty) {
         _minId = list[list.length - 1].data.id;
-        _list.addAll(list);
+        widget.list.addAll(list);
         removeDuplicates();
         _sortList();
       }
@@ -154,20 +137,20 @@ class ClipListViewState extends State<ClipListView>
   ///移除重复项
   void removeDuplicates() {
     Map<int, ClipData> map = {};
-    for (var clip in _list) {
+    for (var clip in widget.list) {
       map[clip.data.id] = clip;
     }
-    _list.clear();
-    _list.addAll(map.values);
+    widget.list.clear();
+    widget.list.addAll(map.values);
   }
 
   ///滚动监听
   void _scrollListener() {
     if (_scrollController.offset == 0) {
       Future.delayed(const Duration(milliseconds: 100), () {
-        var tmpList = _list.sublist(0, min(_list.length, 20));
-        _list.clear();
-        _list.addAll(tmpList);
+        var tmpList = widget.list.sublist(0, min(widget.list.length, 20));
+        widget.list.clear();
+        widget.list.addAll(tmpList);
         if (tmpList.isNotEmpty) {
           _minId = tmpList.last.data.id;
         }
@@ -195,7 +178,7 @@ class ClipListViewState extends State<ClipListView>
 
   ///排序 list
   void _sortList() {
-    _list.sort((a, b) => b.data.compareTo(a.data));
+    widget.list.sort((a, b) => b.data.compareTo(a.data));
     setState(() {});
   }
 
@@ -209,11 +192,10 @@ class ClipListViewState extends State<ClipListView>
 
   ///渲染列表项
   Widget renderItem(int i) {
-    var id = _list[i].data.id;
+    var id = widget.list[i].data.id;
     var selected = _selectedIds.contains(id);
     return ClipDataCard(
-      clip: _list[i],
-      key: UniqueKey(),
+      clip: widget.list[i],
       imageMode: widget.imageMasonryGridViewLayout,
       routeToSearchOnClickChip: widget.enableRouteSearch,
       selectMode: _selectMode,
@@ -227,7 +209,7 @@ class ClipListViewState extends State<ClipListView>
           }
           setState(() {});
         } else {
-          var data = _list[i];
+          var data = widget.list[i];
           if (data.data.id != _showHistoryData?.data.id) {
             _showHistoryData = data;
             _clipTagRowKey = UniqueKey();
@@ -246,12 +228,12 @@ class ClipListViewState extends State<ClipListView>
         setState(() {});
       },
       onDoubleTap: () async {
-        if (_list[i].isFile) {
-          await OpenFile.open(_list[i].data.content);
+        if (widget.list[i].isFile) {
+          await OpenFile.open(widget.list[i].data.content);
           return;
         }
         appConfig.innerCopy = true;
-        var res = await clipChannelService.copy(_list[i].data.toJson());
+        var res = await clipChannelService.copy(widget.list[i].data.toJson());
         res = res ?? false;
         if (res) {
           Global.showSnackBarSuc(context, "复制成功");
@@ -289,7 +271,7 @@ class ClipListViewState extends State<ClipListView>
                         widget.onRefreshData,
                       );
                     },
-                    child: _list.isEmpty
+                    child: widget.list.isEmpty
                         ? Stack(
                             children: [
                               ListView(),
@@ -297,42 +279,42 @@ class ClipListViewState extends State<ClipListView>
                             ],
                           )
                         : widget.imageMasonryGridViewLayout
-                            ? LayoutBuilder(
-                                builder: (ctx, constraints) {
-                                  var maxWidth = 200.0;
-                                  var count =
-                                      max(2, constraints.maxWidth ~/ maxWidth);
-                                  return MasonryGridView.count(
-                                    crossAxisCount: count,
-                                    mainAxisSpacing: 4,
-                                    shrinkWrap: true,
-                                    crossAxisSpacing: 4,
-                                    itemCount: _list.length,
-                                    controller: _scrollController,
-                                    physics: _scrollPhysics,
-                                    itemBuilder: (context, index) {
-                                      return renderItem(index);
-                                    },
-                                  );
-                                },
-                              )
-                            : ListView.builder(
-                                itemCount: _list.length,
-                                controller: _scrollController,
-                                physics: _scrollPhysics,
-                                itemBuilder: (context, i) {
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 2,
-                                    ),
-                                    constraints: const BoxConstraints(
-                                      maxHeight: 150,
-                                      minHeight: 80,
-                                    ),
-                                    child: renderItem(i),
-                                  );
-                                },
-                              ),
+                            ? Obx(() => LayoutBuilder(
+                                  builder: (ctx, constraints) {
+                                    var maxWidth = 200.0;
+                                    var count = max(
+                                        2, constraints.maxWidth ~/ maxWidth);
+                                    return MasonryGridView.count(
+                                      crossAxisCount: count,
+                                      mainAxisSpacing: 4,
+                                      shrinkWrap: true,
+                                      crossAxisSpacing: 4,
+                                      itemCount: widget.list.length,
+                                      controller: _scrollController,
+                                      physics: _scrollPhysics,
+                                      itemBuilder: (context, index) {
+                                        return renderItem(index);
+                                      },
+                                    );
+                                  },
+                                ))
+                            : Obx(() => ListView.builder(
+                                  itemCount: widget.list.length,
+                                  controller: _scrollController,
+                                  physics: _scrollPhysics,
+                                  itemBuilder: (context, i) {
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 2,
+                                      ),
+                                      constraints: const BoxConstraints(
+                                        maxHeight: 150,
+                                        minHeight: 80,
+                                      ),
+                                      child: renderItem(i),
+                                    );
+                                  },
+                                )),
                   ),
                   Positioned(
                     bottom: 16,
@@ -353,7 +335,7 @@ class ClipListViewState extends State<ClipListView>
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 10),
                                 child: Text(
-                                  "${_selectedIds.length} / ${_list.length}",
+                                  "${_selectedIds.length} / ${widget.list.length}",
                                   style: const TextStyle(
                                     fontSize: 20,
                                     color: Colors.black45,

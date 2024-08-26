@@ -1,28 +1,24 @@
+import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/services/tag_service.dart';
 import 'package:clipshare/app/widgets/pages/tag_edit_page.dart';
 import 'package:clipshare/app/widgets/rounded_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ClipTagRowView extends StatefulWidget {
+class ClipTagRowView extends StatelessWidget {
   final int hisId;
   final Color? clipBgColor;
+  final bool? routeToSearchOnClickChip;
+  final homeController = Get.find<HomeController>();
 
-  const ClipTagRowView({super.key, required this.hisId, this.clipBgColor});
-
-  @override
-  State<StatefulWidget> createState() {
-    return _ClipTagRowViewState();
-  }
-}
-
-class _ClipTagRowViewState extends State<ClipTagRowView> {
   final tagService = Get.find<TagService>();
 
-  @override
-  void initState() {
-    super.initState();
-  }
+  ClipTagRowView({
+    super.key,
+    required this.hisId,
+    this.clipBgColor,
+    this.routeToSearchOnClickChip,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,14 +26,20 @@ class _ClipTagRowViewState extends State<ClipTagRowView> {
       scrollDirection: Axis.horizontal,
       child: Obx(
         () {
-          var tags = tagService.getTagList(widget.hisId);
+          var tags = tagService.getTagList(hisId);
           return Row(
             children: [
               for (var tag in tags)
                 Container(
                   margin: const EdgeInsets.only(left: 5),
                   child: RoundedChip(
-                    backgroundColor: widget.clipBgColor,
+                    backgroundColor: clipBgColor,
+                    onPressed: () {
+                      if (routeToSearchOnClickChip == true) {
+                        //导航至搜索页面
+                        homeController.gotoSearchPage(null, tag);
+                      }
+                    },
                     avatar: const CircleAvatar(
                       backgroundColor: Colors.blue,
                       child: Text(
@@ -57,7 +59,7 @@ class _ClipTagRowViewState extends State<ClipTagRowView> {
               IconButton(
                 visualDensity: VisualDensity.compact,
                 onPressed: () {
-                  TagEditPage.goto(widget.hisId);
+                  TagEditPage.goto(hisId);
                 },
                 icon: const Row(
                   children: [

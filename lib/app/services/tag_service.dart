@@ -36,7 +36,7 @@ class TagService extends GetxService {
       if (_tags[tag.hisId]!.length == 1) {
         _tags.remove(tag.hisId);
       } else {
-        _tags[tag.hisId]!.remove(tag.tagName);
+        _tags[tag.hisId] != Set.from(_tags[tag.hisId]!..remove(tag.tagName));
       }
     }
     if (!notify) {
@@ -73,7 +73,7 @@ class TagService extends GetxService {
     }
     if (!notify || res) {
       if (_tags.containsKey(tag.hisId)) {
-        _tags[tag.hisId]!.add(tag.tagName);
+        _tags[tag.hisId] = (_tags[tag.hisId]!..add(tag.tagName));
       } else {
         _tags[tag.hisId] = <String>{}..add(tag.tagName);
       }
@@ -99,8 +99,10 @@ class TagService extends GetxService {
   }
 
   ///批量删除
-  Future<void> removeList(Iterable<HistoryTag> tags,
-      [bool notify = true]) async {
+  Future<void> removeList(
+    Iterable<HistoryTag> tags, [
+    bool notify = true,
+  ]) async {
     for (var tag in tags) {
       await _remove(tag, notify);
     }
