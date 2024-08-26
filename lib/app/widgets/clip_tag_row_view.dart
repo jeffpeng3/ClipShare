@@ -56,6 +56,9 @@ class ClipTagRowView extends StatelessWidget {
                     ),
                   ),
                 ),
+              const SizedBox(
+                width: 5,
+              ),
               IconButton(
                 visualDensity: VisualDensity.compact,
                 onPressed: () {

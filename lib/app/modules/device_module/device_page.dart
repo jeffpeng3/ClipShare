@@ -1,6 +1,7 @@
 import 'package:clipshare/app/modules/device_module/device_controller.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/widgets/add_device_dialog.dart';
+import 'package:clipshare/app/widgets/condition_widget.dart';
 import 'package:clipshare/app/widgets/device_card.dart';
 import 'package:clipshare/app/widgets/dot.dart';
 import 'package:flutter/material.dart';
@@ -19,8 +20,8 @@ class DevicePage extends GetView<DeviceController> {
         Column(
           children: <Widget>[
             Obx(
-              () => Visibility(
-                visible: controller.pairedList.isNotEmpty,
+              () => Offstage(
+                offstage: !controller.pairedList.isNotEmpty,
                 child: Column(
                   children: [
                     Padding(
@@ -129,19 +130,20 @@ class DevicePage extends GetView<DeviceController> {
                 ],
               ),
             ),
+            //此处不可以用Visibility组件控制渲染，会导致RoundedClip组件背景色失效
             Obx(
-              () => Visibility(
-                visible: controller.discoverList.isEmpty,
-                replacement: Column(
-                  children: controller.discoverList,
-                ),
-                child: DeviceCard(
+              () => ConditionWidget(
+                condition: controller.discoverList.isEmpty,
+                visible: DeviceCard(
                   dev: null,
                   isPaired: false,
                   isConnected: false,
                   isSelf: false,
                   minVersion: null,
                   version: null,
+                ),
+                invisible: Column(
+                  children: controller.discoverList,
                 ),
               ),
             ),
