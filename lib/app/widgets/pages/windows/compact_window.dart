@@ -1,8 +1,9 @@
+import 'package:clipshare/app/theme/app_theme.dart';
 import 'package:clipshare/app/widgets/pages/compact_page.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 
-class CompactWindow extends StatefulWidget {
+class CompactWindow extends StatelessWidget {
   final WindowController windowController;
   final Map? args;
 
@@ -13,14 +14,17 @@ class CompactWindow extends StatefulWidget {
   });
 
   @override
-  State<StatefulWidget> createState() {
-    return _CompactWindowState();
-  }
-}
-
-class _CompactWindowState extends State<CompactWindow> {
-  @override
   Widget build(BuildContext context) {
-    return const CompactPage();
+    return MaterialApp(
+      title: '历史记录',
+      theme: themeData,
+      //当前运行环境配置
+      locale: locale,
+      //程序支持的语言环境配置
+      supportedLocales: supportedLocales,
+      //Material 风格代理配置
+      localizationsDelegates: localizationsDelegates,
+      home: const CompactPage(),
+    );
   }
 }

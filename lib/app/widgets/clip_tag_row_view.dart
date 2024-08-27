@@ -1,5 +1,6 @@
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/services/tag_service.dart';
+import 'package:clipshare/app/widgets/condition_widget.dart';
 import 'package:clipshare/app/widgets/pages/tag_edit_page.dart';
 import 'package:clipshare/app/widgets/rounded_chip.dart';
 import 'package:flutter/material.dart';
@@ -12,12 +13,14 @@ class ClipTagRowView extends StatelessWidget {
   final homeController = Get.find<HomeController>();
 
   final tagService = Get.find<TagService>();
+  bool? showAddIcon = false;
 
   ClipTagRowView({
     super.key,
     required this.hisId,
     this.clipBgColor,
     this.routeToSearchOnClickChip,
+    this.showAddIcon,
   });
 
   @override
@@ -56,22 +59,28 @@ class ClipTagRowView extends StatelessWidget {
                     ),
                   ),
                 ),
-              const SizedBox(
-                width: 5,
+              ConditionWidget(
+                condition: showAddIcon == true,
+                visible: const SizedBox(
+                  width: 5,
+                ),
               ),
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                onPressed: () {
-                  TagEditPage.goto(hisId);
-                },
-                icon: const Row(
-                  children: [
-                    Text("标签"),
-                    Icon(
-                      Icons.add,
-                      size: 22,
-                    ),
-                  ],
+              ConditionWidget(
+                condition: showAddIcon == true,
+                visible: IconButton(
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () {
+                    TagEditPage.goto(hisId);
+                  },
+                  icon: const Row(
+                    children: [
+                      Text("标签"),
+                      Icon(
+                        Icons.add,
+                        size: 22,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

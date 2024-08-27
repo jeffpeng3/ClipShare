@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:clipshare/app/data/repository/entity/clip_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
-import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/widgets/clip_data_card_compact.dart';
 import 'package:clipshare/app/widgets/empty_content.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -34,7 +33,6 @@ class _CompactPageState extends State<CompactPage> {
   bool _loadNewData = false;
   bool _showBackToTopButton = false;
   final multiWindowChannelService = Get.find<MultiWindowChannelService>();
-  final appConfig = Get.find<ConfigService>();
 
   @override
   void initState() {
@@ -94,9 +92,7 @@ class _CompactPageState extends State<CompactPage> {
       if (loadMore) {
         fromId = _list.isEmpty ? 0 : _list.last.data.data.id;
       }
-      return multiWindowChannelService
-          .getHistories(appConfig.mainWindowId, fromId)
-          .then(
+      return multiWindowChannelService.getHistories(0, fromId).then(
         (json) {
           var data = jsonDecode(json);
           var devInfos = data["devInfos"] as Map<String, dynamic>;
@@ -132,7 +128,7 @@ class _CompactPageState extends State<CompactPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: appConfig.bgColor,
+      backgroundColor: const Color.fromARGB(255, 238, 238, 238),
       //这个刷新不知道为什么没效果
       body: RefreshIndicator(
         onRefresh: refresh,

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
@@ -56,11 +57,13 @@ Future<void> main(List<String> args) async {
   // SystemUiOverlayStyle systemUiOverlayStyle =
   //     const SystemUiOverlayStyle(statusBarColor: Colors.transparent);
   // SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
+
   if (isMultiWindow) {
-    run(home, title);
+    Get.put(MultiWindowChannelService());
+    runApp(home);
   } else {
     await initServices();
-    run(home, title);
+    runMain(home, title);
 
     ///全局异常捕获
     // runZonedGuarded(
@@ -89,7 +92,7 @@ Future<void> initServices() async {
   }
 }
 
-void run(Widget home, String title) {
+void runMain(Widget home, String title) {
   runApp(
     GetMaterialApp(
       title: title,

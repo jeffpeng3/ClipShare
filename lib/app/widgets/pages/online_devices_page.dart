@@ -1,10 +1,8 @@
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
-import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/widgets/device_card_simple.dart';
 import 'package:clipshare/app/widgets/empty_content.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class OnlineDevicesPage extends StatefulWidget {
   final List<Device> devices;
@@ -29,8 +27,6 @@ class _OnlineDevicesPageState extends State<OnlineDevicesPage> {
   static const tag = "OnlineDevicesPage";
   final Set<String> _selectedDevIds = {};
 
-  final appConfig = Get.find<ConfigService>();
-
   @override
   void initState() {
     super.initState();
@@ -45,7 +41,7 @@ class _OnlineDevicesPageState extends State<OnlineDevicesPage> {
               title: const Text("文件发送"),
             )
           : null,
-      backgroundColor: appConfig.bgColor,
+      backgroundColor: const Color.fromARGB(255, 238, 238, 238),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

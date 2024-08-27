@@ -2,10 +2,9 @@ import 'dart:convert';
 
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
-import 'package:clipshare/app/services/config_service.dart';
+import 'package:clipshare/app/theme/app_theme.dart';
 import 'package:clipshare/app/widgets/pages/online_devices_page.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -31,7 +30,6 @@ class _OnlineDevicesWindowState extends State<OnlineDevicesWindow>
   late final List<String> _syncFiles;
   List<Device> _devices = [];
   final multiWindowChannelService = Get.find<MultiWindowChannelService>();
-  final appConfig = Get.find<ConfigService>();
 
   @override
   void initState() {
@@ -81,16 +79,26 @@ class _OnlineDevicesWindowState extends State<OnlineDevicesWindow>
 
   @override
   Widget build(BuildContext context) {
-    return OnlineDevicesPage(
-      devices: _devices,
-      onSendClicked: (context, selectedDevices) async {
-        await multiWindowChannelService.syncFiles(
-          appConfig.mainWindowId,
-          selectedDevices,
-          _syncFiles,
-        );
-        widget.windowController.close();
-      },
+    return MaterialApp(
+      title: '历史记录',
+      theme: themeData,
+      //当前运行环境配置
+      locale: locale,
+      //程序支持的语言环境配置
+      supportedLocales: supportedLocales,
+      //Material 风格代理配置
+      localizationsDelegates: localizationsDelegates,
+      home: OnlineDevicesPage(
+        devices: _devices,
+        onSendClicked: (context, selectedDevices) async {
+          await multiWindowChannelService.syncFiles(
+            0,
+            selectedDevices,
+            _syncFiles,
+          );
+          widget.windowController.close();
+        },
+      ),
     );
   }
 }

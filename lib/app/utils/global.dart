@@ -73,7 +73,7 @@ class Global {
                   child: TextButton(
                     onPressed: () {
                       if (autoDismiss) {
-                        Navigator.pop(context);
+                        Get.back();
                       }
                       onNeutral?.call();
                     },
@@ -88,7 +88,7 @@ class Global {
                         child: TextButton(
                           onPressed: () {
                             if (autoDismiss) {
-                              Navigator.pop(context);
+                              Get.back();
                             }
                             onCancel?.call();
                           },
@@ -100,7 +100,7 @@ class Global {
                         child: TextButton(
                           onPressed: () {
                             if (autoDismiss) {
-                              Navigator.pop(context);
+                              Get.back();
                             }
                             onOk?.call();
                           },
@@ -175,7 +175,7 @@ class Global {
                 children: [
                   TextButton(
                     onPressed: () {
-                      Navigator.pop(context);
+                      Get.back();
                     },
                     child: const Text("取消"),
                   ),

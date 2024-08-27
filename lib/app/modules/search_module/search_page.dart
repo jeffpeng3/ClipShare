@@ -179,7 +179,7 @@ class SearchPage extends GetView<search_module.SearchController> {
         var nowDayStr = now.toString().substring(0, 10);
         var tags = Set<String>.from(controller.selectedTags);
         var devs = Set<String>.from(controller.selectedDevIds);
-        bool searchOnlyNoSync = false;
+        bool searchOnlyNoSync = controller.searchOnlyNoSync;
         onDateRangeClick(state) async {
           //显示时间选择器
           DateTimeRange? range = await showDateRangePicker(

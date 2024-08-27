@@ -129,14 +129,17 @@ class SyncFileStatus extends StatelessWidget {
                               ),
                               Visibility(
                                 visible: isLocal && !selectMode,
-                                replacement: IconButton(
-                                  icon: Icon(
-                                    selected
-                                        ? Icons.check_box
-                                        : Icons.check_box_outline_blank,
-                                    color: const Color(0xFF33A0E3),
+                                replacement: Visibility(
+                                  visible: selectMode,
+                                  child: IconButton(
+                                    icon: Icon(
+                                      selected
+                                          ? Icons.check_box
+                                          : Icons.check_box_outline_blank,
+                                      color: const Color(0xFF33A0E3),
+                                    ),
+                                    onPressed: null,
                                   ),
-                                  onPressed: null,
                                 ),
                                 child: Tooltip(
                                   message: "打开文件夹",
