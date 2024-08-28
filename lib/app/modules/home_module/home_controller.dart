@@ -18,7 +18,6 @@ import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/utils/permission_helper.dart';
 import 'package:clipshare/app/widgets/debug_page.dart';
-import 'package:clipshare/app/widgets/pages/authentication_page.dart';
 import 'package:clipshare/app/widgets/pages/syncing_file_page.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -267,12 +266,9 @@ class HomeController extends GetxController
   //跳转验证页面
   Future? gotoAuthenticationPage(localizedReason, [bool lock = true]) {
     appConfig.authenticating.value = true;
-    //todo 后期修改为named形式
-    return Get.to(
-      AuthenticationPage(
-        lock: lock,
-        localizedReason: localizedReason,
-      ),
+    return Get.toNamed(
+      Routes.AUTHENTICATION,
+      arguments: {"lock": lock, "localizedReason": localizedReason},
     );
   }
 

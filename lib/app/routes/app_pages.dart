@@ -1,3 +1,5 @@
+import '../../app/modules/authentication_module/authentication_page.dart';
+import '../../app/modules/authentication_module/authentication_bindings.dart';
 import 'package:clipshare/app/modules/home_module/home_page.dart';
 import 'package:clipshare/app/widgets/pages/welcome_page.dart';
 import 'package:get/get.dart';
@@ -54,6 +56,11 @@ abstract class AppPages {
       name: Routes.SETTINGS,
       page: () => SettingsPage(),
       binding: SettingsBinding(),
+    ),
+    GetPage(
+      name: Routes.AUTHENTICATION,
+      page: () => AuthenticationPage(),
+      binding: AuthenticationBinding(),
     ),
   ];
 }

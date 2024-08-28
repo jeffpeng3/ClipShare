@@ -227,17 +227,16 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                                     selected: selected,
                                   ),
                                   onLongPress: () {
-                                    // _selectedPathSet.add(path);
                                     _selected[id] = data;
                                     _selectMode = true;
+                                    appConfig.isMultiSelectionMode.value = true;
+                                    appConfig.multiSelectionText.value = "多选删除";
                                     setState(() {});
                                   },
                                   onTap: () {
                                     if (_selected.containsKey(id)) {
-                                      // _selectedPathSet.remove(path);
                                       _selected.remove(id);
                                     } else {
-                                      // _selectedPathSet.add(path);
                                       _selected[id] = data;
                                     }
                                     setState(() {});
@@ -255,6 +254,7 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                             );
                           },
                         ),
+                        //多选删除
                         Positioned(
                           bottom: 16,
                           right: 16,
@@ -272,7 +272,7 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                                   child: Center(
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 10),
+                                          horizontal: 10,),
                                       child: Text(
                                         "${_selected.length} / ${historyList.length}",
                                         style: const TextStyle(
@@ -292,9 +292,9 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                                     margin: const EdgeInsets.only(right: 10),
                                     child: FloatingActionButton(
                                       onPressed: () {
-                                        // _selectedPathSet.clear();
                                         _selected.clear();
                                         _selectMode = false;
+                                        appConfig.isMultiSelectionMode.value = false;
                                         setState(() {});
                                       },
                                       child: const Icon(Icons.close),
@@ -322,6 +322,7 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                                           // _selectedPathSet.clear();
                                           _selected.clear();
                                           _selectMode = false;
+                                          appConfig.isMultiSelectionMode.value = true;
                                           setState(() {});
                                         },
                                         onNeutral: () {
@@ -329,6 +330,7 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                                           // _selectedPathSet.clear();
                                           _selected.clear();
                                           _selectMode = false;
+                                          appConfig.isMultiSelectionMode.value = true;
                                           setState(() {});
                                         },
                                         onCancel: () {

@@ -9,7 +9,6 @@ import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/crypto.dart';
 import 'package:clipshare/app/utils/extension.dart';
-import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/utils/snowflake.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -102,6 +101,8 @@ class ConfigService extends GetxService {
     });
   }
 
+  final isMultiSelectionMode = false.obs;
+  final multiSelectionText = "多选操作".obs;
   final authenticating = false.obs;
 
   final _userId = 0.obs;

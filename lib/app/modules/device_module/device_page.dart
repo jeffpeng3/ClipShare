@@ -1,4 +1,5 @@
 import 'package:clipshare/app/modules/device_module/device_controller.dart';
+import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/widgets/add_device_dialog.dart';
 import 'package:clipshare/app/widgets/condition_widget.dart';
@@ -12,6 +13,7 @@ import 'package:get/get.dart';
 
 class DevicePage extends GetView<DeviceController> {
   final sktService = Get.find<SocketService>();
+  final appConfig = Get.find<ConfigService>();
 
   @override
   Widget build(BuildContext context) {
@@ -23,33 +25,48 @@ class DevicePage extends GetView<DeviceController> {
               () => Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: 12),
+                    padding: const EdgeInsets.only(left: 12, top: 12),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "我的设备(${controller.pairedList.length})",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            fontFamily: "宋体",
-                          ),
-                        ),
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Container(
-                              margin: const EdgeInsets.only(right: 5),
-                              child: Dot(
-                                radius: 6.0,
-                                color: controller.forwardConnected.value
-                                    ? Colors.green
-                                    : Colors.grey,
+                            const Icon(Icons.devices_rounded),
+                            const SizedBox(
+                              width: 5,
+                            ),
+                            Obx(
+                              () => Text(
+                                "我的设备(${controller.pairedList.length})",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  fontFamily: "宋体",
+                                ),
                               ),
                             ),
-                            const Text("中转连接"),
-                            const SizedBox(width: 10),
                           ],
+                        ),
+                        Obx(
+                          () => Offstage(
+                            offstage: !appConfig.enableForward,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(right: 5),
+                                  child: Dot(
+                                    radius: 6.0,
+                                    color: controller.forwardConnected.value
+                                        ? Colors.green
+                                        : Colors.grey,
+                                  ),
+                                ),
+                                const Text("中转连接"),
+                                const SizedBox(width: 10),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -62,6 +79,13 @@ class DevicePage extends GetView<DeviceController> {
               padding: const EdgeInsets.only(left: 12),
               child: Row(
                 children: [
+                  Obx(
+                    () => Icon(
+                      Icons.online_prediction_rounded,
+                      color: controller.discovering.value ? Colors.blue : null,
+                    ),
+                  ),
+                  const SizedBox(width: 5),
                   Obx(
                     () => Text(
                       "发现设备(${controller.discoverList.length})",

@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:clipshare/app/data/repository/entity/clip_data.dart';
-import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
@@ -223,6 +222,8 @@ class ClipListViewState extends State<ClipListView>
         }
       },
       onLongPress: () {
+        appConfig.isMultiSelectionMode.value = true;
+        appConfig.multiSelectionText.value = "多选删除";
         _selectMode = true;
         _selectedIds.add(id);
         setState(() {});
@@ -355,6 +356,7 @@ class ClipListViewState extends State<ClipListView>
                                 onPressed: () {
                                   _selectedIds.clear();
                                   _selectMode = false;
+                                  appConfig.isMultiSelectionMode.value = false;
                                   setState(() {});
                                 },
                                 child: const Icon(Icons.close),
@@ -405,6 +407,8 @@ class ClipListViewState extends State<ClipListView>
                                       });
                                       _selectedIds.clear();
                                       _selectMode = false;
+                                      appConfig.isMultiSelectionMode.value =
+                                          true;
                                       setState(() {});
                                     },
                                   );

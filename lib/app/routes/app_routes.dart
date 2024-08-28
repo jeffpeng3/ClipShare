@@ -11,4 +11,5 @@ abstract class Routes {
   static const SEARCH = '/search'; // Search page
   static const DEVICE = '/device'; // Device page
   static const SETTINGS = '/settings'; // Settings page
+  static const AUTHENTICATION = '/authentication'; // Authentication page
 }

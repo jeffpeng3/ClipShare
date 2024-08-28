@@ -439,7 +439,7 @@ class SettingsPage extends GetView<SettingsController> {
                                   child: const MouseRegion(
                                     cursor: SystemMouseCursors.click,
                                     child: Icon(
-                                      Icons.download_rounded,
+                                      Icons.info_outline,
                                       color: Colors.blueGrey,
                                       size: 15,
                                     ),

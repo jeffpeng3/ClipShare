@@ -4,6 +4,7 @@ import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
+import 'package:clipshare/app/widgets/condition_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 /**
@@ -35,27 +36,46 @@ class HomePage extends GetView<HomeController> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Obx(() =>
-                              controller.navBarItems[controller.index].icon),
+                          Obx(
+                            () => ConditionWidget(
+                              condition: appConfig.isMultiSelectionMode.value,
+                              visible: const Icon(Icons.checklist),
+                              invisible:
+                                  controller.navBarItems[controller.index].icon,
+                            ),
+                          ),
                           const SizedBox(
                             width: 5,
                           ),
                           Obx(
-                            () => Text(
-                              controller.navBarItems[controller.index].label!,
-                            ),
+                            () {
+                              final selectionMode =
+                                  appConfig.isMultiSelectionMode.value;
+                              final pageTitle = controller
+                                  .navBarItems[controller.index].label!;
+                              final selectionText =
+                                  appConfig.multiSelectionText.value;
+                              return Text(
+                                selectionMode ? selectionText : pageTitle,
+                              );
+                            },
                           ),
                         ],
                       ),
                     ),
-                    IconButton(
-                      onPressed: () {
-                        //导航至搜索页面
-                        controller.gotoSearchPage(null, null);
-                      },
-                      tooltip: "搜索",
-                      icon: const Icon(
-                        Icons.search_rounded,
+                    Obx(
+                      () => Visibility(
+                        visible: !appConfig.isMultiSelectionMode.value,
+                        child: IconButton(
+                          onPressed: () {
+                            //导航至搜索页面
+                            controller.gotoSearchPage(null, null);
+                          },
+                          tooltip: "搜索",
+                          icon: const Icon(
+                            Icons.search_rounded,
+                          ),
+                        ),
                       ),
                     ),
                   ],
