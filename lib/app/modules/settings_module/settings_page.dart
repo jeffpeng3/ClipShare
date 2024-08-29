@@ -2,7 +2,10 @@ import 'dart:io';
 
 import 'package:clipshare/app/handlers/hot_key_handler.dart';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
+import 'package:clipshare/app/modules/log_module/log_controller.dart';
+import 'package:clipshare/app/modules/log_module/log_page.dart';
 import 'package:clipshare/app/modules/settings_module/settings_controller.dart';
+import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
@@ -13,8 +16,8 @@ import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/utils/permission_helper.dart';
 import 'package:clipshare/app/widgets/authentication_time_setting_dialog.dart';
+import 'package:clipshare/app/widgets/dynamic_size_widget.dart';
 import 'package:clipshare/app/widgets/hot_key_editor.dart';
-import 'package:clipshare/app/widgets/pages/log/log_list_page.dart';
 import 'package:clipshare/app/widgets/pages/settings/sms_rules_setting_page.dart';
 import 'package:clipshare/app/widgets/pages/settings/tag_rules_setting_page.dart';
 import 'package:clipshare/app/widgets/pages/update_log_page.dart';
@@ -940,17 +943,13 @@ class SettingsPage extends GetView<SettingsController> {
                           onPressed: () {
                             var page = TagRuleSettingPage();
                             if (appConfig.isSmallScreen) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => page,
-                                ),
-                              );
+                              Get.to(page);
                             } else {
-                              Global.showDialogPage(
-                                context: context,
-                                child: page,
-                                dismissible: false,
+                              Get.dialog(
+                                DynamicSizeWidget(
+                                  child: page,
+                                ),
+                                barrierDismissible: false,
                               );
                             }
                           },
@@ -974,17 +973,13 @@ class SettingsPage extends GetView<SettingsController> {
                           onPressed: () {
                             var page = SmsRuleSettingPage();
                             if (appConfig.isSmallScreen) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => page,
-                                ),
-                              );
+                              Get.to(page);
                             } else {
-                              Global.showDialogPage(
-                                context: context,
-                                child: page,
-                                dismissible: false,
+                              Get.dialog(
+                                DynamicSizeWidget(
+                                  child: page,
+                                ),
+                                barrierDismissible: false,
                               );
                             }
                           },
@@ -1049,19 +1044,15 @@ class SettingsPage extends GetView<SettingsController> {
                         ),
                         value: appConfig.enableLogsRecord,
                         onTap: () {
-                          var page = const LogListPage();
                           if (appConfig.isSmallScreen) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => page,
-                              ),
-                            );
+                            Get.toNamed(Routes.LOG);
                           } else {
-                            Global.showDialogPage(
-                              context: context,
-                              child: page,
-                            );
+                            Get.put(LogController());
+                            Get.dialog(
+                              DynamicSizeWidget(
+                                child: LogPage(),
+                              ),
+                            ).then((_) => Get.delete<LogController>());
                           }
                         },
                         action: (v) {
@@ -1126,9 +1117,10 @@ class SettingsPage extends GetView<SettingsController> {
                       value: false,
                       action: (v) => IconButton(
                         onPressed: () {
-                          Global.showDialogPage(
-                            context: context,
-                            child: const UpdateLogPage(),
+                          Get.dialog(
+                            const DynamicSizeWidget(
+                              child: UpdateLogPage(),
+                            ),
                           );
                         },
                         icon: const Icon(

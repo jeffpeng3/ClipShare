@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/widgets/loading.dart';
@@ -113,34 +112,6 @@ class Global {
               ],
             )
           ],
-        );
-      },
-    );
-  }
-
-  static void showDialogPage({
-    required BuildContext context,
-    required Widget child,
-    dismissible = true,
-    double? maxWidth = 350,
-  }) {
-    showDialog(
-      context: context,
-      barrierDismissible: dismissible,
-      builder: (context) {
-        var h = MediaQuery.of(context).size.height;
-        return Center(
-          child: Container(
-            constraints: BoxConstraints(
-              maxWidth: maxWidth ?? double.infinity,
-              maxHeight: min(h * 0.7, (maxWidth ?? 350) * 1.618),
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: Colors.white,
-            ),
-            child: child,
-          ),
         );
       },
     );

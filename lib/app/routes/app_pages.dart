@@ -1,3 +1,5 @@
+import '../../app/modules/log_module/log_page.dart';
+import '../../app/modules/log_module/log_bindings.dart';
 import '../../app/modules/authentication_module/authentication_page.dart';
 import '../../app/modules/authentication_module/authentication_bindings.dart';
 import 'package:clipshare/app/modules/home_module/home_page.dart';
@@ -61,6 +63,11 @@ abstract class AppPages {
       name: Routes.AUTHENTICATION,
       page: () => AuthenticationPage(),
       binding: AuthenticationBinding(),
+    ),
+    GetPage(
+      name: Routes.LOG,
+      page: () => LogPage(),
+      binding: LogBinding(),
     ),
   ];
 }

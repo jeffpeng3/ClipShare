@@ -1,0 +1,96 @@
+import 'package:clipshare/app/modules/log_module/log_controller.dart';
+import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/widgets/condition_widget.dart';
+import 'package:clipshare/app/widgets/dynamic_size_widget.dart';
+import 'package:clipshare/app/widgets/empty_content.dart';
+import 'package:clipshare/app/widgets/loading.dart';
+import 'package:clipshare/app/widgets/pages/log_detail_page.dart';
+import 'package:clipshare/app/widgets/rounded_scaffold.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+/**
+ * GetX Template Generator - fb.com/htngu.99
+ * */
+
+class LogPage extends GetView<LogController> {
+  @override
+  Widget build(BuildContext context) {
+    return RoundedScaffold(
+      title: const Text("日志记录"),
+      icon: const Icon(Icons.bug_report_outlined),
+      child: RefreshIndicator(
+        onRefresh: () {
+          return Future.delayed(const Duration(milliseconds: 300), () {
+            controller.loadLogFileList();
+          });
+        },
+        child: Obx(
+          () => ConditionWidget(
+            condition: !controller.init.value,
+            visible: const Loading(),
+            invisible: ConditionWidget(
+              condition: controller.logs.isEmpty,
+              visible: Stack(
+                children: [
+                  ListView(),
+                  const EmptyContent(),
+                ],
+              ),
+              invisible: ListView.builder(
+                itemCount: controller.logs.length,
+                itemBuilder: (ctx, i) {
+                  return Column(
+                    children: [
+                      InkWell(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(controller.logs[i].fileName),
+                              Text(
+                                controller.logs[i].lengthSync().sizeStr,
+                              ),
+                            ],
+                          ),
+                        ),
+                        onTap: () {
+                          final page =
+                              LogDetailPage(logFile: controller.logs[i]);
+                          if (controller.appConfig.isSmallScreen) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => page,
+                              ),
+                            );
+                          } else {
+                            Get.dialog(
+                              DynamicSizeWidget(
+                                maxWidth: 500,
+                                child: page,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      Visibility(
+                        visible: i != controller.logs.length - 1,
+                        child: const Divider(
+                          indent: 16,
+                          endIndent: 16,
+                          height: 1,
+                          thickness: 1,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

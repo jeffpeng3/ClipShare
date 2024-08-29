@@ -5,8 +5,8 @@ import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/tag_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extension.dart';
-import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
+import 'package:clipshare/app/widgets/dynamic_size_widget.dart';
 import 'package:clipshare/app/widgets/rounded_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -20,7 +20,11 @@ class TagEditPage extends StatefulWidget {
     var showLeftBar =
         MediaQuery.of(Get.context!).size.width >= Constants.smallScreenWidth;
     if (showLeftBar || PlatformExt.isPC) {
-      Global.showDialogPage(context: Get.context!, child: TagEditPage(hisId));
+      Get.dialog(
+        DynamicSizeWidget(
+          child: TagEditPage(hisId),
+        ),
+      );
     } else {
       Get.to(TagEditPage(hisId));
     }
