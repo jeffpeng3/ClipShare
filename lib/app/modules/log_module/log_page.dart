@@ -4,7 +4,7 @@ import 'package:clipshare/app/widgets/condition_widget.dart';
 import 'package:clipshare/app/widgets/dynamic_size_widget.dart';
 import 'package:clipshare/app/widgets/empty_content.dart';
 import 'package:clipshare/app/widgets/loading.dart';
-import 'package:clipshare/app/widgets/pages/log_detail_page.dart';
+import 'package:clipshare/app/modules/views/log_detail_page.dart';
 import 'package:clipshare/app/widgets/rounded_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

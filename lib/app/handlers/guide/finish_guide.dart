@@ -1,4 +1,4 @@
-import 'package:clipshare/app/widgets/pages/guide/base_guide.dart';
+import 'package:clipshare/app/handlers/guide/base_guide.dart';
 import 'package:clipshare/app/widgets/permission_guide.dart';
 import 'package:flutter/material.dart';
 

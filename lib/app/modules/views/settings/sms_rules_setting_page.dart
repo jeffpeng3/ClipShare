@@ -1,19 +1,19 @@
 import 'dart:convert';
 
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
+import 'package:clipshare/app/modules/views/settings/rules_setting_page.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extension.dart';
 import 'package:clipshare/app/utils/global.dart';
-import 'package:clipshare/app/widgets/pages/settings/rules_setting_page.dart';
 import 'package:clipshare/app/widgets/rule_setting_add_dialog.dart';
 import 'package:clipshare/app/widgets/settings/card/setting_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class TagRuleSettingPage extends StatelessWidget {
-  TagRuleSettingPage({super.key});
+class SmsRuleSettingPage extends StatelessWidget {
+  SmsRuleSettingPage({super.key});
 
   final appConfig = Get.find<ConfigService>();
   final dbService = Get.find<DbService>();
@@ -22,12 +22,12 @@ class TagRuleSettingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return RuleSettingPage(
       initData: jsonDecode(
-        appConfig.tagRules,
+        appConfig.smsRules,
       )["data"],
       onAdd: (data, remove) {
-        var tag = data["name"] as String?;
+        var name = data["name"] as String?;
         var rule = data["rule"] as String?;
-        if (tag.isNullOrEmpty || rule.isNullOrEmpty) {
+        if (name.isNullOrEmpty || rule.isNullOrEmpty) {
           Global.showTipsDialog(
             context: context,
             text: "请输入完整！",
@@ -38,7 +38,7 @@ class TagRuleSettingPage extends StatelessWidget {
         return SettingCard(
           key: key,
           main: Text(
-            "标签：$tag",
+            "名称：$name",
             maxLines: 1,
           ),
           sub: Text(
@@ -64,14 +64,14 @@ class TagRuleSettingPage extends StatelessWidget {
       },
       editDialogLayout: (onChange) {
         return RuleSettingAddDialog(
-          labelText: "标签名",
-          hintText: "请输入标签名",
+          labelText: "规则名",
+          hintText: "请输入规则名",
           onChange: onChange,
         );
       },
       confirm: (res) async {
         var oldValue = jsonDecode(
-          appConfig.tagRules,
+          appConfig.smsRules,
         );
         var data = {
           "version": oldValue["version"] + 1,
@@ -82,19 +82,19 @@ class TagRuleSettingPage extends StatelessWidget {
           Module.rules,
           OpMethod.update,
           jsonEncode({
-            "rule": Rule.tag.name,
+            "rule": Rule.sms.name,
             "data": data,
           }),
         );
         await dbService.opRecordDao.removeRuleRecord(
-          Rule.tag.name,
+          Rule.sms.name,
           appConfig.userId,
         );
-        await appConfig.setTagRules(json);
+        await appConfig.setSmsRules(json);
 
         dbService.opRecordDao.addAndNotify(opRecord);
       },
-      title: "标签规则配置",
+      title: "短信规则配置",
     );
   }
 }

@@ -18,7 +18,7 @@ import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/utils/permission_helper.dart';
 import 'package:clipshare/app/widgets/debug_page.dart';
-import 'package:clipshare/app/widgets/pages/syncing_file_page.dart';
+import 'package:clipshare/app/modules/views/syncing_file_page.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

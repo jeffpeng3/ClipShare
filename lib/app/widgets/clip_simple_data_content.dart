@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:clipshare/app/data/repository/entity/clip_data.dart';
+import 'package:clipshare/app/modules/views/preview_page.dart';
 import 'package:clipshare/app/utils/extension.dart';
-import 'package:clipshare/app/widgets/pages/preview_page.dart';
 import 'package:flutter/material.dart';
 
 ///历史记录中的卡片显示的内容

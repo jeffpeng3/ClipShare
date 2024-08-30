@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
 import 'package:clipshare/app/theme/app_theme.dart';
-import 'package:clipshare/app/widgets/pages/online_devices_page.dart';
+import 'package:clipshare/app/modules/views/windows/online_devices/online_devices_page.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

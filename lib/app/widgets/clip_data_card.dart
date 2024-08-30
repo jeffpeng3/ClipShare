@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:clipshare/app/data/repository/entity/clip_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
+import 'package:clipshare/app/modules/views/preview_page.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -12,8 +13,7 @@ import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_content.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_extra_info.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_header.dart';
-import 'package:clipshare/app/widgets/pages/preview_page.dart';
-import 'package:clipshare/app/widgets/pages/tag_edit_page.dart';
+import 'package:clipshare/app/modules/views/tag_edit_page.dart';
 import 'package:contextmenu/contextmenu.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

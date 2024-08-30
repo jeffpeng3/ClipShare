@@ -1,35 +1,9 @@
-import 'package:clipshare/app/services/config_service.dart';
+import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/utils/constants.dart';
-import 'package:clipshare/app/widgets/pages/guide/battery_perm_guide.dart';
-import 'package:clipshare/app/widgets/pages/guide/finish_guide.dart';
-import 'package:clipshare/app/widgets/pages/guide/float_perm_guide.dart';
-import 'package:clipshare/app/widgets/pages/guide/notify_perm_guide.dart';
-import 'package:clipshare/app/widgets/pages/guide/shizuku_perm_guide.dart';
-import 'package:clipshare/app/widgets/pages/guide/storage_perm_guide.dart';
-import 'package:clipshare/app/widgets/pages/user_guide.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class WelcomePage extends StatelessWidget {
-  WelcomePage({super.key});
-
-  final appConfig = Get.find<ConfigService>();
-
-  void gotoUserGuidePage() {
-    Get.to(
-      UserGuide(
-        guides: [
-          FloatPermGuide(),
-          StoragePermGuide(),
-          if (appConfig.osVersion >= 10) ShizukuPermGuide(),
-          NotifyPermGuide(),
-          BatteryPermGuide(),
-          FinishGuide(),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -54,7 +28,9 @@ class WelcomePage extends StatelessWidget {
                   onPressed: () {
                     Future.delayed(
                       const Duration(milliseconds: 200),
-                      gotoUserGuidePage,
+                      () {
+                        Get.offNamed(Routes.USER_GUIDE);
+                      },
                     );
                   },
                   child: const IntrinsicWidth(

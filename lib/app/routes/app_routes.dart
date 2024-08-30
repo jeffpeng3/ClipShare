@@ -13,4 +13,5 @@ abstract class Routes {
   static const SETTINGS = '/settings'; // Settings page
   static const AUTHENTICATION = '/authentication'; // Authentication page
   static const LOG = '/log'; // log page
+  static const USER_GUIDE = '/user_guide'; // UserGuide page
 }

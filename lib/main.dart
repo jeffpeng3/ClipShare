@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipshare/app/modules/views/windows/history/history_window.dart';
+import 'package:clipshare/app/modules/views/windows/online_devices/online_devices_window.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
@@ -14,8 +16,6 @@ import 'package:clipshare/app/services/tag_service.dart';
 import 'package:clipshare/app/services/tray_service.dart';
 import 'package:clipshare/app/services/window_service.dart';
 import 'package:clipshare/app/utils/extension.dart';
-import 'package:clipshare/app/widgets/pages/windows/compact_window.dart';
-import 'package:clipshare/app/widgets/pages/windows/online_devices_window.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -39,7 +39,7 @@ Future<void> main(List<String> args) async {
     String tag = argument["tag"];
     switch (tag) {
       case MultiWindowTag.history:
-        home = CompactWindow(
+        home = HistoryWindow(
           windowController: WindowController.fromWindowId(windowId),
           args: argument,
         );
@@ -54,10 +54,6 @@ Future<void> main(List<String> args) async {
         break;
     }
   }
-  // SystemUiOverlayStyle systemUiOverlayStyle =
-  //     const SystemUiOverlayStyle(statusBarColor: Colors.transparent);
-  // SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
-
   if (isMultiWindow) {
     Get.put(MultiWindowChannelService());
     runApp(home);

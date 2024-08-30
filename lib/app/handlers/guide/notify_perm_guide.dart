@@ -1,7 +1,7 @@
 import 'package:clipshare/app/handlers/permission_handler.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/utils/log.dart';
-import 'package:clipshare/app/widgets/pages/guide/base_guide.dart';
+import 'package:clipshare/app/handlers/guide/base_guide.dart';
 import 'package:clipshare/app/widgets/permission_guide.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

@@ -1,13 +1,13 @@
 import 'package:clipshare/app/theme/app_theme.dart';
-import 'package:clipshare/app/widgets/pages/compact_page.dart';
+import 'package:clipshare/app/modules/views/windows/history/history_page.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 
-class CompactWindow extends StatelessWidget {
+class HistoryWindow extends StatelessWidget {
   final WindowController windowController;
   final Map? args;
 
-  const CompactWindow({
+  const HistoryWindow({
     super.key,
     required this.windowController,
     required this.args,

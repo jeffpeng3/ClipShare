@@ -1,16 +1,18 @@
-import '../../app/modules/log_module/log_page.dart';
-import '../../app/modules/log_module/log_bindings.dart';
-import '../../app/modules/authentication_module/authentication_page.dart';
-import '../../app/modules/authentication_module/authentication_bindings.dart';
 import 'package:clipshare/app/modules/home_module/home_page.dart';
-import 'package:clipshare/app/widgets/pages/welcome_page.dart';
+import 'package:clipshare/app/modules/user_guide_module/user_guide_bindings.dart';
+import 'package:clipshare/app/modules/user_guide_module/user_guide_page.dart';
+import 'package:clipshare/app/modules/views/welcome_page.dart';
 import 'package:get/get.dart';
 
+import '../../app/modules/authentication_module/authentication_bindings.dart';
+import '../../app/modules/authentication_module/authentication_page.dart';
 import '../../app/modules/device_module/device_bindings.dart';
 import '../../app/modules/device_module/device_page.dart';
 import '../../app/modules/history_module/history_bindings.dart';
 import '../../app/modules/history_module/history_page.dart';
 import '../../app/modules/home_module/home_bindings.dart';
+import '../../app/modules/log_module/log_bindings.dart';
+import '../../app/modules/log_module/log_page.dart';
 import '../../app/modules/search_module/search_bindings.dart';
 import '../../app/modules/search_module/search_page.dart';
 import '../../app/modules/settings_module/settings_bindings.dart';
@@ -68,6 +70,16 @@ abstract class AppPages {
       name: Routes.LOG,
       page: () => LogPage(),
       binding: LogBinding(),
+    ),
+    GetPage(
+      name: Routes.USER_GUIDE,
+      page: () => UserGuidePage(),
+      binding: UserGuideBinding(),
+    ),
+    GetPage(
+      name: Routes.USER_GUIDE,
+      page: () => UserGuidePage(),
+      binding: UserGuideBinding(),
     ),
   ];
 }

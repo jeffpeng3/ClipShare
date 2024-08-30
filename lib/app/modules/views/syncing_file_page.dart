@@ -10,7 +10,6 @@ import 'package:clipshare/app/widgets/empty_content.dart';
 import 'package:clipshare/app/widgets/sync_file_status.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:refena_flutter/refena_flutter.dart';
 
 class SyncingFilePage extends StatefulWidget {
   const SyncingFilePage({super.key});
@@ -28,7 +27,7 @@ class _SyncingFilePageTab {
   _SyncingFilePageTab({required this.name, required this.icon});
 }
 
-class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
+class _SyncingFilePageState extends State<SyncingFilePage> {
   bool _selectMode = false;
 
   final Map<int, SyncFileStatus> _selected = {};
@@ -272,7 +271,8 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                                   child: Center(
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,),
+                                        horizontal: 10,
+                                      ),
                                       child: Text(
                                         "${_selected.length} / ${historyList.length}",
                                         style: const TextStyle(
@@ -294,7 +294,8 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                                       onPressed: () {
                                         _selected.clear();
                                         _selectMode = false;
-                                        appConfig.isMultiSelectionMode.value = false;
+                                        appConfig.isMultiSelectionMode.value =
+                                            false;
                                         setState(() {});
                                       },
                                       child: const Icon(Icons.close),
@@ -322,7 +323,8 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                                           // _selectedPathSet.clear();
                                           _selected.clear();
                                           _selectMode = false;
-                                          appConfig.isMultiSelectionMode.value = true;
+                                          appConfig.isMultiSelectionMode.value =
+                                              true;
                                           setState(() {});
                                         },
                                         onNeutral: () {
@@ -330,7 +332,8 @@ class _SyncingFilePageState extends State<SyncingFilePage> with Refena {
                                           // _selectedPathSet.clear();
                                           _selected.clear();
                                           _selectMode = false;
-                                          appConfig.isMultiSelectionMode.value = true;
+                                          appConfig.isMultiSelectionMode.value =
+                                              true;
                                           setState(() {});
                                         },
                                         onCancel: () {

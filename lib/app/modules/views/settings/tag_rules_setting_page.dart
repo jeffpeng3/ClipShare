@@ -6,14 +6,14 @@ import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extension.dart';
 import 'package:clipshare/app/utils/global.dart';
-import 'package:clipshare/app/widgets/pages/settings/rules_setting_page.dart';
+import 'package:clipshare/app/modules/views/settings/rules_setting_page.dart';
 import 'package:clipshare/app/widgets/rule_setting_add_dialog.dart';
 import 'package:clipshare/app/widgets/settings/card/setting_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class SmsRuleSettingPage extends StatelessWidget {
-  SmsRuleSettingPage({super.key});
+class TagRuleSettingPage extends StatelessWidget {
+  TagRuleSettingPage({super.key});
 
   final appConfig = Get.find<ConfigService>();
   final dbService = Get.find<DbService>();
@@ -22,12 +22,12 @@ class SmsRuleSettingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return RuleSettingPage(
       initData: jsonDecode(
-        appConfig.smsRules,
+        appConfig.tagRules,
       )["data"],
       onAdd: (data, remove) {
-        var name = data["name"] as String?;
+        var tag = data["name"] as String?;
         var rule = data["rule"] as String?;
-        if (name.isNullOrEmpty || rule.isNullOrEmpty) {
+        if (tag.isNullOrEmpty || rule.isNullOrEmpty) {
           Global.showTipsDialog(
             context: context,
             text: "请输入完整！",
@@ -38,7 +38,7 @@ class SmsRuleSettingPage extends StatelessWidget {
         return SettingCard(
           key: key,
           main: Text(
-            "名称：$name",
+            "标签：$tag",
             maxLines: 1,
           ),
           sub: Text(
@@ -64,14 +64,14 @@ class SmsRuleSettingPage extends StatelessWidget {
       },
       editDialogLayout: (onChange) {
         return RuleSettingAddDialog(
-          labelText: "规则名",
-          hintText: "请输入规则名",
+          labelText: "标签名",
+          hintText: "请输入标签名",
           onChange: onChange,
         );
       },
       confirm: (res) async {
         var oldValue = jsonDecode(
-          appConfig.smsRules,
+          appConfig.tagRules,
         );
         var data = {
           "version": oldValue["version"] + 1,
@@ -82,19 +82,19 @@ class SmsRuleSettingPage extends StatelessWidget {
           Module.rules,
           OpMethod.update,
           jsonEncode({
-            "rule": Rule.sms.name,
+            "rule": Rule.tag.name,
             "data": data,
           }),
         );
         await dbService.opRecordDao.removeRuleRecord(
-          Rule.sms.name,
+          Rule.tag.name,
           appConfig.userId,
         );
-        await appConfig.setSmsRules(json);
+        await appConfig.setTagRules(json);
 
         dbService.opRecordDao.addAndNotify(opRecord);
       },
-      title: "短信规则配置",
+      title: "标签规则配置",
     );
   }
 }

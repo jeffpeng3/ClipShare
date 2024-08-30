@@ -41,6 +41,7 @@ class _PreviewPageState extends State<PreviewPage> {
 
   final appConfig = Get.find<ConfigService>();
   final dbService = Get.find<DbService>();
+  int _pointerCnt = 0;
 
   @override
   void initState() {
@@ -74,6 +75,20 @@ class _PreviewPageState extends State<PreviewPage> {
       curve: Curves.ease,
     );
     setState(() {});
+  }
+
+  Widget renderImageItem(int idx, BoxConstraints ct) {
+    var file = File(_images[idx].content);
+    if (file.existsSync()) {
+      return Image.file(
+        file,
+        width: ct.maxWidth,
+        height: ct.maxHeight,
+      );
+    }
+    return const EmptyContent(
+      description: "图片不存在或已被删除",
+    );
   }
 
   @override
@@ -205,32 +220,37 @@ class _PreviewPageState extends State<PreviewPage> {
                     ? Stack(
                         children: [
                           GestureDetector(
-                            child: InteractiveViewer(
-                              maxScale: 15.0,
-                              transformationController: _controller,
+                            //listener解决PageView和InteractiveViewer之间的缩放与滚动冲突
+                            child: Listener(
+                              onPointerUp: (_) => setState(() {
+                                _pointerCnt--;
+                              }),
+                              onPointerDown: (_) {
+                                _pointerCnt++;
+                                setState(() {});
+                              },
                               child: PageView.builder(
                                 itemCount: _images.length,
                                 controller: _pageController,
+                                physics: _pointerCnt == 2
+                                    ? const NeverScrollableScrollPhysics()
+                                    : null,
                                 onPageChanged: (idx) {
                                   _current = idx + 1;
                                   setState(() {});
                                 },
                                 itemBuilder: (ctx, idx) {
-                                  var file = File(_images[idx].content);
-                                  if (file.existsSync()) {
-                                    return Image.file(
-                                      file,
-                                      width: ct.maxWidth,
-                                      height: ct.maxHeight,
-                                    );
-                                  }
-                                  return const EmptyContent(
-                                    description: "图片不存在或已被删除",
+                                  return InteractiveViewer(
+                                    maxScale: 15.0,
+                                    onInteractionStart: (details) {
+                                      print("onScaleStart");
+                                    },
+                                    transformationController: _controller,
+                                    child: renderImageItem(idx, ct),
                                   );
                                 },
                               ),
                             ),
-                            onTap: () {},
                             onSecondaryTap: () => Navigator.pop(context),
                             onDoubleTap: () {
                               _toggleZoom(context.size!.center(Offset.zero));

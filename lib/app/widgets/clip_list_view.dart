@@ -139,8 +139,7 @@ class ClipListViewState extends State<ClipListView>
     for (var clip in widget.list) {
       map[clip.data.id] = clip;
     }
-    widget.list.clear();
-    widget.list.addAll(map.values);
+    widget.list.value = map.values.toList(growable: true);
   }
 
   ///滚动监听
@@ -148,8 +147,7 @@ class ClipListViewState extends State<ClipListView>
     if (_scrollController.offset == 0) {
       Future.delayed(const Duration(milliseconds: 100), () {
         var tmpList = widget.list.sublist(0, min(widget.list.length, 20));
-        widget.list.clear();
-        widget.list.addAll(tmpList);
+        widget.list.value = tmpList;
         if (tmpList.isNotEmpty) {
           _minId = tmpList.last.data.id;
         }
