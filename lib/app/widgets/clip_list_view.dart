@@ -278,26 +278,29 @@ class ClipListViewState extends State<ClipListView>
                             ],
                           )
                         : widget.imageMasonryGridViewLayout
-                            ? Obx(() => LayoutBuilder(
-                                  builder: (ctx, constraints) {
-                                    var maxWidth = 200.0;
-                                    var count = max(
-                                        2, constraints.maxWidth ~/ maxWidth);
-                                    return MasonryGridView.count(
-                                      crossAxisCount: count,
-                                      mainAxisSpacing: 4,
-                                      shrinkWrap: true,
-                                      crossAxisSpacing: 4,
-                                      itemCount: widget.list.length,
-                                      controller: _scrollController,
-                                      physics: _scrollPhysics,
-                                      itemBuilder: (context, index) {
-                                        return renderItem(index);
-                                      },
-                                    );
-                                  },
-                                ))
-                            : Obx(() => ListView.builder(
+                            ? LayoutBuilder(
+                                builder: (ctx, constraints) {
+                                  var maxWidth = 200.0;
+                                  var count = max(
+                                    2,
+                                    constraints.maxWidth ~/ maxWidth,
+                                  );
+                                  return Obx(() => MasonryGridView.count(
+                                        crossAxisCount: count,
+                                        mainAxisSpacing: 4,
+                                        shrinkWrap: true,
+                                        crossAxisSpacing: 4,
+                                        itemCount: widget.list.length,
+                                        controller: _scrollController,
+                                        physics: _scrollPhysics,
+                                        itemBuilder: (context, index) {
+                                          return renderItem(index);
+                                        },
+                                      ));
+                                },
+                              )
+                            : Obx(
+                                () => ListView.builder(
                                   itemCount: widget.list.length,
                                   controller: _scrollController,
                                   physics: _scrollPhysics,
@@ -313,7 +316,8 @@ class ClipListViewState extends State<ClipListView>
                                       child: renderItem(i),
                                     );
                                   },
-                                )),
+                                ),
+                              ),
                   ),
                   Positioned(
                     bottom: 16,

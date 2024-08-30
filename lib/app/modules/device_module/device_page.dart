@@ -26,17 +26,18 @@ class DevicePage extends GetView<DeviceController> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(left: 12, top: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.devices_rounded),
-                            const SizedBox(
-                              width: 5,
-                            ),
-                            Obx(
-                              () => Text(
+                    child: Visibility(
+                      visible: controller.pairedList.isNotEmpty,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.devices_rounded),
+                              const SizedBox(
+                                width: 5,
+                              ),
+                              Text(
                                 "我的设备(${controller.pairedList.length})",
                                 style: const TextStyle(
                                   fontSize: 16,
@@ -44,31 +45,31 @@ class DevicePage extends GetView<DeviceController> {
                                   fontFamily: "宋体",
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        Obx(
-                          () => Offstage(
-                            offstage: !appConfig.enableForward,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Container(
-                                  margin: const EdgeInsets.only(right: 5),
-                                  child: Dot(
-                                    radius: 6.0,
-                                    color: controller.forwardConnected.value
-                                        ? Colors.green
-                                        : Colors.grey,
+                            ],
+                          ),
+                          Obx(
+                            () => Offstage(
+                              offstage: !appConfig.enableForward,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    margin: const EdgeInsets.only(right: 5),
+                                    child: Dot(
+                                      radius: 6.0,
+                                      color: controller.forwardConnected.value
+                                          ? Colors.green
+                                          : Colors.grey,
+                                    ),
                                   ),
-                                ),
-                                const Text("中转连接"),
-                                const SizedBox(width: 10),
-                              ],
+                                  const Text("中转连接"),
+                                  const SizedBox(width: 10),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   ...controller.pairedList,

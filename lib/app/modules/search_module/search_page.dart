@@ -2,6 +2,7 @@ import 'package:clipshare/app/modules/search_module/search_controller.dart'
     as search_module;
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/widgets/clip_list_view.dart';
+import 'package:clipshare/app/widgets/condition_widget.dart';
 import 'package:clipshare/app/widgets/loading.dart';
 import 'package:clipshare/app/widgets/rounded_chip.dart';
 import 'package:flutter/material.dart';
@@ -133,27 +134,28 @@ class SearchPage extends GetView<search_module.SearchController> {
                 height: 5,
               ),
               Expanded(
-                child: controller.loading.value
-                    ? const Loading()
-                    : ClipListView(
-                        list: controller.list,
-                        onRefreshData: controller.refreshData,
-                        onUpdate: controller.sortList,
-                        onRemove: (id) {
-                          controller.list.removeWhere(
-                            (element) => element.data.id == id,
-                          );
-                        },
-                        onLoadMoreData: (minId) {
-                          return controller.loadData(minId);
-                        },
-                        detailBorderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(4),
-                          topRight: Radius.circular(4),
-                        ),
-                        imageMasonryGridViewLayout:
-                            controller.searchType == "图片",
-                      ),
+                child: ConditionWidget(
+                  condition: controller.loading.value,
+                  visible: const Loading(),
+                  invisible: ClipListView(
+                    list: controller.list,
+                    onRefreshData: controller.refreshData,
+                    onUpdate: controller.sortList,
+                    onRemove: (id) {
+                      controller.list.removeWhere(
+                        (element) => element.data.id == id,
+                      );
+                    },
+                    onLoadMoreData: (minId) {
+                      return controller.loadData(minId);
+                    },
+                    detailBorderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(4),
+                      topRight: Radius.circular(4),
+                    ),
+                    imageMasonryGridViewLayout: controller.searchType == "图片",
+                  ),
+                ),
               ),
             ],
           ),
