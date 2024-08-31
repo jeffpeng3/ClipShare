@@ -60,7 +60,7 @@ class HistoryTopSyncer implements SyncListener {
         var originOpRecord = opRecord.copyWith(history.id.toString());
         dbService.opRecordDao.add(originOpRecord);
       }
-      historyController.updatePage(
+      historyController.updateData(
         (his) => his.id == history.id,
         (his) => his.top = history.top,
       );

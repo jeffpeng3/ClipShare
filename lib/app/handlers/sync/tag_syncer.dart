@@ -31,7 +31,10 @@ class TagSyncer implements SyncListener {
     var send = msg.send;
     var data = msg.data;
     var opSync = OperationSync(
-        opId: data["id"], devId: send.guid, uid: appConfig.userId);
+      opId: data["id"],
+      devId: send.guid,
+      uid: appConfig.userId,
+    );
     //记录同步记录
     dbService.opSyncDao.add(opSync);
   }

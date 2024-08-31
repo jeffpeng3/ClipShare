@@ -5,6 +5,7 @@ import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/widgets/condition_widget.dart';
+import 'package:clipshare/app/widgets/loading_dots.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 /**
@@ -55,6 +56,16 @@ class HomePage extends GetView<HomeController> {
                                   .navBarItems[controller.index].label!;
                               final selectionText =
                                   appConfig.multiSelectionText.value;
+                              bool isSyncing = appConfig.isHistorySyncing.value;
+                              final icon =
+                                  controller.navBarItems[controller.index].icon;
+                              bool isHistoryPage =
+                                  icon is Icon && icon.icon == Icons.history;
+                              if (!selectionMode &&
+                                  isSyncing &&
+                                  isHistoryPage) {
+                                return const LoadingDots(text: Text("同步中"));
+                              }
                               return Text(
                                 selectionMode ? selectionText : pageTitle,
                               );

@@ -22,11 +22,8 @@ class HistoryPage extends GetView<HistoryController> {
           enableRouteSearch: true,
           onUpdate: controller.sortList,
           onRemove: (id) {
-            controller.list.removeWhere(
-              (element) => element.data.id == id,
-            );
+            controller.removeById(id);
             controller.updateLatestLocalClip();
-            controller.debounceSetState();
           },
         ),
       ),

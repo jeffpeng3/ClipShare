@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -39,16 +40,18 @@ class HistoryController extends GetxController
 
   //region 属性
   final String tag = "HistoryController";
+
+  ///不要直接操作这个list，请操作 _tempList 并执行 debounceUpdate() 方法以进行防抖更新
   final list = List<ClipData>.empty(growable: true).obs;
   History? _last;
   bool updating = false;
   final _loading = true.obs;
-  final key = UniqueKey().obs;
 
   bool get loading => _loading.value;
+  Timer? _debounce;
 
   //防止短时间内频繁刷新ui的临时缓冲列表
-  // final List<ClipData> _tempList = List.empty(growable: true);
+  final List<ClipData> _tempList = List.empty(growable: true);
 
   //endregion
 
@@ -64,10 +67,7 @@ class HistoryController extends GetxController
       //添加同步监听
       sktService.addSyncListener(Module.history, this);
       //刷新列表
-      refreshData().then((val) {
-        _loading.value = false;
-        debounceSetState();
-      });
+      refreshData();
       //剪贴板监听注册
       ClipboardListener.inst.register(this);
     });
@@ -78,7 +78,7 @@ class HistoryController extends GetxController
     super.didChangeAppLifecycleState(state);
 
     if (state == AppLifecycleState.resumed && Platform.isAndroid) {
-      debounceSetState();
+      debounceUpdate();
     }
   }
 
@@ -92,37 +92,41 @@ class HistoryController extends GetxController
   //endregion
 
   //region 页面方法
+  ///移除数据
+  void removeById(int id) {
+    _tempList.removeWhere(
+      (item) => item.data.id == id,
+    );
+    debounceUpdate();
+  }
+
   ///更新页面数据
-  void updatePage(
+  void updateData(
     bool Function(History history) where,
     void Function(History history) cb,
   ) {
-    for (var item in list) {
+    for (var i = 0; i < _tempList.length; i++) {
+      final item = _tempList[i];
       //查找符合条件的数据
       if (where(item.data)) {
         //更新数据
         cb(item.data);
-        sortList();
       }
     }
+    sortList();
   }
 
   ///排序列表
   void sortList() {
-    list.sort((a, b) => b.data.compareTo(a.data));
-    debounceSetState();
+    _tempList.sort((a, b) => b.data.compareTo(a.data));
+    debounceUpdate();
   }
 
   ///重新加载列表
   Future<void> refreshData() {
-    list.clear();
     return dbService.historyDao.getHistoriesTop20(appConfig.userId).then((lst) {
-      list.addAll(ClipData.fromList(lst));
-      for (int i = 0; i < list.length; i++) {
-        ClipData item = list[i];
-        _last = item.data;
-      }
-      debounceSetState();
+      _tempList.assignAll(ClipData.fromList(lst));
+      debounceUpdate();
     });
   }
 
@@ -137,15 +141,18 @@ class HistoryController extends GetxController
   }
 
   ///防抖更新页面
-  void debounceSetState() {
-    if (updating) {
-      return;
-    }
-    updating = true;
-    Future.delayed(const Duration(milliseconds: 500)).then((value) {
-      updating = false;
-      key.value = UniqueKey();
-      update();
+  void debounceUpdate() {
+    // 如果已有计时器，则取消它
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    // 重新设置计时器，延迟 500 毫秒执行
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      list.assignAll(_tempList);
+      if (loading) {
+        _loading.value = false;
+      }
+      if (appConfig.isHistorySyncing.value) {
+        appConfig.isHistorySyncing.value = false;
+      }
     });
   }
 
@@ -172,9 +179,8 @@ class HistoryController extends GetxController
       if (cnt <= 0) return cnt;
       notifyCompactWindow();
       _last = history;
-      list.add(clip);
-      list.sort((a, b) => b.data.compareTo(a.data));
-      debounceSetState();
+      _tempList.add(clip);
+      sortList();
       if (!shouldSync) return cnt;
       //添加历史操作记录
       var opRecord = OperationRecord.fromSimple(
@@ -220,11 +226,10 @@ class HistoryController extends GetxController
     //更新本地历史记录为已同步
     var hisId = msg.data["hisId"];
     dbService.historyDao.setSync(hisId, true);
-    for (var clip in list) {
+    for (var clip in _tempList) {
       if (clip.data.id.toString() == hisId.toString()) {
         clip.data.sync = true;
-        //todo 需要防抖或其他方式
-        debounceSetState();
+        debounceUpdate();
         break;
       }
     }
@@ -303,6 +308,7 @@ class HistoryController extends GetxController
 
   @override
   Future<void> onSync(MessageData msg) async {
+    appConfig.isHistorySyncing.value = true;
     var send = msg.send;
     var opRecord = OperationRecord.fromJson(msg.data);
     Map<String, dynamic> json = jsonDecode(opRecord.data);
@@ -312,7 +318,7 @@ class HistoryController extends GetxController
       //更新数据库
       dbService.historyDao.setTop(history.id, history.top).then((v) {
         //更新页面
-        updatePage(
+        updateData(
           (h) => h.id == history.id,
           (his) => his.top = history.top,
         );
@@ -365,30 +371,31 @@ class HistoryController extends GetxController
       case OpMethod.delete:
         f = dbService.historyDao.delete(history.id).then((cnt) {
           if (cnt == null || cnt == 0) return 0;
-          list.removeWhere((element) => element.data.id == history.id);
+          _tempList.removeWhere((element) => element.data.id == history.id);
           //删除以后判断是否是最近复制的，如果是，更新_last
           if (_last?.id == history.id) {
-            if (list.isEmpty) {
+            if (_tempList.isEmpty) {
               _last = null;
             } else {
-              _last = list
+              _last = _tempList
                   .reduce(
                     (curr, next) => curr.data.id > next.data.id ? curr : next,
                   )
                   .data;
             }
           }
-          debounceSetState();
+          debounceUpdate();
           return cnt;
         });
         break;
       case OpMethod.update:
         f = dbService.historyDao.updateHistory(history).then((cnt) {
           if (cnt == 0) return 0;
-          var i = list.indexWhere((element) => element.data.id == history.id);
+          var i =
+              _tempList.indexWhere((element) => element.data.id == history.id);
           if (i == -1) return cnt;
-          list[i] = ClipData(history);
-          debounceSetState();
+          _tempList[i] = ClipData(history);
+          debounceUpdate();
           return cnt;
         });
         break;

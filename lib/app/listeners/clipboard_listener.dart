@@ -25,7 +25,7 @@ class ClipboardListener {
     return this;
   }
 
-  void update(ContentType type, String content) {
+  void onChanged(ContentType type, String content) {
     for (var observer in _list) {
       try {
         observer.onChanged(type, content);

@@ -171,7 +171,7 @@ class SplashController extends GetxController {
         case ClipChannelMethod.onClipboardChanged:
           String content = arguments['content'];
           String type = arguments['type'];
-          ClipboardListener.inst.update(ContentType.parse(type), content);
+          ClipboardListener.inst.onChanged(ContentType.parse(type), content);
           Log.debug(tag, "clipboard changed: $type: $content");
           return Future(() => true);
         case ClipChannelMethod.getHistory:

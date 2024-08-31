@@ -119,6 +119,10 @@ class History implements Comparable {
   String toString() {
     return jsonEncode(toJson());
   }
+
+  History copy() {
+    return fromJson(toJson());
+  }
 }
 
 class RxHistory {}

@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
+import 'package:clipshare/app/listeners/clipboard_listener.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
+import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/widgets/device_card_simple.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -108,25 +110,14 @@ class _DebugPageState extends State<DebugPage> {
         ),
         ElevatedButton(
           onPressed: () async {
-            Global.notify("测试通知");
+            for (var i in List.generate(200, (index) => index)) {
+              ClipboardListener.inst.onChanged(ContentType.text, i.toString());
+            }
           },
-          child: const Text("测试通知"),
+          child: const Text("大量数据同步"),
         ),
         Container(
           height: 10,
-        ),
-        DeviceCardSimple(
-          dev: Device(
-              guid: '1111',
-              devName:
-                  'Test11111111111111111111111111111111111111111111111111111111111111111111111111111111111111',
-              uid: 0,
-              type: 'Android'),
-          onTap: () {
-            showBorder = !showBorder;
-            setState(() {});
-          },
-          showBorder: showBorder,
         ),
       ],
     );
