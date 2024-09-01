@@ -103,8 +103,9 @@ class HistoryController extends GetxController
   ///更新页面数据
   void updateData(
     bool Function(History history) where,
-    void Function(History history) cb,
-  ) {
+    void Function(History history) cb, [
+    bool shouldRefresh = false,
+  ]) {
     for (var i = 0; i < _tempList.length; i++) {
       final item = _tempList[i];
       //查找符合条件的数据
@@ -113,7 +114,11 @@ class HistoryController extends GetxController
         cb(item.data);
       }
     }
-    sortList();
+    if(shouldRefresh){
+      refreshData();
+    }else{
+      sortList();
+    }
   }
 
   ///排序列表

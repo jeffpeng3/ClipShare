@@ -8,6 +8,7 @@ class ClipChannelMethod {
   static const onClipboardChanged = "onClipboardChanged";
   static const getHistory = "getHistory";
   static const copy = "copy";
+  static const setTop = "setTop";
 }
 
 class ClipChannelService extends GetxService {
@@ -22,5 +23,11 @@ class ClipChannelService extends GetxService {
   ///复制内容到剪贴板
   Future<bool?> copy(dynamic data) {
     return clipChannel.invokeMethod<bool>(ClipChannelMethod.copy, data);
+  }
+
+  ///复制内容到剪贴板
+  Future<bool?> setTop(int id, bool top) {
+    final data = {"id": id, "top": top};
+    return clipChannel.invokeMethod<bool>(ClipChannelMethod.setTop, data);
   }
 }

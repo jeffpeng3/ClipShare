@@ -18,8 +18,6 @@ class SmsObserver(private val mainActivity: MainActivity, handler: Handler) :
         super.onChange(selfChange, uri)
         Log.d(tag, uri.toString())
         readSms();
-//        if (uri.toString().startsWith("content://sms/inbox")) {
-//        }
     }
 
     /**

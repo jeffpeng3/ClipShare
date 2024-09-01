@@ -81,7 +81,7 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
                 // 设置为公开可见通知
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                builder.setBadgeIconType(R.drawable.launcher_icon)
+                builder.setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
             }
             val notificationManager =
                 applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager;
@@ -155,8 +155,12 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
      * 检查通知权限
      */
     private fun checkNotification(): Boolean {
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        return notificationManager.areNotificationsEnabled()
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            return notificationManager.areNotificationsEnabled()
+        } else {
+            true
+        }
     }
 
     /**
@@ -469,7 +473,7 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
         val powerManager: PowerManager? =
             getSystemService(Context.POWER_SERVICE) as PowerManager?
         if (powerManager != null) {
-            isIgnoring = powerManager.isIgnoringBatteryOptimizations(getPackageName())
+            isIgnoring = powerManager.isIgnoringBatteryOptimizations(packageName)
         }
         return isIgnoring
     }
@@ -488,7 +492,7 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == requestOverlayResultCode) {
             if (resultCode != Activity.RESULT_OK) {
-                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+                if (!Settings.canDrawOverlays(this)) {
                     Toast.makeText(
                         this,
                         "请授予悬浮窗权限，否则无法后台读取剪贴板！",

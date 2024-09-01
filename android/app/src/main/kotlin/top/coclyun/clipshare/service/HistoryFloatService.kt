@@ -25,12 +25,16 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
 import android.widget.LinearLayout
+import androidx.cardview.widget.CardView
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.flutter.plugin.common.MethodChannel.Result
 import top.coclyun.clipshare.MainActivity
 import top.coclyun.clipshare.R
+import top.coclyun.clipshare.adapter.History
 import top.coclyun.clipshare.adapter.HistoryFloatAdapter
+import java.io.File
 
 
 class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
@@ -45,7 +49,8 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
     private var showListView = false
     private var lastPos = arrayOf(0, 0)
     private val TAG = "HistoryFloatService"
-    private var recyclerView: RecyclerView? = null
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var container: CardView
     private var minHistoryId = 0L
     private var loading = false;
     override fun onBind(intent: Intent?): IBinder? {
@@ -85,11 +90,12 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
         mainParams.gravity = Gravity.END or Gravity.CENTER
         val bar = view.findViewById<LinearLayout>(R.id.bar)
         recyclerView = view.findViewById(R.id.list)
-        recyclerView?.layoutManager = LinearLayoutManager(view.context)
+        container = view.findViewById(R.id.container)
+        recyclerView.layoutManager = LinearLayoutManager(view.context)
         bar.setOnTouchListener(this)
         view.setOnTouchListener(this)
         view.setOnClickListener(this)
-        recyclerView?.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val dist = getDistanceToBottom(recyclerView)
@@ -99,6 +105,8 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
                 }
             }
         })
+        // 添加默认分隔线
+        recyclerView.addItemDecoration(DividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         windowManager.addView(view, mainParams)
     }
 
@@ -185,7 +193,7 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
                     bar.visibility = View.GONE
                     showListView = true
                     //显示listview
-                    recyclerView?.visibility = VISIBLE
+                    container.visibility = VISIBLE
                     setPosRight()
                     mainParams.width = LayoutParams.MATCH_PARENT
                     mainParams.height = LayoutParams.MATCH_PARENT
@@ -215,15 +223,30 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
             object : Result {
                 @Suppress("UNCHECKED_CAST")
                 override fun success(result: Any?) {
-                    val lst = result as List<Map<String, Any>>
+                    val tmpList = result as List<Map<String, Any>>
+                    val lst = tmpList.map { map ->
+                        History(
+                            id = map["id"] as Long,
+                            content = map["content"] as String,
+                            time = map["time"] as String,
+                            top = map["top"] as Boolean,
+                            type = map["type"] as String
+                        )
+                    }.filter {
+                        when (it.type.lowercase()) {
+                            "file" -> false
+                            "image" -> File(it.content).exists()
+                            else -> true
+                        }
+                    }
+
                     if (lst.isNotEmpty()) {
-                        minHistoryId = lst.last()["id"] as Long
-                        val list = lst.map { it["content"].toString() }.toList()
+                        minHistoryId = lst.last().id
                         if (more) {
-                            (recyclerView?.adapter as HistoryFloatAdapter).addDataList(list);
+                            (recyclerView.adapter as HistoryFloatAdapter).addDataList(lst);
                         } else {
                             // 创建并设置适配器
-                            recyclerView?.adapter = HistoryFloatAdapter(list, {
+                            recyclerView.adapter = HistoryFloatAdapter(lst, {
                                 view.visibility = INVISIBLE
                                 mainParams.width = LayoutParams.WRAP_CONTENT
                                 mainParams.x = 0
@@ -260,20 +283,20 @@ class HistoryFloatService : Service(), OnTouchListener, OnClickListener {
         if (!showListView) {
             return
         }
-        hideRecycleView()
+        hideContainer()
     }
 
-    private fun hideRecycleView() {
+    private fun hideContainer() {
         showListView = false
         val bar = view.findViewById<LinearLayout>(R.id.bar)
         mainParams.width = LayoutParams.WRAP_CONTENT
         mainParams.height = LayoutParams.WRAP_CONTENT
         //隐藏listview
-        recyclerView!!.visibility = if (showListView) View.VISIBLE else View.GONE
+        container.visibility = if (showListView) VISIBLE else View.GONE
         windowManager.updateViewLayout(view, mainParams)
         val handler = Handler(Looper.getMainLooper())
         handler.postDelayed({
-            bar.visibility = if (showListView) View.GONE else View.VISIBLE
+            bar.visibility = if (showListView) View.GONE else VISIBLE
             mainParams.x = lastPos[0]
 //            mainParams.y = lastPos[1]
             windowManager.updateViewLayout(view, mainParams)

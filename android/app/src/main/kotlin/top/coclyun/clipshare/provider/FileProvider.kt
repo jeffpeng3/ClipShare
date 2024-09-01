@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.database.Cursor
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import android.util.Log
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -24,7 +25,7 @@ class FileProvider : ContentProvider() {
     }
 
     override fun getType(uri: Uri): String {
-        return "image/jpeg"
+        return "image/*"
     }
 
     override fun insert(uri: Uri, values: ContentValues?): Uri? {
@@ -50,11 +51,13 @@ class FileProvider : ContentProvider() {
         if (mode.contains("r")) imode = imode or ParcelFileDescriptor.MODE_READ_ONLY
         if (mode.contains("+")) imode = imode or ParcelFileDescriptor.MODE_APPEND
         val filePath = uri.pathSegments.joinToString("/")
+        Log.d("fileProvider", filePath)
         try {
             return ParcelFileDescriptor.open(File(filePath), imode)
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
         }
+        Log.d("fileProvider", "can not open")
         return null
     }
 }

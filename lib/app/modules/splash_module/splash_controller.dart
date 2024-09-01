@@ -8,20 +8,19 @@ import 'package:clipshare/app/handlers/sync/file_syncer.dart';
 import 'package:clipshare/app/listeners/clipboard_listener.dart';
 import 'package:clipshare/app/listeners/screen_opened_listener.dart';
 import 'package:clipshare/app/modules/device_module/device_controller.dart';
+import 'package:clipshare/app/modules/history_module/history_controller.dart';
+import 'package:clipshare/app/modules/views/windows/online_devices/online_devices_page.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
-import 'package:clipshare/app/services/channels/common_channel.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/device_service.dart';
-import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extension.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
-import 'package:clipshare/app/modules/views/windows/online_devices/online_devices_page.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -168,6 +167,22 @@ class SplashController extends GetxController {
     appConfig.clipChannel.setMethodCallHandler((call) async {
       var arguments = call.arguments;
       switch (call.method) {
+        case ClipChannelMethod.setTop:
+          int id = arguments['id'];
+          bool top = arguments['top'];
+          return dbService.historyDao.setTop(id, top).then((cnt) {
+            if (cnt != null && cnt > 0) {
+              final historyController = Get.find<HistoryController>();
+              historyController.updateData(
+                (history) => history.id == id,
+                (history) => history.top = top,
+                true,
+              );
+              return true;
+            }
+            return false;
+          });
+          break;
         case ClipChannelMethod.onClipboardChanged:
           String content = arguments['content'];
           String type = arguments['type'];
@@ -188,6 +203,9 @@ class SplashController extends GetxController {
                 (e) => {
                   "id": e.id,
                   "content": e.content,
+                  "time": e.time,
+                  "top": e.top,
+                  "type": e.type,
                 },
               )
               .toList();
