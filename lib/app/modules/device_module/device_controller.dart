@@ -38,13 +38,13 @@ class DeviceController extends GetxController
   final multiWindowChannelService = Get.find<MultiWindowChannelService>();
 
   //region 属性
-
   final String tag = "DevicesPage";
   final discoverList = List<DeviceCard>.empty(growable: true).obs;
   final pairedList = List<DeviceCard>.empty(growable: true).obs;
   late StateSetter pairingState;
   final pairingFailed = false.obs;
   final pairing = false.obs;
+  bool newPairing = false;
   final discovering = true.obs;
   final forwardConnected = false.obs;
   late AnimationController _rotationController;
@@ -127,7 +127,10 @@ class DeviceController extends GetxController
     var send = msg.send;
     var data = msg.data;
     var opSync = OperationSync(
-        opId: data["id"], devId: send.guid, uid: appConfig.userId);
+      opId: data["id"],
+      devId: send.guid,
+      uid: appConfig.userId,
+    );
     //记录同步记录
     dbService.opSyncDao.add(opSync);
   }
@@ -293,6 +296,7 @@ class DeviceController extends GetxController
     }
     //关闭配对弹窗
     Get.back();
+    newPairing = false;
     var newDev = Device(
       guid: dev.guid,
       devName: dev.name,
@@ -327,6 +331,13 @@ class DeviceController extends GetxController
         sktService.reqMissingData();
       });
     }
+  }
+
+  @override
+  void onCancelPairing(DevInfo dev) {
+    if (!newPairing) return;
+    newPairing = false;
+    Get.back();
   }
 
 //endregion
@@ -481,7 +492,6 @@ class DeviceController extends GetxController
                         ),
                       ),
                     ),
-                    // IconButton(onPressed: (){}, icon: const Icon(Icons.edit_note))
                   ],
                 ),
               ],
@@ -492,8 +502,17 @@ class DeviceController extends GetxController
     );
   }
 
+  ///取消配对
+  void cancelPairing(DevInfo dev) {
+    if (!newPairing) return;
+    Get.back();
+    newPairing = false;
+    sktService.sendData(dev, MsgType.cancelPairing, {});
+  }
+
   ///请求配对设备
   void _requestPairing(DevInfo dev, BuildContext context) {
+    newPairing = true;
     sktService.sendData(dev, MsgType.reqPairing, {});
     pairing.value = false;
     pairingFailed.value = false;
@@ -574,11 +593,7 @@ class DeviceController extends GetxController
               ),
               actions: [
                 TextButton(
-                  onPressed: pairing.value
-                      ? null
-                      : () {
-                          Navigator.of(context).pop();
-                        },
+                  onPressed: pairing.value ? null : () => cancelPairing(dev),
                   child: const Text("取消"),
                 ),
                 pairing.value

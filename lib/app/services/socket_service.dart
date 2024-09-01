@@ -40,6 +40,9 @@ abstract class DevAliveListener {
   //配对成功
   void onPaired(DevInfo dev, int uid, bool result, String? address);
 
+  //取消配对
+  void onCancelPairing(DevInfo dev);
+
   //忘记设备
   void onForget(DevInfo dev, int uid);
 }
@@ -101,7 +104,7 @@ class SocketService extends GetxService {
   final Set<String> ipSetTemp = {};
   final Set<String> _connectingAddress = {};
   Map<String, Future> broadcastProcessChain = {};
-
+  bool pairing = false;
   static bool _isInit = false;
 
   String? get forwardServerIp {
@@ -447,6 +450,10 @@ class SocketService extends GetxService {
         DevPairingHandler.addCode(dev.guid, CryptoUtil.toMD5(code));
         //发送通知
         Global.notify("新配对请求");
+        if (pairing) {
+          Get.back();
+        }
+        pairing = true;
         showDialog(
           context: Get.context!,
           builder: (BuildContext context) {
@@ -470,8 +477,7 @@ class SocketService extends GetxService {
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
-                    DevPairingHandler.removeCode(dev.guid);
-                    Navigator.of(context).pop();
+                    cancelPairing(dev);
                   },
                   child: const Text('取消该次配对'),
                 ),
@@ -499,6 +505,19 @@ class SocketService extends GetxService {
         bool result = msg.data["result"];
         _onDevPaired(dev, msg.userId, result, address);
         ipSetTemp.removeWhere((v) => v == address);
+        if (pairing = true) {
+          Get.back();
+          pairing = false;
+        }
+        break;
+
+      ///取消配对
+      case MsgType.cancelPairing:
+        DevPairingHandler.removeCode(dev.guid);
+        if (pairing) {
+          Get.back();
+        }
+        _onCancelPairing(dev);
         break;
 
       ///文件同步
@@ -529,6 +548,14 @@ class SocketService extends GetxService {
         break;
       default:
     }
+  }
+
+  void cancelPairing(DevInfo dev) {
+    if (!pairing) return;
+    DevPairingHandler.removeCode(dev.guid);
+    pairing = true;
+    Get.back();
+    sendData(dev, MsgType.cancelPairing, {});
   }
 
   ///数据同步处理
@@ -904,6 +931,18 @@ class SocketService extends GetxService {
     for (var listener in _devAliveListeners) {
       try {
         listener.onPaired(dev, uid, result, address);
+      } catch (e, t) {
+        Log.debug(tag, "$e $t");
+      }
+    }
+  }
+
+  ///设备取消配对
+  void _onCancelPairing(DevInfo dev) {
+    Log.debug(tag, "${dev.name} cancelPairing");
+    for (var listener in _devAliveListeners) {
+      try {
+        listener.onCancelPairing(dev);
       } catch (e, t) {
         Log.debug(tag, "$e $t");
       }

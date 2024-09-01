@@ -173,6 +173,8 @@ enum MsgType {
   reqPairing,
   //请求配对（验证配对码）
   pairing,
+  //取消配对
+  cancelPairing,
   //设备配对成功
   paired,
   //设置置顶（或非置顶）
