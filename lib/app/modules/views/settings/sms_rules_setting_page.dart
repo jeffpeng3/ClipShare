@@ -62,11 +62,12 @@ class SmsRuleSettingPage extends StatelessWidget {
           },
         );
       },
-      editDialogLayout: (onChange) {
+      editDialogLayout: (initData, onChange) {
         return RuleSettingAddDialog(
           labelText: "规则名",
           hintText: "请输入规则名",
           onChange: onChange,
+          initData: initData,
         );
       },
       confirm: (res) async {

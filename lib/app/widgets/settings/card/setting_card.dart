@@ -9,8 +9,8 @@ class SettingCard<T> extends StatefulWidget {
   final bool showValueInSub;
   late BorderRadius borderRadius;
   final bool Function(T)? show;
-  final void Function()? onTap;
-  final void Function()? onDoubleTap;
+  void Function()? onTap;
+  void Function()? onDoubleTap;
 
   SettingCard({
     super.key,

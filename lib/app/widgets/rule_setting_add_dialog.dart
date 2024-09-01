@@ -6,11 +6,15 @@ class RuleSettingAddDialog extends StatefulWidget {
   final String labelText;
   final String hintText;
 
-  const RuleSettingAddDialog(
-      {super.key,
-      required this.onChange,
-      required this.labelText,
-      required this.hintText});
+  final Map<String, dynamic>? initData;
+
+  const RuleSettingAddDialog({
+    super.key,
+    required this.onChange,
+    required this.labelText,
+    required this.hintText,
+    this.initData,
+  });
 
   @override
   State<StatefulWidget> createState() {
@@ -34,6 +38,14 @@ class _RuleSettingAddDialogState extends State<RuleSettingAddDialog> {
       "name": _tagName,
       "rule": _rule,
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initData == null) return;
+    _tagName = _tagController.text = widget.initData!["name"] ?? "";
+    _rule = _ruleController.text = widget.initData!["rule"] ?? "";
   }
 
   @override

@@ -62,11 +62,12 @@ class TagRuleSettingPage extends StatelessWidget {
           },
         );
       },
-      editDialogLayout: (onChange) {
+      editDialogLayout: (initData,onChange) {
         return RuleSettingAddDialog(
           labelText: "标签名",
           hintText: "请输入标签名",
           onChange: onChange,
+          initData: initData,
         );
       },
       confirm: (res) async {
