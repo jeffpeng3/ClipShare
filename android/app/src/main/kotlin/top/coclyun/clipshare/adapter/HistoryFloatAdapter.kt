@@ -4,9 +4,11 @@ import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipDescription
 import android.content.ClipboardManager
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.provider.MediaStore
 import android.util.Log
 import android.view.DragEvent
 import android.view.LayoutInflater
@@ -84,16 +86,6 @@ class HistoryFloatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
         true
     }
 
-    fun getUriFromFilePath(path: String): Uri? {
-        val file = File(path)
-        if (!file.exists()) return null
-        return FileProvider.getUriForFile(
-            itemView.context,
-            "${itemView.context.packageName}.fileProvider",
-            file
-        )
-    }
-
     @SuppressLint("ClickableViewAccessibility")
     fun bind(item: History, onDragStart: () -> Unit, onDragEnd: () -> Unit) {
         this.onDragStart = onDragStart
@@ -110,20 +102,10 @@ class HistoryFloatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
             imageView.setOnLongClickListener {
                 //开始startDragAndDrop
-                val mimeTypes = arrayOf("image/png")
-                // 将Bitmap转换为字节数组
-//                val outputStream = ByteArrayOutputStream()
-//                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-//                val byteArray = outputStream.toByteArray()
-//                val dragData = ClipData(
-//                    "image",
-//                    mimeTypes,
-//                    ClipData.Item(byteArray.toString(Charsets.ISO_8859_1))
-//                )
                 val dragData = ClipData.newUri(
                     itemView.context.contentResolver,
                     "image",
-                    getUriFromFilePath(item.content)
+                    Uri.parse("content://top.coclyun.clipshare.FileProvider/${item.content}")
                 )
                 val shadow = DragShadowBuilder(imageView)
                 imageView.startDragAndDrop(dragData, shadow, null, View.DRAG_FLAG_GLOBAL)
@@ -163,8 +145,11 @@ class HistoryFloatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
                 // 将数据放入剪贴板
                 clipboardManager.setPrimaryClip(clipData)
             } else {
-                val uri = getUriFromFilePath(item.content)
-                val clipData = ClipData("image", arrayOf("image/*"), ClipData.Item(uri))
+                val clipData = ClipData.newUri(
+                    itemView.context.contentResolver,
+                    "image",
+                    Uri.parse("content://top.coclyun.clipshare.FileProvider/${item.content}")
+                )
                 // 将数据放入剪贴板
                 clipboardManager.setPrimaryClip(clipData)
             }
