@@ -16,12 +16,6 @@ extension StringExt on String {
     return matchRegExp(r"[a-zA-z]+://[^\s]*");
   }
 
-  // bool get isIPv4 {
-  //   return matchRegExp(
-  //     r"^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$",
-  //   );
-  // }
-
   String substringMinLen(int start, int end) {
     return substring(start, min(end, length));
   }
@@ -606,5 +600,19 @@ extension FileExt on File {
       return null;
     }
     return crypto.md5.convert(await readAsBytes()).toString();
+  }
+  bool get isMediaFile{
+    // 获取文件扩展名（小写处理）
+    String extension = path.split('.').last.toLowerCase();
+
+    // 常见的图片、音频、视频文件扩展名
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
+    const audioExtensions = ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a'];
+    const videoExtensions = ['mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv'];
+
+    // 判断文件是否属于以上三类之一
+    return imageExtensions.contains(extension) ||
+        audioExtensions.contains(extension) ||
+        videoExtensions.contains(extension);
   }
 }

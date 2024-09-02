@@ -93,6 +93,7 @@ dependencies:
   local_auth: ^2.2.0
   # 接受其他应用的分享操作
   share_handler: ^0.0.21
+  fl_chart: 0.69.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

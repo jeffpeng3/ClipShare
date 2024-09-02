@@ -45,6 +45,7 @@ class AndroidChannelService extends GetxService {
 
   /// 通知 Android 媒体库刷新
   void notifyMediaScan(String path) {
+    if (!Platform.isAndroid)return;
     androidChannel.invokeMethod(AndroidChannelMethod.notifyMediaScan, {
       "imagePath": path,
     });
@@ -52,6 +53,7 @@ class AndroidChannelService extends GetxService {
 
   /// 授权Shizuku权限
   void grantShizukuPermission(BuildContext ctx) {
+    if (!Platform.isAndroid)return;
     androidChannel
         .invokeMethod<bool>(AndroidChannelMethod.grantShizukuPermission)
         .then((res) {
@@ -70,6 +72,7 @@ class AndroidChannelService extends GetxService {
 
   /// 检查 Shizuku权限
   Future<bool?> checkShizukuPermission() {
+    if (!Platform.isAndroid)return Future(() => false);
     return androidChannel.invokeMethod<bool>(
       AndroidChannelMethod.checkShizukuPermission,
     );
@@ -77,6 +80,7 @@ class AndroidChannelService extends GetxService {
 
   /// 启动通知服务
   void startForegroundService([bool restart = false]) {
+    if (!Platform.isAndroid)return;
     androidChannel.invokeMethod(
       AndroidChannelMethod.startService,
       {"restart": restart},
@@ -85,6 +89,7 @@ class AndroidChannelService extends GetxService {
 
   /// 显示历史悬浮窗
   void showHistoryFloatWindow() {
+    if (!Platform.isAndroid)return;
     androidChannel.invokeMethod(
       AndroidChannelMethod.showHistoryFloatWindow,
     );
@@ -92,6 +97,7 @@ class AndroidChannelService extends GetxService {
 
   /// 关闭历史悬浮窗
   void closeHistoryFloatWindow() {
+    if (!Platform.isAndroid)return;
     androidChannel.invokeMethod(
       AndroidChannelMethod.closeHistoryFloatWindow,
     );
@@ -99,6 +105,7 @@ class AndroidChannelService extends GetxService {
 
   /// 锁定历史悬浮窗位置
   void lockHistoryFloatLoc(dynamic data) {
+    if (!Platform.isAndroid)return;
     androidChannel.invokeMethod(
       AndroidChannelMethod.lockHistoryFloatLoc,
       data,
@@ -107,6 +114,7 @@ class AndroidChannelService extends GetxService {
 
   /// 回到桌面
   void moveToBg() {
+    if (!Platform.isAndroid)return;
     androidChannel.invokeMethod(
       AndroidChannelMethod.moveToBg,
     );
@@ -114,6 +122,7 @@ class AndroidChannelService extends GetxService {
 
   /// toast
   void toast(String text) {
+    if (!Platform.isAndroid)return;
     androidChannel.invokeMethod(
       AndroidChannelMethod.toast,
       {"content": text},
@@ -122,6 +131,7 @@ class AndroidChannelService extends GetxService {
 
   /// 发送通知
   void sendNotify(String content) {
+    if (!Platform.isAndroid)return;
     androidChannel.invokeMethod(
       AndroidChannelMethod.sendNotify,
       {"content": content},
@@ -130,6 +140,7 @@ class AndroidChannelService extends GetxService {
 
   ///复制content文件到指定路径
   Future<String?> copyFileFromUri(String content, String savedPath) {
+    if (!Platform.isAndroid)return Future(() => null);
     return androidChannel.invokeMethod<String?>(
       AndroidChannelMethod.copyFileFromUri,
       {
@@ -141,6 +152,7 @@ class AndroidChannelService extends GetxService {
 
   ///开启短信监听
   Future<void> startSmsListen() {
+    if (!Platform.isAndroid)return Future(() => null);
     return androidChannel.invokeMethod<String?>(
       AndroidChannelMethod.startSmsListen,
     );
@@ -148,6 +160,7 @@ class AndroidChannelService extends GetxService {
 
   ///关闭短信监听
   Future<void> stopSmsListen() {
+    if (!Platform.isAndroid)return Future(() => null);
     return androidChannel.invokeMethod<String?>(
       AndroidChannelMethod.stopSmsListen,
     );

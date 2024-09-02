@@ -211,6 +211,13 @@ class FileSyncer {
     var socket = await Socket.connect(ip, port);
     String filePath = "${appConfig.fileStorePath}/$fileName";
     File file = File(filePath);
+    ///文件存在处理策略
+    int i = 1;
+    while (file.existsSync()) {
+      //如果文件存在，给文件加后缀
+      filePath="$filePath(${i++})";
+      file = File(filePath);
+    }
     final syncingFileService = Get.find<SyncingFileProgressService>();
     SyncingFile syncingFile = SyncingFile(
       totalSize: size,
@@ -231,13 +238,6 @@ class FileSyncer {
     syncingFileService.updateSyncingFile(syncingFile);
     var start = DateTime.now();
 
-    ///文件存在处理策略（待定）
-    // int i = 1;
-    // while (file.existsSync()) {
-    //   //如果文件存在，给文件加后缀
-    //   file = File("$filePath($i)");
-    //   i++;
-    // }
     socket.listen(
       (bytes) {
         syncingFile.addBytes(bytes);
@@ -269,6 +269,10 @@ class FileSyncer {
         );
         final historyController = Get.find<HistoryController>();
         historyController.addData(history, false);
+        if(file.isMediaFile){
+          //媒体文件，刷新媒体库
+
+        }
       },
     );
   }
