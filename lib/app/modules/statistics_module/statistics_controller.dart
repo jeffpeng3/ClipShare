@@ -33,8 +33,8 @@ class StatisticsController extends GetxController {
     DateTime now = DateTime.now();
     DateTime firstDayOfMonth = DateTime(now.year, now.month);
     DateTime currentDate = DateTime(now.year, now.month);
-    // startMonth.value = firstDayOfMonth.format("yyyy-MM");
-    // endMonth.value = currentDate.format("yyyy-MM");
+    startMonth.value = firstDayOfMonth.format("yyyy-MM");
+    endMonth.value = currentDate.format("yyyy-MM");
     super.onInit();
   }
 
