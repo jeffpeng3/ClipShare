@@ -133,7 +133,7 @@ class StatisticsController extends GetxController {
     var self = 0;
     for (var item in res) {
       if (item.devId == selfId) {
-        self = item.cnt;
+        self += item.cnt;
       } else {
         sync += item.cnt;
       }
