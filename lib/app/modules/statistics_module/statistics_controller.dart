@@ -2,6 +2,7 @@ import 'package:clipshare/app/data/chart/bar_chart_item.dart';
 import 'package:clipshare/app/data/chart/pie_data_item.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
+import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extension.dart';
 import 'package:get/get.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
@@ -13,10 +14,10 @@ class StatisticsController extends GetxController {
   final dbService = Get.find<DbService>();
   final appConfig = Get.find<ConfigService>();
 
-  final startMonth = ''.obs;
-  final endMonth = ''.obs;
+  final startMonth = '2024-01'.obs;
+  final endMonth = '2024-10'.obs;
   final historyTypeCntItems = RxList<BarChartItem>([]);
-  final historyTagCntItems = RxList<PieDataItem>([]);
+  final historyTagCntItems = RxList<BarChartItem>([]);
   final syncRatePieItems = RxList<PieDataItem>([]);
   final historyCntForDeviceItems = RxList<BarChartItem>([]);
 
@@ -32,8 +33,8 @@ class StatisticsController extends GetxController {
     DateTime now = DateTime.now();
     DateTime firstDayOfMonth = DateTime(now.year, now.month);
     DateTime currentDate = DateTime(now.year, now.month);
-    startMonth.value = firstDayOfMonth.format("yyyy-MM");
-    endMonth.value = currentDate.format("yyyy-MM");
+    // startMonth.value = firstDayOfMonth.format("yyyy-MM");
+    // endMonth.value = currentDate.format("yyyy-MM");
     super.onInit();
   }
 
@@ -45,6 +46,46 @@ class StatisticsController extends GetxController {
   //endregion
 
   //region 页面方法
+  int contentTypeNameCompare(String a, String b) {
+    return ContentType.parse(a).order.compareTo(ContentType.parse(b).order);
+  }
+
+  void padBarItems(
+    List<BarChartItem> items, [
+    int Function(String a, String b)? nameCompare,
+  ]) {
+    Map<String, Set<String>> groupIndexes = {};
+    Set<String> allNames = {};
+    for (var item in items) {
+      final index = item.index;
+      allNames.add(item.name);
+      if (groupIndexes.containsKey(index)) {
+        groupIndexes[index]!.add(item.name);
+      } else {
+        groupIndexes[index] = {item.name};
+      }
+    }
+    //填充
+    for (var month in groupIndexes.keys) {
+      var groupNames = groupIndexes[month]!;
+      var diff = allNames.difference(groupNames);
+      if (diff.isEmpty) continue;
+      for (var name in diff) {
+        items.add(BarChartItem(name: name, index: month, value: 0));
+      }
+    }
+    items.sort((a, b) {
+      int compareIndex = a.index.compareTo(b.index);
+      if (compareIndex == 0) {
+        if (nameCompare != null) {
+          return nameCompare(a.name, b.name);
+        }
+        return a.name.compareTo(b.name);
+      } else {
+        return compareIndex;
+      }
+    });
+  }
 
   void selectRangeMonth() async {
     var res = await showMonthRangePicker(context: Get.context!);
@@ -68,9 +109,11 @@ class StatisticsController extends GetxController {
       startMonth.value,
       endMonth.value,
     );
-    historyTypeCntItems.value = typeCntList
+    var res = typeCntList
         .map((e) => BarChartItem(name: e.type, index: e.date, value: e.cnt))
         .toList();
+    padBarItems(res, contentTypeNameCompare);
+    historyTypeCntItems.value = res;
   }
 
   ///各设备同步数量
@@ -80,9 +123,11 @@ class StatisticsController extends GetxController {
       startMonth.value,
       endMonth.value,
     );
-    historyCntForDeviceItems.value = res
+    final tmp = res
         .map((e) => BarChartItem(name: e.devName, value: e.cnt, index: e.month))
         .toList();
+    padBarItems(tmp);
+    historyCntForDeviceItems.value = tmp;
     String selfId = appConfig.device.guid;
     var sync = 0;
     var self = 0;
@@ -110,8 +155,11 @@ class StatisticsController extends GetxController {
       startMonth.value,
       endMonth.value,
     );
-    historyTagCntItems.value =
-        res.map((e) => PieDataItem(e.tagName, e.cnt)).toList();
+    historyTagCntItems.value = res
+        .map(
+          (e) => BarChartItem(name: e.tagName, index: e.tagName, value: e.cnt),
+        )
+        .toList();
   }
 //endregion
 }

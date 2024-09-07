@@ -5,6 +5,7 @@ import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/modules/log_module/log_controller.dart';
 import 'package:clipshare/app/modules/log_module/log_page.dart';
 import 'package:clipshare/app/modules/settings_module/settings_controller.dart';
+import 'package:clipshare/app/modules/statistics_module/statistics_controller.dart';
 import 'package:clipshare/app/modules/views/settings/sms_rules_setting_page.dart';
 import 'package:clipshare/app/modules/views/settings/tag_rules_setting_page.dart';
 import 'package:clipshare/app/modules/views/update_log_page.dart';

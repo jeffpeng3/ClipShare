@@ -11,13 +11,23 @@ class BarChart extends StatelessWidget {
   final String title;
   final AlignmentGeometry? titleAlign;
 
-  const BarChart(
-      {super.key, required this.data, required this.title, this.titleAlign});
+  const BarChart({
+    super.key,
+    required this.data,
+    required this.title,
+    this.titleAlign,
+  });
 
   @override
   Widget build(BuildContext context) {
     final List<String> indexNames = [];
+    final groups = <String, List<BarChartItem>>{};
     for (var item in data) {
+      if (groups.containsKey(item.index)) {
+        groups[item.index]!.add(item);
+      } else {
+        groups[item.index] = [item];
+      }
       if (indexNames.contains(item.name)) {
         continue;
       }
@@ -105,7 +115,12 @@ class BarChart extends StatelessWidget {
               followPointer: [true, true],
               renderer: (size, anchor, selected) {
                 return simpleTooltip(
-                    "index", 'name', "value", anchor, selected);
+                  "index",
+                  'name',
+                  "value",
+                  anchor,
+                  selected,
+                );
               },
             ),
             crosshair: CrosshairGuide(
@@ -168,10 +183,11 @@ List<MarkElement> simpleTooltip(
         center: anchor + Offset(0, maxHeight),
         radius: radius,
         style: PaintStyle(
-          fillColor: Defaults.colors10[i++ % 10],
+          fillColor: Defaults.colors10[i % 10],
         ),
       ),
     );
+    i++;
     final text = '$label: $value';
     //获取文本画笔
     final painter = TextPainter(

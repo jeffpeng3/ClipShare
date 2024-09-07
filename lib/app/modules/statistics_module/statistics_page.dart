@@ -94,7 +94,7 @@ class StatisticsPage extends GetView<StatisticsController> {
                                 title: '各设备记录数量',
                               ),
                             if (controller.historyTagCntItems.isNotEmpty)
-                              PieChart(
+                              BarChart(
                                 data: controller.historyTagCntItems,
                                 title: '各标签记录数量',
                               ),
@@ -108,6 +108,7 @@ class StatisticsPage extends GetView<StatisticsController> {
                 ],
               ),
             ),
+            const SizedBox(height: 10),
           ],
         ),
       ),

@@ -32,21 +32,24 @@ class Indicators extends StatelessWidget {
             ),
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            names.length,
-            (index) {
-              return Container(
-                margin: names.length != 1 && names.length - 1 != index
-                    ? const EdgeInsets.only(right: 10)
-                    : null,
-                child: Indicator(
-                  name: names[index],
-                  color: Defaults.colors10[index % Defaults.colors10.length],
-                ),
-              );
-            },
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              names.length,
+              (index) {
+                return Container(
+                  margin: names.length != 1 && names.length - 1 != index
+                      ? const EdgeInsets.only(right: 10)
+                      : null,
+                  child: Indicator(
+                    name: names[index],
+                    color: Defaults.colors10[index % Defaults.colors10.length],
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ],

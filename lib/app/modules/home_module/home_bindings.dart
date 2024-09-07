@@ -15,6 +15,5 @@ class HomeBinding implements Bindings {
     Get.put(HistoryController(), permanent: true);
     Get.put(SearchController(), permanent: true);
     Get.put(SettingsController(), permanent: true);
-    Get.put(StatisticsController(), permanent: true);
   }
 }

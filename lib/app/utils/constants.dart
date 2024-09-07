@@ -128,18 +128,23 @@ class Constants {
 enum Option { add, delete, update }
 
 enum ContentType {
-  unknown(label: "未知", value: "unknown"),
-  all(label: "全部", value: ""),
-  text(label: "文本", value: "Text"),
-  image(label: "图片", value: "Image"),
-  richText(label: "富文本", value: "RichText"),
-  sms(label: "短信", value: "Sms"),
-  file(label: "文件", value: "File");
+  unknown(label: "未知", value: "unknown", order: 9999),
+  all(label: "全部", value: "", order: 9999),
+  text(label: "文本", value: "Text", order: 1),
+  image(label: "图片", value: "Image", order: 2),
+  richText(label: "富文本", value: "RichText", order: 3),
+  sms(label: "短信", value: "Sms", order: 4),
+  file(label: "文件", value: "File", order: 5);
 
-  const ContentType({required this.label, required this.value});
+  const ContentType({
+    required this.label,
+    required this.value,
+    required this.order,
+  });
 
   final String value;
   final String label;
+  final int order;
 
   static ContentType parse(String value) => ContentType.values.firstWhere(
         (e) => e.value == value,
