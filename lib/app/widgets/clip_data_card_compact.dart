@@ -28,6 +28,7 @@ class ClipDataCardCompact extends StatelessWidget {
       height: 150,
       child: Card(
         elevation: 0,
+        color: Colors.white,
         child: InkWell(
           mouseCursor: SystemMouseCursors.basic,
           onTap: () async {

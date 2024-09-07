@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:clipshare/app/data/repository/entity/clip_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
 import 'package:clipshare/app/modules/views/preview_page.dart';
+import 'package:clipshare/app/modules/views/tag_edit_page.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -13,7 +14,6 @@ import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_content.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_extra_info.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_header.dart';
-import 'package:clipshare/app/modules/views/tag_edit_page.dart';
 import 'package:contextmenu/contextmenu.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -67,7 +67,6 @@ class ClipDataCardState extends State<ClipDataCard> {
   @override
   void initState() {
     super.initState();
-    _selected = widget.selected;
   }
 
   void _showDetail(ClipData chip) {
@@ -122,8 +121,10 @@ class ClipDataCardState extends State<ClipDataCard> {
 
   @override
   Widget build(BuildContext context) {
+    _selected = widget.selected;
     return ContextMenuArea(
       child: Card(
+        color: Colors.white,
         elevation: 0,
         child: InkWell(
           mouseCursor: SystemMouseCursors.basic,

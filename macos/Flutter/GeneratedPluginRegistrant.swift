@@ -9,6 +9,7 @@ import connectivity_plus
 import desktop_multi_window
 import device_info_plus
 import hotkey_manager_macos
+import local_auth_darwin
 import package_info_plus
 import path_provider_foundation
 import screen_retriever
@@ -23,6 +24,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   FlutterMultiWindowPlugin.register(with: registry.registrar(forPlugin: "FlutterMultiWindowPlugin"))
   DeviceInfoPlusMacosPlugin.register(with: registry.registrar(forPlugin: "DeviceInfoPlusMacosPlugin"))
   HotkeyManagerMacosPlugin.register(with: registry.registrar(forPlugin: "HotkeyManagerMacosPlugin"))
+  FLALocalAuthPlugin.register(with: registry.registrar(forPlugin: "FLALocalAuthPlugin"))
   FPPPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FPPPackageInfoPlusPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
   ScreenRetrieverPlugin.register(with: registry.registrar(forPlugin: "ScreenRetrieverPlugin"))

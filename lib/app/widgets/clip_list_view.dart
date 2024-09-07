@@ -64,8 +64,8 @@ class ClipListViewState extends State<ClipListView>
   static bool _loadNewData = false;
   var _showBackToTopButton = false;
   final String tag = "ClipListView";
-  bool _selectMode = false;
-  final Set<int> _selectedIds = {};
+  var _selectMode = false;
+  final _selectedIds = <int>{};
   Key? _clipTagRowKey;
   bool _rightShowFullPage = false;
   ClipData? _showHistoryData;
@@ -190,13 +190,12 @@ class ClipListViewState extends State<ClipListView>
   ///渲染列表项
   Widget renderItem(int i) {
     var id = widget.list[i].data.id;
-    var selected = _selectedIds.contains(id);
     return ClipDataCard(
       clip: widget.list[i],
       imageMode: widget.imageMasonryGridViewLayout,
       routeToSearchOnClickChip: widget.enableRouteSearch,
       selectMode: _selectMode,
-      selected: selected,
+      selected: _selectedIds.contains(id),
       onTap: () {
         if (_selectMode) {
           if (_selectedIds.contains(id)) {
@@ -285,18 +284,20 @@ class ClipListViewState extends State<ClipListView>
                                     2,
                                     constraints.maxWidth ~/ maxWidth,
                                   );
-                                  return Obx(() => MasonryGridView.count(
-                                        crossAxisCount: count,
-                                        mainAxisSpacing: 4,
-                                        shrinkWrap: true,
-                                        crossAxisSpacing: 4,
-                                        itemCount: widget.list.length,
-                                        controller: _scrollController,
-                                        physics: _scrollPhysics,
-                                        itemBuilder: (context, index) {
-                                          return renderItem(index);
-                                        },
-                                      ));
+                                  return Obx(
+                                    () => MasonryGridView.count(
+                                      crossAxisCount: count,
+                                      mainAxisSpacing: 4,
+                                      shrinkWrap: true,
+                                      crossAxisSpacing: 4,
+                                      itemCount: widget.list.length,
+                                      controller: _scrollController,
+                                      physics: _scrollPhysics,
+                                      itemBuilder: (context, index) {
+                                        return renderItem(index);
+                                      },
+                                    ),
+                                  );
                                 },
                               )
                             : Obx(
@@ -387,11 +388,14 @@ class ClipListViewState extends State<ClipListView>
                                     onOk: () {
                                       Navigator.pop(context);
                                       Global.showLoadingDialog(
-                                          context: context,
-                                          loadingText: "删除中...");
+                                        context: context,
+                                        loadingText: "删除中...",
+                                      );
                                       dbService.historyDao
-                                          .deleteByIds(_selectedIds.toList(),
-                                              appConfig.userId)
+                                          .deleteByIds(
+                                        _selectedIds.toList(),
+                                        appConfig.userId,
+                                      )
                                           .then((cnt) {
                                         if (cnt != null && cnt > 0) {
                                           _loadMoreData();

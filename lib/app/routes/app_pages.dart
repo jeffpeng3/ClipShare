@@ -1,3 +1,5 @@
+import '../../app/modules/statistics_module/statistics_page.dart';
+import '../../app/modules/statistics_module/statistics_bindings.dart';
 import 'package:clipshare/app/modules/home_module/home_page.dart';
 import 'package:clipshare/app/modules/user_guide_module/user_guide_bindings.dart';
 import 'package:clipshare/app/modules/user_guide_module/user_guide_page.dart';
@@ -28,16 +30,16 @@ part './app_routes.dart';
 abstract class AppPages {
   static final pages = [
     GetPage(
-      name: Routes.splash,
+      name: Routes.SPLASH,
       page: () => SplashPage(),
       binding: SplashBinding(),
     ),
     GetPage(
-      name: Routes.welcome,
+      name: Routes.WELCOME,
       page: () => WelcomePage(),
     ),
     GetPage(
-      name: Routes.home,
+      name: Routes.HOME,
       page: () => HomePage(),
       binding: HomeBinding(),
     ),
@@ -80,6 +82,11 @@ abstract class AppPages {
       name: Routes.USER_GUIDE,
       page: () => UserGuidePage(),
       binding: UserGuideBinding(),
+    ),
+    GetPage(
+      name: Routes.STATISTICS,
+      page: () => StatisticsPage(),
+      binding: StatisticsBinding(),
     ),
   ];
 }

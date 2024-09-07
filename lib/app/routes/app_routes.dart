@@ -4,9 +4,9 @@ part of './app_pages.dart';
  * */
 
 abstract class Routes {
-  static const splash = '/splash';
-  static const welcome = '/welcome';
-  static const home = '/home';
+  static const SPLASH = '/splash';
+  static const WELCOME = '/welcome';
+  static const HOME = '/home';
   static const HISTORY = '/history'; // History page
   static const SEARCH = '/search'; // Search page
   static const DEVICE = '/device'; // Device page
@@ -14,4 +14,5 @@ abstract class Routes {
   static const AUTHENTICATION = '/authentication'; // Authentication page
   static const LOG = '/log'; // log page
   static const USER_GUIDE = '/user_guide'; // UserGuide page
+  static const STATISTICS = '/statistics'; // Statistics page
 }

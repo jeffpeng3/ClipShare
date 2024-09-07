@@ -83,7 +83,7 @@ class DevicePage extends GetView<DeviceController> {
                   Obx(
                     () => Icon(
                       Icons.online_prediction_rounded,
-                      color: controller.discovering.value ? Colors.blue : null,
+                      color: controller.discovering.value ? Colors.blueGrey : null,
                     ),
                   ),
                   const SizedBox(width: 5),

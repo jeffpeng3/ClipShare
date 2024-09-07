@@ -1,10 +1,15 @@
+import 'package:clipshare/app/data/repository/entity/statistics/history_tag_cnt.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history_tag.dart';
+import 'package:clipshare/app/services/db_service.dart';
 import 'package:floor/floor.dart';
+import 'package:get/get.dart';
 
 import '../entity/views/v_history_tag_hold.dart';
 
 @dao
 abstract class HistoryTagDao {
+  final dbService = Get.find<DbService>();
+
   ///获取所有标签名
   @Query("select distinct tagName from HistoryTag order by tagName")
   Future<List<String>> getAllTagNames();
@@ -51,4 +56,34 @@ abstract class HistoryTagDao {
 
   @update
   Future<int> updateTag(HistoryTag tag);
+
+  ///查询各个标签的引用数量
+  Future<List<HistoryTagCnt>> getHistoryTagCnt(
+    int uid,
+    String startMonth,
+    String endMonth,
+  ) async {
+    const sql = """
+    select
+     tagName,
+     count(1) as cnt
+    from HistoryTag ht
+    join History h
+    on h.id = ht.hisId and h.uid = ?1
+    and strftime('%Y-%m', time) between ?2 and ?3
+    group by tagName
+    """;
+    List<Map<String, Object?>> result = await dbService.dbExecutor.rawQuery(
+      sql,
+      [uid, startMonth, endMonth],
+    );
+    return result
+        .map(
+          (item) => HistoryTagCnt(
+            cnt: item['cnt'] as int,
+            tagName: item['tagName'] as String,
+          ),
+        )
+        .toList();
+  }
 }

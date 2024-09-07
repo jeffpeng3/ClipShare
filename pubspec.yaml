@@ -93,7 +93,12 @@ dependencies:
   local_auth: ^2.2.0
   # 接受其他应用的分享操作
   share_handler: ^0.0.21
-  fl_chart: 0.69.0
+  # 图表库
+  graphic: ^2.5.0
+  # 日期选择
+  calendar_date_picker2: ^1.1.6
+  # 月份选择
+  month_picker_dialog: ^5.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

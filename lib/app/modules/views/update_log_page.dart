@@ -1,3 +1,4 @@
+import 'package:clipshare/app/widgets/rounded_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -10,50 +11,34 @@ class UpdateLogPage extends StatelessWidget {
     return FutureBuilder(
       future: rootBundle.loadString("assets/md/updateLogs.md"),
       builder: (context, v) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-                color: Theme.of(context).colorScheme.inversePrimary,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(15, 7, 15, 7),
-                child: Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        "更新日志",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
+        return RoundedScaffold(
+          title: Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  "更新日志",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: Markdown(
-                data: v.data ?? "读取失败！",
-                selectable: true,
-                onSelectionChanged: (
-                  String? text,
-                  TextSelection selection,
-                  SelectionChangedCause? cause,
-                ) {},
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close),
               ),
-            ),
-          ],
+            ],
+          ),
+          icon: const Icon(Icons.info_outline),
+          child: Markdown(
+            data: v.data ?? "读取失败！",
+            selectable: true,
+            onSelectionChanged: (
+              String? text,
+              TextSelection selection,
+              SelectionChangedCause? cause,
+            ) {},
+          ),
         );
       },
     );

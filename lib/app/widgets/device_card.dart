@@ -175,6 +175,7 @@ class _DeviceCardState extends State<DeviceCard> {
   Widget build(BuildContext context) {
     const chipColor = Color.fromARGB(255, 213, 222, 232);
     return Card(
+      color: Colors.white,
       elevation: 0,
       margin: const EdgeInsets.all(8),
       child: InkWell(

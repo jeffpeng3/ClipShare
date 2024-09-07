@@ -47,9 +47,9 @@ class SplashController extends GetxController {
     init().then((ignore) {
       // 初始化完成，导航到下一个页面
       if (appConfig.firstStartup && Platform.isAndroid) {
-        Get.offNamed(Routes.welcome);
+        Get.offNamed(Routes.WELCOME);
       } else {
-        Get.offNamed(Routes.home);
+        Get.offNamed(Routes.HOME);
       }
     });
   }

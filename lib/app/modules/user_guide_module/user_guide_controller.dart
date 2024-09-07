@@ -99,7 +99,7 @@ class UserGuideController extends GetxController with WidgetsBindingObserver {
   }
 
   void gotoHomePage() {
-    Get.offNamed(Routes.home);
+    Get.offNamed(Routes.HOME);
   }
 //endregion
 }

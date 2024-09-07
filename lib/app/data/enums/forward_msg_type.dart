@@ -14,7 +14,7 @@ enum ForwardMsgType {
       ForwardMsgType.values.firstWhere(
         (e) => e.name == name,
         orElse: () {
-          Log.debug("TransferMsgType", "key '$name' unknown");
+          Log.debug("ForwardMsgType", "key '$name' unknown");
           return ForwardMsgType.unknown;
         },
       );

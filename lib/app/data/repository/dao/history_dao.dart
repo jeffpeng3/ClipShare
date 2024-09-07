@@ -1,9 +1,17 @@
+import 'package:clipshare/app/data/repository/entity/statistics/history_cnt_for_device.dart';
+import 'package:clipshare/app/data/repository/entity/statistics/history_type_cnt.dart';
+import 'package:clipshare/app/services/config_service.dart';
+import 'package:clipshare/app/services/db_service.dart';
 import 'package:floor/floor.dart';
+import 'package:get/get.dart';
 
 import '../entity/tables/history.dart';
 
 @dao
 abstract class HistoryDao {
+  final dbService = Get.find<DbService>();
+  final appConfig = Get.find<ConfigService>();
+
   ///获取最新记录
   @Query("select * from history where uid = :uid order by id desc limit 1")
   Future<History?> getLatestLocalClip(int uid);
@@ -102,4 +110,73 @@ abstract class HistoryDao {
     "delete from history where uid = :uid and id in (:ids)",
   )
   Future<int?> deleteByIds(List<int> ids, int uid);
+
+  ///查询历史记录中的不同类型的数量
+  Future<List<HistoryTypeCnt>> getHistoryTypeCnt(
+    int uid,
+    String startMonth,
+    String endMonth,
+  ) async {
+    const sql = """
+    select 
+      type,
+      count(1) cnt,
+      strftime('%Y-%m', time) as month
+    from History 
+    where uid = ?1
+    and strftime('%Y-%m', time) between ?2 and ?3
+    group by strftime('%Y-%m', time), type
+    order by strftime('%Y-%m', time)
+    """;
+    List<Map<String, Object?>> result = await dbService.dbExecutor.rawQuery(
+      sql,
+      [uid, startMonth, endMonth],
+    );
+    return result
+        .map(
+          (item) => HistoryTypeCnt(
+            cnt: item['cnt'] as int,
+            type: item['type'] as String,
+            date: item['month'] as String,
+          ),
+        )
+        .toList();
+  }
+
+  ///查询历史记录中不同设备的历史数量
+  Future<List<HistoryCntForDevice>> getHistoryCntForDevice(
+    int uid,
+    String startMonth,
+    String endMonth,
+  ) async {
+    const sql = """
+    select 
+      devId,
+      (select devName from Device where guid = devId) as devName,
+      count(*) as cnt,
+      strftime('%Y-%m', time) as month
+    from history 
+    where uid = ?1
+    and strftime('%Y-%m', time) between ?2 and ?3
+    group by strftime('%Y-%m', time), devId
+    order by strftime('%Y-%m', time)
+    """;
+    List<Map<String, Object?>> result = await dbService.dbExecutor.rawQuery(
+      sql,
+      [uid, startMonth, endMonth],
+    );
+    String selfId = appConfig.device.guid;
+    String selfName = appConfig.device.name;
+    int unknown = 0;
+    return result.map((item) {
+      String devName = item['devName']?.toString() ?? 'Unknown${++unknown}';
+      String devId = item['devId'].toString();
+      return HistoryCntForDevice(
+        cnt: item['cnt'] as int,
+        devId: devId,
+        devName: devId == selfId ? selfName : devName,
+        month: item["month"] as String,
+      );
+    }).toList();
+  }
 }

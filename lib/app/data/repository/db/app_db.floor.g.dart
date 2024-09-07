@@ -1,4 +1,4 @@
-part of 'package:clipshare/app/services/db_service.dart';
+part of 'package:clipshare/app/services/db_service.dart'; 
 // **************************************************************************
 // FloorGenerator
 // **************************************************************************
@@ -391,15 +391,15 @@ class _$HistoryDao extends HistoryDao {
         Iterable<String>.generate(devIds.length, (i) => '?${i + offset}')
             .join(',');
     return _queryAdapter.queryList(
-        'select * from History   where uid = ?1      and case           when ?2 != 0             then               id < ?2             else               id > 0           end      and case            when ?3 = \'\'            then               1            else               content like \'%\'||?3||\'%\'           end      and case            when ?4 = \'\'            then               1            else               type = ?4           end      and case            when ?5 = \'\' or ?6 = \'\'            then               1            else               date(time) between ?5 and ?6           end      and case            when length(null in (' +
+        'SELECT * FROM History   WHERE uid = ?1     AND (?2 = 0 OR id < ?2)     AND (?3 = \'\' OR content LIKE \'%\' || ?3 || \'%\')     AND (?4 = \'\' OR type = ?4)     AND (?5 = \'\' OR ?6 = \'\' OR date(time) BETWEEN ?5 AND ?6)     AND (length(null in (' +
             _sqliteVariablesForDevIds +
-            ')) = 1 then             1           else             devId in (' +
+            ')) = 1 OR devId IN (' +
             _sqliteVariablesForDevIds +
-            ')           end      and case            when length(null in (' +
+            '))     AND (length(null in (' +
             _sqliteVariablesForTags +
-            ')) = 1 then             1           else             id in (               select distinct hisId                from HistoryTag ht                where tagName in (' +
+            ')) = 1 OR id IN (       SELECT DISTINCT hisId       FROM HistoryTag       WHERE tagName IN (' +
             _sqliteVariablesForTags +
-            ')             )           end      and case            when ?7 = 1 then             sync = 0           else             1           end   order by top desc,id desc   limit 20',
+            ')     ))     AND (?7 = 1 AND sync = 0 OR ?7 != 1)   ORDER BY top DESC, id DESC   LIMIT 20',
         mapper: (Map<String, Object?> row) => History(
             id: row['id'] as int,
             uid: row['uid'] as int,

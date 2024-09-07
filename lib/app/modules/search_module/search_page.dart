@@ -1,6 +1,8 @@
+import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:clipshare/app/modules/search_module/search_controller.dart'
     as search_module;
 import 'package:clipshare/app/services/config_service.dart';
+import 'package:clipshare/app/utils/extension.dart';
 import 'package:clipshare/app/widgets/clip_list_view.dart';
 import 'package:clipshare/app/widgets/condition_widget.dart';
 import 'package:clipshare/app/widgets/loading.dart';
@@ -184,32 +186,17 @@ class SearchPage extends GetView<search_module.SearchController> {
         bool searchOnlyNoSync = controller.searchOnlyNoSync;
         onDateRangeClick(state) async {
           //显示时间选择器
-          DateTimeRange? range = await showDateRangePicker(
-            //语言环境
-            locale: const Locale("zh", "CH"),
+          var range = await showCalendarDatePicker2Dialog(
             context: context,
-            //开始时间
-            firstDate: DateTime(1970, 1),
-            //结束时间
-            lastDate: DateTime(2100, 12),
-            cancelText: "取消",
-            confirmText: "确定",
-            useRootNavigator: true,
-            //初始的时间范围选择
-            initialDateRange: DateTimeRange(
-              start: DateTime.now(),
-              end: DateTime.now(),
+            config: CalendarDatePicker2WithActionButtonsConfig(
+              calendarType: CalendarDatePicker2Type.range,
             ),
-            builder: (context, child) {
-              return Theme(
-                data: Theme.of(context),
-                child: child!,
-              );
-            },
+            dialogSize: const Size(325, 400),
+            borderRadius: BorderRadius.circular(15),
           );
           if (range != null) {
-            start = range.start.toString().substring(0, 10);
-            end = range.end.toString().substring(0, 10);
+            start = range[0]!.format("yyyy-MM-dd");
+            end = range[1]!.format("yyyy-MM-dd");
           }
           state(() {});
         }
@@ -297,7 +284,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                             style: TextStyle(
                               color: controller.searchStartDate == "" &&
                                       start == "开始日期"
-                                  ? Colors.grey
+                                  ? Colors.blueGrey
                                   : null,
                             ),
                           ),
@@ -336,7 +323,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                             style: TextStyle(
                               color: controller.searchEndDate == "" &&
                                       end == "结束日期"
-                                  ? Colors.grey
+                                  ? Colors.blueGrey
                                   : null,
                             ),
                           ),

@@ -1099,6 +1099,40 @@ class SettingsPage extends GetView<SettingsController> {
 
                 ///endregion
 
+                ///region 统计分析
+                SettingCardGroup(
+                  groupName: "统计",
+                  icon: const Icon(Icons.bar_chart),
+                  cardList: [
+                    SettingCard(
+                      main: const Text(
+                        "查看统计",
+                        maxLines: 1,
+                      ),
+                      sub: const Text(
+                        "以图表呈现对本地记录的简略统计分析",
+                        maxLines: 1,
+                      ),
+                      value: null,
+                      onTap: () {
+                        Get.toNamed(Routes.STATISTICS);
+                      },
+                      action: (v) => IconButton(
+                        onPressed: () {
+                          Get.toNamed(Routes.STATISTICS);
+                        },
+                        icon: const Icon(
+                          Icons.bar_chart,
+                          color: Colors.blueGrey,
+                        ),
+                      ),
+                    ),
+                  ],
+
+                ),
+
+                ///endregion
+
                 ///region 关于
 
                 SettingCardGroup(
@@ -1114,7 +1148,7 @@ class SettingsPage extends GetView<SettingsController> {
                         "${appConfig.version.name}(${appConfig.version.code})",
                         maxLines: 1,
                       ),
-                      value: false,
+                      value: null,
                       action: (v) => IconButton(
                         onPressed: () {
                           Get.dialog(

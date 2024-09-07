@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/listeners/clipboard_listener.dart';
+import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
-import 'package:clipshare/app/utils/global.dart';
-import 'package:clipshare/app/widgets/device_card_simple.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -118,6 +116,12 @@ class _DebugPageState extends State<DebugPage> {
         ),
         Container(
           height: 10,
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Get.toNamed(Routes.STATISTICS);
+          },
+          child: const Text("跳转统计"),
         ),
       ],
     );

@@ -91,8 +91,9 @@ Future<void> initServices() async {
 void runMain(Widget home, String title) {
   runApp(
     GetMaterialApp(
+      defaultTransition: Transition.fade,
       title: title,
-      initialRoute: Routes.splash,
+      initialRoute: Routes.SPLASH,
       getPages: AppPages.pages,
       theme: themeData,
       locale: locale,

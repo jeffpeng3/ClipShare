@@ -13,7 +13,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 // );
 
 final themeData = ThemeData(
-  colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
+  colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
   fontFamily: Platform.isWindows ? 'Microsoft YaHei' : null,
 );
 const locale = Locale("zh", "CH");
