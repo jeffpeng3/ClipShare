@@ -362,6 +362,7 @@ class ClipListViewState extends State<ClipListView>
                                   appConfig.isMultiSelectionMode.value = false;
                                   setState(() {});
                                 },
+                                heroTag: 'deselectHistory',
                                 child: const Icon(Icons.close),
                               ),
                             ),
@@ -419,6 +420,7 @@ class ClipListViewState extends State<ClipListView>
                                     },
                                   );
                                 },
+                                heroTag: 'deleteHistory',
                                 child: const Icon(Icons.delete_forever),
                               ),
                             ),
@@ -439,6 +441,7 @@ class ClipListViewState extends State<ClipListView>
                                   );
                                 });
                               },
+                              heroTag: 'backToTop',
                               child: const Icon(Icons.arrow_upward), // 可以选择其他图标
                             ),
                           ),

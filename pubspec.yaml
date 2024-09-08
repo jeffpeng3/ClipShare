@@ -60,7 +60,7 @@ dependencies:
   # 本机信息
   device_info_plus: ^9.1.2
   # 包信息
-  package_info_plus: 5.0.1
+  package_info_plus: ^8.0.2
   # 链接可点击
   flutter_linkify: ^6.0.0
   # 右键菜单
@@ -93,6 +93,7 @@ dependencies:
   local_auth: ^2.2.0
   # 接受其他应用的分享操作
   share_handler: ^0.0.21
+  share_plus: ^10.0.2
   # 图表库
   graphic: ^2.5.0
   # 日期选择

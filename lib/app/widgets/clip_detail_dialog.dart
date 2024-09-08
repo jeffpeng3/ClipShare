@@ -17,6 +17,7 @@ import 'package:clipshare/app/widgets/clip_tag_row_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:open_file_plus/open_file_plus.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ClipDetailDialog extends StatefulWidget {
   final ClipData clip;
@@ -232,10 +233,31 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                       visible: widget.clip.isFile,
                       child: IconButton(
                         icon: const Icon(
+                          Icons.folder,
+                          color: Colors.blueGrey,
+                        ),
+                        onPressed: () async {
+                          final file = File(widget.clip.data.content);
+                          await OpenFile.open(
+                            file.parent.normalizePath,
+                          );
+                        },
+                        tooltip: "打开所在文件夹",
+                      ),
+                    ),
+                    Visibility(
+                      visible: widget.clip.isFile,
+                      child: IconButton(
+                        icon: const Icon(
                           Icons.share,
                           color: Colors.blueGrey,
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          Share.shareXFiles(
+                            [XFile(widget.clip.data.content)],
+                            text: '分享文件',
+                          );
+                        },
                         tooltip: "分享文件",
                       ),
                     ),

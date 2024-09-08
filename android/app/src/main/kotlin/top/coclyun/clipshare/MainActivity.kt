@@ -155,12 +155,8 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
      * 检查通知权限
      */
     private fun checkNotification(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            return notificationManager.areNotificationsEnabled()
-        } else {
-            true
-        }
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        return notificationManager.areNotificationsEnabled()
     }
 
     /**

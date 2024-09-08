@@ -293,6 +293,22 @@ class ClipDataCardState extends State<ClipDataCard> {
           ),
         ),
         Visibility(
+            visible: widget.clip.isFile,
+            child: ListTile(
+              title: const Text("打开文件"),
+              leading: const Icon(
+                Icons.file_open,
+                color: Colors.blueGrey,
+              ),
+              onTap: () async {
+                Navigator.of(context).pop();
+                final file = File(widget.clip.data.content);
+                await OpenFile.open(
+                  file.normalizePath,
+                );
+              },
+            )),
+        Visibility(
           visible: widget.clip.isFile,
           child: ListTile(
             title: const Text("打开所在文件夹"),
@@ -309,22 +325,6 @@ class ClipDataCardState extends State<ClipDataCard> {
             },
           ),
         ),
-        Visibility(
-            visible: widget.clip.isFile,
-            child: ListTile(
-              title: const Text("打开文件"),
-              leading: const Icon(
-                Icons.file_open,
-                color: Colors.blueGrey,
-              ),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final file = File(widget.clip.data.content);
-                await OpenFile.open(
-                  file.normalizePath,
-                );
-              },
-            )),
         ListTile(
           title: const Text("标签管理"),
           leading: const Icon(

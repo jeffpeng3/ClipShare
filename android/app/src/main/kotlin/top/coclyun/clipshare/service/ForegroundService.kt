@@ -177,7 +177,7 @@ class ForegroundService : Service(),
 
     override fun clipboardChanged(type: ContentType, content: String, same: Boolean) {
 //        Log.d("clipboardChanged", "is same $same")
-//        if (same) return
+        if (same) return
         if(MainActivity.innerCopy)return;
         MainActivity.clipChannel.invokeMethod(
                 "onClipboardChanged",

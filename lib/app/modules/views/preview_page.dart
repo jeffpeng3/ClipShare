@@ -11,6 +11,7 @@ import 'package:clipshare/app/widgets/loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 
 class PreviewPage extends StatefulWidget {
   final ClipData clip;
@@ -185,13 +186,19 @@ class _PreviewPageState extends State<PreviewPage> {
                 ),
               ),
             ),
-            IconButton(
-              onPressed: () => {},
-              hoverColor: Colors.white12,
-              icon: const Icon(
-                Icons.share,
-                color: Colors.white,
-                size: 15,
+            Visibility(
+              visible: !Platform.isLinux,
+              child: IconButton(
+                onPressed: () {
+                  final path = _currentImage.content;
+                  Share.shareXFiles([XFile(path)], text: '分享文件');
+                },
+                hoverColor: Colors.white12,
+                icon: const Icon(
+                  Icons.share,
+                  color: Colors.white,
+                  size: 15,
+                ),
               ),
             ),
             const SizedBox(
@@ -242,9 +249,6 @@ class _PreviewPageState extends State<PreviewPage> {
                                 itemBuilder: (ctx, idx) {
                                   return InteractiveViewer(
                                     maxScale: 15.0,
-                                    onInteractionStart: (details) {
-                                      print("onScaleStart");
-                                    },
                                     transformationController: _controller,
                                     child: renderImageItem(idx, ct),
                                   );

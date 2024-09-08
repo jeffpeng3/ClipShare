@@ -36,7 +36,6 @@ class ClipTagRowView extends StatelessWidget {
                 Container(
                   margin: const EdgeInsets.only(left: 5),
                   child: RoundedChip(
-                    backgroundColor: clipBgColor,
                     onPressed: () {
                       if (routeToSearchOnClickChip == true) {
                         //导航至搜索页面

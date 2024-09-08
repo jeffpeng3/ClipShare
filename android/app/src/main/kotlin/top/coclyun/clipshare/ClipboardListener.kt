@@ -59,7 +59,7 @@ open class ClipboardListener(context: Context) {
             val description = cm!!.primaryClipDescription!!
             val label = description.label;
             var type = ContentType.Text;
-            var content = item.coerceToText(context).toString()
+            var content = item.text.toString()
             Log.d(TAG, "label:$label , uri:${item.uri}")
             if (item.uri != null) {
                 val uriStr = item.uri.toString()

@@ -320,20 +320,18 @@ class _SyncingFilePageState extends State<SyncingFilePage> {
                                         autoDismiss: false,
                                         onOk: () {
                                           deleteRecord(false);
-                                          // _selectedPathSet.clear();
                                           _selected.clear();
                                           _selectMode = false;
                                           appConfig.isMultiSelectionMode.value =
-                                              true;
+                                              false;
                                           setState(() {});
                                         },
                                         onNeutral: () {
                                           deleteRecord(true);
-                                          // _selectedPathSet.clear();
                                           _selected.clear();
                                           _selectMode = false;
                                           appConfig.isMultiSelectionMode.value =
-                                              true;
+                                              false;
                                           setState(() {});
                                         },
                                         onCancel: () {

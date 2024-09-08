@@ -9,6 +9,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   local_auth_windows
   permission_handler_windows
   screen_retriever
+  share_plus
   smart_auth
   tray_manager
   url_launcher_windows
