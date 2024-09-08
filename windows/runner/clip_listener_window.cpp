@@ -372,11 +372,13 @@ std::wstring* ClipListenerWindow::GetClipboardDataCustom(std::string& type, int 
 		return GetClipboardDataCustom(type, retry + 1);
 	}
 
-	// 尝试获取剪贴板中的数据
+	// 尝试获取剪贴板中的数据，存在文本则直接返回
 	if (IsClipboardFormatAvailable(CF_UNICODETEXT))
 	{
 		data = GetClipboardText();
 		type = "Text";
+		CloseClipboard();
+		return data;
 	}
 	if (IsClipboardFormatAvailable(CF_DIB))
 	{
