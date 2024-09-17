@@ -27,7 +27,7 @@ class TagSyncer implements SyncListener {
   }
 
   @override
-  void ackSync(MessageData msg) {
+  Future ackSync(MessageData msg) {
     var send = msg.send;
     var data = msg.data;
     var opSync = OperationSync(
@@ -36,16 +36,16 @@ class TagSyncer implements SyncListener {
       uid: appConfig.userId,
     );
     //记录同步记录
-    dbService.opSyncDao.add(opSync);
+    return dbService.opSyncDao.add(opSync);
   }
 
   @override
-  void onSync(MessageData msg) {
+  Future onSync(MessageData msg) {
     var send = msg.send;
     var opRecord = OperationRecord.fromJson(msg.data);
     Map<String, dynamic> json = jsonDecode(opRecord.data);
     HistoryTag tag = HistoryTag.fromJson(json);
-    Future f = Future(() => null);
+    Future f = Future.value();
     switch (opRecord.method) {
       case OpMethod.add:
         f = dbService.historyTagDao.add(tag).then((cnt) {
@@ -60,12 +60,13 @@ class TagSyncer implements SyncListener {
         });
         break;
       default:
-        return;
+        return f;
     }
 
-    f.then((cnt) {
+    return f.then((cnt) {
+      Future res = Future.value();
       if (cnt != null && cnt > 0) {
-        dbService.opRecordDao.add(opRecord.copyWith(tag.id.toString()));
+        res = dbService.opRecordDao.add(opRecord.copyWith(tag.id.toString()));
       }
       //发送同步确认
       sktService.sendData(
@@ -73,6 +74,7 @@ class TagSyncer implements SyncListener {
         MsgType.ackSync,
         {"id": opRecord.id, "module": Module.tag.moduleName},
       );
+      return res;
     });
   }
 }

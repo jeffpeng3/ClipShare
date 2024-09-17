@@ -13,116 +13,120 @@ import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extension.dart';
 import 'package:clipshare/app/utils/log.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 class MissingDataSyncer {
   static const tag = "SyncDataHandler";
 
-  static void sendMissingData(DevInfo targetDev, List<String> devIds) {
+  static void sendMissingData(DevInfo targetDev, List<String> devIds) async {
+    final appConfig = Get.find<ConfigService>();
+    final dbService = Get.find<DbService>();
+    final lst = await dbService.opRecordDao
+        .getSyncRecord(appConfig.userId, targetDev.guid, devIds);
+    var i = 1;
     final sktService = Get.find<SocketService>();
-    getData(targetDev.guid, devIds).then((lst) {
-      for (var item in lst) {
-        sktService.sendData(targetDev, MsgType.missingData, {"data": item});
-      }
-    });
-  }
-
-  static Future<List<OperationRecord>> getData(
-      String targetDev, List<String> devIds) {
-    final appConfig = Get.find<ConfigService>();
-    final dbService = Get.find<DbService>();
-    return dbService.opRecordDao
-        .getSyncRecord(appConfig.userId, targetDev, devIds)
-        .then((lst) {
-      var future = Future.value();
-      var rmList = <OperationRecord>[];
-      for (var item in lst) {
-        future = future.then((value) => process(item, rmList));
-      }
-      return future.then((v) {
-        //删除需要移除的item
-        lst.removeWhere((element) => rmList.contains(element));
-        return lst;
+    for (var item in lst) {
+      await process(item).then((shouldRemove) {
+        print("process ${i++}/${lst.length}");
+        if (shouldRemove) {
+          return dbService.opRecordDao.deleteByIds([item.id]);
+        } else {
+          return sktService.sendData(
+            targetDev,
+            MsgType.missingData,
+            {"data": item},
+          );
+        }
       });
-    });
+    }
   }
 
-  static Future process(OperationRecord item, List<OperationRecord> rmList) {
-    Future f = Future(() => null);
+  static Future<bool> process(OperationRecord opRecord) async {
     final appConfig = Get.find<ConfigService>();
     final dbService = Get.find<DbService>();
-    var id = item.data;
-    switch (item.module) {
+    var shouldRemove = false;
+    var id = opRecord.data;
+    switch (opRecord.module) {
       case Module.device:
-        f = dbService.deviceDao.getById(id, appConfig.userId).then((v) {
+        await dbService.deviceDao.getById(id, appConfig.userId).then((v) {
+          //数据库不存在该数据
           if (v == null) {
-            if (item.method != OpMethod.delete) {
-              rmList.add(item);
+            //如果不是delete方法就移除
+            if (opRecord.method != OpMethod.delete) {
+              shouldRemove = true;
             } else {
               var empty = Device.empty();
               empty.guid = id;
               empty.uid = appConfig.userId;
-              item.data = empty.toString();
+              opRecord.data = empty.toString();
             }
           } else {
-            item.data = v.toString();
+            opRecord.data = v.toString();
           }
         });
         break;
       case Module.tag:
-        f = dbService.historyTagDao.getById(int.parse(id)).then((v) {
+        await dbService.historyTagDao.getById(int.parse(id)).then((v) {
           if (v == null) {
-            if (item.method != OpMethod.delete) {
-              rmList.add(item);
+            if (opRecord.method != OpMethod.delete) {
+              shouldRemove = true;
             } else {
               var empty = HistoryTag.empty();
               empty.id = int.parse(id);
-              item.data = empty.toString();
+              opRecord.data = empty.toString();
             }
           } else {
-            item.data = v.toString();
+            opRecord.data = v.toString();
           }
         });
         break;
       case Module.history:
-        f = dbService.historyDao.getById(int.parse(id)).then((v) {
+        await dbService.historyDao.getById(int.parse(id)).then((v) async {
           if (v == null) {
-            if (item.method != OpMethod.delete) {
-              rmList.add(item);
+            if (opRecord.method != OpMethod.delete) {
+              shouldRemove = true;
             } else {
               var empty = History.empty();
               empty.id = int.parse(id);
-              item.data = empty.toString();
+              opRecord.data = empty.toString();
             }
           } else {
             try {
-              var clip = ClipData(v);
-              if (clip.isImage) {
-                var file = File(v.content);
-                var fileName = file.fileName;
-                var bytes = file.readAsBytesSync();
-                v.content = jsonEncode(
-                  {"fileName": fileName, "data": bytes},
+              if (ClipData(v).isImage) {
+                var content = await compute(
+                  (History v) {
+                    var file = File(v.content);
+                    var fileName = file.fileName;
+                    var bytes = file.readAsBytesSync();
+                    v.content = jsonEncode(
+                      {"fileName": fileName, "data": bytes},
+                    );
+                    return v.toString();
+                  },
+                  v,
                 );
+                opRecord.data = content;
+              } else {
+                opRecord.data = v.toString();
               }
-              item.data = v.toString();
             } catch (e, t) {
-              rmList.add(item);
+              shouldRemove = true;
               Log.debug(tag, "$e\n$t");
             }
           }
         });
         break;
       case Module.historyTop:
-        f = dbService.historyDao.getById(int.parse(id)).then((v) {
+        await dbService.historyDao.getById(int.parse(id)).then((v) {
           if (v == null) {
-            if (item.method != OpMethod.delete) {
-              rmList.add(item);
+            if (opRecord.method != OpMethod.delete) {
+              shouldRemove = true;
             }
           } else {
             //更新置顶状态，将内容设为空，提高传输效率
             v.content = "";
-            item.data = v.toString();
+            opRecord.data = v.toString();
           }
         });
         break;
@@ -130,19 +134,7 @@ class MissingDataSyncer {
         //什么都不做
         break;
       default:
-        return Future.value();
     }
-    return f;
-  }
-
-  static List<List<T>> _partition<T>(List<T> list, int size) {
-    List<List<T>> result = [];
-    for (var i = 0; i < list.length; i += size) {
-      int start = i;
-      int end = i + size > list.length ? list.length : i + size;
-      var subList = list.sublist(start, end);
-      result.add(subList);
-    }
-    return result;
+    return shouldRemove;
   }
 }

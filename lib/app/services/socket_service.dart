@@ -49,10 +49,10 @@ abstract class DevAliveListener {
 
 abstract class SyncListener {
   //同步数据
-  void onSync(MessageData msg);
+  Future onSync(MessageData msg);
 
   //确认同步
-  void ackSync(MessageData msg);
+  Future ackSync(MessageData msg);
 }
 
 abstract class DiscoverListener {
@@ -369,7 +369,7 @@ class SocketService extends GetxService {
   }
 
   ///socket 监听消息处理
-  void _onSocketReceived(SecureSocketClient client, MessageData msg) async {
+  Future<void> _onSocketReceived(SecureSocketClient client, MessageData msg) async {
     Log.debug(tag, msg.key);
     DevInfo dev = msg.send;
     var address =
@@ -568,10 +568,10 @@ class SocketService extends GetxService {
       switch (msg.key) {
         case MsgType.sync:
         case MsgType.missingData:
-          listener.onSync(msg);
+          dbService.execSequentially(() => listener.onSync(msg));
           break;
         case MsgType.ackSync:
-          listener.ackSync(msg);
+          dbService.execSequentially(() => listener.ackSync(msg));
           break;
         default:
           break;
@@ -602,14 +602,14 @@ class SocketService extends GetxService {
     tasks.addAll(await _customDiscover());
     //广播发现
     tasks.addAll(_multicastDiscover());
-    // tasks = [];
+    // tasks = [];//测试屏蔽发现用
     //并行处理
     _taskRunner = TaskRunner<void>(
       initialTasks: tasks,
       onFinish: () async {
         //发现子网设备
         tasks = await _subNetDiscover();
-        // tasks = [];
+        // tasks = [];//测试屏蔽发现用
         _taskRunner = TaskRunner<void>(
           initialTasks: tasks,
           onFinish: () async {
@@ -985,8 +985,6 @@ class SocketService extends GetxService {
   void _onDevDisConnected(String devId) {
     //移除socket
     _devSockets.remove(devId);
-    //停止心跳检测
-    _heartbeatTimer?.cancel();
     Log.debug(tag, "$devId 断开连接");
     for (var listener in _devAliveListeners) {
       try {
@@ -998,32 +996,22 @@ class SocketService extends GetxService {
   }
 
   ///向兼容的设备发送消息
-  void sendData(
+  Future<void> sendData(
     DevInfo? dev,
     MsgType key,
     Map<String, dynamic> data, [
     bool onlyPaired = true,
-  ]) {
-    MessageData msg = MessageData(
-      userId: appConfig.userId,
-      send: appConfig.devInfo,
-      key: key,
-      data: data,
-      recv: null,
-    );
+  ]) async {
+    Iterable<DevSocket> list = [];
     //向所有设备发送消息
     if (dev == null) {
-      var list = onlyPaired
+      list = onlyPaired
           ? _devSockets.values.where((dev) => dev.isPaired)
           : _devSockets.values;
       //筛选兼容版本的设备
       list = list.where(
         (dev) => dev.version != null && dev.version! >= appConfig.minVersion,
       );
-      //批量发送
-      for (var skt in list) {
-        skt.socket.send(msg.toJson());
-      }
     } else {
       //向指定设备发送消息
       DevSocket? skt = _devSockets[dev.guid];
@@ -1039,7 +1027,18 @@ class SocketService extends GetxService {
         Log.debug(tag, "${dev.name} 与当前设备版本不兼容");
         return;
       }
-      skt.socket.send(msg.toJson());
+      list = [skt];
+    }
+    //批量发送
+    for (var skt in list) {
+      MessageData msg = MessageData(
+        userId: appConfig.userId,
+        send: appConfig.devInfo,
+        key: key,
+        data: data,
+        recv: null,
+      );
+      await skt.socket.send(msg.toJson());
     }
   }
 

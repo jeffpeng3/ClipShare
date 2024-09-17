@@ -82,6 +82,11 @@ class DbService extends GetxService {
   final tag = "DbService";
 
   sqflite.DatabaseExecutor get dbExecutor => _db.database;
+  Future _queue = Future.value();
+
+  void execSequentially(Future Function() f) {
+    _queue = _queue.whenComplete(() => f());
+  }
 
   Future<DbService> init() async {
     // 获取应用程序的文件目录
@@ -92,8 +97,7 @@ class DbService extends GetxService {
     }
     _db = await $Floor_AppDb
         .databaseBuilder(databasesPath)
-        // .addMigrations([migration1to2])
-        .build();
+        .addMigrations([migration1to2]).build();
     return this;
   }
 
@@ -104,8 +108,9 @@ class DbService extends GetxService {
   ///----- 迁移策略 更新数据库版本后需要重新生成数据库代码 -----
   ///数据库版本 1 -> 2
   ///操作记录表新增设备id字段，用于从连接设备同步其他已配对设备数据
-// final migration1to2 = Migration(1, 2, (database) async {
-//   await database.execute('ALTER TABLE OperationRecord ADD COLUMN devId TEXT');
-//   await database.execute("UPDATE OperationRecord SET devId = '${App.device.guid}'");
-// });
+  final migration1to2 = Migration(1, 2, (database) async {
+    await database.execute('ALTER TABLE OperationRecord ADD COLUMN devId TEXT');
+    // await database
+    //     .execute("UPDATE OperationRecord SET devId = '${App.device.guid}'");
+  });
 }

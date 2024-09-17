@@ -24,7 +24,7 @@ class RulesSyncer implements SyncListener {
   }
 
   @override
-  void ackSync(MessageData msg) {
+  Future ackSync(MessageData msg) {
     var send = msg.send;
     var data = msg.data;
     var opSync = OperationSync(
@@ -33,11 +33,11 @@ class RulesSyncer implements SyncListener {
       uid: appConfig.userId,
     );
     //记录同步记录
-    dbService.opSyncDao.add(opSync);
+    return dbService.opSyncDao.add(opSync);
   }
 
   @override
-  void onSync(MessageData msg) {
+  Future onSync(MessageData msg) {
     var send = msg.send;
     var opRecord = OperationRecord.fromJson(msg.data);
     Map<String, dynamic> json = jsonDecode(opRecord.data);
@@ -54,7 +54,7 @@ class RulesSyncer implements SyncListener {
         localTagRules = jsonDecode(appConfig.smsRules);
         break;
       default:
-        return;
+        return Future.value();
     }
 
     var localVersion = localTagRules["version"];
@@ -76,10 +76,10 @@ class RulesSyncer implements SyncListener {
           Rule.tag.name,
           appConfig.userId,
         );
-        dbService.opRecordDao.add(opRecord);
+        await dbService.opRecordDao.add(opRecord);
       });
     }
-    f.then((cnt) {
+    return f.then((cnt) {
       //发送同步确认
       sktService.sendData(
         send,

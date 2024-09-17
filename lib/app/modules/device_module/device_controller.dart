@@ -123,7 +123,7 @@ class DeviceController extends GetxController
 
   //region 监听与同步
   @override
-  void ackSync(MessageData msg) {
+  Future ackSync(MessageData msg) {
     var send = msg.send;
     var data = msg.data;
     var opSync = OperationSync(
@@ -132,11 +132,11 @@ class DeviceController extends GetxController
       uid: appConfig.userId,
     );
     //记录同步记录
-    dbService.opSyncDao.add(opSync);
+    return dbService.opSyncDao.add(opSync);
   }
 
   @override
-  void onSync(MessageData msg) {
+  Future onSync(MessageData msg) {
     var send = msg.send;
     var opRecord = OperationRecord.fromJson(msg.data);
     Map<String, dynamic> json = jsonDecode(opRecord.data);
@@ -154,11 +154,11 @@ class DeviceController extends GetxController
           f = dbService.deviceDao.updateDevice(dev);
           break;
         default:
-          return;
+          return Future.value();
       }
     }
     //发送同步确认
-    f.then(
+    return f.then(
       (v) => sktService.sendData(
         send,
         MsgType.ackSync,

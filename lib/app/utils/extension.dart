@@ -601,7 +601,8 @@ extension FileExt on File {
     }
     return crypto.md5.convert(await readAsBytes()).toString();
   }
-  bool get isMediaFile{
+
+  bool get isMediaFile {
     // 获取文件扩展名（小写处理）
     String extension = path.split('.').last.toLowerCase();
 
@@ -614,5 +615,27 @@ extension FileExt on File {
     return imageExtensions.contains(extension) ||
         audioExtensions.contains(extension) ||
         videoExtensions.contains(extension);
+  }
+}
+
+extension ListExt<T> on List<T> {
+  List<List<T>> partition(int size) {
+    List<List<T>> result = [];
+    for (var i = 0; i < length; i += size) {
+      int start = i;
+      int end = i + size > length ? length : i + size;
+      var subList = sublist(start, end);
+      result.add(subList);
+    }
+    return result;
+  }
+}
+extension ListEquals on List<int> {
+  bool equals(List<int> other) {
+    if (length != other.length) return false;
+    for (int i = 0; i < length; i++) {
+      if (this[i] != other[i]) return false;
+    }
+    return true;
   }
 }

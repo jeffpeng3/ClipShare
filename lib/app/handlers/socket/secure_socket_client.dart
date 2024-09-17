@@ -9,7 +9,11 @@ import 'package:clipshare/app/utils/crypto.dart';
 import 'package:clipshare/app/utils/extension.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:encrypt/encrypt.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:synchronized/synchronized.dart';
+
+import 'string_spliter.dart';
 
 class SecureSocketClient {
   final String ip;
@@ -18,14 +22,13 @@ class SecureSocketClient {
   int get port => _port;
   late final Socket _socket;
   bool _listening = false;
-  String _data = "";
   bool _keyIsExchanged = false;
   late final void Function(SecureSocketClient)? _onConnected;
   late final void Function(SecureSocketClient client, String data)? _onMessage;
   void Function(Exception e, SecureSocketClient client)? _onError;
   void Function(SecureSocketClient client)? _onDone;
   bool? _cancelOnError;
-  late final StreamSubscription _stream;
+  final controller = StreamController<String>();
   late final Encrypter _encrypter;
   late final DiffieHellman _dh;
   late final String _aesKey;
@@ -35,26 +38,20 @@ class SecureSocketClient {
   late final String _targetDevId;
   late final String _selfDevId;
   late final ConnectionMode _connectionMode;
+  final Lock _lock = Lock(); // 创建互斥锁
   bool _forwardReady = false;
+  final int useComputeThreshold = 1024 * 1024;
 
   bool get isReady => _keyIsExchanged;
 
   bool get isForwardMode => _connectionMode == ConnectionMode.forward;
 
   String get _endChar => isForwardMode && !_forwardReady ? '\n' : ',';
+  late final StringSplitter _dataSplitter;
   final StreamController<String> _msgStreamController = StreamController();
 
   SecureSocketClient._private(this.ip) {
-    _msgStreamController.stream.listen((data) {
-      try {
-        _socket.write(data);
-      } catch (e, stack) {
-        _msgStreamController.close();
-        Log.debug("SecureSocketClient", "发送失败：$e");
-        Log.debug("SecureSocketClient", "$stack");
-        _onDone?.call(this);
-      }
-    });
+    _startMsgStreamListen();
   }
 
   static SecureSocketClient empty = SecureSocketClient._private("127.0.0.1");
@@ -141,6 +138,7 @@ class SecureSocketClient {
     ssc._onError = onError;
     ssc._onDone = onDone;
     ssc._cancelOnError = cancelOnError;
+    ssc._dataSplitter = StringSplitter(ssc._endChar);
     ssc._listen();
     return ssc;
   }
@@ -152,66 +150,73 @@ class SecureSocketClient {
     }
     _listening = true;
     try {
-      _stream = _socket.listen(
-        (e) {
-          var rec = utf8.decode(e);
-          _data += rec;
-          while (_data.contains(_endChar)) {
-            // 以结束符分割数据包，找到第一个完整的数据包
-            var index = _data.indexOf(_endChar);
-            var pkg = _data.substring(0, index);
-            _data = _data.substring(index + 1);
-            //接收完成，进行解码
-            try {
-              if (isForwardMode && !_forwardReady) {
-                //中转未准备好
-                var json = jsonDecode(pkg);
-                var type = ForwardMsgType.getValue(json["type"]);
-                Log.debug(tag, "forward ${type.name}");
-                switch (type) {
-                  case ForwardMsgType.bothConnected:
-                    send({"type": ForwardMsgType.bothConnected.name});
-                    String sender = json["sender"];
-                    if (sender != _selfDevId) {
-                      _forwardReady = true;
-                    }
-                    break;
-                  case ForwardMsgType.forwardReady:
+      _socket.transform(_dataSplitter).listen(
+        (rec) async {
+          //接收完成，进行解码
+          try {
+            if (isForwardMode && !_forwardReady) {
+              //中转未准备好
+              var json = jsonDecode(rec);
+              var type = ForwardMsgType.getValue(json["type"]);
+              Log.debug(tag, "forward ${type.name}");
+              switch (type) {
+                case ForwardMsgType.bothConnected:
+                  send({"type": ForwardMsgType.bothConnected.name});
+                  String sender = json["sender"];
+                  if (sender != _selfDevId) {
                     _forwardReady = true;
-                    sendKey();
-                    break;
-                  case ForwardMsgType.alreadyConnected:
-                    close();
-                    break;
-                  default:
-                }
-              } else {
-                //region 数据处理
-                if (_keyIsExchanged) {
-                  //密钥已交换，此处需要解密
-                  var decrypt = CryptoUtil.decryptAES(
+                  }
+                  break;
+                case ForwardMsgType.forwardReady:
+                  _forwardReady = true;
+                  sendKey();
+                  break;
+                case ForwardMsgType.alreadyConnected:
+                  close();
+                  break;
+                default:
+              }
+            } else {
+              //region 数据处理
+              if (_keyIsExchanged) {
+                //密钥已交换，此处需要解密
+                String decrypt;
+                if (rec.length > useComputeThreshold) {
+                  decrypt = await compute(
+                        (List<dynamic> params) {
+                      return CryptoUtil.decryptAES(
+                        key: params[0],
+                        encoded: params[2],
+                        encrypter: params[1],
+                      );
+                    },
+                    [_aesKey, _encrypter, rec],
+                  );
+                } else {
+                  decrypt = CryptoUtil.decryptAES(
                     key: _aesKey,
-                    encoded: pkg,
+                    encoded: rec,
                     encrypter: _encrypter,
                   );
-                  if (_onMessage != null) {
-                    _onMessage(this, decrypt);
-                  }
-                } else {
-                  //密钥未交换
-                  var decodeB64 = CryptoUtil.base64DecodeStr(pkg);
-                  _exchange(decodeB64);
                 }
-                //endregion
+                print("_onMessage decrypt: ${decrypt.length}");
+                if (_onMessage != null) {
+                  _onMessage(this, decrypt);
+                }
+              } else {
+                //密钥未交换
+                var decodeB64 = CryptoUtil.base64DecodeStr(rec);
+                _exchange(decodeB64);
               }
-            } catch (ex, stack) {
-              //解析出错
-              Log.error("SecureSocketClient", "解析出错：$ex\n$stack");
+              //endregion
             }
+          } catch (ex, stack) {
+            //解析出错
+            Log.error("SecureSocketClient", "解析出错：$ex\n$stack");
           }
+          return Future.value();
         },
         onError: (e) {
-          _data = "";
           Log.error("SecureSocketClient", "error:$e");
           if (_onError != null) {
             _onError!(e, this);
@@ -288,24 +293,25 @@ class SecureSocketClient {
     }
   }
 
-  ///发送数据
-  void send(Map map) {
-    String data = jsonEncode(map);
-    if (!isForwardMode || _forwardReady) {
-      //region 直连模式
-      if (_keyIsExchanged) {
-        data = CryptoUtil.encryptAES(
-          key: _aesKey,
-          input: data,
-          encrypter: _encrypter,
-        );
-      } else {
-        data = CryptoUtil.base64EncodeStr(data);
+  void _startMsgStreamListen() {
+    _msgStreamController.stream.asyncExpand((data) async* {
+      try {
+        _socket.write(data);
+        await _socket.flush();
+      } catch (e, stack) {
+        _msgStreamController.close();
+        Log.debug("SecureSocketClient", "发送失败：$e");
+        Log.debug("SecureSocketClient", "$stack");
+        _onDone?.call(this);
       }
-      //endregion
-    }
+    }).listen(null);
+  }
+
+  ///发送数据
+  Future<void> send(Map map) async {
     try {
-      _msgStreamController.add("$data$_endChar");
+      final data = await _genSendData(map);
+      _msgStreamController.add(data);
     } catch (e, stack) {
       Log.debug(tag, "发送失败：$e");
       Log.debug(tag, "_onDone ${_onDone == null}");
@@ -314,6 +320,37 @@ class SecureSocketClient {
         _onDone!.call(this);
       }
     }
+  }
+
+  Future<String> _genSendData(Map map) async {
+    String data = jsonEncode(map);
+    if (!isForwardMode || _forwardReady) {
+      //region 直连模式
+      if (_keyIsExchanged) {
+        if (data.length > useComputeThreshold) {
+          data = await compute(
+            (List<dynamic> params) {
+              return CryptoUtil.encryptAES(
+                key: params[0],
+                input: params[2],
+                encrypter: params[1],
+              );
+            },
+            [_aesKey, _encrypter, data],
+          );
+        } else {
+          data = CryptoUtil.encryptAES(
+            key: _aesKey,
+            input: data,
+            encrypter: _encrypter,
+          );
+        }
+      } else {
+        data = CryptoUtil.base64EncodeStr(data);
+      }
+      //endregion
+    }
+    return "$data$_endChar";
   }
 
   ///DH 算法发送 key 和 素数、底数

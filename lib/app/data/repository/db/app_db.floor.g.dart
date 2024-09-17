@@ -3,19 +3,32 @@ part of 'package:clipshare/app/services/db_service.dart';
 // FloorGenerator
 // **************************************************************************
 
+abstract class $_AppDbBuilderContract {
+  /// Adds migrations to the builder.
+  $_AppDbBuilderContract addMigrations(List<Migration> migrations);
+
+  /// Adds a database [Callback] to the builder.
+  $_AppDbBuilderContract addCallback(Callback callback);
+
+  /// Creates the database and initializes it.
+  Future<_AppDb> build();
+}
+
 // ignore: avoid_classes_with_only_static_members
 class $Floor_AppDb {
   /// Creates a database builder for a persistent database.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static _$_AppDbBuilder databaseBuilder(String name) => _$_AppDbBuilder(name);
+  static $_AppDbBuilderContract databaseBuilder(String name) =>
+      _$_AppDbBuilder(name);
 
   /// Creates a database builder for an in memory database.
   /// Information stored in an in memory database disappears when the process is killed.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static _$_AppDbBuilder inMemoryDatabaseBuilder() => _$_AppDbBuilder(null);
+  static $_AppDbBuilderContract inMemoryDatabaseBuilder() =>
+      _$_AppDbBuilder(null);
 }
 
-class _$_AppDbBuilder {
+class _$_AppDbBuilder implements $_AppDbBuilderContract {
   _$_AppDbBuilder(this.name);
 
   final String? name;
@@ -24,19 +37,19 @@ class _$_AppDbBuilder {
 
   Callback? _callback;
 
-  /// Adds migrations to the builder.
-  _$_AppDbBuilder addMigrations(List<Migration> migrations) {
+  @override
+  $_AppDbBuilderContract addMigrations(List<Migration> migrations) {
     _migrations.addAll(migrations);
     return this;
   }
 
-  /// Adds a database [Callback] to the builder.
-  _$_AppDbBuilder addCallback(Callback callback) {
+  @override
+  $_AppDbBuilderContract addCallback(Callback callback) {
     _callback = callback;
     return this;
   }
 
-  /// Creates the database and initializes it.
+  @override
   Future<_AppDb> build() async {
     final path = name != null
         ? await sqfliteDatabaseFactory.getDatabasePath(name!)
@@ -903,6 +916,20 @@ class _$OperationRecordDao extends OperationRecordDao {
     return _queryAdapter.query('delete from OperationRecord where uid = ?1',
         mapper: (Map<String, Object?> row) => row.values.first as int,
         arguments: [uid]);
+  }
+
+  @override
+  Future<int?> deleteByIds(List<int> ids) async {
+    const offset = 1;
+    final _sqliteVariablesForIds =
+        Iterable<String>.generate(ids.length, (i) => '?${i + offset}')
+            .join(',');
+    return _queryAdapter.query(
+        'delete from OperationRecord where id in (' +
+            _sqliteVariablesForIds +
+            ')',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [...ids]);
   }
 
   @override

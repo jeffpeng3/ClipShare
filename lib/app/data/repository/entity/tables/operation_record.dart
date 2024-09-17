@@ -14,7 +14,7 @@ import 'package:get/get.dart';
 )
 class OperationRecord {
   ///主键 id
-  @PrimaryKey(autoGenerate: true)
+  @primaryKey
   late int id;
 
   ///用户 id
@@ -31,7 +31,7 @@ class OperationRecord {
   @TypeConverters([OpMethodTypeConverter])
   late OpMethod method;
 
-  /// 操作数据，如果是json表示是整个数据，否则表示是主键
+  /// history的主键
   late String data;
 
   /// 操作时间

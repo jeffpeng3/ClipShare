@@ -27,7 +27,7 @@ class HistoryTopSyncer implements SyncListener {
   }
 
   @override
-  void ackSync(MessageData msg) {
+  Future ackSync(MessageData msg) {
     var send = msg.send;
     var data = msg.data;
     var opSync = OperationSync(
@@ -36,11 +36,11 @@ class HistoryTopSyncer implements SyncListener {
       uid: appConfig.userId,
     );
     //记录同步记录
-    dbService.opSyncDao.add(opSync);
+    return dbService.opSyncDao.add(opSync);
   }
 
   @override
-  void onSync(MessageData msg) {
+  Future onSync(MessageData msg) {
     var send = msg.send;
     var opRecord = OperationRecord.fromJson(msg.data);
     Map<String, dynamic> json = jsonDecode(opRecord.data);
@@ -51,14 +51,15 @@ class HistoryTopSyncer implements SyncListener {
         f = dbService.historyDao.setTop(history.id, history.top);
         break;
       default:
-        return;
+        return Future.value();
     }
 
-    f.then((cnt) {
+    return f.then((cnt) {
+      Future f = Future.value();
       if (cnt != null && cnt > 0) {
         //同步成功后在本地也记录一次
         var originOpRecord = opRecord.copyWith(history.id.toString());
-        dbService.opRecordDao.add(originOpRecord);
+        f = dbService.opRecordDao.add(originOpRecord);
       }
       historyController.updateData(
         (his) => his.id == history.id,
@@ -70,6 +71,7 @@ class HistoryTopSyncer implements SyncListener {
         MsgType.ackSync,
         {"id": opRecord.id, "module": Module.historyTop.moduleName},
       );
+      return f;
     });
   }
 }

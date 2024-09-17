@@ -16,10 +16,9 @@ abstract class OperationRecordDao {
   Future<int> addAndNotify(OperationRecord record) {
     return add(record).then((cnt) {
       if (cnt == 0) return cnt;
-
       final sktService = Get.find<SocketService>();
       //发送变更至已连接的所有设备
-      MissingDataSyncer.process(record, []).then((v) {
+      MissingDataSyncer.process(record).then((shouldRemove) {
         sktService.sendData(null, MsgType.sync, record.toJson());
       });
       return cnt;
@@ -31,16 +30,23 @@ abstract class OperationRecordDao {
   select * from OperationRecord record
   where not exists (
     select 1 from OperationSync opsync
-    where opsync.uid = :uid and opsync.devId = :devId and opsync.opId = record.id
-  ) and devId in (:devIds)
+    where opsync.uid = :uid and opsync.devId = :toDevId and opsync.opId = record.id
+  ) and devId in (:fromDevIds)
   order by id desc
   """)
   Future<List<OperationRecord>> getSyncRecord(
-      int uid, String devId, List<String> devIds);
+    int uid,
+    String toDevId,
+    List<String> fromDevIds,
+  );
 
   ///删除当前用户的所有操作记录
   @Query("delete from OperationRecord where uid = :uid")
   Future<int?> removeAll(int uid);
+
+  ///根据 id 删除记录
+  @Query("delete from OperationRecord where id in (:ids)")
+  Future<int?> deleteByIds(List<int> ids);
 
   @Query(
     "select * from OperationRecord where uid = :uid and module = :module and method = :opMethod and data = :id",

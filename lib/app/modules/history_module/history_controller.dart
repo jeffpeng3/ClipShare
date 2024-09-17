@@ -21,6 +21,7 @@ import 'package:clipshare/app/utils/extension.dart';
 import 'package:clipshare/app/utils/file_util.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 /**
@@ -114,9 +115,9 @@ class HistoryController extends GetxController
         cb(item.data);
       }
     }
-    if(shouldRefresh){
+    if (shouldRefresh) {
       refreshData();
-    }else{
+    } else {
       sortList();
     }
   }
@@ -218,7 +219,7 @@ class HistoryController extends GetxController
 
   //region 同步与监听
   @override
-  void ackSync(MessageData msg) {
+  Future ackSync(MessageData msg) async {
     var send = msg.send;
     var data = msg.data;
     var opSync = OperationSync(
@@ -227,17 +228,18 @@ class HistoryController extends GetxController
       uid: appConfig.userId,
     );
     //记录同步记录
-    dbService.opSyncDao.add(opSync);
+    await dbService.opSyncDao.add(opSync);
     //更新本地历史记录为已同步
     var hisId = msg.data["hisId"];
-    dbService.historyDao.setSync(hisId, true);
-    for (var clip in _tempList) {
-      if (clip.data.id.toString() == hisId.toString()) {
-        clip.data.sync = true;
-        debounceUpdate();
-        break;
+    return dbService.historyDao.setSync(hisId, true).then((_) {
+      for (var clip in _tempList) {
+        if (clip.data.id.toString() == hisId.toString()) {
+          clip.data.sync = true;
+          debounceUpdate();
+          break;
+        }
       }
-    }
+    });
   }
 
   @override
@@ -316,25 +318,32 @@ class HistoryController extends GetxController
     appConfig.isHistorySyncing.value = true;
     var send = msg.send;
     var opRecord = OperationRecord.fromJson(msg.data);
-    Map<String, dynamic> json = jsonDecode(opRecord.data);
+    Map<String, dynamic> json;
+    if (opRecord.data.length > 1024 * 1024) {
+      json = await compute(
+        (String jsonStr) => jsonDecode(jsonStr),
+        opRecord.data,
+      );
+    } else {
+      json = jsonDecode(opRecord.data);
+    }
     History history = History.fromJson(json);
     history.sync = true;
     if (opRecord.module == Module.historyTop) {
-      //更新数据库
-      dbService.historyDao.setTop(history.id, history.top).then((v) {
-        //更新页面
-        updateData(
-          (h) => h.id == history.id,
-          (his) => his.top = history.top,
-        );
-      });
       //发送同步确认
       sktService.sendData(send, MsgType.ackSync, {
         "id": opRecord.id,
         "hisId": history.id,
         "module": Module.historyTop.moduleName,
       });
-      return;
+      //更新数据库
+      return dbService.historyDao.setTop(history.id, history.top).then((v) {
+        //更新页面
+        updateData(
+              (h) => h.id == history.id,
+              (his) => his.top = history.top,
+        );
+      });
     }
     Future f = Future.value();
     if ([OpMethod.add, OpMethod.update].contains(opRecord.method)) {
@@ -413,7 +422,7 @@ class HistoryController extends GetxController
       dbService.opRecordDao.add(opRecord.copyWith(history.id.toString()));
     });
     notifyCompactWindow();
-    f.whenComplete(() {
+    return f.whenComplete(() {
       //发送同步确认
       sktService.sendData(send, MsgType.ackSync, {
         "id": opRecord.id,
