@@ -4,9 +4,9 @@ class FlatList<T> {
 
   int get length => _length;
 
-  get isEmpty => length == 0;
+  bool get isEmpty => length == 0;
 
-  get isNotEmpty => !isEmpty;
+  bool get isNotEmpty => !isEmpty;
 
   void add(List<T> list) {
     _lists.add(list);
@@ -14,12 +14,14 @@ class FlatList<T> {
   }
 
   List<int> _convertIndex(int index) {
-    index++;
+    if (index >= length) {
+      throw RangeError('Index out of range $length:$index');
+    }
     for (var i = 0; i < _lists.length; i++) {
-      if (index > _lists[i].length) {
+      if (index >= _lists[i].length) {
         index -= _lists[i].length;
       } else {
-        return [i, index - 1];
+        return [i, index];
       }
     }
     throw RangeError('Index out of range $length:$index');
@@ -39,15 +41,11 @@ class FlatList<T> {
     //开始和结束坐标位于同一个list
     if (ei == si) return _lists[si].sublist(sj, ej + 1);
     List<T> result = [];
-    for (var i = si; i <= ei; i++) {
-      if (i == si) {
-        result.addAll(_lists[si].sublist(sj));
-      } else if (i == ei) {
-        result.addAll(_lists[ei].sublist(0, sj + 1));
-      } else {
-        result.addAll(_lists[i]);
-      }
+    result.addAll(_lists[si].sublist(sj));
+    for (var i = si + 1; i < ei; i++) {
+      result.addAll(_lists[i]);
     }
+    result.addAll(_lists[ei].sublist(0, ej + 1));
     return result;
   }
 

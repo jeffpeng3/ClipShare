@@ -2,8 +2,7 @@ import 'package:floor/floor.dart';
 
 @entity
 class User {
-  @PrimaryKey()
-
+  @primaryKey
   ///用户id（uuid）
   int? id;
 

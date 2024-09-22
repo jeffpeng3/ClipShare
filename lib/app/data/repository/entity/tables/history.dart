@@ -5,7 +5,6 @@ import 'package:floor/floor.dart';
 @entity
 class History implements Comparable {
   @PrimaryKey(autoGenerate: true)
-
   ///本地id
   int id;
 

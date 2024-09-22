@@ -1,6 +1,9 @@
 import 'package:floor/floor.dart';
 
-@entity
+@Entity(
+  primaryKeys: ['opId', 'devId', 'uid'],
+  tableName: "OperationSync",
+)
 class OperationSync {
   ///操作记录 id
   @primaryKey

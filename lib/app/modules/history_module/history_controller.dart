@@ -156,9 +156,6 @@ class HistoryController extends GetxController
       if (loading) {
         _loading.value = false;
       }
-      if (appConfig.isHistorySyncing.value) {
-        appConfig.isHistorySyncing.value = false;
-      }
     });
   }
 
@@ -315,7 +312,6 @@ class HistoryController extends GetxController
 
   @override
   Future<void> onSync(MessageData msg) async {
-    appConfig.isHistorySyncing.value = true;
     var send = msg.send;
     var opRecord = OperationRecord.fromJson(msg.data);
     Map<String, dynamic> json;
@@ -340,8 +336,8 @@ class HistoryController extends GetxController
       return dbService.historyDao.setTop(history.id, history.top).then((v) {
         //更新页面
         updateData(
-              (h) => h.id == history.id,
-              (his) => his.top = history.top,
+          (h) => h.id == history.id,
+          (his) => his.top = history.top,
         );
       });
     }

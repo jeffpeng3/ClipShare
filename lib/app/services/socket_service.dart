@@ -85,6 +85,17 @@ class DevSocket {
   });
 }
 
+class MissingDataSyncProgress {
+  int seq;
+  int total;
+
+  MissingDataSyncProgress(this.seq, this.total);
+
+  MissingDataSyncProgress copy() {
+    return MissingDataSyncProgress(seq, total);
+  }
+}
+
 class SocketService extends GetxService {
   final appConfig = Get.find<ConfigService>();
   final dbService = Get.find<DbService>();
@@ -95,7 +106,7 @@ class SocketService extends GetxService {
   final List<DiscoverListener> _discoverListeners = List.empty(growable: true);
   final List<ForwardStatusListener> _forwardStatusListener =
       List.empty(growable: true);
-
+  final missingDataSyncProgress = <String, MissingDataSyncProgress>{}.obs;
   final Map<String, DevSocket> _devSockets = {};
   late SecureSocketServer _server;
   ForwardSocketClient? _forwardClient;
@@ -369,7 +380,10 @@ class SocketService extends GetxService {
   }
 
   ///socket 监听消息处理
-  Future<void> _onSocketReceived(SecureSocketClient client, MessageData msg) async {
+  Future<void> _onSocketReceived(
+    SecureSocketClient client,
+    MessageData msg,
+  ) async {
     Log.debug(tag, msg.key);
     DevInfo dev = msg.send;
     var address =
@@ -434,6 +448,33 @@ class SocketService extends GetxService {
         var copyMsg = MessageData.fromJson(msg.toJson());
         var data = msg.data["data"];
         copyMsg.data = data;
+        final devId = dev.guid;
+        final total = msg.data["total"];
+        int seq = msg.data["seq"];
+        print("syncProgress $seq/$total");
+        //如果已经存在同步记录则更新或者移除
+        if (missingDataSyncProgress.containsKey(devId)) {
+          var progress = missingDataSyncProgress[devId];
+          progress?.seq = seq;
+          progress?.total = total;
+          if (progress != null) {
+            missingDataSyncProgress[devId] = progress;
+          }
+          if (seq == total) {
+            //同步完成，移除
+            missingDataSyncProgress.remove(devId);
+            if (missingDataSyncProgress.keys.isEmpty) {
+              appConfig.isHistorySyncing.value = false;
+            }
+          }
+        } else {
+          final progress = MissingDataSyncProgress(1, total);
+          //否则新增
+          missingDataSyncProgress[devId] = progress;
+          if (!appConfig.isHistorySyncing.value) {
+            appConfig.isHistorySyncing.value = true;
+          }
+        }
         _onSyncMsg(copyMsg);
         break;
 
@@ -985,6 +1026,10 @@ class SocketService extends GetxService {
   void _onDevDisConnected(String devId) {
     //移除socket
     _devSockets.remove(devId);
+    missingDataSyncProgress.remove(devId);
+    if (missingDataSyncProgress.keys.isEmpty) {
+      appConfig.isHistorySyncing.value = false;
+    }
     Log.debug(tag, "$devId 断开连接");
     for (var listener in _devAliveListeners) {
       try {

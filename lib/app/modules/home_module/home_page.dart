@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
+import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/widgets/condition_widget.dart';
 import 'package:clipshare/app/widgets/loading_dots.dart';
@@ -14,6 +15,7 @@ import 'package:get/get.dart';
 
 class HomePage extends GetView<HomeController> {
   final appConfig = Get.find<ConfigService>();
+  final sktService = Get.find<SocketService>();
   final androidChannelService = Get.find<AndroidChannelService>();
 
   @override
@@ -64,7 +66,17 @@ class HomePage extends GetView<HomeController> {
                               if (!selectionMode &&
                                   isSyncing &&
                                   isHistoryPage) {
-                                return const LoadingDots(text: Text("同步中"));
+                                final progresses =
+                                    sktService.missingDataSyncProgress.values;
+                                int total = 0;
+                                int syncedCnt = 0;
+                                for (var progress in progresses) {
+                                  total += progress.total;
+                                  syncedCnt += progress.seq;
+                                }
+                                return LoadingDots(
+                                  text: Text("同步中($syncedCnt/$total)"),
+                                );
                               }
                               return Text(
                                 selectionMode ? selectionText : pageTitle,

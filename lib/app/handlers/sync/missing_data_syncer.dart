@@ -24,21 +24,25 @@ class MissingDataSyncer {
     final dbService = Get.find<DbService>();
     final lst = await dbService.opRecordDao
         .getSyncRecord(appConfig.userId, targetDev.guid, devIds);
-    var i = 1;
     final sktService = Get.find<SocketService>();
-    for (var item in lst) {
-      await process(item).then((shouldRemove) {
-        print("process ${i++}/${lst.length}");
-        if (shouldRemove) {
-          return dbService.opRecordDao.deleteByIds([item.id]);
-        } else {
-          return sktService.sendData(
-            targetDev,
-            MsgType.missingData,
-            {"data": item},
-          );
-        }
-      });
+    for (var i = 0; i < lst.length; i++) {
+      var item = lst[i];
+      final seq = i + 1;
+      var shouldRemove = await process(item);
+      if (shouldRemove) {
+        dbService.opRecordDao.deleteByIds([item.id]);
+      } else {
+        await sktService.sendData(
+          targetDev,
+          MsgType.missingData,
+          {
+            "data": item,
+            "total": lst.length,
+            "seq": seq,
+          },
+        );
+        await Future.delayed(const Duration(milliseconds: 50));
+      }
     }
   }
 

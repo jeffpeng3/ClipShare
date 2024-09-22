@@ -60,14 +60,6 @@ Future<void> main(List<String> args) async {
   } else {
     await initServices();
     runMain(home, title);
-
-    ///全局异常捕获
-    // runZonedGuarded(
-    //   () => ,
-    //   (error, stack) {
-    //     Log.error("App", "$error $stack");
-    //   },
-    // );
   }
 }
 
@@ -79,9 +71,9 @@ Future<void> initServices() async {
   Get.put(ClipChannelService().init());
   Get.put(CommonChannelService().init());
   Get.put(MultiWindowChannelService());
-  Get.putAsync(() => DeviceService().init(), permanent: true);
-  Get.putAsync(() => TagService().init(), permanent: true);
-  Get.putAsync(() => SyncingFileProgressService().init(), permanent: true);
+  await Get.putAsync(() => DeviceService().init(), permanent: true);
+  await Get.putAsync(() => TagService().init(), permanent: true);
+  await Get.putAsync(() => SyncingFileProgressService().init(), permanent: true);
   if (PlatformExt.isPC) {
     await Get.putAsync(() => WindowService().init());
     await Get.putAsync(() => TrayService().init());
