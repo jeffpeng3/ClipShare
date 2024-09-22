@@ -32,7 +32,7 @@ part 'package:clipshare/app/data/repository/db/app_db.floor.g.dart';
 ///
 /// 2. 直接执行 /scripts/db_gen.bat 一键完成
 @Database(
-  version: 2,
+  version: 3,
   entities: [
     Config,
     Device,
@@ -95,9 +95,10 @@ class DbService extends GetxService {
       var dirPath = Directory(Platform.resolvedExecutable).parent.path;
       databasesPath = "$dirPath\\$databasesPath";
     }
-    _db = await $Floor_AppDb
-        .databaseBuilder(databasesPath)
-        .addMigrations([migration1to2]).build();
+    _db = await $Floor_AppDb.databaseBuilder(databasesPath).addMigrations([
+      migration1to2,
+      migration2to3,
+    ]).build();
     return this;
   }
 
@@ -110,7 +111,29 @@ class DbService extends GetxService {
   ///操作记录表新增设备id字段，用于从连接设备同步其他已配对设备数据
   final migration1to2 = Migration(1, 2, (database) async {
     await database.execute('ALTER TABLE OperationRecord ADD COLUMN devId TEXT');
-    // await database
-    //     .execute("UPDATE OperationRecord SET devId = '${App.device.guid}'");
+  });
+
+  ///数据库版本 2 -> 3
+  ///操作同步表联合主键
+  final migration2to3 = Migration(2, 3, (database) async {
+    await database.execute('''
+        CREATE TABLE OperationSyncNew (
+          opId INTEGER NOT NULL,
+          devId TEXT NOT NULL,
+          uid INTEGER NOT NULL,
+          time TEXT NOT NULL,
+          PRIMARY KEY (opId, devId, uid)
+        );
+      ''');
+
+    await database.execute('''
+      INSERT INTO OperationSyncNew (opId, devId, uid, time)
+      SELECT opId, devId, uid, time FROM OperationSync;
+    ''');
+
+    await database.execute('DROP TABLE OperationSync;');
+    await database.execute(
+      'ALTER TABLE OperationSyncNew RENAME TO OperationSync;',
+    );
   });
 }

@@ -89,7 +89,7 @@ class _$_AppDb extends _AppDb {
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 2,
+      version: 3,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -113,11 +113,11 @@ class _$_AppDb extends _AppDb {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `User` (`id` INTEGER, `account` TEXT NOT NULL, `password` TEXT NOT NULL, `type` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `OperationSync` (`opId` INTEGER NOT NULL, `devId` TEXT NOT NULL, `uid` INTEGER NOT NULL, `time` TEXT NOT NULL, PRIMARY KEY (`opId`))');
+            'CREATE TABLE IF NOT EXISTS `OperationSync` (`opId` INTEGER NOT NULL, `devId` TEXT NOT NULL, `uid` INTEGER NOT NULL, `time` TEXT NOT NULL, PRIMARY KEY (`opId`, `devId`, `uid`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `HistoryTag` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `tagName` TEXT NOT NULL, `hisId` INTEGER NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `OperationRecord` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` INTEGER NOT NULL, `devId` TEXT NOT NULL, `module` TEXT NOT NULL, `method` TEXT NOT NULL, `data` TEXT NOT NULL, `time` TEXT NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `OperationRecord` (`id` INTEGER NOT NULL, `uid` INTEGER NOT NULL, `devId` TEXT NOT NULL, `module` TEXT NOT NULL, `method` TEXT NOT NULL, `data` TEXT NOT NULL, `time` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE UNIQUE INDEX `index_HistoryTag_tagName_hisId` ON `HistoryTag` (`tagName`, `hisId`)');
         await database.execute(
@@ -896,19 +896,19 @@ class _$OperationRecordDao extends OperationRecordDao {
   @override
   Future<List<OperationRecord>> getSyncRecord(
     int uid,
-    String devId,
-    List<String> devIds,
+    String toDevId,
+    List<String> fromDevIds,
   ) async {
     const offset = 3;
-    final _sqliteVariablesForDevIds =
-        Iterable<String>.generate(devIds.length, (i) => '?${i + offset}')
+    final _sqliteVariablesForFromDevIds =
+        Iterable<String>.generate(fromDevIds.length, (i) => '?${i + offset}')
             .join(',');
     return _queryAdapter.queryList(
         'select * from OperationRecord record   where not exists (     select 1 from OperationSync opsync     where opsync.uid = ?1 and opsync.devId = ?2 and opsync.opId = record.id   ) and devId in (' +
-            _sqliteVariablesForDevIds +
+            _sqliteVariablesForFromDevIds +
             ')   order by id desc',
         mapper: (Map<String, Object?> row) => OperationRecord(id: row['id'] as int, uid: row['uid'] as int, devId: row['devId'] as String, module: _moduleTypeConverter.decode(row['module'] as String), method: _opMethodTypeConverter.decode(row['method'] as String), data: row['data'] as String),
-        arguments: [uid, devId, ...devIds]);
+        arguments: [uid, toDevId, ...fromDevIds]);
   }
 
   @override
