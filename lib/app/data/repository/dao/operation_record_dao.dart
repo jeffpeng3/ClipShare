@@ -1,4 +1,5 @@
 import 'package:clipshare/app/handlers/sync/missing_data_syncer.dart';
+import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:floor/floor.dart';
@@ -8,6 +9,8 @@ import '../entity/tables/operation_record.dart';
 
 @dao
 abstract class OperationRecordDao {
+  final dbService = Get.find<DbService>();
+
   ///添加操作记录
   @Insert(onConflict: OnConflictStrategy.ignore)
   Future<int> add(OperationRecord record);
@@ -69,4 +72,18 @@ abstract class OperationRecordDao {
     r"delete from OperationRecord where uid = :uid and module = '规则设置' and substr(data,instr(data,':') + 2,instr(data,',') - 3 - instr(data,':')) = :rule",
   )
   Future<int?> removeRuleRecord(String rule, int uid);
+
+  /// 根据 data（主键）删除同步记录
+  @Query(
+    r"delete from OperationRecord where data = :data",
+  )
+  Future<int?> deleteByData(String data);
+
+  ///级联删除操作记录
+  Future<void> deleteByDataWithCascade(String data) async {
+    //先删除同步记录
+    await dbService.opSyncDao.deleteByOpRecordData(data);
+    //再删除操作记录
+    await deleteByData(data);
+  }
 }

@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/app/data/repository/entity/clip_data.dart';
+import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
+import 'package:clipshare/app/modules/history_module/history_controller.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
@@ -65,7 +68,7 @@ class ClipListViewState extends State<ClipListView>
   var _showBackToTopButton = false;
   final String tag = "ClipListView";
   var _selectMode = false;
-  final _selectedIds = <int>{};
+  final _selectedItems = <ClipData>{};
   Key? _clipTagRowKey;
   bool _rightShowFullPage = false;
   ClipData? _showHistoryData;
@@ -179,29 +182,49 @@ class ClipListViewState extends State<ClipListView>
     setState(() {});
   }
 
-  ///通知子窗体
-  void notifyCompactWindow() {
-    if (appConfig.compactWindow == null) {
+  ///删除项目
+  Future<void> deleteItem(ClipData item, [bool deleteFile = false]) async {
+    await dbService.historyDao.deleteByCascade(item.data.id);
+    widget.onRemove(item.data.id);
+    final historyController = Get.find<HistoryController>();
+    //通知子窗体
+    historyController.notifyCompactWindow();
+    //添加删除记录
+    var opRecord = OperationRecord.fromSimple(
+      Module.history,
+      OpMethod.delete,
+      item.data.id,
+    );
+    //通知其他设备
+    dbService.opRecordDao.addAndNotify(opRecord);
+    if (!item.isImage) {
       return;
     }
-    multiWindowChannelService.notify(appConfig.compactWindow!.windowId);
+    //如果是图片，删除并更新媒体库
+    final path = item.data.content;
+    var file = File(path);
+    if (!file.existsSync()) return;
+    file.deleteSync();
+    if (Platform.isAndroid) {
+      androidChannelService.notifyMediaScan(path);
+    }
   }
 
   ///渲染列表项
   Widget renderItem(int i) {
-    var id = widget.list[i].data.id;
+    var item = widget.list[i];
     return ClipDataCard(
       clip: widget.list[i],
       imageMode: widget.imageMasonryGridViewLayout,
       routeToSearchOnClickChip: widget.enableRouteSearch,
       selectMode: _selectMode,
-      selected: _selectedIds.contains(id),
+      selected: _selectedItems.contains(item),
       onTap: () {
         if (_selectMode) {
-          if (_selectedIds.contains(id)) {
-            _selectedIds.remove(id);
+          if (_selectedItems.contains(item)) {
+            _selectedItems.remove(item);
           } else {
-            _selectedIds.add(id);
+            _selectedItems.add(item);
           }
           setState(() {});
         } else {
@@ -222,7 +245,7 @@ class ClipListViewState extends State<ClipListView>
         appConfig.isMultiSelectionMode.value = true;
         appConfig.multiSelectionText.value = "多选删除";
         _selectMode = true;
-        _selectedIds.add(id);
+        _selectedItems.add(item);
         setState(() {});
       },
       onDoubleTap: () async {
@@ -239,13 +262,18 @@ class ClipListViewState extends State<ClipListView>
           Global.showSnackBarErr(context, "复制失败");
         }
       },
-      onUpdate: () {
-        widget.onUpdate.call();
-        notifyCompactWindow();
-      },
-      onRemove: (id) {
-        widget.onRemove.call(id);
-        notifyCompactWindow();
+      onUpdate: widget.onUpdate,
+      onRemoveClicked: (ClipData item) {
+        Global.showTipsDialog(
+          context: context,
+          text: "确定删除该记录？",
+          title: "删除提示",
+          showCancel: true,
+          showNeutral: item.isFile || item.isImage,
+          neutralText: "连带文件删除",
+          onOk: () => deleteItem(item),
+          onNeutral: () => deleteItem(item, true),
+        );
       },
     );
   }
@@ -339,7 +367,7 @@ class ClipListViewState extends State<ClipListView>
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 10),
                                 child: Text(
-                                  "${_selectedIds.length} / ${widget.list.length}",
+                                  "${_selectedItems.length} / ${widget.list.length}",
                                   style: const TextStyle(
                                     fontSize: 20,
                                     color: Colors.black45,
@@ -357,7 +385,7 @@ class ClipListViewState extends State<ClipListView>
                               margin: const EdgeInsets.only(right: 10),
                               child: FloatingActionButton(
                                 onPressed: () {
-                                  _selectedIds.clear();
+                                  _selectedItems.clear();
                                   _selectMode = false;
                                   appConfig.isMultiSelectionMode.value = false;
                                   setState(() {});
@@ -369,7 +397,7 @@ class ClipListViewState extends State<ClipListView>
                           ),
                         ),
                         Visibility(
-                          visible: _selectMode && _selectedIds.isNotEmpty,
+                          visible: _selectMode && _selectedItems.isNotEmpty,
                           child: Tooltip(
                             message: "删除",
                             child: Container(
@@ -378,46 +406,39 @@ class ClipListViewState extends State<ClipListView>
                                   : null,
                               child: FloatingActionButton(
                                 onPressed: () {
+                                  void multiDelete(bool deleteFile) async {
+                                    Get.back();
+                                    Global.showLoadingDialog(
+                                      context: context,
+                                      loadingText: "删除中...",
+                                    );
+                                    for (var item in _selectedItems) {
+                                      await deleteItem(item, deleteFile);
+                                    }
+                                    Get.back();
+                                    Global.showSnackBarSuc(
+                                      context,
+                                      "删除完成",
+                                    );
+                                    _selectedItems.clear();
+                                    _selectMode = false;
+                                    appConfig.isMultiSelectionMode.value =
+                                        false;
+                                    setState(() {});
+                                  }
+
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: "是否删除选中的 ${_selectedIds.length} 项？",
+                                    text: "是否删除选中的 ${_selectedItems.length} 项？",
                                     showCancel: true,
                                     autoDismiss: false,
+                                    showNeutral: true,
+                                    neutralText: "连带文件删除",
                                     onCancel: () {
                                       Navigator.pop(context);
                                     },
-                                    onOk: () {
-                                      Navigator.pop(context);
-                                      Global.showLoadingDialog(
-                                        context: context,
-                                        loadingText: "删除中...",
-                                      );
-                                      dbService.historyDao
-                                          .deleteByIds(
-                                        _selectedIds.toList(),
-                                        appConfig.userId,
-                                      )
-                                          .then((cnt) {
-                                        if (cnt != null && cnt > 0) {
-                                          _loadMoreData();
-                                          Navigator.pop(context);
-                                          Global.showSnackBarSuc(
-                                            context,
-                                            "删除成功",
-                                          );
-                                        } else {
-                                          Global.showSnackBarErr(
-                                            context,
-                                            "删除失败",
-                                          );
-                                        }
-                                      });
-                                      _selectedIds.clear();
-                                      _selectMode = false;
-                                      appConfig.isMultiSelectionMode.value =
-                                          true;
-                                      setState(() {});
-                                    },
+                                    onNeutral: () => multiDelete(true),
+                                    onOk: () => multiDelete(false),
                                   );
                                 },
                                 heroTag: 'deleteHistory',

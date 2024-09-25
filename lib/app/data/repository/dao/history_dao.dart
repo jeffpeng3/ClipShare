@@ -111,6 +111,15 @@ abstract class HistoryDao {
   )
   Future<int?> deleteByIds(List<int> ids, int uid);
 
+  Future<void> deleteByCascade(int id) async {
+    //删除tag
+    ((await dbService.historyTagDao.removeAllByHisId(id)) ?? 0) > 0;
+    //删除历史
+    await dbService.historyDao.delete(id);
+    //删除操作记录和同步记录
+    await dbService.opRecordDao.deleteByDataWithCascade(id.toString());
+  }
+
   ///查询历史记录中的不同类型的数量
   Future<List<HistoryTypeCnt>> getHistoryTypeCnt(
     int uid,

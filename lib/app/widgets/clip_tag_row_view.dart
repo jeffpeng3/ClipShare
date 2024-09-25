@@ -1,7 +1,7 @@
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
+import 'package:clipshare/app/modules/views/tag_edit_page.dart';
 import 'package:clipshare/app/services/tag_service.dart';
 import 'package:clipshare/app/widgets/condition_widget.dart';
-import 'package:clipshare/app/modules/views/tag_edit_page.dart';
 import 'package:clipshare/app/widgets/rounded_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

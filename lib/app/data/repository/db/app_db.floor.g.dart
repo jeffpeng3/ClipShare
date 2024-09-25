@@ -731,6 +731,14 @@ class _$OperationSyncDao extends OperationSyncDao {
   }
 
   @override
+  Future<int?> deleteByOpRecordData(String opRecordData) async {
+    return _queryAdapter.query(
+        'delete OperationSync where opId in (select id from OperationRecord where data = ?1)',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [opRecordData]);
+  }
+
+  @override
   Future<int> add(OperationSync syncHistory) {
     return _operationSyncInsertionAdapter.insertAndReturnId(
         syncHistory, OnConflictStrategy.ignore);
@@ -965,6 +973,13 @@ class _$OperationRecordDao extends OperationRecordDao {
         'delete from OperationRecord where uid = ?2 and module = \'规则设置\' and substr(data,instr(data,\':\') + 2,instr(data,\',\') - 3 - instr(data,\':\')) = ?1',
         mapper: (Map<String, Object?> row) => row.values.first as int,
         arguments: [rule, uid]);
+  }
+
+  @override
+  Future<int?> deleteByData(String data) async {
+    return _queryAdapter.query('delete from OperationRecord where data = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [data]);
   }
 
   @override

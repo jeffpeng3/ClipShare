@@ -564,7 +564,7 @@ class ConfigService extends GetxService {
 
   Future<void> setIgnoreShizuku() async {
     await _addOrUpdateDbConfig("ignoreShizuku", true.toString());
-    _ignoreShizuku.value = ignoreShizuku;
+    _ignoreShizuku.value = true;
   }
 
   Future<void> setUseAuthentication(bool useAuthentication) async {

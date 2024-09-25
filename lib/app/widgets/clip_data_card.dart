@@ -10,7 +10,6 @@ import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extension.dart';
-import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_content.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_extra_info.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_header.dart';
@@ -27,7 +26,7 @@ class ClipDataCard extends StatefulWidget {
   final void Function()? onLongPress;
   final void Function()? onDoubleTap;
   final void Function() onUpdate;
-  final void Function(int id) onRemove;
+  final void Function(ClipData item) onRemoveClicked;
   final bool routeToSearchOnClickChip;
   final bool imageMode;
   final bool selectMode;
@@ -36,7 +35,7 @@ class ClipDataCard extends StatefulWidget {
   const ClipDataCard({
     required this.clip,
     required this.onUpdate,
-    required this.onRemove,
+    required this.onRemoveClicked,
     super.key,
     this.routeToSearchOnClickChip = false,
     this.onTap,
@@ -88,7 +87,7 @@ class ClipDataCardState extends State<ClipDataCard> {
             dlgContext: context,
             clip: chip,
             onUpdate: widget.onUpdate,
-            onRemove: widget.onRemove,
+            onRemoveClicked: widget.onRemoveClicked,
           ),
         );
       },
@@ -106,7 +105,7 @@ class ClipDataCardState extends State<ClipDataCard> {
           dlgContext: context,
           clip: chip,
           onUpdate: widget.onUpdate,
-          onRemove: widget.onRemove,
+          onRemoveClicked: widget.onRemoveClicked,
         );
       },
     );
@@ -332,7 +331,7 @@ class ClipDataCardState extends State<ClipDataCard> {
             color: Colors.blueGrey,
           ),
           onTap: () {
-            Navigator.of(context).pop();
+            Get.back();
             TagEditPage.goto(widget.clip.data.id);
           },
         ),
@@ -343,53 +342,30 @@ class ClipDataCardState extends State<ClipDataCard> {
           ),
           title: const Text("删除"),
           onTap: () {
-            Future removeData() async {
-              var id = widget.clip.data.id;
-              //删除tag
-              await dbService.historyTagDao.removeAllByHisId(id);
-              //删除历史
-              return dbService.historyDao.delete(id).then((v) {
-                if (v == null || v <= 0) return 0;
-                //添加删除记录
-                var opRecord = OperationRecord.fromSimple(
-                  Module.history,
-                  OpMethod.delete,
-                  id,
-                );
-                widget.onRemove(id);
-                dbService.opRecordDao.addAndNotify(opRecord);
-                return v;
-              });
-            }
-
-            Navigator.pop(context);
-            Global.showTipsDialog(
-              context: context,
-              text: "确定删除该记录？",
-              title: "删除提示",
-              showCancel: true,
-              showNeutral: widget.clip.isFile || widget.clip.isImage,
-              neutralText: "连带文件删除",
-              onOk: () {
-                removeData();
-              },
-              onNeutral: () async {
-                final n = await removeData();
-                if (n == null ||
-                    n <= 0 ||
-                    !widget.clip.isImage ||
-                    !Platform.isAndroid) {
-                  return;
-                }
-                //如果是图片，删除并更新媒体库
-                var file = File(widget.clip.data.content);
-                file.deleteSync();
-                androidChannelService.notifyMediaScan(widget.clip.data.content);
-              },
-            );
+            Get.back();
+            widget.onRemoveClicked(widget.clip);
           },
         ),
       ],
     );
+  }
+
+  ///删除数据
+  Future<bool> removeData() async {
+    var id = widget.clip.data.id;
+    //删除tag
+    await dbService.historyTagDao.removeAllByHisId(id);
+    //删除历史
+    return dbService.historyDao.delete(id).then((v) {
+      if (v == null || v <= 0) return false;
+      //添加删除记录
+      var opRecord = OperationRecord.fromSimple(
+        Module.history,
+        OpMethod.delete,
+        id,
+      );
+      dbService.opRecordDao.addAndNotify(opRecord);
+      return true;
+    });
   }
 }

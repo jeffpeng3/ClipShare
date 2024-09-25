@@ -161,9 +161,8 @@ class HistoryController extends GetxController
 
   ///通知子窗体更新
   void notifyCompactWindow() {
-    if (appConfig.compactWindow == null) {
-      return;
-    }
+    if (PlatformExt.isMobile) return;
+    if (appConfig.compactWindow == null) return;
     multiWindowChannelService
         .notify(appConfig.compactWindow!.windowId)
         .catchError((err) {

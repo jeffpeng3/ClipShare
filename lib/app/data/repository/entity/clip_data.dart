@@ -38,4 +38,17 @@ class ClipData {
     }
     return res;
   }
+
+  @override
+  int get hashCode => _data.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is History) {
+      return _data == other;
+    } else if (other is ClipData) {
+      return _data == other._data;
+    }
+    return false;
+  }
 }

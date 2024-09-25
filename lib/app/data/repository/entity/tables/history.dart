@@ -5,6 +5,7 @@ import 'package:floor/floor.dart';
 @entity
 class History implements Comparable {
   @PrimaryKey(autoGenerate: true)
+
   ///本地id
   int id;
 
@@ -122,6 +123,15 @@ class History implements Comparable {
   History copy() {
     return fromJson(toJson());
   }
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is History) {
+      return id == other.id;
+    }
+    return false;
+  }
 }
-
-
