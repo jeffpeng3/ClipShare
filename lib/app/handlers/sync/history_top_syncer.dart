@@ -40,38 +40,35 @@ class HistoryTopSyncer implements SyncListener {
   }
 
   @override
-  Future onSync(MessageData msg) {
+  Future onSync(MessageData msg) async {
     var send = msg.send;
     var opRecord = OperationRecord.fromJson(msg.data);
     Map<String, dynamic> json = jsonDecode(opRecord.data);
     History history = History.fromJson(json);
-    Future? f;
+    bool success = false;
     switch (opRecord.method) {
       case OpMethod.update:
-        f = dbService.historyDao.setTop(history.id, history.top);
+        success = await dbService.historyDao
+                .setTop(history.id, history.top)
+                .then((cnt) => cnt ?? 0) >
+            0;
         break;
       default:
-        return Future.value();
     }
-
-    return f.then((cnt) {
-      Future f = Future.value();
-      if (cnt != null && cnt > 0) {
-        //同步成功后在本地也记录一次
-        var originOpRecord = opRecord.copyWith(history.id.toString());
-        f = dbService.opRecordDao.add(originOpRecord);
-      }
-      historyController.updateData(
-        (his) => his.id == history.id,
-        (his) => his.top = history.top,
-      );
-      //发送同步确认
-      sktService.sendData(
-        send,
-        MsgType.ackSync,
-        {"id": opRecord.id, "module": Module.historyTop.moduleName},
-      );
-      return f;
-    });
+    if (success) {
+      //同步成功后在本地也记录一次
+      var originOpRecord = opRecord.copyWith(history.id.toString());
+      await dbService.opRecordDao.add(originOpRecord);
+    }
+    historyController.updateData(
+      (his) => his.id == history.id,
+      (his) => his.top = history.top,
+    );
+    //发送同步确认
+    sktService.sendData(
+      send,
+      MsgType.ackSync,
+      {"id": opRecord.id, "module": Module.historyTop.moduleName},
+    );
   }
 }

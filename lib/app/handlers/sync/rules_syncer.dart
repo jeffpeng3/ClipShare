@@ -37,11 +37,10 @@ class RulesSyncer implements SyncListener {
   }
 
   @override
-  Future onSync(MessageData msg) {
+  Future onSync(MessageData msg) async {
     var send = msg.send;
     var opRecord = OperationRecord.fromJson(msg.data);
     Map<String, dynamic> json = jsonDecode(opRecord.data);
-    Future f = Future(() => null);
     Rule rule = Rule.getValue(json["rule"]);
     Map<String, dynamic> data = json["data"];
     int newVersion = data["version"];
@@ -54,38 +53,33 @@ class RulesSyncer implements SyncListener {
         localTagRules = jsonDecode(appConfig.smsRules);
         break;
       default:
-        return Future.value();
     }
 
     var localVersion = localTagRules["version"];
     if (localVersion <= newVersion) {
       //小于发送过来的版本，更新本地
-      f.then((v) async {
-        switch (rule) {
-          case Rule.tag:
-            appConfig.setTagRules(jsonEncode(data));
-            break;
-          case Rule.sms:
-            appConfig.setSmsRules(jsonEncode(data));
-            break;
-          default:
-            return;
-        }
-        //本地插入一条操作记录，先移除旧的再插入
-        await dbService.opRecordDao.removeRuleRecord(
-          Rule.tag.name,
-          appConfig.userId,
-        );
-        await dbService.opRecordDao.add(opRecord);
-      });
-    }
-    return f.then((cnt) {
-      //发送同步确认
-      sktService.sendData(
-        send,
-        MsgType.ackSync,
-        {"id": opRecord.id, "module": Module.rules.moduleName},
+      switch (rule) {
+        case Rule.tag:
+          await appConfig.setTagRules(jsonEncode(data));
+          break;
+        case Rule.sms:
+          await appConfig.setSmsRules(jsonEncode(data));
+          break;
+        default:
+          return;
+      }
+      //本地插入一条操作记录，先移除旧的再插入
+      await dbService.opRecordDao.removeRuleRecord(
+        Rule.tag.name,
+        appConfig.userId,
       );
-    });
+      await dbService.opRecordDao.add(opRecord);
+    }
+    //发送同步确认
+    sktService.sendData(
+      send,
+      MsgType.ackSync,
+      {"id": opRecord.id, "module": Module.rules.moduleName},
+    );
   }
 }

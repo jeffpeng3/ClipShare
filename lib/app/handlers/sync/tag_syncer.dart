@@ -40,41 +40,38 @@ class TagSyncer implements SyncListener {
   }
 
   @override
-  Future onSync(MessageData msg) {
+  Future onSync(MessageData msg) async {
     var send = msg.send;
     var opRecord = OperationRecord.fromJson(msg.data);
     Map<String, dynamic> json = jsonDecode(opRecord.data);
     HistoryTag tag = HistoryTag.fromJson(json);
-    Future f = Future.value();
+    bool success = false;
     switch (opRecord.method) {
       case OpMethod.add:
-        f = dbService.historyTagDao.add(tag).then((cnt) {
-          tagService.add(tag, false);
-          return cnt;
-        });
+        success = await dbService.historyTagDao.add(tag) > 0;
+        tagService.add(tag, false);
         break;
       case OpMethod.delete:
-        f = dbService.historyTagDao.removeById(tag.id).then((cnt) {
-          tagService.remove(tag, false);
-          return cnt;
-        });
+        //delete后仅有id，无hisId，需要本地查一次
+        final dbTag = await dbService.historyTagDao.getById(tag.id);
+        success = await dbService.historyTagDao
+                .removeById(tag.id)
+                .then((cnt) => cnt ?? 0) >
+            0;
+        if (dbTag != null) {
+          tagService.remove(dbTag, false);
+        }
         break;
       default:
-        return f;
     }
-
-    return f.then((cnt) {
-      Future res = Future.value();
-      if (cnt != null && cnt > 0) {
-        res = dbService.opRecordDao.add(opRecord.copyWith(tag.id.toString()));
-      }
-      //发送同步确认
-      sktService.sendData(
-        send,
-        MsgType.ackSync,
-        {"id": opRecord.id, "module": Module.tag.moduleName},
-      );
-      return res;
-    });
+    if (success) {
+      await dbService.opRecordDao.add(opRecord.copyWith(tag.id.toString()));
+    }
+    //发送同步确认
+    sktService.sendData(
+      send,
+      MsgType.ackSync,
+      {"id": opRecord.id, "module": Module.tag.moduleName},
+    );
   }
 }

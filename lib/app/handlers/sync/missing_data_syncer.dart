@@ -53,86 +53,82 @@ class MissingDataSyncer {
     var id = opRecord.data;
     switch (opRecord.module) {
       case Module.device:
-        await dbService.deviceDao.getById(id, appConfig.userId).then((v) {
-          //数据库不存在该数据
-          if (v == null) {
-            //如果不是delete方法就移除
-            if (opRecord.method != OpMethod.delete) {
-              shouldRemove = true;
-            } else {
-              var empty = Device.empty();
-              empty.guid = id;
-              empty.uid = appConfig.userId;
-              opRecord.data = empty.toString();
-            }
+        final device = await dbService.deviceDao.getById(id, appConfig.userId);
+        //数据库不存在该数据
+        if (device == null) {
+          //如果不是delete方法就移除
+          if (opRecord.method != OpMethod.delete) {
+            shouldRemove = true;
           } else {
-            opRecord.data = v.toString();
+            var empty = Device.empty();
+            empty.guid = id;
+            empty.uid = appConfig.userId;
+            opRecord.data = empty.toString();
           }
-        });
+        } else {
+          opRecord.data = device.toString();
+        }
         break;
       case Module.tag:
-        await dbService.historyTagDao.getById(int.parse(id)).then((v) {
-          if (v == null) {
-            if (opRecord.method != OpMethod.delete) {
-              shouldRemove = true;
-            } else {
-              var empty = HistoryTag.empty();
-              empty.id = int.parse(id);
-              opRecord.data = empty.toString();
-            }
+        final historyTag = await dbService.historyTagDao.getById(int.parse(id));
+        if (historyTag == null) {
+          if (opRecord.method != OpMethod.delete) {
+            shouldRemove = true;
           } else {
-            opRecord.data = v.toString();
+            var empty = HistoryTag.empty();
+            empty.id = int.parse(id);
+            opRecord.data = empty.toString();
           }
-        });
+        } else {
+          opRecord.data = historyTag.toString();
+        }
         break;
       case Module.history:
-        await dbService.historyDao.getById(int.parse(id)).then((v) async {
-          if (v == null) {
-            if (opRecord.method != OpMethod.delete) {
-              shouldRemove = true;
-            } else {
-              var empty = History.empty();
-              empty.id = int.parse(id);
-              opRecord.data = empty.toString();
-            }
+        final history = await dbService.historyDao.getById(int.parse(id));
+        if (history == null) {
+          if (opRecord.method != OpMethod.delete) {
+            shouldRemove = true;
           } else {
-            try {
-              if (ClipData(v).isImage) {
-                var content = await compute(
-                  (History v) {
-                    var file = File(v.content);
-                    var fileName = file.fileName;
-                    var bytes = file.readAsBytesSync();
-                    v.content = jsonEncode(
-                      {"fileName": fileName, "data": bytes},
-                    );
-                    return v.toString();
-                  },
-                  v,
-                );
-                opRecord.data = content;
-              } else {
-                opRecord.data = v.toString();
-              }
-            } catch (e, t) {
-              shouldRemove = true;
-              Log.debug(tag, "$e\n$t");
-            }
+            var empty = History.empty();
+            empty.id = int.parse(id);
+            opRecord.data = empty.toString();
           }
-        });
+        } else {
+          try {
+            if (ClipData(history).isImage) {
+              var content = await compute(
+                (History v) {
+                  var file = File(v.content);
+                  var fileName = file.fileName;
+                  var bytes = file.readAsBytesSync();
+                  v.content = jsonEncode(
+                    {"fileName": fileName, "data": bytes},
+                  );
+                  return v.toString();
+                },
+                history,
+              );
+              opRecord.data = content;
+            } else {
+              opRecord.data = history.toString();
+            }
+          } catch (e, t) {
+            shouldRemove = true;
+            Log.debug(tag, "$e\n$t");
+          }
+        }
         break;
       case Module.historyTop:
-        await dbService.historyDao.getById(int.parse(id)).then((v) {
-          if (v == null) {
-            if (opRecord.method != OpMethod.delete) {
-              shouldRemove = true;
-            }
-          } else {
-            //更新置顶状态，将内容设为空，提高传输效率
-            v.content = "";
-            opRecord.data = v.toString();
+        final history = await dbService.historyDao.getById(int.parse(id));
+        if (history == null) {
+          if (opRecord.method != OpMethod.delete) {
+            shouldRemove = true;
           }
-        });
+        } else {
+          //更新置顶状态，将内容设为空，提高传输效率
+          history.content = "";
+          opRecord.data = history.toString();
+        }
         break;
       case Module.rules:
         //什么都不做

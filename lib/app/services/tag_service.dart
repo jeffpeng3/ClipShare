@@ -28,19 +28,14 @@ class TagService extends GetxService {
     }
   }
 
-  Future<bool> _remove(HistoryTag tag, [bool notify = true]) async {
-    var cnt = await _dbService.historyTagDao.removeById(tag.id);
-    var res = cnt != null && cnt > 0;
-    if (!res) return false;
+  Future<void> _remove(HistoryTag tag, [bool notify = true]) async {
+    await _dbService.historyTagDao.removeById(tag.id);
     if (_tags.containsKey(tag.hisId)) {
       if (_tags[tag.hisId]!.length == 1) {
         _tags.remove(tag.hisId);
       } else {
-        _tags[tag.hisId] != Set.from(_tags[tag.hisId]!..remove(tag.tagName));
+        _tags[tag.hisId] = Set.from(_tags[tag.hisId]!..remove(tag.tagName));
       }
-    }
-    if (!notify) {
-      return res;
     }
     var opRecord = OperationRecord.fromSimple(
       Module.tag,
@@ -49,7 +44,6 @@ class TagService extends GetxService {
     );
     //添加操作记录
     _dbService.opRecordDao.addAndNotify(opRecord);
-    return true;
   }
 
   Future<bool> _add(HistoryTag tag, [bool notify = true]) async {
@@ -94,8 +88,8 @@ class TagService extends GetxService {
   }
 
   ///删除 tag
-  Future<bool> remove(HistoryTag tag, [bool notify = true]) async {
-    return await _remove(tag, notify);
+  Future<void> remove(HistoryTag tag, [bool notify = true]) async {
+    await _remove(tag, notify);
   }
 
   ///批量删除
