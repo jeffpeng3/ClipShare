@@ -78,7 +78,7 @@ class FileSyncer {
             devId: appConfig.devInfo.guid,
             time: start.toString(),
             content: path,
-            type: ContentType.file.value,
+            type: HistoryContentType.file.value,
             size: file.lengthSync(),
             sync: true,
           );
@@ -263,7 +263,7 @@ class FileSyncer {
           devId: devId,
           time: start.toString(),
           content: filePath,
-          type: ContentType.file.value,
+          type: HistoryContentType.file.value,
           size: size,
           sync: true,
         );

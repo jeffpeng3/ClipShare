@@ -109,7 +109,7 @@ class _DebugPageState extends State<DebugPage> {
         ElevatedButton(
           onPressed: () async {
             for (var i in List.generate(200, (index) => index)) {
-              ClipboardListener.inst.onChanged(ContentType.text, i.toString());
+              HistoryDataListener.inst.onChanged(HistoryContentType.text, i.toString());
             }
           },
           child: const Text("大量数据同步"),

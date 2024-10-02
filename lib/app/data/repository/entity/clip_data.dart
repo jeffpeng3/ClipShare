@@ -9,17 +9,17 @@ class ClipData {
 
   History get data => _data;
 
-  bool get isImage => _data.type == ContentType.image.value;
+  bool get isImage => _data.type == HistoryContentType.image.value;
 
-  bool get isText => _data.type == ContentType.text.value;
+  bool get isText => _data.type == HistoryContentType.text.value;
 
-  bool get isFile => _data.type == ContentType.file.value;
+  bool get isFile => _data.type == HistoryContentType.file.value;
 
-  bool get isSms => _data.type == ContentType.sms.value;
+  bool get isSms => _data.type == HistoryContentType.sms.value;
 
   String get timeStr => getTimeStr();
 
-  bool get isRichText => _data.type == ContentType.richText.value;
+  bool get isRichText => _data.type == HistoryContentType.richText.value;
 
   String get sizeText {
     int size = data.size;

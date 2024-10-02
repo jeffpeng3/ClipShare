@@ -6,6 +6,7 @@
 
 #include "generated_plugin_registrant.h"
 
+#include <clipboard_listener/clipboard_listener_plugin_c_api.h>
 #include <connectivity_plus/connectivity_plus_windows_plugin.h>
 #include <desktop_multi_window/desktop_multi_window_plugin.h>
 #include <hotkey_manager_windows/hotkey_manager_windows_plugin_c_api.h>
@@ -19,6 +20,8 @@
 #include <window_manager/window_manager_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
+  ClipboardListenerPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("ClipboardListenerPluginCApi"));
   ConnectivityPlusWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("ConnectivityPlusWindowsPlugin"));
   DesktopMultiWindowPluginRegisterWithRegistrar(

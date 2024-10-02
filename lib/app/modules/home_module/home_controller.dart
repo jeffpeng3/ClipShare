@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:clipshare/app/handlers/permission_handler.dart';
 import 'package:clipshare/app/handlers/sync/history_top_syncer.dart';
 import 'package:clipshare/app/handlers/sync/rules_syncer.dart';
@@ -10,7 +9,6 @@ import 'package:clipshare/app/modules/device_module/device_page.dart';
 import 'package:clipshare/app/modules/history_module/history_page.dart';
 import 'package:clipshare/app/modules/search_module/search_page.dart';
 import 'package:clipshare/app/modules/settings_module/settings_page.dart';
-import 'package:clipshare/app/modules/statistics_module/statistics_page.dart';
 import 'package:clipshare/app/modules/views/debug_page.dart';
 import 'package:clipshare/app/modules/views/syncing_file_page.dart';
 import 'package:clipshare/app/routes/app_pages.dart';

@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipboard_listener/clipboard_manager.dart';
+import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/handlers/hot_key_handler.dart';
@@ -132,10 +134,11 @@ class SplashController extends GetxController {
         case MultiWindowMethod.copy:
           int id = args["id"];
           dbService.historyDao.getById(id).then(
-            (res) {
-              if (res == null) return;
+            (history) {
+              if (history == null) return;
               appConfig.innerCopy = true;
-              clipChannelService.copy(res.toJson());
+              var type = ClipboardContentType.parse(history.type);
+              clipboardManager.copy(type, history.content);
             },
           );
           break;
@@ -183,12 +186,6 @@ class SplashController extends GetxController {
             return false;
           });
           break;
-        case ClipChannelMethod.onClipboardChanged:
-          String content = arguments['content'];
-          String type = arguments['type'];
-          ClipboardListener.inst.onChanged(ContentType.parse(type), content);
-          Log.debug(tag, "clipboard changed: $type: $content");
-          return Future(() => true);
         case ClipChannelMethod.getHistory:
           int fromId = arguments["fromId"];
           var historyDao = dbService.historyDao;
@@ -215,29 +212,13 @@ class SplashController extends GetxController {
     });
     if (Platform.isAndroid) {
       appConfig.androidChannel.setMethodCallHandler((call) async {
-        var arguments = call.arguments;
         switch (call.method) {
           case AndroidChannelMethod.onScreenOpened:
             ScreenOpenedListener.inst.notify();
             break;
-          case AndroidChannelMethod.checkMustPermission:
-            try {
-              if (appConfig.firstStartup || appConfig.ignoreShizuku) {
-                return;
-              }
-            } catch (e) {
-              return;
-            }
-            Global.showTipsDialog(
-              context: Get.context!,
-              title: '必要权限缺失',
-              text: '请授权必要权限，由于 Android 10 及以上版本的系统不允许后台读取剪贴板，'
-                  '需要依赖 Shizuku，否则只能被动接收剪贴板数据而不能自动同步',
-              cancelText: '不再提示',
-              onCancel: () {
-                appConfig.setIgnoreShizuku();
-              },
-            );
+          case AndroidChannelMethod.onSmsChanged:
+            final content = call.arguments["content"]!;
+            HistoryDataListener.inst.onChanged(HistoryContentType.sms, content);
             break;
         }
         return Future(() => false);

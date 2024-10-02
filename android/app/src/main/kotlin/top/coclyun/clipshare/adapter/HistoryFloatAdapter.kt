@@ -4,11 +4,8 @@ import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipDescription
 import android.content.ClipboardManager
-import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.provider.MediaStore
 import android.util.Log
 import android.view.DragEvent
 import android.view.LayoutInflater
@@ -20,13 +17,10 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat.getSystemService
-import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import io.flutter.plugin.common.MethodChannel.Result
 import top.coclyun.clipshare.MainActivity
 import top.coclyun.clipshare.R
-import java.io.ByteArrayOutputStream
-import java.io.File
 import kotlin.math.min
 
 
@@ -145,10 +139,11 @@ class HistoryFloatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
                 // 将数据放入剪贴板
                 clipboardManager.setPrimaryClip(clipData)
             } else {
+                val pkgName = itemView.context.packageName
                 val clipData = ClipData.newUri(
                     itemView.context.contentResolver,
                     "image",
-                    Uri.parse("content://top.coclyun.clipshare.FileProvider/${item.content}")
+                    Uri.parse("content://${pkgName}.FileProvider/${item.content}")
                 )
                 // 将数据放入剪贴板
                 clipboardManager.setPrimaryClip(clipData)

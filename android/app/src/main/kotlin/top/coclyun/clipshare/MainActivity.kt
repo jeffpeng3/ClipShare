@@ -5,12 +5,9 @@ import android.app.ActivityManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
@@ -21,26 +18,20 @@ import android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.GeneratedPluginRegistrant
-import rikka.shizuku.Shizuku
 import top.coclyun.clipshare.broadcast.ScreenReceiver
-import top.coclyun.clipshare.enums.ContentType
 import top.coclyun.clipshare.observer.SmsObserver
-import top.coclyun.clipshare.service.ForegroundService
 import top.coclyun.clipshare.service.HistoryFloatService
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 
 
-class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResultListener,
-    ClipboardListener.ClipboardObserver {
-    private val requestShizukuCode = 5001
+class MainActivity : FlutterFragmentActivity() {
     private val requestOverlayResultCode = 5002
     private lateinit var screenReceiver: ScreenReceiver
     private val TAG: String = "MainActivity";
@@ -90,30 +81,25 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
         }
     }
 
-    private fun initService(restart: Boolean = false) {
-        Log.d("onCreate", "initService")
-        Shizuku.addRequestPermissionResultListener(this);
-        val serviceRunning = isServiceRunning(this, ForegroundService::class.java)
-        if (serviceRunning) {
-            if (restart) {
-                stopService(Intent(this, ForegroundService::class.java))
-            }
-            return;
-        }
-        //需要Shizuku且已授权则启动
-        if (ForegroundService.needShizuku() && checkShizukuPermission(requestShizukuCode)) {
-            Log.d("onCreate", "start Service")
-            // 创建 Intent 对象
-            val serviceIntent = Intent(this, ForegroundService::class.java)
-            // 判断 Android 版本并启动服务
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(serviceIntent);
-            } else {
-                startService(serviceIntent);
-            }
-        } else {
-            androidChannel.invokeMethod("checkMustPermission", null)
-        }
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        MainActivity.applicationContext = applicationContext
+        MainActivity.pendingIntent = createPendingIntent()
+        GeneratedPluginRegistrant.registerWith(flutterEngine)
+        commonChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "top.coclyun.clipshare/common"
+        )
+        androidChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "top.coclyun.clipshare/android"
+        )
+        clipChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "top.coclyun.clipshare/clip"
+        )
+        initCommonChannel()
+        initAndroidChannel()
         createNotifyChannel();
     }
 
@@ -170,69 +156,6 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
         }
     }
 
-    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        super.configureFlutterEngine(flutterEngine)
-        MainActivity.applicationContext = applicationContext
-        MainActivity.pendingIntent = createPendingIntent()
-        GeneratedPluginRegistrant.registerWith(flutterEngine)
-        commonChannel = MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            "top.coclyun.clipshare/common"
-        )
-        androidChannel = MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            "top.coclyun.clipshare/android"
-        )
-        clipChannel = MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            "top.coclyun.clipshare/clip"
-        )
-        initCommonChannel()
-        initClipChannel()
-        initAndroidChannel()
-        initService()
-    }
-
-
-    override fun onRequestPermissionResult(requestCode: Int, grantResult: Int) {
-        val granted = grantResult == PackageManager.PERMISSION_GRANTED
-        // Do stuff based on the result and the request code
-        if (granted) {
-            when (requestCode) {
-                requestShizukuCode -> {
-                    Toast.makeText(this, "Shizuku 已授权", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-    }
-
-    /**
-     * 检查shizuku权限
-     * @param code 权限代码
-     */
-    private fun checkShizukuPermission(code: Int): Boolean {
-        if (Shizuku.isPreV11()) {
-            Toast.makeText(this, "Pre-v11 is unsupported", Toast.LENGTH_LONG).show()
-            Log.d(TAG, "Pre-v11 is unsupported")
-            return false
-        }
-        try {
-            return if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
-                // Granted
-                true
-            } else if (Shizuku.shouldShowRequestPermissionRationale()) {
-                // Users choose "Deny and don't ask again"
-                Log.d(TAG, "shouldShowRequestPermissionRationale")
-                false
-            } else {
-                // Request the permission
-                Log.d(TAG, "else")
-                false
-            }
-        } catch (e: Exception) {
-            return false;
-        }
-    }
 
     /**
      * 判断服务是否运行
@@ -251,62 +174,6 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
         }
         // 未找到匹配的服务类名，表示服务未在运行
         return false
-    }
-
-    /**
-     * 初始化剪贴板channel
-     */
-    private fun initClipChannel() {
-        clipChannel.setMethodCallHandler { call, result ->
-            var args: Map<String, Any> = mapOf()
-            if (call.arguments is Map<*, *>) {
-                args = call.arguments as Map<String, Any>
-            }
-            when (call.method) {
-                "copy" -> {
-                    try {
-                        innerCopy = true;
-                        val type = args["type"].toString()
-                        val content = args["content"].toString()
-                        // 获取剪贴板管理器
-                        val clipboardManager = ContextCompat.getSystemService(
-                            applicationContext,
-                            ClipboardManager::class.java
-                        ) as ClipboardManager
-                        when (type) {
-                            "Text" -> {
-                                // 创建一个剪贴板数据
-                                val clipData = ClipData.newPlainText("text", content)
-                                // 将数据放入剪贴板
-                                clipboardManager.setPrimaryClip(clipData)
-                                result.success(true)
-                            }
-
-                            "Image" -> {
-                                val uri =
-                                    Uri.parse("content://top.coclyun.clipshare.FileProvider/$content")
-                                val clipData =
-                                    ClipData.newUri(
-                                        applicationContext.contentResolver,
-                                        "image",
-                                        uri
-                                    )
-                                // 将数据放入剪贴板
-                                clipboardManager.setPrimaryClip(clipData)
-                                result.success(true)
-                            }
-
-                            else -> result.success(false)
-                        }
-
-                    } catch (e: Exception) {
-                        innerCopy = false;
-                        result.success(false)
-                    }
-
-                }
-            }
-        }
     }
 
     /**
@@ -336,19 +203,6 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
                         Uri.parse("package:$packageName")
                     );
                     startActivityForResult(intent, requestOverlayResultCode);
-                }
-                //检查shizuku权限
-                "checkShizukuPermission" -> {
-                    val hasPerm = checkShizukuPermission(requestShizukuCode);
-                    //有权限且未运行则启动
-                    if (hasPerm && !ForegroundService.logReaderRunning) {
-                        initService(true)
-                    }
-                    result.success(hasPerm)
-                }
-                //授权shizuku权限
-                "grantShizukuPermission" -> {
-                    Shizuku.requestPermission(requestShizukuCode)
                 }
                 //检查通知权限
                 "checkNotification" -> {
@@ -389,11 +243,6 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
                 //关闭历史浮窗
                 "closeHistoryFloatWindow" -> {
                     stopService(Intent(this, HistoryFloatService::class.java))
-                }
-                //启动服务
-                "startService" -> {
-                    val restart = args["restart"] as Boolean;
-                    initService(restart)
                 }
                 //提示
                 "toast" -> {
@@ -502,29 +351,12 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         if (!hasFocus) return
         Log.d("MainActivity", "onResume")
-        val clipboardListener = ClipboardListener.instance(this)!!
-        //若无shizuku权限且需要该权限，回到APP时自动获取最新剪贴板内容并同步
-        if (ForegroundService.needShizuku() && !ForegroundService.logReaderRunning) {
-            clipboardListener.registerObserver(this)
-            clipboardListener.onClipboardChanged()
-            Log.d(
-                "MainActivity",
-                "Automatically read the clipboard with Shizuku permission required but not granted."
-            )
-        } else {
-            clipboardListener.removeObserver(this)
-        }
     }
 
-    override fun clipboardChanged(type: ContentType, content: String, same: Boolean) {
-        if (innerCopy) return
-        sendClipData(type, content)
-    }
-
-    fun sendClipData(type: ContentType, content: String) {
-        clipChannel.invokeMethod(
-            "onClipboardChanged",
-            mapOf("content" to content, "type" to type.name)
+    fun onSmsChanged(content: String) {
+        androidChannel.invokeMethod(
+            "onSmsChanged",
+            mapOf("content" to content)
         )
     }
 
@@ -540,14 +372,11 @@ class MainActivity : FlutterFragmentActivity(), Shizuku.OnRequestPermissionResul
 
     override fun onDestroy() {
         super.onDestroy()
-        Shizuku.removeRequestPermissionResultListener(this);
         Log.d("MainActivity", "onDestroy")
         // 取消注册广播接收器
         unregisterReceiver(screenReceiver)
         //MainActivity被销毁时停止服务运行
-        stopService(Intent(this, ForegroundService::class.java))
         stopService(Intent(this, HistoryFloatService::class.java))
-        ClipboardListener.instance(this)!!.removeObserver(this)
         unRegisterSmsObserver()
     }
 

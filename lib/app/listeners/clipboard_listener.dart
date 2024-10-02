@@ -1,31 +1,31 @@
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/log.dart';
 
-abstract class ClipObserver {
-  void onChanged(ContentType type, String content);
+abstract class HistoryDataObserver {
+  void onChanged(HistoryContentType type, String content);
 }
 
-class ClipboardListener {
-  static const String tag = "ClipboardListener";
+class HistoryDataListener {
+  static const String tag = "HistoryDataListener";
 
-  static final List<ClipObserver> _list = List.empty(growable: true);
-  static final ClipboardListener _instance = ClipboardListener._private();
+  static final List<HistoryDataObserver> _list = List.empty(growable: true);
+  static final HistoryDataListener _instance = HistoryDataListener._private();
 
-  ClipboardListener._private();
+  HistoryDataListener._private();
 
-  static ClipboardListener get inst => _instance;
+  static HistoryDataListener get inst => _instance;
 
-  ClipboardListener register(ClipObserver observer) {
+  HistoryDataListener register(HistoryDataObserver observer) {
     _list.add(observer);
     return this;
   }
 
-  ClipboardListener remove(ClipObserver observer) {
+  HistoryDataListener remove(HistoryDataObserver observer) {
     _list.remove(observer);
     return this;
   }
 
-  void onChanged(ContentType type, String content) {
+  void onChanged(HistoryContentType type, String content) {
     for (var observer in _list) {
       try {
         observer.onChanged(type, content);

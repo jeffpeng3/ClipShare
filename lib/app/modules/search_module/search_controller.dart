@@ -38,8 +38,8 @@ class SearchController extends GetxController with WidgetsBindingObserver {
   var searchType = "全部";
   var searchOnlyNoSync = false;
 
-  String get typeValue => ContentType.typeMap.keys.contains(searchType)
-      ? ContentType.typeMap[searchType]!
+  String get typeValue => HistoryContentType.typeMap.keys.contains(searchType)
+      ? HistoryContentType.typeMap[searchType]!
       : "";
 
   final _screenWidth = Get.width.obs;

@@ -47,7 +47,7 @@ class StatisticsController extends GetxController {
 
   //region 页面方法
   int contentTypeNameCompare(String a, String b) {
-    return ContentType.parse(a).order.compareTo(ContentType.parse(b).order);
+    return HistoryContentType.parse(a).order.compareTo(HistoryContentType.parse(b).order);
   }
 
   void padBarItems(

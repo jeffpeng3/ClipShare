@@ -127,7 +127,7 @@ class Constants {
 
 enum Option { add, delete, update }
 
-enum ContentType {
+enum HistoryContentType {
   unknown(label: "未知", value: "unknown", order: 9999),
   all(label: "全部", value: "", order: 9999),
   text(label: "文本", value: "Text", order: 1),
@@ -136,7 +136,7 @@ enum ContentType {
   sms(label: "短信", value: "Sms", order: 4),
   file(label: "文件", value: "File", order: 5);
 
-  const ContentType({
+  const HistoryContentType({
     required this.label,
     required this.value,
     required this.order,
@@ -146,17 +146,17 @@ enum ContentType {
   final String label;
   final int order;
 
-  static ContentType parse(String value) => ContentType.values.firstWhere(
-        (e) => e.value == value,
+  static HistoryContentType parse(String value) => HistoryContentType.values.firstWhere(
+        (e) => e.value.toUpperCase() == value.toUpperCase(),
         orElse: () {
           Log.debug("ContentType", "key '$value' unknown");
-          return ContentType.unknown;
+          return HistoryContentType.unknown;
         },
       );
 
   static Map<String, String> get typeMap {
     var lst =
-        ContentType.values.where((e) => e != ContentType.unknown).toList();
+        HistoryContentType.values.where((e) => e != HistoryContentType.unknown).toList();
     Map<String, String> res = {};
     for (var t in lst) {
       res[t.label] = t.value;

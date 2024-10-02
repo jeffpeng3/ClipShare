@@ -9,6 +9,7 @@ import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
 import 'package:clipshare/app/services/channels/common_channel.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
+import 'package:clipshare/app/services/clipboard_service.dart';
 import 'package:clipshare/app/services/device_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/services/syncing_file_progress_service.dart';
@@ -78,6 +79,7 @@ Future<void> initServices() async {
     await Get.putAsync(() => WindowService().init());
     await Get.putAsync(() => TrayService().init());
   }
+  await Get.putAsync(() => ClipboardService().init(), permanent: true);
 }
 
 void runMain(Widget home, String title) {

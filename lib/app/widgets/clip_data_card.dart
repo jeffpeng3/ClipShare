@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:clipboard_listener/clipboard_manager.dart';
+import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/data/repository/entity/clip_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
 import 'package:clipshare/app/modules/views/preview_page.dart';
@@ -267,7 +269,8 @@ class ClipDataCardState extends State<ClipDataCard> {
             title: const Text("复制内容"),
             onTap: () {
               appConfig.innerCopy = true;
-              clipChannelService.copy(widget.clip.data.toJson());
+              var type = ClipboardContentType.parse(widget.clip.data.type);
+              clipboardManager.copy(type, widget.clip.data.content);
               Navigator.of(context).pop();
             },
           ),

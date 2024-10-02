@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:clipboard_listener/clipboard_manager.dart';
+import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/data/repository/entity/clip_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
@@ -132,7 +134,8 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                           Future.delayed(const Duration(milliseconds: 500), () {
                             setState(() {});
                           });
-                          clipChannelService.copy(widget.clip.data.toJson());
+                          var type = ClipboardContentType.parse(widget.clip.data.type);
+                          clipboardManager.copy(type, widget.clip.data.content);
                         },
                         tooltip: "复制内容",
                       ),

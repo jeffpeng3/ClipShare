@@ -1,3 +1,5 @@
+import 'package:clipboard_listener/clipboard_manager.dart';
+import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -5,9 +7,7 @@ import 'package:get/get.dart';
 class ClipChannelMethod {
   ClipChannelMethod._private();
 
-  static const onClipboardChanged = "onClipboardChanged";
   static const getHistory = "getHistory";
-  static const copy = "copy";
   static const setTop = "setTop";
 }
 
@@ -18,11 +18,6 @@ class ClipChannelService extends GetxService {
     final appConfig = Get.find<ConfigService>();
     clipChannel = appConfig.clipChannel;
     return this;
-  }
-
-  ///复制内容到剪贴板
-  Future<bool?> copy(dynamic data) {
-    return clipChannel.invokeMethod<bool>(ClipChannelMethod.copy, data);
   }
 
   ///复制内容到剪贴板

@@ -29,8 +29,9 @@
             android:name=".service.HistoryFloatService"
             android:enabled="true"
             android:exported="false" />
+        <!--    声明前台服务-->
         <service
-            android:name=".service.ForegroundService"
+            android:name="top.coclyun.clipshare.clipboard_listener.ForegroundService"
             android:enabled="true"
             android:exported="false" />
 
@@ -86,11 +87,6 @@
                 <data android:mimeType="*/*" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ClipboardFocusActivity"
-            android:excludeFromRecents="true"
-            android:taskAffinity="top.coclyun.task1"
-            android:theme="@style/Theme.Transparent" />
         <!--
  Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java
@@ -100,8 +96,8 @@
             android:value="2" />
 
         <provider
-            android:name=".provider.FileProvider"
-            android:authorities="top.coclyun.clipshare.FileProvider"
+            android:name="top.coclyun.clipshare.clipboard_listener.FileProvider"
+            android:authorities="${applicationId}.FileProvider"
             android:exported="true"
             android:multiprocess="true" />
         <provider

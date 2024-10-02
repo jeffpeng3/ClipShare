@@ -1,7 +1,10 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:clipboard_listener/clipboard_manager.dart';
+import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/data/repository/entity/clip_data.dart';
+import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
 import 'package:clipshare/app/modules/history_module/history_controller.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
@@ -254,8 +257,9 @@ class ClipListViewState extends State<ClipListView>
           return;
         }
         appConfig.innerCopy = true;
-        var res = await clipChannelService.copy(widget.list[i].data.toJson());
-        res = res ?? false;
+        History history = widget.list[i].data;
+        var type = ClipboardContentType.parse(history.type);
+        final res = await clipboardManager.copy(type, history.content);
         if (res) {
           Global.showSnackBarSuc(context, "复制成功");
         } else {

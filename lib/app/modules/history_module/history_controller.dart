@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipboard_listener/clipboard_manager.dart';
+import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/data/repository/entity/clip_data.dart';
 import 'package:clipshare/app/data/repository/entity/message_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
@@ -30,7 +32,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 class HistoryController extends GetxController
     with WidgetsBindingObserver
-    implements ClipObserver, SyncListener {
+    implements HistoryDataObserver, SyncListener {
   final appConfig = Get.find<ConfigService>();
   final dbService = Get.find<DbService>();
   final sktService = Get.find<SocketService>();
@@ -70,7 +72,7 @@ class HistoryController extends GetxController
       //刷新列表
       refreshData();
       //剪贴板监听注册
-      ClipboardListener.inst.register(this);
+      HistoryDataListener.inst.register(this);
     });
   }
 
@@ -191,8 +193,8 @@ class HistoryController extends GetxController
         history.id.toString(),
       );
       dbService.opRecordDao.addAndNotify(opRecord);
-      switch (ContentType.parse(history.type)) {
-        case ContentType.text:
+      switch (HistoryContentType.parse(history.type)) {
+        case HistoryContentType.text:
           var rules = jsonDecode(appConfig.tagRules)["data"];
           for (var rule in rules) {
             if (history.content.matchRegExp(rule["rule"])) {
@@ -239,7 +241,7 @@ class HistoryController extends GetxController
   }
 
   @override
-  Future<void> onChanged(ContentType type, String content) async {
+  Future<void> onChanged(HistoryContentType type, String content) async {
     if (appConfig.innerCopy) {
       appConfig.innerCopy = false;
       return;
@@ -251,12 +253,12 @@ class HistoryController extends GetxController
     Log.debug(tag, content);
     int size = content.length;
     switch (type) {
-      case ContentType.text:
+      case HistoryContentType.text:
         //文本无特殊实现，此处留空
         break;
-      case ContentType.image:
+      case HistoryContentType.image:
         //如果上次也是复制的图片/文件，判断其md5与本次比较，若相同则跳过
-        if (_last?.type == ContentType.image.value) {
+        if (_last?.type == HistoryContentType.image.value) {
           var md51 = await File(_last!.content).md5;
           var md52 = await File(content).md5;
           //两次的图片存在且相同，跳过。
@@ -273,11 +275,11 @@ class HistoryController extends GetxController
         FileUtil.moveFile(content, newPath);
         content = newFile.normalizePath;
         break;
-      case ContentType.richText:
+      case HistoryContentType.richText:
         break;
-      case ContentType.file:
+      case HistoryContentType.file:
         break;
-      case ContentType.sms:
+      case HistoryContentType.sms:
         //判断是否符合短信同步规则，符合则继续，否则终止
         var rules = jsonDecode(
           appConfig.smsRules,
@@ -342,8 +344,8 @@ class HistoryController extends GetxController
     }
     Future f = Future.value();
     if ([OpMethod.add, OpMethod.update].contains(opRecord.method)) {
-      switch (ContentType.parse(history.type)) {
-        case ContentType.image:
+      switch (HistoryContentType.parse(history.type)) {
+        case HistoryContentType.image:
           var content = jsonDecode(history.content);
           var fileName = content["fileName"];
           var data = content["data"].cast<int>();
@@ -374,7 +376,8 @@ class HistoryController extends GetxController
         //不是缺失数据的同步时放入本地剪贴板
         if (msg.key != MsgType.missingData) {
           appConfig.innerCopy = true;
-          clipChannelService.copy(history.toJson());
+          var type = ClipboardContentType.parse(history.type);
+          clipboardManager.copy(type, history.content);
         }
         break;
       case OpMethod.delete:

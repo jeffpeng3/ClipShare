@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.Handler
 import android.util.Log
 import top.coclyun.clipshare.MainActivity
-import top.coclyun.clipshare.enums.ContentType
 
 
 class SmsObserver(private val mainActivity: MainActivity, handler: Handler) :
@@ -40,9 +39,9 @@ class SmsObserver(private val mainActivity: MainActivity, handler: Handler) :
             lastSmsId = smsId
             val address = cursor.getString(cursor.getColumnIndex("address"))
             val body = cursor.getString(cursor.getColumnIndex("body"))
-            Log.d(tag, "Sender: $address, Message: $body")
+//            Log.d(tag, "Sender: $address, Message: $body")
             cursor.close()
-            mainActivity.sendClipData(ContentType.Sms, body)
+            mainActivity.onSmsChanged(body)
         }else{
             Log.d(tag, "no result")
         }
