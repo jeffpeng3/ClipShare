@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+
+import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipshare/app/handlers/permission_handler.dart';
 import 'package:clipshare/app/handlers/sync/history_top_syncer.dart';
 import 'package:clipshare/app/handlers/sync/rules_syncer.dart';
@@ -133,6 +135,9 @@ class HomeController extends GetxController
       _initAndroid();
     }
     _initSearchPageShow();
+    if (Platform.isWindows) {
+      clipboardManager.startListening();
+    }
   }
 
   @override

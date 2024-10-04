@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:clipshare/app/services/channels/common_channel.dart';
+import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/extension.dart';
@@ -80,11 +80,10 @@ class AppHotKeyHandler {
       key,
       keyDownHandler: (hotKey) async {
         final appConfig = Get.find<ConfigService>();
-        final commChannelService = Get.find<CommonChannelService>();
 
         ///快捷键事件
-        Log.info(tag, "$fileSync hotkey down");
-        var files = await commChannelService.getSelectedFiles();
+        final res = await clipboardManager.getSelectedFiles();
+        final files = res.list;
         List<String> filePaths = List.empty(growable: true);
         for (var filePath in files) {
           FileSystemEntityType type = await FileSystemEntity.type(filePath);

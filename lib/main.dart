@@ -7,7 +7,6 @@ import 'package:clipshare/app/modules/views/windows/online_devices/online_device
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
-import 'package:clipshare/app/services/channels/common_channel.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
 import 'package:clipshare/app/services/clipboard_service.dart';
 import 'package:clipshare/app/services/device_service.dart';
@@ -70,7 +69,6 @@ Future<void> initServices() async {
   Get.put<SocketService>(SocketService(), permanent: true);
   Get.put(AndroidChannelService().init());
   Get.put(ClipChannelService().init());
-  Get.put(CommonChannelService().init());
   Get.put(MultiWindowChannelService());
   await Get.putAsync(() => DeviceService().init(), permanent: true);
   await Get.putAsync(() => TagService().init(), permanent: true);
