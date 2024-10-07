@@ -187,6 +187,7 @@ class SecureSocketClient {
             sendKey();
             break;
           case ForwardMsgType.alreadyConnected:
+            Log.warn(tag, "alreadyConnected");
             close();
             break;
           default:
@@ -214,7 +215,6 @@ class SecureSocketClient {
               encrypter: _encrypter,
             );
           }
-          print("_onMessage decrypt: ${decrypt.length}");
           if (_onMessage != null) {
             _onMessage(this, decrypt);
           }
@@ -227,7 +227,7 @@ class SecureSocketClient {
       }
     } catch (ex, stack) {
       //解析出错
-      Log.error("SecureSocketClient", "解析出错：$ex\n$stack");
+      Log.error(tag, "解析出错：$ex\n$stack");
     }
   }
 

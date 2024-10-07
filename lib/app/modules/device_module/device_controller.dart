@@ -349,8 +349,9 @@ class DeviceController extends GetxController
     Device device,
     bool isConnected,
     void Function() showReNameDlg,
-    BuildContext context,
-  ) {
+    BuildContext context, [
+    bool isForward = false,
+  ]) {
     showModalBottomSheet(
       isScrollControlled: true,
       clipBehavior: Clip.antiAlias,
@@ -423,7 +424,11 @@ class DeviceController extends GetxController
                           } else {
                             var address = device.address;
                             var [ip, port] = address!.split(":");
-                            sktService.manualConnect(ip, port: port.toInt());
+                            if (isForward) {
+                              sktService.manualConnectByForward(device);
+                            } else {
+                              sktService.manualConnect(ip, port: port.toInt());
+                            }
                           }
                           Navigator.pop(context);
                         },
@@ -686,6 +691,7 @@ class DeviceController extends GetxController
               isConnected,
               showReNameDlg,
               Get.context!,
+              discoverDev.isForward,
             );
           }
         },
@@ -696,6 +702,7 @@ class DeviceController extends GetxController
               isConnected,
               showReNameDlg,
               Get.context!,
+              discoverDev.isForward,
             );
           }
         },

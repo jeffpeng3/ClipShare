@@ -7,6 +7,8 @@ enum ForwardMsgType {
   alreadyConnected,
   //中转双方已连接
   bothConnected,
+  //请求连接设备
+  requestConnect,
   //未知key
   unknown;
 

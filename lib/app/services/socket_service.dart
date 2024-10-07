@@ -4,8 +4,10 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:clipshare/app/data/enums/connection_mode.dart';
+import 'package:clipshare/app/data/enums/forward_msg_type.dart';
 import 'package:clipshare/app/data/repository/entity/dev_info.dart';
 import 'package:clipshare/app/data/repository/entity/message_data.dart';
+import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/version.dart';
 import 'package:clipshare/app/handlers/dev_pairing_handler.dart';
 import 'package:clipshare/app/handlers/socket/forward_socket_client.dart';
@@ -329,6 +331,7 @@ class SocketService extends GetxService {
       port: forwardServerPort!,
       onMessage: (self, data) {
         Log.debug(tag, "forwardClient onMessage $data");
+        _onForwardServerReceived(jsonDecode(data));
       },
       onDone: (self) {
         _forwardClient = null;
@@ -376,6 +379,21 @@ class SocketService extends GetxService {
       if (skt == null || !skt.socket.isForwardMode) continue;
       skt.socket.destroy();
       _onDevDisConnected(devId);
+    }
+  }
+
+  Future<void> _onForwardServerReceived(Map<String, dynamic> data) async {
+    final type = ForwardMsgType.getValue(data["type"]);
+    switch (type) {
+      case ForwardMsgType.requestConnect:
+        final targetId = data["sender"];
+        final device =
+            await dbService.deviceDao.getById(targetId, appConfig.userId);
+        if (device != null) {
+          manualConnectByForward(device);
+        }
+        break;
+      default:
     }
   }
 
@@ -643,14 +661,14 @@ class SocketService extends GetxService {
     tasks.addAll(await _customDiscover());
     //广播发现
     tasks.addAll(_multicastDiscover());
-    // tasks = [];//测试屏蔽发现用
+    // tasks = []; //测试屏蔽发现用
     //并行处理
     _taskRunner = TaskRunner<void>(
       initialTasks: tasks,
       onFinish: () async {
         //发现子网设备
         tasks = await _subNetDiscover();
-        // tasks = [];//测试屏蔽发现用
+        // tasks = []; //测试屏蔽发现用
         _taskRunner = TaskRunner<void>(
           initialTasks: tasks,
           onFinish: () async {
@@ -757,20 +775,23 @@ class SocketService extends GetxService {
     var offlineList = lst.where((dev) => !_devSockets.keys.contains(dev.guid));
     for (var dev in offlineList) {
       if (forwardServerIp == null || forwardServerPort == null) continue;
-      tasks.add(
-        () => manualConnect(
-          forwardServerIp!,
-          port: forwardServerPort,
-          forward: true,
-          targetDevId: dev.guid,
-          onErr: (err) {
-            Log.debug(tag, '${dev.guid} 中转连接，发生错误:$err');
-            _onDevDisConnected(dev.guid);
-          },
-        ),
-      );
+      tasks.add(() => manualConnectByForward(dev));
     }
     return tasks;
+  }
+
+  ///中转连接设备
+  Future<void> manualConnectByForward(Device dev) {
+    return manualConnect(
+      forwardServerIp!,
+      port: forwardServerPort,
+      forward: true,
+      targetDevId: dev.guid,
+      onErr: (err) {
+        Log.debug(tag, '${dev.guid} 中转连接，发生错误:$err');
+        _onDevDisConnected(dev.guid);
+      },
+    );
   }
 
   ///手动连接 ip
