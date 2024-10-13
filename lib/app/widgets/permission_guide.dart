@@ -26,7 +26,7 @@ class PermissionGuide extends StatefulWidget {
 }
 
 class _PermissionGuideState extends State<PermissionGuide>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, AutomaticKeepAliveClientMixin {
   bool _hasPerm = false;
 
   @override
@@ -36,7 +36,6 @@ class _PermissionGuideState extends State<PermissionGuide>
     WidgetsBinding.instance.addObserver(this);
     // 在构建完成后初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Log.debug("permissionGuide", "addPostFrameCallback");
       checkPerm();
     });
   }
@@ -63,6 +62,7 @@ class _PermissionGuideState extends State<PermissionGuide>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     Widget? action = widget.action?.call(context, _hasPerm);
     return Column(
       children: [
@@ -110,4 +110,7 @@ class _PermissionGuideState extends State<PermissionGuide>
       ],
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

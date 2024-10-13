@@ -482,7 +482,7 @@ class ClipListViewState extends State<ClipListView>
             Expanded(
               flex: _rightShowFullPage ? 1 : 0,
               child: SizedBox(
-                width: _rightShowFullPage ? null : 350,
+                width: _rightShowFullPage ? null : 400,
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: widget.detailBorderRadius,

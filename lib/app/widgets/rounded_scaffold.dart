@@ -7,7 +7,7 @@ import 'package:get/get.dart';
 
 class RoundedScaffold extends StatelessWidget {
   final Widget title;
-  final Icon icon;
+  final Widget icon;
   final Widget child;
   final Widget? floatingActionButton;
 

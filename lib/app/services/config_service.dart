@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:clipboard_listener/clipboard_manager.dart';
+import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/data/repository/entity/dev_info.dart';
 import 'package:clipshare/app/data/repository/entity/tables/config.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/version.dart';
+import 'package:clipshare/app/modules/settings_module/settings_controller.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/crypto.dart';
@@ -240,6 +243,11 @@ class ConfigService extends GetxService {
 
   String? get forwardServer => _forwardServer.value;
 
+  //选择的工作模式（Android）
+  late final Rx<EnvironmentType?> _workingMode;
+
+  EnvironmentType? get workingMode => _workingMode.value;
+
   //endregion
 
   //endregion
@@ -359,6 +367,11 @@ class ConfigService extends GetxService {
       "forwardServer",
       userId,
     );
+    var workingMode = await cfg.getConfig(
+          "workingMode",
+          userId,
+        ) ??
+        "none";
     var fileStoreDir = Directory(fileStorePath ?? defaultFileStorePath);
     _port = port?.toInt().obs ?? Constants.port.obs;
     _localName =
@@ -393,6 +406,7 @@ class ConfigService extends GetxService {
     _enableForward = enableForward?.toBool().obs ?? false.obs;
     _forwardServer = forwardServer.obs;
     devInfo.name = _localName.value;
+    _workingMode = EnvironmentType.parse(workingMode).obs;
   }
 
   ///初始化路径信息
@@ -598,6 +612,11 @@ class ConfigService extends GetxService {
   Future<void> setForwardServer(String forwardServer) async {
     await _addOrUpdateDbConfig("forwardServer", forwardServer.toString());
     _forwardServer.value = forwardServer;
+  }
+
+  Future<void> setWorkingMode(EnvironmentType workingMode) async {
+    await _addOrUpdateDbConfig("workingMode", workingMode.name);
+    _workingMode.value = workingMode;
   }
 //endregion
 }

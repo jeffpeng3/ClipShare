@@ -7,7 +7,7 @@ import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/handlers/hot_key_handler.dart';
 import 'package:clipshare/app/handlers/sync/file_syncer.dart';
-import 'package:clipshare/app/listeners/clipboard_listener.dart';
+import 'package:clipshare/app/listeners/history_data_listener.dart';
 import 'package:clipshare/app/listeners/screen_opened_listener.dart';
 import 'package:clipshare/app/modules/device_module/device_controller.dart';
 import 'package:clipshare/app/modules/history_module/history_controller.dart';

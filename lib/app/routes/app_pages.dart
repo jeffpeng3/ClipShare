@@ -1,3 +1,5 @@
+import '../../app/modules/working_mode_selection_module/working_mode_selection_page.dart';
+import '../../app/modules/working_mode_selection_module/working_mode_selection_bindings.dart';
 import '../../app/modules/statistics_module/statistics_page.dart';
 import '../../app/modules/statistics_module/statistics_bindings.dart';
 import 'package:clipshare/app/modules/home_module/home_page.dart';
@@ -87,6 +89,11 @@ abstract class AppPages {
       name: Routes.STATISTICS,
       page: () => StatisticsPage(),
       binding: StatisticsBinding(),
+    ),
+    GetPage(
+      name: Routes.WORKING_MODE_SELECTION,
+      page: () => WorkingModeSelectionPage(),
+      binding: WorkingModeSelectionBinding(),
     ),
   ];
 }

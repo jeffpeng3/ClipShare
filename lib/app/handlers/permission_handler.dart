@@ -1,3 +1,4 @@
+import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/global.dart';
@@ -98,8 +99,8 @@ class FloatPermHandler extends AbstractPermissionHandler {
 class ShizukuPermHandler extends AbstractPermissionHandler {
   @override
   void request() {
-    final androidChannelService = Get.find<AndroidChannelService>();
     final appConfig = Get.find<ConfigService>();
+    final androidChannelService = Get.find<AndroidChannelService>();
     AbstractPermissionHandler.showRequestDialog(
       title: "Shizuku权限请求",
       content: const Text(

@@ -77,13 +77,12 @@ Future<void> initServices() async {
     await Get.putAsync(() => WindowService().init());
     await Get.putAsync(() => TrayService().init());
   }
-  await Get.putAsync(() => ClipboardService().init(), permanent: true);
 }
 
 void runMain(Widget home, String title) {
   runApp(
     GetMaterialApp(
-      defaultTransition: Transition.fade,
+      defaultTransition: Transition.native,
       title: title,
       initialRoute: Routes.SPLASH,
       getPages: AppPages.pages,

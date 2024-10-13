@@ -11,6 +11,7 @@ class DynamicSizeWidget extends StatelessWidget {
   final double? ratio;
 
   const DynamicSizeWidget({
+    super.key,
     this.widthScale,
     this.heightScale,
     this.maxHeight,

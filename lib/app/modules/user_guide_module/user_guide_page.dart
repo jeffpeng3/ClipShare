@@ -9,7 +9,6 @@ import 'package:get/get.dart';
 class UserGuidePage extends GetView<UserGuideController> {
   @override
   Widget build(BuildContext context) {
-    // !controller.isInitFinished.value
     return Scaffold(
       body: Obx(
         () => ConditionWidget(
@@ -21,24 +20,27 @@ class UserGuidePage extends GetView<UserGuideController> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(
-                      onPressed:
-                          controller.guides[controller.current.value].allowSkip
-                              ? () async {
-                                  if (controller.current.value ==
-                                      controller.guides.length - 1) {
-                                    //跳转到首页
-                                    controller.gotoHomePage();
-                                  } else {
-                                    controller.gotoNext();
-                                  }
+                    Obx(
+                      () => TextButton(
+                        onPressed: controller
+                                .guides[controller.current.value].allowSkip
+                            ? () async {
+                                if (controller.current.value ==
+                                    controller.guides.length - 1) {
+                                  //跳转到首页
+                                  controller.gotoHomePage();
+                                } else {
+                                  controller.gotoNext();
                                 }
-                              : null,
-                      child: Text(
-                        controller.guides[controller.current.value].allowSkip &&
-                                !controller.canNextGuide.value
-                            ? "跳过此项"
-                            : "",
+                              }
+                            : null,
+                        child: Text(
+                          controller.guides[controller.current.value]
+                                      .allowSkip &&
+                                  !controller.canNextGuide.value
+                              ? "跳过此项"
+                              : "",
+                        ),
                       ),
                     ),
                   ],
@@ -70,59 +72,67 @@ class UserGuidePage extends GetView<UserGuideController> {
                 ),
                 Row(
                   children: [
-                    TextButton(
-                      onPressed: controller.current.value == 0
-                          ? null
-                          : controller.gotoPre,
-                      child: const Text("上一步"),
+                    Obx(
+                      () => TextButton(
+                        onPressed: controller.current.value == 0
+                            ? null
+                            : controller.gotoPre,
+                        child: const Text("上一步"),
+                      ),
                     ),
                     Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          for (var i = 0; i < controller.guides.length; i++)
-                            AnimatedContainer(
-                              width:
-                                  i == controller.current.value ? 36.0 : 16.0,
-                              height: 16.0,
-                              duration: const Duration(milliseconds: 200),
-                              child: Center(
-                                child: AnimatedContainer(
-                                  width: i == controller.current.value
-                                      ? 30.0
-                                      : 10.0,
-                                  height: 10.0,
-                                  duration: const Duration(milliseconds: 200),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(50),
-                                    color: i <= controller.current.value
-                                        ? Colors.blue
-                                        : Colors.grey,
+                      child: Obx(
+                        () => Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            for (var i = 0; i < controller.guides.length; i++)
+                              AnimatedContainer(
+                                width:
+                                    i == controller.current.value ? 36.0 : 16.0,
+                                height: 16.0,
+                                duration: const Duration(milliseconds: 200),
+                                child: Center(
+                                  child: AnimatedContainer(
+                                    width: i == controller.current.value
+                                        ? 30.0
+                                        : 10.0,
+                                    height: 10.0,
+                                    duration: const Duration(milliseconds: 200),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(50),
+                                      color: i <= controller.current.value
+                                          ? Colors.blue
+                                          : Colors.grey,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     SizedBox(
                       width: 70,
-                      child: TextButton(
-                        onPressed: controller.canNextGuide.value
-                            ? () async {
-                                if (controller.current.value ==
-                                    controller.guides.length - 1) {
-                                  controller.gotoHomePage();
-                                } else {
-                                  controller.gotoNext();
+                      child: Obx(
+                        () => TextButton(
+                          onPressed: controller.canNextGuide.value
+                              ? () async {
+                                  if (controller.current.value ==
+                                      controller.guides.length - 1) {
+                                    controller.gotoHomePage();
+                                  } else {
+                                    controller.gotoNext();
+                                  }
                                 }
-                              }
-                            : null,
-                        child: Text(
-                          controller.current.value ==
-                                  controller.guides.length - 1
-                              ? "完成"
-                              : "下一步",
+                              : null,
+                          child: Obx(
+                            () => Text(
+                              controller.current.value ==
+                                      controller.guides.length - 1
+                                  ? "完成"
+                                  : "下一步",
+                            ),
+                          ),
                         ),
                       ),
                     ),

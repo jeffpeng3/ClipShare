@@ -3,12 +3,9 @@ import 'dart:io';
 import 'package:clipshare/app/data/repository/entity/clip_data.dart';
 import 'package:clipshare/app/modules/views/preview_page.dart';
 import 'package:clipshare/app/utils/extension.dart';
-import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_content.dart';
-import 'package:clipshare/app/widgets/large_text.dart';
+import 'package:clipshare/app/widgets/largeText/large_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_highlighting/flutter_highlighting.dart';
-import 'package:flutter_highlighting/themes/github.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 
 class ClipContentView extends StatefulWidget {
@@ -28,62 +25,51 @@ class _ClipContentViewState extends State<ClipContentView> {
 
   @override
   Widget build(BuildContext context) {
+    final showText = widget.clipData.data.content;
     return widget.clipData.isText || widget.clipData.isSms
-        ? LargeText(
-            text: widget.clipData.data.content,
-            blockSize: 5000,
-            bottomThreshold: 0.3,
-            onThresholdChanged: (showText) {
-              return Container(
-                alignment: Alignment.topLeft,
-                child: widget.language != null
-                    ? HighlightView(
-                        showText,
-                        languageId: widget.language,
-                        theme: githubTheme,
-                      )
-                    : SelectableLinkify(
-                        textAlign: TextAlign.left,
-                        text: showText,
-                        options: const LinkifyOptions(humanize: false),
-                        linkStyle: const TextStyle(
-                          decoration: TextDecoration.none,
-                        ),
-                        onOpen: (link) async {
-                          Log.debug(tag, link.url);
-                          if (!PlatformExt.isPC) {
-                            link.url.askOpenUrl();
-                          } else {
-                            link.url.openUrl();
-                          }
-                        },
-                        contextMenuBuilder: (context, editableTextState) {
-                          return AdaptiveTextSelectionToolbar.buttonItems(
-                            anchors: editableTextState.contextMenuAnchors,
-                            buttonItems: <ContextMenuButtonItem>[
-                              ContextMenuButtonItem(
-                                onPressed: () {
-                                  editableTextState.copySelection(
-                                    SelectionChangedCause.toolbar,
-                                  );
-                                },
-                                type: ContextMenuButtonType.copy,
-                              ),
-                              ContextMenuButtonItem(
-                                onPressed: () {
-                                  editableTextState.selectAll(
-                                    SelectionChangedCause.toolbar,
-                                  );
-                                },
-                                type: ContextMenuButtonType.selectAll,
-                              ),
-                            ],
+        ? showText.length > 10000
+            ? LargeText(
+                text: showText,
+                readonly: true,
+              )
+            : SelectableLinkify(
+                textAlign: TextAlign.left,
+                text: showText,
+                options: const LinkifyOptions(humanize: false),
+                linkStyle: const TextStyle(
+                  decoration: TextDecoration.none,
+                ),
+                onOpen: (link) async {
+                  if (!PlatformExt.isPC) {
+                    link.url.askOpenUrl();
+                  } else {
+                    link.url.openUrl();
+                  }
+                },
+                contextMenuBuilder: (context, editableTextState) {
+                  return AdaptiveTextSelectionToolbar.buttonItems(
+                    anchors: editableTextState.contextMenuAnchors,
+                    buttonItems: <ContextMenuButtonItem>[
+                      ContextMenuButtonItem(
+                        onPressed: () {
+                          editableTextState.copySelection(
+                            SelectionChangedCause.toolbar,
                           );
                         },
+                        type: ContextMenuButtonType.copy,
                       ),
-              );
-            },
-          )
+                      ContextMenuButtonItem(
+                        onPressed: () {
+                          editableTextState.selectAll(
+                            SelectionChangedCause.toolbar,
+                          );
+                        },
+                        type: ContextMenuButtonType.selectAll,
+                      ),
+                    ],
+                  );
+                },
+              )
         : widget.clipData.isImage
             ? LayoutBuilder(
                 builder: (context, constraints) {

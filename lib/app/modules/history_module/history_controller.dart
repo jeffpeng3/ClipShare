@@ -10,7 +10,7 @@ import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history_tag.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_sync.dart';
-import 'package:clipshare/app/listeners/clipboard_listener.dart';
+import 'package:clipshare/app/listeners/history_data_listener.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';

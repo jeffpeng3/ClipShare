@@ -1,12 +1,7 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:clipshare/app/listeners/clipboard_listener.dart';
-import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
-import 'package:desktop_multi_window/desktop_multi_window.dart';
+import 'package:clipshare/app/widgets/environment_selection_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -19,6 +14,7 @@ class DebugPage extends StatefulWidget {
 
 class _DebugPageState extends State<DebugPage> {
   final ScrollController _controller = ScrollController();
+  bool selected = false;
   double visibleCharacterCount = 0;
   bool showBorder = false;
   final appConfig = Get.find<ConfigService>();
@@ -35,93 +31,92 @@ class _DebugPageState extends State<DebugPage> {
       // mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ElevatedButton(
-          onPressed: () {
-            dbService.historyDao.removeAllLocalHistories();
+        EnvironmentSelectionCard(
+          selected: selected,
+          onTap: () {
+            setState(() {
+              selected = !selected;
+            });
           },
-          child: const Text("删除所有本地历史"),
-        ),
-        Container(
-          height: 10,
-        ),
-        ElevatedButton(
-          onPressed: () {
-            dbService.deviceDao.removeAll(appConfig.userId);
-          },
-          child: const Text("删除所有设备"),
-        ),
-        Container(
-          height: 10,
-        ),
-        ElevatedButton(
-          onPressed: () {
-            dbService.historyTagDao.removeAll();
-          },
-          child: const Text("删除所有标签"),
-        ),
-        Container(
-          height: 10,
-        ),
-        ElevatedButton(
-          onPressed: () {
-            dbService.opRecordDao.removeAll(appConfig.userId);
-            dbService.opSyncDao.removeAll(appConfig.userId);
-          },
-          child: const Text("删除所有操作和同步记录"),
-        ),
-        Container(
-          height: 10,
-        ),
-        ElevatedButton(
-          onPressed: () {
-            dbService.opSyncDao.resetSyncStatus(appConfig.device.guid);
-            dbService.opSyncDao.removeAll(appConfig.userId);
-          },
-          child: const Text("重置所有记录为未同步"),
-        ),
-        Container(
-          height: 10,
-        ),
-        Visibility(
-          visible: Platform.isWindows,
-          child: ElevatedButton(
-            onPressed: () async {
-              final window = await DesktopMultiWindow.createWindow(
-                jsonEncode({
-                  'args1': 'Sub window',
-                  'args2': 100,
-                  'args3': true,
-                  'business': 'business_test',
-                }),
-              );
-              window
-                ..setFrame(const Offset(0, 0) & const Size(400, 720))
-                ..center()
-                ..setTitle('Another window')
-                ..show();
-            },
-            child: const Text("新窗口"),
+          icon: Image.asset(
+            Constants.shizukuLogoPath,
+            width: 48,
+            height: 48,
+          ),
+          tipContent: const Row(
+            children: [
+              Text(
+                "Shizuku 模式",
+                style: TextStyle(
+                  color: Colors.blueGrey,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              SizedBox(
+                width: 5,
+              ),
+              Icon(
+                Icons.info_outline,
+                color: Colors.blueGrey,
+                size: 16,
+              ),
+            ],
+          ),
+          tipDesc: const Text(
+            "无需 Root，需要安装 Shizuku，重启手机后需要重新激活",
+            style: TextStyle(fontSize: 12, color: Color(0xff6d6d70)),
           ),
         ),
-        Container(
-          height: 10,
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            for (var i in List.generate(200, (index) => index)) {
-              HistoryDataListener.inst.onChanged(HistoryContentType.text, i.toString());
-            }
+        EnvironmentSelectionCard(
+          selected: false,
+          onTap: () {
+            setState(() {
+              selected = !selected;
+            });
           },
-          child: const Text("大量数据同步"),
+          icon: Image.asset(
+            Constants.rootLogoPath,
+            width: 48,
+            height: 48,
+          ),
+          tipContent: const Text(
+            "Root模式",
+            style: TextStyle(
+              color: Colors.blueGrey,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          tipDesc: const Text(
+            "以 Root 权限启动，重启手机无需重新激活",
+            style: TextStyle(fontSize: 12, color: Color(0xff6d6d70)),
+          ),
         ),
-        Container(
-          height: 10,
-        ),
-        ElevatedButton(
-          onPressed: () {
-            Get.toNamed(Routes.STATISTICS);
+        EnvironmentSelectionCard(
+          selected: false,
+          onTap: () {
+            setState(() {
+              selected = !selected;
+            });
           },
-          child: const Text("跳转统计"),
+          icon: const Icon(
+            Icons.block_outlined,
+            size: 40,
+            color: Colors.blueGrey,
+          ),
+          tipContent: const Text(
+            "忽略",
+            style: TextStyle(
+              color: Colors.blueGrey,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          tipDesc: const Text(
+            "剪贴板将无法后台监听，只能被动同步",
+            style: TextStyle(fontSize: 12, color: Color(0xff6d6d70)),
+          ),
         ),
       ],
     );

@@ -1,8 +1,11 @@
+import 'dart:io';
+
+import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/handlers/guide/battery_perm_guide.dart';
+import 'package:clipshare/app/handlers/guide/environment_selections_guide.dart';
 import 'package:clipshare/app/handlers/guide/finish_guide.dart';
 import 'package:clipshare/app/handlers/guide/float_perm_guide.dart';
 import 'package:clipshare/app/handlers/guide/notify_perm_guide.dart';
-import 'package:clipshare/app/handlers/guide/shizuku_perm_guide.dart';
 import 'package:clipshare/app/handlers/guide/storage_perm_guide.dart';
 import 'package:clipshare/app/modules/user_guide_module/user_guide_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -16,15 +19,24 @@ class UserGuideBinding implements Bindings {
 
   @override
   void dependencies() {
+    bool showEnvGuide = false;
+    if (Platform.isAndroid) {
+      if (appConfig.osVersion >= 10) {
+        showEnvGuide = true;
+      } else {
+        showEnvGuide = false;
+        appConfig.setWorkingMode(EnvironmentType.androidPre10);
+      }
+    }
     Get.lazyPut(
       () => UserGuideController(
         [
           FloatPermGuide(),
           StoragePermGuide(),
-          if (appConfig.osVersion >= 10) ShizukuPermGuide(),
+          if (showEnvGuide) EnvironmentSelectionsGuide(),
           NotifyPermGuide(),
           BatteryPermGuide(),
-          FinishGuide()
+          FinishGuide(),
         ],
       ),
     );

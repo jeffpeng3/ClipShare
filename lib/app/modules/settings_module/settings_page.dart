@@ -5,7 +5,6 @@ import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/modules/log_module/log_controller.dart';
 import 'package:clipshare/app/modules/log_module/log_page.dart';
 import 'package:clipshare/app/modules/settings_module/settings_controller.dart';
-import 'package:clipshare/app/modules/statistics_module/statistics_controller.dart';
 import 'package:clipshare/app/modules/views/settings/sms_rules_setting_page.dart';
 import 'package:clipshare/app/modules/views/settings/tag_rules_setting_page.dart';
 import 'package:clipshare/app/modules/views/update_log_page.dart';
@@ -21,6 +20,7 @@ import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/utils/permission_helper.dart';
 import 'package:clipshare/app/widgets/authentication_time_setting_dialog.dart';
 import 'package:clipshare/app/widgets/dynamic_size_widget.dart';
+import 'package:clipshare/app/widgets/environment_status_card.dart';
 import 'package:clipshare/app/widgets/hot_key_editor.dart';
 import 'package:clipshare/app/widgets/settings/card/setting_card.dart';
 import 'package:clipshare/app/widgets/settings/card/setting_card_group.dart';
@@ -52,6 +52,22 @@ class SettingsPage extends GetView<SettingsController> {
             padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
             child: ListView(
               children: [
+                //region 环境检测卡片
+                Obx(() {
+                  return EnvironmentStatusCard(
+                    icon: Obx(() => controller.envStatusIcon.value),
+                    backgroundColor: controller.envStatusBgColor.value,
+                    tipContent: Obx(() => controller.envStatusTipContent.value),
+                    tipDesc: Obx(() => controller.envStatusTipDesc.value),
+                    action: Obx(() {
+                      return controller.envStatusAction.value ??
+                          const SizedBox.shrink();
+                    }),
+                    onTap: controller.onEnvironmentStatusCardClick,
+                  );
+                }),
+                //endregion
+
                 ///region 常规
                 Obx(
                   () => SettingCardGroup(
@@ -181,24 +197,6 @@ class SettingsPage extends GetView<SettingsController> {
                           onTap: () {
                             if (!controller.hasFloatPerm.value) {
                               controller.floatHandler.request();
-                            }
-                          },
-                        ),
-                        SettingCard(
-                          main: const Text("Shizuku权限"),
-                          sub: const Text("授权以获知剪贴板变化"),
-                          value: controller.hasShizukuPerm.value,
-                          action: (val) => Icon(
-                            val ? Icons.check_circle : Icons.help,
-                            color: val ? Colors.green : Colors.orange,
-                          ),
-                          show: (v) =>
-                              Platform.isAndroid &&
-                              !v &&
-                              appConfig.osVersion >= 10,
-                          onTap: () {
-                            if (!controller.hasShizukuPerm.value) {
-                              controller.shizukuHandler.request();
                             }
                           },
                         ),
@@ -1129,7 +1127,6 @@ class SettingsPage extends GetView<SettingsController> {
                       ),
                     ),
                   ],
-
                 ),
 
                 ///endregion

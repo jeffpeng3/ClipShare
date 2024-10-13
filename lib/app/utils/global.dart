@@ -20,10 +20,6 @@ class Global {
     }
   }
 
-  static void showSnackBarSuc(BuildContext context, String text) {
-    showSnackBar(context, text, Colors.lightBlue);
-  }
-
   static void showSnackBar(BuildContext context, String text, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -31,6 +27,10 @@ class Global {
         backgroundColor: color,
       ),
     );
+  }
+
+  static void showSnackBarSuc(BuildContext context, String text) {
+    showSnackBar(context, text, Colors.lightBlue);
   }
 
   static void showSnackBarErr(BuildContext context, String text) {

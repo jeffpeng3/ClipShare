@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:clipboard_listener/clipboard_manager.dart';
+import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/handlers/permission_handler.dart';
 import 'package:clipshare/app/handlers/sync/history_top_syncer.dart';
 import 'package:clipshare/app/handlers/sync/rules_syncer.dart';
@@ -10,6 +11,7 @@ import 'package:clipshare/app/listeners/screen_opened_listener.dart';
 import 'package:clipshare/app/modules/device_module/device_page.dart';
 import 'package:clipshare/app/modules/history_module/history_page.dart';
 import 'package:clipshare/app/modules/search_module/search_page.dart';
+import 'package:clipshare/app/modules/settings_module/settings_controller.dart';
 import 'package:clipshare/app/modules/settings_module/settings_page.dart';
 import 'package:clipshare/app/modules/views/debug_page.dart';
 import 'package:clipshare/app/modules/views/syncing_file_page.dart';
@@ -31,6 +33,7 @@ class HomeController extends GetxController
     with WidgetsBindingObserver
     implements ScreenOpenedObserver {
   final appConfig = Get.find<ConfigService>();
+  final settingsController = Get.find<SettingsController>();
 
   final androidChannelService = Get.find<AndroidChannelService>();
 
@@ -137,6 +140,12 @@ class HomeController extends GetxController
     _initSearchPageShow();
     if (Platform.isWindows) {
       clipboardManager.startListening();
+    } else {
+      clipboardManager
+          .startListening(startEnv: appConfig.workingMode)
+          .then((started) {
+        settingsController.checkPermissions();
+      });
     }
   }
 
@@ -222,7 +231,9 @@ class HomeController extends GetxController
     //检查权限
     var permHandlers = [
       FloatPermHandler(),
-      if (!appConfig.ignoreShizuku) ShizukuPermHandler(),
+      if (appConfig.workingMode == EnvironmentType.shizuku &&
+          !appConfig.ignoreShizuku)
+        ShizukuPermHandler(),
       NotifyPermHandler(),
     ];
     for (var handler in permHandlers) {

@@ -66,6 +66,8 @@ class Constants {
   static const showHistoryRightWidth = 840.0;
   static const logoPngPath = "assets/images/logo/logo.png";
   static const logoIcoPath = "assets/images/logo/logo.ico";
+  static const shizukuLogoPath = "assets/images/logo/shizuku.png";
+  static const rootLogoPath = "assets/images/logo/root.png";
 
   //设备类型图片
   static final Map<String, Icon> devTypeIcons = {

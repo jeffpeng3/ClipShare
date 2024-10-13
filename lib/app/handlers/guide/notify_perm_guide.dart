@@ -1,8 +1,7 @@
-import 'package:clipboard_listener/clipboard_manager.dart';
+import 'package:clipshare/app/handlers/guide/base_guide.dart';
 import 'package:clipshare/app/handlers/permission_handler.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/utils/log.dart';
-import 'package:clipshare/app/handlers/guide/base_guide.dart';
 import 'package:clipshare/app/widgets/permission_guide.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -28,10 +27,6 @@ class NotifyPermGuide extends BaseGuide {
   @override
   Future<bool> canNext() async {
     var has = await permHandler.hasPermission();
-    if (has) {
-      Log.info("NotifyPermGuide", "androidChannel invoke startService");
-      clipboardManager.startListening();
-    }
     hasPerm = has;
     return has;
   }
