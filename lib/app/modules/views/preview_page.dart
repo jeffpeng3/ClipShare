@@ -159,18 +159,21 @@ class _PreviewPageState extends State<PreviewPage> {
             const SizedBox(
               width: 15,
             ),
-            Checkbox(
-              value: checkedList.contains(_currentImage.id),
-              hoverColor: Colors.white12,
-              onChanged: (checked) {
-                if (checked == null || !checked) {
-                  checkedList.remove(_currentImage.id);
-                } else {
-                  checkedList.add(_currentImage.id);
-                }
-                setState(() {});
-              },
-              side: const BorderSide(color: Colors.white70),
+            Visibility(
+              visible: false,
+              child: Checkbox(
+                value: checkedList.contains(_currentImage.id),
+                hoverColor: Colors.white12,
+                onChanged: (checked) {
+                  if (checked == null || !checked) {
+                    checkedList.remove(_currentImage.id);
+                  } else {
+                    checkedList.add(_currentImage.id);
+                  }
+                  setState(() {});
+                },
+                side: const BorderSide(color: Colors.white70),
+              ),
             ),
             const SizedBox(
               width: 15,

@@ -1,9 +1,9 @@
-import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 abstract class AbstractPermissionHandler {
   static void showRequestDialog({
@@ -176,12 +176,11 @@ class IgnoreBatteryHandler extends AbstractPermissionHandler {
     AbstractPermissionHandler.showRequestDialog(
       title: "电池优化",
       content: const Text(
-        '取消电池优化以提高后台留存率',
+        '取消电池优化以提高后台留存率\n'
+        '若点击[去授权]后无反应，请自行在手机设置中查找相关设置项',
       ),
       onConfirm: (ctx) {
-        final androidChannelService = Get.find<AndroidChannelService>();
-        androidChannelService.androidChannel
-            .invokeMethod<bool>("requestIgnoreBattery");
+        Permission.ignoreBatteryOptimizations.request();
         return true;
       },
     );
@@ -189,10 +188,6 @@ class IgnoreBatteryHandler extends AbstractPermissionHandler {
 
   @override
   Future<bool> hasPermission() async {
-    final androidChannelService = Get.find<AndroidChannelService>();
-    var res = await androidChannelService.androidChannel
-        .invokeMethod<bool>("checkIgnoreBattery");
-    if (res == null) return false;
-    return res;
+    return Permission.ignoreBatteryOptimizations.isGranted;
   }
 }

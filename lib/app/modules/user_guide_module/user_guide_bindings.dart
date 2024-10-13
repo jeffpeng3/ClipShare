@@ -31,7 +31,7 @@ class UserGuideBinding implements Bindings {
     Get.lazyPut(
       () => UserGuideController(
         [
-          FloatPermGuide(),
+          if (showEnvGuide) FloatPermGuide(),
           StoragePermGuide(),
           if (showEnvGuide) EnvironmentSelectionsGuide(),
           NotifyPermGuide(),
