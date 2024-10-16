@@ -53,19 +53,20 @@ class SettingsPage extends GetView<SettingsController> {
             child: ListView(
               children: [
                 //region 环境检测卡片
-                Obx(() {
-                  return EnvironmentStatusCard(
-                    icon: Obx(() => controller.envStatusIcon.value),
-                    backgroundColor: controller.envStatusBgColor.value,
-                    tipContent: Obx(() => controller.envStatusTipContent.value),
-                    tipDesc: Obx(() => controller.envStatusTipDesc.value),
-                    action: Obx(() {
-                      return controller.envStatusAction.value ??
-                          const SizedBox.shrink();
-                    }),
-                    onTap: controller.onEnvironmentStatusCardClick,
-                  );
-                }),
+                if(Platform.isAndroid)
+                  Obx(() {
+                    return EnvironmentStatusCard(
+                      icon: Obx(() => controller.envStatusIcon.value),
+                      backgroundColor: controller.envStatusBgColor.value,
+                      tipContent: Obx(() => controller.envStatusTipContent.value),
+                      tipDesc: Obx(() => controller.envStatusTipDesc.value),
+                      action: Obx(() {
+                        return controller.envStatusAction.value ??
+                            const SizedBox.shrink();
+                      }),
+                      onTap: controller.onEnvironmentStatusCardClick,
+                    );
+                  }),
                 //endregion
 
                 ///region 常规
