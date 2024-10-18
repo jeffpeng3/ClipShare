@@ -51,7 +51,7 @@ class ConfigService extends GetxService {
   late final Snowflake snowflake;
   late final Version version;
   late final double osVersion;
-  final minVersion = const Version("1.0.0-alpha", "3");
+  final minVersion = const Version("1.0.0-beta", "3");
 
   //路径
   late final String documentPath;

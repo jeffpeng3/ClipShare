@@ -170,6 +170,9 @@ class SplashController extends GetxController {
     appConfig.clipChannel.setMethodCallHandler((call) async {
       var arguments = call.arguments;
       switch (call.method) {
+        case ClipChannelMethod.ignoreNextCopy:
+          appConfig.innerCopy=true;
+          break;
         case ClipChannelMethod.setTop:
           int id = arguments['id'];
           bool top = arguments['top'];

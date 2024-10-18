@@ -60,7 +60,9 @@ class HistoryFloatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
     private val pinIcon = itemView.findViewById<ImageView>(R.id.pinIcon)
     private lateinit var onDragStart: () -> Unit
     private lateinit var onDragEnd: () -> Unit
-
+    private fun ignoreNextCopy(){
+        MainActivity.clipChannel.invokeMethod("ignoreNextCopy",null)
+    }
     @SuppressLint("ClickableViewAccessibility")
     private val onTouchLinear: View.OnTouchListener = View.OnTouchListener { _, event ->
         itemView.onTouchEvent(event)
@@ -127,15 +129,15 @@ class HistoryFloatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
         //endregion
         //region 复制按钮
         copyIcon.setOnClickListener {
-            MainActivity.innerCopy = true;
             // 获取剪贴板管理器
             val clipboardManager = getSystemService(
                 itemView.context,
                 ClipboardManager::class.java
             ) as ClipboardManager
-            if (item.type == "text") {
+            if (item.type.lowercase() == "text") {
                 // 创建一个剪贴板数据
                 val clipData = ClipData.newPlainText("text", content)
+                ignoreNextCopy()
                 // 将数据放入剪贴板
                 clipboardManager.setPrimaryClip(clipData)
             } else {
@@ -145,6 +147,7 @@ class HistoryFloatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
                     "image",
                     Uri.parse("content://${pkgName}.FileProvider/${item.content}")
                 )
+                ignoreNextCopy()
                 // 将数据放入剪贴板
                 clipboardManager.setPrimaryClip(clipData)
             }

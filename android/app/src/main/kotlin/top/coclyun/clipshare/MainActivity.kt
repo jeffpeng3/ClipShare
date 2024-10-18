@@ -47,9 +47,6 @@ class MainActivity : FlutterFragmentActivity() {
         @JvmStatic
         var lockHistoryFloatLoc: Boolean = false
 
-        @JvmStatic
-        var innerCopy: Boolean = false
-
         var commonNotifyId = 2
 
         @JvmStatic

@@ -9,6 +9,7 @@ class ClipChannelMethod {
 
   static const getHistory = "getHistory";
   static const setTop = "setTop";
+  static const ignoreNextCopy = "ignoreNextCopy";
 }
 
 class ClipChannelService extends GetxService {
