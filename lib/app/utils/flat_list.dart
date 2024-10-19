@@ -8,6 +8,11 @@ class FlatList<T> {
 
   bool get isNotEmpty => !isEmpty;
 
+  void clear() {
+    _lists.clear();
+    _length = 0;
+  }
+
   void add(List<T> list) {
     _lists.add(list);
     _length += list.length;

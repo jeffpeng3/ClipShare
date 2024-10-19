@@ -7,6 +7,12 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 class Constants {
   Constants._private();
 
+  //socket包头部大小
+  static const int packetHeaderSize = 10;
+
+  //socket包载荷最大大小
+  static const int packetMaxPayloadSize = (1 << 2 * 8) - 1;
+
   //组播默认端口
   static const int port = 42317;
 
@@ -148,7 +154,8 @@ enum HistoryContentType {
   final String label;
   final int order;
 
-  static HistoryContentType parse(String value) => HistoryContentType.values.firstWhere(
+  static HistoryContentType parse(String value) =>
+      HistoryContentType.values.firstWhere(
         (e) => e.value.toUpperCase() == value.toUpperCase(),
         orElse: () {
           Log.debug("ContentType", "key '$value' unknown");
@@ -157,8 +164,9 @@ enum HistoryContentType {
       );
 
   static Map<String, String> get typeMap {
-    var lst =
-        HistoryContentType.values.where((e) => e != HistoryContentType.unknown).toList();
+    var lst = HistoryContentType.values
+        .where((e) => e != HistoryContentType.unknown)
+        .toList();
     Map<String, String> res = {};
     for (var t in lst) {
       res[t.label] = t.value;

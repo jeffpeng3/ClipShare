@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:basic_utils/basic_utils.dart';
 import 'package:crypto/crypto.dart';
@@ -93,6 +94,16 @@ class CryptoUtil {
     final iv = IV.fromUtf8(key.substring(0, ivLen));
     return (encrypter ?? getEncrypter(key)).encrypt(input, iv: iv).base64;
   }
+  ///加密 AES 数据
+  static Uint8List encryptAESBytes({
+    required String key,
+    required String input,
+    Encrypter? encrypter,
+    int ivLen = 16,
+  }) {
+    final iv = IV.fromUtf8(key.substring(0, ivLen));
+    return (encrypter ?? getEncrypter(key)).encrypt(input, iv: iv).bytes;
+  }
 
   ///解密 AES 数据
   static String decryptAES({
@@ -103,6 +114,16 @@ class CryptoUtil {
   }) {
     final iv = IV.fromUtf8(key.substring(0, ivLen));
     return (encrypter ?? getEncrypter(key)).decrypt64(encoded, iv: iv);
+  }
+  ///解密 AES 数据
+  static String decryptAESBytes({
+    required String key,
+    required Uint8List encoded,
+    Encrypter? encrypter,
+    int ivLen = 16,
+  }) {
+    final iv = IV.fromUtf8(key.substring(0, ivLen));
+    return (encrypter ?? getEncrypter(key)).decrypt(Encrypted(encoded), iv: iv);
   }
 
   static String generateRandomKey([

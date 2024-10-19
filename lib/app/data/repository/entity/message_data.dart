@@ -52,7 +52,7 @@ class MessageData {
 
   String toJsonStr() {
     var json = jsonEncode(toJson());
-    Log.debug("test json", json);
+    Log.debug("MessageData", json);
     return jsonEncode(toJson());
   }
 }

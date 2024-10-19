@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:clipshare/app/data/enums/connection_mode.dart';
 import 'package:clipshare/app/data/enums/forward_msg_type.dart';
 import 'package:clipshare/app/services/config_service.dart';
+import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/crypto.dart';
 import 'package:clipshare/app/utils/extension.dart';
 import 'package:clipshare/app/utils/log.dart';
@@ -13,7 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:synchronized/synchronized.dart';
 
-import 'string_spliter.dart';
+import 'data_packet_splitter.dart';
 
 class AsyncLock {
   Completer? _completer;
@@ -65,7 +66,7 @@ class SecureSocketClient {
   bool get isForwardMode => _connectionMode == ConnectionMode.forward;
 
   String get _endChar => isForwardMode && !_forwardReady ? '\n' : ',';
-  late final StringSplitter _dataSplitter;
+  late final DataPacketSplitter _dataSplitter;
   final StreamController<String> _msgStreamController = StreamController();
 
   SecureSocketClient._private(this.ip);
@@ -154,7 +155,7 @@ class SecureSocketClient {
     ssc._onError = onError;
     ssc._onDone = onDone;
     ssc._cancelOnError = cancelOnError;
-    ssc._dataSplitter = StringSplitter(
+    ssc._dataSplitter = DataPacketSplitter(
       ssc._endChar,
       useComputeThreshold,
       const Duration(milliseconds: 50),
@@ -165,11 +166,11 @@ class SecureSocketClient {
 
   final _recDataLock = Lock();
 
-  Future _onDataReceive(String rec) async {
+  Future _onDataReceive(Uint8List bytes) async {
     try {
       if (isForwardMode && !_forwardReady) {
         //中转未准备好
-        var json = jsonDecode(rec);
+        var json = jsonDecode(utf8.decode(bytes));
         var type = ForwardMsgType.getValue(json["type"]);
         Log.debug(tag, "forward ${type.name}");
         switch (type) {
@@ -197,21 +198,21 @@ class SecureSocketClient {
         if (_keyIsExchanged) {
           //密钥已交换，此处需要解密
           String decrypt;
-          if (rec.length > useComputeThreshold) {
+          if (bytes.length > useComputeThreshold) {
             decrypt = await compute(
               (List<dynamic> params) {
-                return CryptoUtil.decryptAES(
+                return CryptoUtil.decryptAESBytes(
                   key: params[0],
                   encoded: params[2],
                   encrypter: params[1],
                 );
               },
-              [_aesKey, _encrypter, rec],
+              [_aesKey, _encrypter, bytes],
             );
           } else {
-            decrypt = CryptoUtil.decryptAES(
+            decrypt = CryptoUtil.decryptAESBytes(
               key: _aesKey,
-              encoded: rec,
+              encoded: bytes,
               encrypter: _encrypter,
             );
           }
@@ -220,8 +221,7 @@ class SecureSocketClient {
           }
         } else {
           //密钥未交换
-          var decodeB64 = CryptoUtil.base64DecodeStr(rec);
-          _exchange(decodeB64);
+          _exchange(utf8.decode(bytes));
         }
         //endregion
       }
@@ -239,9 +239,9 @@ class SecureSocketClient {
     _listening = true;
     try {
       _socket.transform(_dataSplitter).listen(
-        (rec) {
+        (bytes) {
           //接收完成，进行解码
-          _recDataLock.synchronized(() => _onDataReceive(rec));
+          _recDataLock.synchronized(() => _onDataReceive(bytes));
         },
         onError: (e) {
           Log.error("SecureSocketClient", "error:$e");
@@ -315,6 +315,7 @@ class SecureSocketClient {
       throw Exception("already ready");
     }
     _keyIsExchanged = true;
+    _dataSplitter.delimiter = null;
     if (_onConnected != null) {
       _onConnected(this);
     }
@@ -325,8 +326,35 @@ class SecureSocketClient {
     try {
       return _lock.synchronized(() async {
         final data = await _genSendData(map);
-        _socket.write(data);
-        await _socket.flush();
+        // 计算总包数
+        int maxPayloadSize = Constants.packetMaxPayloadSize;
+        int packetSize = (data.length / maxPayloadSize).ceil();
+        // 分包发送
+        for (int i = 0; i < packetSize; i++) {
+          // 计算当前包的数据范围
+          int start = i * maxPayloadSize;
+          int end = start + maxPayloadSize;
+          if (end > data.length) end = data.length;
+          // 当前包的数据（主体部分）
+          Uint8List packetData = data.sublist(start, end);
+          int payloadSize = packetData.length;
+          // 创建包头
+          Uint8List header = createPacketHeader(
+            data.length,
+            payloadSize,
+            packetSize,
+            i + 1,
+          );
+          // 组合头部和数据
+          Uint8List packet = Uint8List(header.length + payloadSize);
+          // 写入头部
+          packet.setAll(0, header);
+          // 写入载荷
+          packet.setAll(header.length, packetData);
+          //发送数据包
+          _socket.add(packet);
+          await _socket.flush();
+        }
       });
     } catch (e, stack) {
       Log.debug(tag, "发送失败：$e");
@@ -338,35 +366,32 @@ class SecureSocketClient {
     }
   }
 
-  Future<String> _genSendData(Map map) async {
-    String data = jsonEncode(map);
-    if (!isForwardMode || _forwardReady) {
-      //region 直连模式
-      if (_keyIsExchanged) {
-        if (data.length > useComputeThreshold) {
-          data = await compute(
-            (List<dynamic> params) {
-              return CryptoUtil.encryptAES(
-                key: params[0],
-                input: params[2],
-                encrypter: params[1],
-              );
-            },
-            [_aesKey, _encrypter, data],
-          );
-        } else {
-          data = CryptoUtil.encryptAES(
-            key: _aesKey,
-            input: data,
-            encrypter: _encrypter,
-          );
-        }
+  Future<Uint8List> _genSendData(Map map) async {
+    String json = jsonEncode(map);
+    Uint8List bytes = Uint8List(0);
+    if (_keyIsExchanged) {
+      if (json.length > useComputeThreshold) {
+        bytes = await compute(
+          (List<dynamic> params) {
+            return CryptoUtil.encryptAESBytes(
+              key: params[0],
+              input: params[2],
+              encrypter: params[1],
+            );
+          },
+          [_aesKey, _encrypter, json],
+        );
       } else {
-        data = CryptoUtil.base64EncodeStr(data);
+        bytes = CryptoUtil.encryptAESBytes(
+          key: _aesKey,
+          input: json,
+          encrypter: _encrypter,
+        );
       }
-      //endregion
+    } else {
+      bytes = utf8.encode(json);
     }
-    return "$data$_endChar";
+    return bytes;
   }
 
   ///DH 算法发送 key 和 素数、底数
@@ -400,5 +425,23 @@ class SecureSocketClient {
   void destroy() {
     _msgStreamController.close();
     return _socket.destroy();
+  }
+
+  static Uint8List createPacketHeader(
+    int totalPayloadSize,
+    int payloadSize,
+    int packetSize,
+    int seq,
+  ) {
+    var byteData = ByteData(Constants.packetHeaderSize);
+    // 写入包大小（4字节）
+    byteData.setUint32(0, totalPayloadSize, Endian.big);
+    // 写入包大小（2字节）
+    byteData.setUint16(4, payloadSize, Endian.big);
+    // 写入总包数（2字节）
+    byteData.setUint16(6, packetSize, Endian.big);
+    // 写入当前包号（2字节）
+    byteData.setUint16(8, seq, Endian.big);
+    return byteData.buffer.asUint8List();
   }
 }
