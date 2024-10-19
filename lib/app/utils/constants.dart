@@ -206,8 +206,7 @@ enum MsgType {
   disConnect,
   //忘记设备
   forgetDev,
-  //心跳
-  heartbeat,
+  ping,
   //文件同步
   file,
   //未知key

@@ -23,12 +23,6 @@ class PacketProfile {
 }
 
 class DataPacketSplitter extends StreamTransformerBase<Uint8List, Uint8List> {
-  List<int>? _delimiter;
-  late int _useComputeThreshold;
-  Duration? delayed;
-
-  String? get delimiter => _delimiter == null ? null : utf8.decode(_delimiter!);
-  final FlatList<int> _flatBuffer = FlatList();
   List<int> _bytesBuffer = Uint8List(0);
   PacketProfile? _remainingPacket;
   int _lastSeq = 1;
@@ -43,29 +37,7 @@ class DataPacketSplitter extends StreamTransformerBase<Uint8List, Uint8List> {
     _bytesBuffer.addAll(buffer);
   }
 
-  set delimiter(String? value) {
-    if (value == null) {
-      _delimiter = null;
-      return;
-    }
-    _delimiter = utf8.encode(value);
-  }
-
-  set useComputeThreshold(int value) {
-    assert(value > 0);
-    _useComputeThreshold = value;
-  }
-
   final _controller = StreamController<Uint8List>();
-
-  DataPacketSplitter(
-    String? delimiter,
-    int useComputeThreshold, [
-    this.delayed,
-  ]) {
-    this.delimiter = delimiter;
-    this.useComputeThreshold = useComputeThreshold;
-  }
 
   Future _queue = Future.value();
 

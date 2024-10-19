@@ -53,12 +53,13 @@ class SettingsPage extends GetView<SettingsController> {
             child: ListView(
               children: [
                 //region 环境检测卡片
-                if(Platform.isAndroid)
+                if (Platform.isAndroid)
                   Obx(() {
                     return EnvironmentStatusCard(
                       icon: Obx(() => controller.envStatusIcon.value),
                       backgroundColor: controller.envStatusBgColor.value,
-                      tipContent: Obx(() => controller.envStatusTipContent.value),
+                      tipContent:
+                          Obx(() => controller.envStatusTipContent.value),
                       tipDesc: Obx(() => controller.envStatusTipDesc.value),
                       action: Obx(() {
                         return controller.envStatusAction.value ??
@@ -236,187 +237,189 @@ class SettingsPage extends GetView<SettingsController> {
 
                 ///region 发现
 
-                Obx(() => SettingCardGroup(
-                      groupName: "发现",
-                      icon: const Icon(Icons.wifi),
-                      cardList: [
-                        SettingCard(
-                          main: const Text(
-                            "设备名称",
-                            maxLines: 1,
-                          ),
-                          sub: Row(
-                            children: [
-                              Text(
-                                "id: ${appConfig.devInfo.guid}",
-                                maxLines: 1,
+                Obx(
+                  () => SettingCardGroup(
+                    groupName: "发现",
+                    icon: const Icon(Icons.wifi),
+                    cardList: [
+                      SettingCard(
+                        main: const Text(
+                          "设备名称",
+                          maxLines: 1,
+                        ),
+                        sub: Row(
+                          children: [
+                            Text(
+                              "id: ${appConfig.devInfo.guid}",
+                              maxLines: 1,
+                            ),
+                            const SizedBox(
+                              width: 5,
+                            ),
+                            GestureDetector(
+                              child: const MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: Icon(
+                                  Icons.copy,
+                                  color: Colors.blueGrey,
+                                  size: 15,
+                                ),
                               ),
-                              const SizedBox(
-                                width: 5,
-                              ),
-                              GestureDetector(
+                              onTap: () async {
+                                HapticFeedback.mediumImpact();
+                                Clipboard.setData(ClipboardData(
+                                    text: appConfig.devInfo.guid));
+                                Global.showSnackBarSuc(
+                                  context,
+                                  "已复制设备id",
+                                );
+                              },
+                            )
+                          ],
+                        ),
+                        value: appConfig.localName,
+                        action: (v) => Text(v),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => TextEditDialog(
+                              title: "修改设备名称",
+                              labelText: "设备名称",
+                              initStr: appConfig.localName,
+                              onOk: (str) {
+                                appConfig.setLocalName(str);
+                                Global.showSnackBarSuc(
+                                  context,
+                                  "修改后重启软件生效",
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                      SettingCard(
+                        main: const Text(
+                          "端口号",
+                          maxLines: 1,
+                        ),
+                        sub: const Text(
+                          "默认值 ${Constants.port}。修改后可能无法被自动发现",
+                          maxLines: 1,
+                        ),
+                        value: appConfig.port,
+                        action: (v) => Text(v.toString()),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => TextEditDialog(
+                              title: "修改端口",
+                              labelText: "端口",
+                              initStr: appConfig.port.toString(),
+                              verify: (str) {
+                                var port = int.tryParse(str);
+                                if (port == null) return false;
+                                return port >= 0 && port <= 65535;
+                              },
+                              errorText: "端口号范围0-65535",
+                              onOk: (str) {
+                                appConfig.setPort(str.toInt());
+                                Global.showSnackBarSuc(
+                                  context,
+                                  "修改后重启软件生效",
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                      SettingCard(
+                        main: const Text(
+                          "可被发现",
+                          maxLines: 1,
+                        ),
+                        sub: const Text(
+                          "可以被其它设备自动发现",
+                          maxLines: 1,
+                        ),
+                        value: appConfig.allowDiscover,
+                        action: (v) => Switch(
+                          value: v,
+                          onChanged: (checked) {
+                            HapticFeedback.mediumImpact();
+                            appConfig.setAllowDiscover(checked);
+                          },
+                        ),
+                      ),
+                      SettingCard(
+                        main: Row(
+                          children: [
+                            const Text(
+                              "心跳检测间隔",
+                              maxLines: 1,
+                            ),
+                            const SizedBox(
+                              width: 5,
+                            ),
+                            Tooltip(
+                              message: "说明",
+                              child: GestureDetector(
                                 child: const MouseRegion(
                                   cursor: SystemMouseCursors.click,
                                   child: Icon(
-                                    Icons.copy,
+                                    Icons.info_outline,
                                     color: Colors.blueGrey,
                                     size: 15,
                                   ),
                                 ),
                                 onTap: () async {
-                                  HapticFeedback.mediumImpact();
-                                  Clipboard.setData(ClipboardData(
-                                      text: appConfig.devInfo.guid));
-                                  Global.showSnackBarSuc(
-                                    context,
-                                    "已复制设备id",
-                                  );
-                                },
-                              )
-                            ],
-                          ),
-                          value: appConfig.localName,
-                          action: (v) => Text(v),
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => TextEditDialog(
-                                title: "修改设备名称",
-                                labelText: "设备名称",
-                                initStr: appConfig.localName,
-                                onOk: (str) {
-                                  appConfig.setLocalName(str);
-                                  Global.showSnackBarSuc(
-                                    context,
-                                    "修改后重启软件生效",
+                                  Global.showTipsDialog(
+                                    context: context,
+                                    text: "当设备切换网络时无法自动检测到设备是否掉线\n"
+                                        "启用心跳检测将会定时检查设备存活情况。",
                                   );
                                 },
                               ),
-                            );
-                          },
+                            ),
+                          ],
                         ),
-                        SettingCard(
-                          main: const Text(
-                            "端口号",
-                            maxLines: 1,
-                          ),
-                          sub: const Text(
-                            "默认值 ${Constants.port}。修改后可能无法被自动发现",
-                            maxLines: 1,
-                          ),
-                          value: appConfig.port,
-                          action: (v) => Text(v.toString()),
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => TextEditDialog(
-                                title: "修改端口",
-                                labelText: "端口",
-                                initStr: appConfig.port.toString(),
-                                verify: (str) {
-                                  var port = int.tryParse(str);
-                                  if (port == null) return false;
-                                  return port >= 0 && port <= 65535;
-                                },
-                                errorText: "端口号范围0-65535",
-                                onOk: (str) {
-                                  appConfig.setPort(str.toInt());
-                                  Global.showSnackBarSuc(
-                                    context,
-                                    "修改后重启软件生效",
-                                  );
-                                },
-                              ),
-                            );
-                          },
+                        sub: const Text(
+                          "检测设备存活。默认30s，0不检测",
+                          maxLines: 1,
                         ),
-                        SettingCard(
-                          main: const Text(
-                            "可被发现",
-                            maxLines: 1,
-                          ),
-                          sub: const Text(
-                            "可以被其它设备自动发现",
-                            maxLines: 1,
-                          ),
-                          value: appConfig.allowDiscover,
-                          action: (v) => Switch(
-                            value: v,
-                            onChanged: (checked) {
-                              HapticFeedback.mediumImpact();
-                              appConfig.setAllowDiscover(checked);
-                            },
-                          ),
-                        ),
-                        SettingCard(
-                          main: Row(
-                            children: [
-                              const Text(
-                                "心跳检测间隔",
-                                maxLines: 1,
-                              ),
-                              const SizedBox(
-                                width: 5,
-                              ),
-                              Tooltip(
-                                message: "说明",
-                                child: GestureDetector(
-                                  child: const MouseRegion(
-                                    cursor: SystemMouseCursors.click,
-                                    child: Icon(
-                                      Icons.info_outline,
-                                      color: Colors.blueGrey,
-                                      size: 15,
-                                    ),
-                                  ),
-                                  onTap: () async {
-                                    Global.showTipsDialog(
-                                      context: context,
-                                      text: "当设备切换网络时无法自动检测到设备是否掉线\n"
-                                          "启用心跳检测将会定时检查设备存活情况。",
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          sub: const Text(
-                            "检测设备存活。默认30s，0不检测",
-                            maxLines: 1,
-                          ),
-                          value: appConfig.heartbeatInterval,
-                          action: (v) => Text(v <= 0 ? '不检测' : '${v}s'),
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => TextEditDialog(
-                                title: "心跳间隔",
-                                labelText: "心跳间隔",
-                                initStr:
-                                    "${appConfig.heartbeatInterval <= 0 ? '' : appConfig.heartbeatInterval}",
-                                verify: (str) {
-                                  var port = int.tryParse(str);
-                                  if (port == null) return false;
-                                  return true;
-                                },
-                                errorText: "单位秒，0为禁用检测",
-                                onOk: (str) async {
-                                  await appConfig.setHeartbeatInterval(str);
-                                  var enable = str.toInt() > 0;
-                                  Log.debug(
-                                      logTag, "${enable ? '启用' : '禁用'}心跳检测");
-                                  if (enable) {
-                                    sktService.startHeartbeatTest();
-                                  } else {
-                                    sktService.stopHeartbeatTest();
-                                  }
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    )),
+                        value: appConfig.heartbeatInterval,
+                        action: (v) => Text(v <= 0 ? '不检测' : '${v}s'),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => TextEditDialog(
+                              title: "心跳间隔",
+                              labelText: "心跳间隔",
+                              initStr:
+                                  "${appConfig.heartbeatInterval <= 0 ? '' : appConfig.heartbeatInterval}",
+                              verify: (str) {
+                                var port = int.tryParse(str);
+                                if (port == null) return false;
+                                return true;
+                              },
+                              errorText: "单位秒，0为禁用检测",
+                              onOk: (str) async {
+                                await appConfig.setHeartbeatInterval(str);
+                                var enable = str.toInt() > 0;
+                                Log.debug(
+                                    logTag, "${enable ? '启用' : '禁用'}心跳检测");
+                                if (enable) {
+                                  sktService.startHeartbeatTest();
+                                } else {
+                                  sktService.stopHeartbeatTest();
+                                }
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
 
                 ///endregion
 

@@ -402,7 +402,7 @@ class SocketService extends GetxService {
     SecureSocketClient client,
     MessageData msg,
   ) async {
-    Log.debug(tag, msg.key);
+    // Log.debug(tag, msg.key);
     DevInfo dev = msg.send;
     var address =
         ipSetTemp.firstWhereOrNull((ip) => ip.split(":")[0] == client.ip);
@@ -1034,7 +1034,7 @@ class SocketService extends GetxService {
     _heartbeatTimer = Timer.periodic(Duration(seconds: interval), (timer) {
       if (_devSockets.isEmpty) return;
       Log.debug(tag, "send heartbeat");
-      sendData(null, MsgType.heartbeat, {});
+      sendData(null, MsgType.ping, {});
     });
   }
 

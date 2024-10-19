@@ -65,7 +65,6 @@ class SecureSocketClient {
 
   bool get isForwardMode => _connectionMode == ConnectionMode.forward;
 
-  String get _endChar => isForwardMode && !_forwardReady ? '\n' : ',';
   late final DataPacketSplitter _dataSplitter;
   final StreamController<String> _msgStreamController = StreamController();
 
@@ -155,11 +154,7 @@ class SecureSocketClient {
     ssc._onError = onError;
     ssc._onDone = onDone;
     ssc._cancelOnError = cancelOnError;
-    ssc._dataSplitter = DataPacketSplitter(
-      ssc._endChar,
-      useComputeThreshold,
-      const Duration(milliseconds: 50),
-    );
+    ssc._dataSplitter = DataPacketSplitter();
     ssc._listen();
     return ssc;
   }
@@ -179,12 +174,10 @@ class SecureSocketClient {
             String sender = json["sender"];
             if (sender != _selfDevId) {
               _forwardReady = true;
-              _dataSplitter.delimiter = _endChar;
             }
             break;
           case ForwardMsgType.forwardReady:
             _forwardReady = true;
-            _dataSplitter.delimiter = _endChar;
             sendKey();
             break;
           case ForwardMsgType.alreadyConnected:
@@ -315,7 +308,6 @@ class SecureSocketClient {
       throw Exception("already ready");
     }
     _keyIsExchanged = true;
-    _dataSplitter.delimiter = null;
     if (_onConnected != null) {
       _onConnected(this);
     }
