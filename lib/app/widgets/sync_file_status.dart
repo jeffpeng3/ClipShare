@@ -74,7 +74,7 @@ class SyncFileStatus extends StatelessWidget {
           onTap: selectMode
               ? null
               : () async {
-                  if (PlatformExt.isPC) {
+                  if (PlatformExt.isDesktop) {
                     return;
                   }
                   final file = File(syncingFile.filePath);

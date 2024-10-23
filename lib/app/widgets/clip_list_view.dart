@@ -491,6 +491,7 @@ class ClipListViewState extends State<ClipListView>
                   child: Padding(
                     padding: const EdgeInsets.all(5),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ///标题
                         Row(

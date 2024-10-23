@@ -19,7 +19,7 @@ class TagEditPage extends StatefulWidget {
   static void goto(int hisId) {
     var showLeftBar =
         MediaQuery.of(Get.context!).size.width >= Constants.smallScreenWidth;
-    if (showLeftBar || PlatformExt.isPC) {
+    if (showLeftBar || PlatformExt.isDesktop) {
       Get.dialog(
         DynamicSizeWidget(
           child: TagEditPage(hisId),

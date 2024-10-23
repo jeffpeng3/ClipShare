@@ -110,7 +110,7 @@ class SettingsPage extends GetView<SettingsController> {
                             appConfig.setStartMini(checked);
                           },
                         ),
-                        show: (v) => PlatformExt.isPC,
+                        show: (v) => PlatformExt.isDesktop,
                       ),
                       SettingCard(
                         main: const Text("显示历史记录悬浮窗"),
@@ -158,7 +158,7 @@ class SettingsPage extends GetView<SettingsController> {
                             appConfig.setRememberWindowSize(checked);
                           },
                         ),
-                        show: (v) => PlatformExt.isPC,
+                        show: (v) => PlatformExt.isDesktop,
                       ),
                     ],
                   ),
@@ -513,7 +513,7 @@ class SettingsPage extends GetView<SettingsController> {
                                       if (str.isNullOrEmpty) return false;
                                       if (!str.contains(":")) return false;
                                       final [ip, port] = str.trim().split(':');
-                                      return ip.isIPv4 && port.isPortNot0;
+                                      return ip.isIPv4 && port.isPort;
                                     },
                                     errorText: "请输入合法的地址",
                                     onOk: (str) async {
@@ -1026,13 +1026,7 @@ class SettingsPage extends GetView<SettingsController> {
                                 onTap: () async {
                                   Directory(appConfig.logsDirPath).createSync();
                                   try {
-                                    var res = await OpenFile.open(
-                                      appConfig.logsDirPath,
-                                    );
-                                    Log.debug(
-                                      logTag,
-                                      "${res.type.name},${res.message}",
-                                    );
+                                    await OpenFile.open(appConfig.logsDirPath);
                                   } catch (e) {
                                     Log.error(logTag, e);
                                   }

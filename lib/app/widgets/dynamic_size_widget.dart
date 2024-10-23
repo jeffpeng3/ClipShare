@@ -18,7 +18,8 @@ class DynamicSizeWidget extends StatelessWidget {
     this.maxWidth,
     this.ratio,
     required this.child,
-  });
+  })  : assert((widthScale ?? 0) <= 1),
+        assert((heightScale ?? 0) <= 1);
 
   double calcWidth(double screenWidth) {
     const double defaultMaxWidth = 350;

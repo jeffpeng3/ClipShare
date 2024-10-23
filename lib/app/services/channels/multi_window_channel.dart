@@ -27,7 +27,7 @@ class MultiWindowChannelService extends GetxService {
 
   ///获取历史数据
   Future getHistories(int targetWindowId, int fromId) {
-    if (!PlatformExt.isPC) return Future(() => []);
+    if (!PlatformExt.isDesktop) return Future(() => []);
     return DesktopMultiWindow.invokeMethod(
       targetWindowId,
       MultiWindowMethod.getHistories,
@@ -37,7 +37,7 @@ class MultiWindowChannelService extends GetxService {
 
   ///通知主窗体复制
   Future copy(int targetWindowId, int historyId) {
-    if (!PlatformExt.isPC) return Future(() => false);
+    if (!PlatformExt.isDesktop) return Future(() => false);
     return DesktopMultiWindow.invokeMethod(
       targetWindowId,
       MultiWindowMethod.copy,
@@ -47,7 +47,7 @@ class MultiWindowChannelService extends GetxService {
 
   ///通知子窗体数据变更
   Future notify(int targetWindowId) {
-    if (!PlatformExt.isPC) return Future(() => false);
+    if (!PlatformExt.isDesktop) return Future(() => false);
     return DesktopMultiWindow.invokeMethod(
       targetWindowId,
       MultiWindowMethod.notify,
@@ -57,7 +57,7 @@ class MultiWindowChannelService extends GetxService {
 
   ///获取当前在线的兼容版本设备列表
   Future getCompatibleOnlineDevices(int targetWindowId) {
-    if (!PlatformExt.isPC) return Future(() => []);
+    if (!PlatformExt.isDesktop) return Future(() => []);
     return DesktopMultiWindow.invokeMethod(
       targetWindowId,
       MultiWindowMethod.getCompatibleOnlineDevices,
@@ -71,7 +71,7 @@ class MultiWindowChannelService extends GetxService {
     List<Device> devices,
     List<String> files,
   ) {
-    if (!PlatformExt.isPC) return Future.value();
+    if (!PlatformExt.isDesktop) return Future.value();
     return DesktopMultiWindow.invokeMethod(
       targetWindowId,
       MultiWindowMethod.syncFiles,

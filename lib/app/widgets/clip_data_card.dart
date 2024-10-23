@@ -71,7 +71,7 @@ class ClipDataCardState extends State<ClipDataCard> {
   }
 
   void _showDetail(ClipData chip) {
-    if (PlatformExt.isPC) {
+    if (PlatformExt.isDesktop) {
       _showDetailDialog(chip);
       return;
     }
@@ -137,7 +137,7 @@ class ClipDataCardState extends State<ClipDataCard> {
               widget.onTap?.call();
               return;
             }
-            if (PlatformExt.isPC) {
+            if (PlatformExt.isDesktop) {
               widget.onTap?.call();
               return;
             }

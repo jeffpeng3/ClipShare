@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
+import 'package:clipshare/app/utils/extension.dart';
 
 class Log {
   Log._private();
-
   static Future _writeFuture = Future.value();
   static final _logger = Logger(
     printer: PrettyPrinter(
@@ -14,64 +14,40 @@ class Log {
     ),
   );
 
-  static const _split = '''
-┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
-  ''';
-
   static void debug(String tag, dynamic) {
-    var log = "$tag ${DateTime.now()} ↓↓↓↓↓ \n"
-        "$_split\n "
-        "$dynamic \n"
-        "$_split\n"
-        "$tag ${DateTime.now()}";
+    var log = "[$tag] ${DateTime.now().format()} | $dynamic";
     _logger.d(log);
-    writeFiles(log);
+    writeFiles("[debug] | $log");
   }
 
   static void trace(String tag, dynamic) {
-    var log = "$tag ${DateTime.now()} ↓↓↓↓↓ \n"
-        "$_split\n "
-        "$dynamic \n"
-        "$_split\n"
-        "$tag ${DateTime.now()}";
+    var log = "[$tag] ${DateTime.now().format()} | $dynamic";
     _logger.t(log);
-    writeFiles(log);
+    writeFiles("[trace] | $log");
   }
 
   static void info(String tag, dynamic) {
-    var log = "$tag ${DateTime.now()} ↓↓↓↓↓ \n"
-        "$_split\n "
-        "$dynamic \n"
-        "$_split\n"
-        "$tag ${DateTime.now()}";
+    var log = "[$tag] ${DateTime.now().format()} | $dynamic";
     _logger.i(log);
-    writeFiles(log);
+    writeFiles("[info] | $log");
   }
 
   static void warn(String tag, dynamic) {
-    var log = "$tag ${DateTime.now()} ↓↓↓↓↓ \n"
-        "$_split\n "
-        "$dynamic \n"
-        "$_split\n"
-        "$tag ${DateTime.now()}";
+    var log = "[$tag] ${DateTime.now().format()} | $dynamic";
     _logger.w(log);
-    writeFiles(log);
+    writeFiles("[warn] | $log");
   }
 
   static void fatal(String tag, dynamic) {
-    var log = "$tag ${DateTime.now()} ↓↓↓↓↓ \n"
-        "$_split\n "
-        "$dynamic \n"
-        "$_split\n"
-        "$tag ${DateTime.now()}";
+    var log = "[$tag] ${DateTime.now().format()} | $dynamic";
     _logger.w(log);
-    writeFiles(log);
+    writeFiles("[fatal] | $log");
   }
 
   static void error(String tag, dynamic) {
-    var content = "$tag ${DateTime.now()} ↓↓↓↓↓ \n $dynamic";
-    _logger.e(content);
-    writeFiles(content);
+    var log = "[$tag] ${DateTime.now().format()} | $dynamic";
+    _logger.e(log);
+    writeFiles("[error] | $log");
   }
 
   static void writeFiles(String content) {
@@ -83,12 +59,13 @@ class Log {
     } catch (e) {
       return;
     }
-    content = "${content.replaceAll(_split, "----")}\n";
     var dateStr = DateTime.now().toString().substring(0, 10);
     var filePath = "${appConfig.logsDirPath}/$dateStr.txt";
     Directory(appConfig.logsDirPath).createSync();
     var file = File(filePath);
-    var f = file.writeAsString(content, mode: FileMode.writeOnlyAppend);
+    var f = file
+        .writeAsString(content, mode: FileMode.writeOnlyAppend)
+        .then((f) => f.writeAsString("\n", mode: FileMode.writeOnlyAppend));
     _writeFuture = _writeFuture.then((v) => f);
   }
 }

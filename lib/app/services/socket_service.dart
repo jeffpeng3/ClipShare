@@ -469,13 +469,13 @@ class SocketService extends GetxService {
         final devId = dev.guid;
         final total = msg.data["total"];
         int seq = msg.data["seq"];
-        print("syncProgress $seq/$total");
         //如果已经存在同步记录则更新或者移除
         if (missingDataSyncProgress.containsKey(devId)) {
           var progress = missingDataSyncProgress[devId];
-          progress?.seq = seq;
-          progress?.total = total;
-          if (progress != null) {
+          //取最大序号
+          if (progress != null && progress.seq > seq) {
+            progress.seq = seq;
+            progress.total = total;
             missingDataSyncProgress[devId] = progress;
           }
           if (seq == total) {
@@ -1033,7 +1033,6 @@ class SocketService extends GetxService {
     //更新timer
     _heartbeatTimer = Timer.periodic(Duration(seconds: interval), (timer) {
       if (_devSockets.isEmpty) return;
-      Log.debug(tag, "send heartbeat");
       sendData(null, MsgType.ping, {});
     });
   }

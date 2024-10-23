@@ -40,7 +40,7 @@ class _ClipContentViewState extends State<ClipContentView> {
                   decoration: TextDecoration.none,
                 ),
                 onOpen: (link) async {
-                  if (!PlatformExt.isPC) {
+                  if (!PlatformExt.isDesktop) {
                     link.url.askOpenUrl();
                   } else {
                     link.url.openUrl();
@@ -83,7 +83,6 @@ class _ClipContentViewState extends State<ClipContentView> {
                             File(widget.clipData.data.content),
                             fit: BoxFit.contain,
                             width: constraints.maxWidth,
-                            height: constraints.maxHeight,
                           ),
                           onTap: () {
                             Navigator.push(

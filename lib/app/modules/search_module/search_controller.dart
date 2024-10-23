@@ -149,7 +149,7 @@ class SearchController extends GetxController with WidgetsBindingObserver {
       searchOnlyNoSync,
     )
         .then((list) {
-      if (PlatformExt.isPC) {
+      if (PlatformExt.isDesktop) {
         searchFocus.requestFocus();
       }
       return ClipData.fromList(list);

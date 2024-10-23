@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/widgets/largeText/large_text.dart';
 import 'package:clipshare/app/widgets/rounded_scaffold.dart';
 import 'package:flutter/material.dart';
 
@@ -14,11 +15,9 @@ class LogDetailPage extends StatelessWidget {
     return RoundedScaffold(
       title: Text(logFile.fileName),
       icon: const Icon(Icons.text_snippet_outlined),
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Text(logFile.readAsStringSync()),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: LargeText(text: logFile.readAsStringSync(), readonly: true),
       ),
     );
   }

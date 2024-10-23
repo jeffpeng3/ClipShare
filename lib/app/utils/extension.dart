@@ -31,15 +31,6 @@ extension StringExt on String {
   bool get isPort {
     try {
       var port = int.parse(this);
-      return port >= 0 && port <= 65535;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  bool get isPortNot0 {
-    try {
-      var port = int.parse(this);
       return port > 0 && port <= 65535;
     } catch (e) {
       return false;
@@ -184,7 +175,7 @@ extension DoubleExt on double {
 }
 
 extension DateTimeExt on DateTime {
-  String format(String format) {
+  String format([String format="yyyy-MM-dd HH:mm:ss"]) {
     return intl.DateFormat(format).format(this);
   }
 
@@ -213,7 +204,7 @@ extension PlatformExt on Platform {
     return Platform.isIOS || Platform.isAndroid;
   }
 
-  static bool get isPC {
+  static bool get isDesktop {
     return Platform.isMacOS || Platform.isLinux || Platform.isWindows;
   }
 }

@@ -67,7 +67,8 @@ class LogPage extends GetView<LogController> {
                           } else {
                             Get.dialog(
                               DynamicSizeWidget(
-                                maxWidth: 500,
+                                widthScale: 0.8,
+                                maxWidth: double.infinity,
                                 child: page,
                               ),
                             );

@@ -79,7 +79,7 @@ class DeviceController extends GetxController
             dev: dev,
             isPaired: true,
             onTap: (device, isConnected, showReNameDlg) {
-              if (PlatformExt.isPC) {
+              if (PlatformExt.isDesktop) {
                 _showBottomDetailSheet(
                   device,
                   isConnected,
@@ -685,7 +685,7 @@ class DeviceController extends GetxController
         isPaired: true,
         isConnected: true,
         onTap: (device, isConnected, showReNameDlg) {
-          if (PlatformExt.isPC) {
+          if (PlatformExt.isDesktop) {
             _showBottomDetailSheet(
               device,
               isConnected,

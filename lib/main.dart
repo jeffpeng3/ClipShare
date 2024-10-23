@@ -73,7 +73,7 @@ Future<void> initServices() async {
   await Get.putAsync(() => DeviceService().init(), permanent: true);
   await Get.putAsync(() => TagService().init(), permanent: true);
   await Get.putAsync(() => SyncingFileProgressService().init(), permanent: true);
-  if (PlatformExt.isPC) {
+  if (PlatformExt.isDesktop) {
     await Get.putAsync(() => WindowService().init());
     await Get.putAsync(() => TrayService().init());
   }
