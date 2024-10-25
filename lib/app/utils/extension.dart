@@ -101,6 +101,16 @@ extension StringExt on String {
     var uri = Uri.parse(this);
     await launchUrl(uri);
   }
+
+  String replaceLast(String target, String replacement) {
+    int lastIndex = lastIndexOf(target);
+    if (lastIndex == -1) return this; // 如果找不到目标字符串，直接返回原字符串
+    return replaceRange(
+      lastIndex,
+      lastIndex + target.length,
+      replacement,
+    );
+  }
 }
 
 extension StringNilExt on String? {
@@ -175,7 +185,7 @@ extension DoubleExt on double {
 }
 
 extension DateTimeExt on DateTime {
-  String format([String format="yyyy-MM-dd HH:mm:ss"]) {
+  String format([String format = "yyyy-MM-dd HH:mm:ss"]) {
     return intl.DateFormat(format).format(this);
   }
 
@@ -583,7 +593,45 @@ extension FileExt on File {
   String get fileName {
     return absolute.path
         .replaceFirst(absolute.parent.path, "")
+        //去除重复斜杠
         .replaceAll(RegExp(r'(/+|\\+)'), "");
+  }
+
+  String get fileNameWithoutExt {
+    var name = fileName;
+    var extName = extension ?? "";
+    //去除扩展名
+    if (extName.isNotEmpty) {
+      name = name.replaceLast(".$extName", "");
+    }
+    return name;
+  }
+
+  String? get extension {
+    final name = fileName;
+    if (!name.contains(".")) return null;
+    final arr = name.split(".");
+    return arr[arr.length - 1];
+  }
+
+  String buildDuplicateSeqName() {
+    var name = fileNameWithoutExt;
+    var extName = extension ?? "";
+    const pattern = r"\(\d+\)$";
+    final regExp = RegExp(pattern);
+    final defaultSeqName = "$name(1)${extName.isEmpty ? "" : "."}$extName";
+    if (name.matchRegExp(pattern)) {
+      //如果已经包含序号判断是否为序号本身
+      if (name.replaceAll(RegExp(pattern), "").isEmpty) {
+        return defaultSeqName;
+      }
+      //提取序号并+1
+      final start = regExp.firstMatch(name)!.start;
+      var seq = name.substring(start).replaceAll(RegExp(r"[\\(\\)]"), "").toInt() + 1;
+      name = name.replaceAll(regExp, "");
+      return "$name($seq)${extName.isEmpty ? "" : "."}$extName";
+    }
+    return defaultSeqName;
   }
 
   Future<String?> get md5 async {
@@ -595,7 +643,10 @@ extension FileExt on File {
 
   bool get isMediaFile {
     // 获取文件扩展名（小写处理）
-    String extension = path.split('.').last.toLowerCase();
+    var extName = extension?.toLowerCase();
+    if (extName == null) {
+      return false;
+    }
 
     // 常见的图片、音频、视频文件扩展名
     const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
@@ -603,9 +654,9 @@ extension FileExt on File {
     const videoExtensions = ['mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv'];
 
     // 判断文件是否属于以上三类之一
-    return imageExtensions.contains(extension) ||
-        audioExtensions.contains(extension) ||
-        videoExtensions.contains(extension);
+    return imageExtensions.contains(extName) ||
+        audioExtensions.contains(extName) ||
+        videoExtensions.contains(extName);
   }
 }
 
@@ -621,6 +672,7 @@ extension ListExt<T> on List<T> {
     return result;
   }
 }
+
 extension ListEquals on List<int> {
   bool equals(List<int> other) {
     if (length != other.length) return false;

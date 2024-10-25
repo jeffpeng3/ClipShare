@@ -33,6 +33,9 @@ class SyncingFile {
   double speed = 0.0;
   final String _fileStartTime;
   SyncingFileState _state = SyncingFileState.wait;
+
+  SyncingFileState get state => _state;
+
   void Function(bool done)? onClose;
 
   SyncingFile({
@@ -46,7 +49,7 @@ class SyncingFile {
     this.onClose,
   })  : _sink = sink,
         assert(totalSize >= 0),
-        assert(isSender || sink != null),
+        assert((!isSender && sink == null) || (sink != null || isSender)),
         _fileStartTime =
             startTime ?? DateTime.now().format("yyyy-MM-dd HH:mm:ss");
 
@@ -88,8 +91,6 @@ class SyncingFile {
   }
 
   int get savedBytes => _savedBytes;
-
-  SyncingFileState get state => _state;
 
   void setState(SyncingFileState state) {
     assert(isSender);

@@ -18,12 +18,18 @@ class HomePage extends GetView<HomeController> {
   final sktService = Get.find<SocketService>();
   final androidChannelService = Get.find<AndroidChannelService>();
 
+  GetxController get currentPageController => controller.currentPageController;
+
   @override
   Widget build(BuildContext context) {
     controller.screenWidth = MediaQuery.of(context).size.width;
     return PopScope(
       canPop: false,
       onPopInvoked: (bool didPop) {
+        if (appConfig.isMultiSelectionMode(currentPageController)) {
+          appConfig.disableMultiSelectionMode(true);
+          return;
+        }
         if (Platform.isAndroid) {
           androidChannelService.moveToBg();
         }
@@ -41,7 +47,9 @@ class HomePage extends GetView<HomeController> {
                         children: [
                           Obx(
                             () => ConditionWidget(
-                              condition: appConfig.isMultiSelectionMode.value,
+                              //todo 是否会有问题？
+                              condition: appConfig
+                                  .isMultiSelectionMode(currentPageController),
                               visible: const Icon(Icons.checklist),
                               invisible:
                                   controller.navBarItems[controller.index].icon,
@@ -52,12 +60,12 @@ class HomePage extends GetView<HomeController> {
                           ),
                           Obx(
                             () {
-                              final selectionMode =
-                                  appConfig.isMultiSelectionMode.value;
+                              final selectionMode = appConfig
+                                  .isMultiSelectionMode(currentPageController);
                               final pageTitle = controller
                                   .navBarItems[controller.index].label!;
                               final selectionText =
-                                  appConfig.multiSelectionText.value;
+                                  appConfig.multiSelectionText;
                               bool isSyncing = appConfig.isHistorySyncing.value;
                               final icon =
                                   controller.navBarItems[controller.index].icon;
@@ -88,7 +96,8 @@ class HomePage extends GetView<HomeController> {
                     ),
                     Obx(
                       () => Visibility(
-                        visible: !appConfig.isMultiSelectionMode.value,
+                        visible: !appConfig
+                            .isMultiSelectionMode(currentPageController),
                         child: IconButton(
                           onPressed: () {
                             //导航至搜索页面

@@ -8,13 +8,13 @@ import 'package:clipshare/app/handlers/sync/history_top_syncer.dart';
 import 'package:clipshare/app/handlers/sync/rules_syncer.dart';
 import 'package:clipshare/app/handlers/sync/tag_syncer.dart';
 import 'package:clipshare/app/listeners/screen_opened_listener.dart';
+import 'package:clipshare/app/modules/debug_module/debug_page.dart';
 import 'package:clipshare/app/modules/device_module/device_page.dart';
 import 'package:clipshare/app/modules/history_module/history_page.dart';
 import 'package:clipshare/app/modules/search_module/search_page.dart';
 import 'package:clipshare/app/modules/settings_module/settings_controller.dart';
 import 'package:clipshare/app/modules/settings_module/settings_page.dart';
-import 'package:clipshare/app/modules/views/debug_page.dart';
-import 'package:clipshare/app/modules/views/syncing_file_page.dart';
+import 'package:clipshare/app/modules/sync_file_module/sync_file_page.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -44,14 +44,16 @@ class HomeController extends GetxController
 
   int get index => _index.value;
 
-  final _pages = List<Widget>.from([
+  final _pages = List<GetView>.from([
     HistoryPage(),
     DevicePage(),
-    const SyncingFilePage(),
+    SyncFilePage(),
     SettingsPage(),
   ]).obs;
 
-  RxList<Widget> get pages => _pages;
+  GetxController get currentPageController => pages[index].controller;
+
+  RxList<GetView> get pages => _pages;
 
   final _navBarItems = List<BottomNavigationBarItem>.from(const [
     BottomNavigationBarItem(
@@ -122,7 +124,7 @@ class HomeController extends GetxController
           label: "Debug",
         ),
       );
-      _pages.add(const DebugPage());
+      _pages.add(DebugPage());
       return true;
     }());
   }
@@ -303,12 +305,13 @@ class HomeController extends GetxController
   void gotoFileSyncPage() {
     if (showLeftBar) {
       var i = _navBarItems.indexWhere(
-          (element) => (element.icon as Icon).icon == Icons.sync_alt_outlined);
+        (element) => (element.icon as Icon).icon == Icons.sync_alt_outlined,
+      );
       _index.value = i;
-      _pages[i] = const SyncingFilePage();
+      _pages[i] = SyncFilePage();
     } else {
       //todo 后期换成 named 形式
-      Get.to(const SyncingFilePage());
+      Get.to(SyncFilePage());
     }
   }
 //endregion 页面跳转

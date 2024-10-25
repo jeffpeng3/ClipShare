@@ -141,6 +141,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                   visible: const Loading(),
                   invisible: ClipListView(
                     list: controller.list,
+                    parentController: controller,
                     onRefreshData: controller.refreshData,
                     onUpdate: controller.sortList,
                     onRemove: (id) {

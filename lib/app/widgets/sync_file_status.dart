@@ -34,7 +34,11 @@ class SyncFileStatus extends StatelessWidget {
     this.historyId,
   });
 
-  factory SyncFileStatus.fromHistory(BuildContext context, History history) {
+  factory SyncFileStatus.fromHistory(
+    BuildContext context,
+    History history,
+    String selfDevId,
+  ) {
     final devService = Get.find<DeviceService>();
     Device dev = devService.getById(history.devId);
     return SyncFileStatus(
@@ -43,7 +47,7 @@ class SyncFileStatus extends StatelessWidget {
         context: context,
         filePath: history.content,
         fromDev: dev,
-        isSender: true,
+        isSender: selfDevId == history.devId,
         startTime: DateTime.parse(history.time).format("yyyy-MM-dd HH:mm:ss"),
       ),
       factor: 1,

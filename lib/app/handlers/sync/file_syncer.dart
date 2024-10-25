@@ -7,6 +7,7 @@ import 'package:clipshare/app/data/repository/entity/syncing_file.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/modules/history_module/history_controller.dart';
+import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
@@ -211,11 +212,13 @@ class FileSyncer {
     var socket = await Socket.connect(ip, port);
     String filePath = "${appConfig.fileStorePath}/$fileName";
     File file = File(filePath);
+
     ///文件存在处理策略
-    int i = 1;
+
     while (file.existsSync()) {
       //如果文件存在，给文件加后缀
-      filePath="$filePath(${i++})";
+      final seqName = file.buildDuplicateSeqName();
+      filePath = "${appConfig.fileStorePath}/$seqName";
       file = File(filePath);
     }
     final syncingFileService = Get.find<SyncingFileProgressService>();
@@ -256,7 +259,6 @@ class FileSyncer {
           tag,
           "onDone $offset seconds, size: ${size.sizeStr}, speed: ${speed.sizeStr}/s",
         );
-        syncingFile.close(true);
         var history = History(
           id: fileId,
           uid: userId,
@@ -268,10 +270,15 @@ class FileSyncer {
           sync: true,
         );
         final historyController = Get.find<HistoryController>();
-        historyController.addData(history, false);
-        if(file.isMediaFile){
+        historyController
+            .addData(history, false)
+            .whenComplete(() => syncingFile.close(true));
+        if (file.isMediaFile) {
           //媒体文件，刷新媒体库
-
+          if (Platform.isAndroid) {
+            var androidChannelService = Get.find<AndroidChannelService>();
+            androidChannelService.notifyMediaScan(filePath);
+          }
         }
       },
     );

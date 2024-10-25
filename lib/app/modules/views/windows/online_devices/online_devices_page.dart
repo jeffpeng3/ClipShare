@@ -71,7 +71,6 @@ class _OnlineDevicesPageState extends State<OnlineDevicesPage> {
                             _selectedDevIds.add(dev.guid);
                           }
                           setState(() {});
-                          Log.info(tag, dev.guid);
                         },
                       );
                     },

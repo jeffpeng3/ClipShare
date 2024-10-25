@@ -36,7 +36,7 @@ class _LargeTextState extends State<LargeText> {
     return CodeEditor(
       readOnly: widget.readonly,
       controller: _controller,
-      wordWrap: false,
+      wordWrap: true,
       indicatorBuilder:
           (context, editingController, chunkController, notifier) {
         return Row(

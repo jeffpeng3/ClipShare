@@ -16,4 +16,7 @@ abstract class Routes {
   static const USER_GUIDE = '/user_guide'; // UserGuide page
   static const STATISTICS = '/statistics'; // Statistics page
   static const WORKING_MODE_SELECTION = '/working_mode_selection'; // WorkingModeSelection page
+  static const DEBUG_PAGE = '/debug_page'; // DebugPage page
+  static const DEBUG = '/debug'; // Debug page
+  static const SYNC_FILE = '/sync_file'; // SyncFile page
 }

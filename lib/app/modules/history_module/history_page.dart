@@ -23,6 +23,7 @@ class HistoryPage extends GetView<HistoryController> {
         visible: const Loading(),
         invisible: ClipListView(
           list: controller.list,
+          parentController: controller,
           onRefreshData: controller.refreshData,
           enableRouteSearch: true,
           onUpdate: () {

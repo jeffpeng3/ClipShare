@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/data/repository/entity/dev_info.dart';
 import 'package:clipshare/app/data/repository/entity/tables/config.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/version.dart';
-import 'package:clipshare/app/modules/settings_module/settings_controller.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/crypto.dart';
@@ -105,8 +103,39 @@ class ConfigService extends GetxService {
     });
   }
 
-  final isMultiSelectionMode = false.obs;
-  final multiSelectionText = "多选操作".obs;
+  final _isMultiSelectionMode = false.obs;
+  GetxController? _selectionModeController;
+  final _multiSelectionText = "多选操作".obs;
+
+  bool isMultiSelectionMode(GetxController controller) {
+    if (controller == _selectionModeController && _isMultiSelectionMode.value) {
+      return true;
+    }
+    return false;
+  }
+
+  String get multiSelectionText => _multiSelectionText.value;
+
+  set multiSelectionText(val) => _multiSelectionText.value = val;
+
+  void enableMultiSelectionMode({
+    String? selectionTips,
+    required GetxController controller,
+  }) {
+    _isMultiSelectionMode.value = true;
+    _selectionModeController = controller;
+    if (selectionTips != null) {
+      _multiSelectionText.value = selectionTips;
+    }
+  }
+
+  void disableMultiSelectionMode([bool clear = true]) {
+    _isMultiSelectionMode.value = false;
+    if (clear) {
+      _selectionModeController = null;
+    }
+  }
+
   final authenticating = false.obs;
 
   final _userId = 0.obs;

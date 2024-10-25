@@ -1,10 +1,12 @@
+import 'dart:convert';
+
 import 'package:clipshare/app/modules/log_module/log_controller.dart';
+import 'package:clipshare/app/modules/views/log_detail_page.dart';
 import 'package:clipshare/app/utils/extension.dart';
 import 'package:clipshare/app/widgets/condition_widget.dart';
 import 'package:clipshare/app/widgets/dynamic_size_widget.dart';
 import 'package:clipshare/app/widgets/empty_content.dart';
 import 'package:clipshare/app/widgets/loading.dart';
-import 'package:clipshare/app/modules/views/log_detail_page.dart';
 import 'package:clipshare/app/widgets/rounded_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -54,9 +56,17 @@ class LogPage extends GetView<LogController> {
                             ],
                           ),
                         ),
-                        onTap: () {
-                          final page =
-                              LogDetailPage(logFile: controller.logs[i]);
+                        onTap: () async {
+                          final file = controller.logs[i];
+                          var content = await file
+                              .openRead()
+                              .transform(
+                                  const Utf8Decoder(allowMalformed: true))
+                              .join();
+                          final page = LogDetailPage(
+                            fileName: file.fileName,
+                            content: content,
+                          );
                           if (controller.appConfig.isSmallScreen) {
                             Navigator.push(
                               context,

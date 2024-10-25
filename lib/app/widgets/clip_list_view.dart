@@ -37,6 +37,7 @@ class ClipListView extends StatefulWidget {
   final void Function() onUpdate;
   final void Function(int id) onRemove;
   final bool imageMasonryGridViewLayout;
+  final GetxController parentController;
 
   const ClipListView({
     super.key,
@@ -48,6 +49,7 @@ class ClipListView extends StatefulWidget {
     required this.onUpdate,
     required this.onRemove,
     this.imageMasonryGridViewLayout = false,
+    required this.parentController,
   });
 
   @override
@@ -245,8 +247,10 @@ class ClipListViewState extends State<ClipListView>
         }
       },
       onLongPress: () {
-        appConfig.isMultiSelectionMode.value = true;
-        appConfig.multiSelectionText.value = "多选删除";
+        appConfig.enableMultiSelectionMode(
+          controller: widget.parentController,
+          selectionTips: "多选删除",
+        );
         _selectMode = true;
         _selectedItems.add(item);
         setState(() {});
@@ -391,7 +395,7 @@ class ClipListViewState extends State<ClipListView>
                                 onPressed: () {
                                   _selectedItems.clear();
                                   _selectMode = false;
-                                  appConfig.isMultiSelectionMode.value = false;
+                                  appConfig.disableMultiSelectionMode(true);
                                   setState(() {});
                                 },
                                 heroTag: 'deselectHistory',
@@ -426,8 +430,7 @@ class ClipListViewState extends State<ClipListView>
                                     );
                                     _selectedItems.clear();
                                     _selectMode = false;
-                                    appConfig.isMultiSelectionMode.value =
-                                        false;
+                                    appConfig.disableMultiSelectionMode(true);
                                     setState(() {});
                                   }
 
