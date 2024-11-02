@@ -26,6 +26,7 @@ import 'package:clipshare/app/widgets/settings/card/setting_card.dart';
 import 'package:clipshare/app/widgets/settings/card/setting_card_group.dart';
 import 'package:clipshare/app/widgets/settings/text_edit_dialog.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -299,7 +300,7 @@ class SettingsPage extends GetView<SettingsController> {
                       ),
                       SettingCard(
                         main: const Text(
-                          "端口号",
+                          "端口",
                           maxLines: 1,
                         ),
                         sub: const Text(
@@ -349,6 +350,25 @@ class SettingsPage extends GetView<SettingsController> {
                             appConfig.setAllowDiscover(checked);
                           },
                         ),
+                      ),
+                      SettingCard(
+                        main: const Text(
+                          "仅中转发现（调试用）",
+                          maxLines: 1,
+                        ),
+                        sub: const Text(
+                          "仅在开发环境中显示该功能",
+                          maxLines: 1,
+                        ),
+                        value: appConfig.onlyForwardMode,
+                        action: (v) => Switch(
+                          value: v,
+                          onChanged: (checked) {
+                            HapticFeedback.mediumImpact();
+                            appConfig.setOnlyForwardMode(checked);
+                          },
+                        ),
+                        show: (v) => !kReleaseMode,
                       ),
                       SettingCard(
                         main: Row(

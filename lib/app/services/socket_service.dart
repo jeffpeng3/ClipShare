@@ -7,7 +7,6 @@ import 'package:clipshare/app/data/enums/connection_mode.dart';
 import 'package:clipshare/app/data/enums/forward_msg_type.dart';
 import 'package:clipshare/app/data/repository/entity/dev_info.dart';
 import 'package:clipshare/app/data/repository/entity/message_data.dart';
-import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/version.dart';
 import 'package:clipshare/app/handlers/dev_pairing_handler.dart';
 import 'package:clipshare/app/handlers/socket/forward_socket_client.dart';
@@ -24,6 +23,7 @@ import 'package:clipshare/app/utils/extension.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -116,17 +116,20 @@ class SocketService extends GetxService {
   //临时记录链接配对自定义ip设备记录
   final Set<String> ipSetTemp = {};
   final Set<String> _connectingAddress = {};
+  final Map<int, FileSyncer> _forwardFiles = {};
   Map<String, Future> broadcastProcessChain = {};
   bool pairing = false;
   static bool _isInit = false;
 
   String? get forwardServerIp {
+    if (!appConfig.enableForward) return null;
     var arr = appConfig.forwardServer?.split(":");
     if (arr == null || arr.length < 2) return null;
     return arr[0];
   }
 
   int? get forwardServerPort {
+    if (!appConfig.enableForward) return null;
     var arr = appConfig.forwardServer?.split(":");
     if (arr == null || arr.length < 2) return null;
     return arr[1].toInt();
@@ -350,7 +353,7 @@ class SocketService extends GetxService {
         }
         //中转服务器连接成功后发送本机信息
         self.send({
-          "connType": "keepAlive",
+          "connType": ForwardConnType.keepAlive.name,
           "self": appConfig.device.guid,
         });
         if (startDiscovering) {
@@ -387,10 +390,43 @@ class SocketService extends GetxService {
     switch (type) {
       case ForwardMsgType.requestConnect:
         final targetId = data["sender"];
-        final device =
-            await dbService.deviceDao.getById(targetId, appConfig.userId);
-        if (device != null) {
-          manualConnectByForward(device);
+        manualConnectByForward(targetId);
+        break;
+      case ForwardMsgType.sendFile:
+        final targetId = data["sender"];
+        final size = data["size"].toString().toInt();
+        final fileName = data["fileName"];
+        final fileId = data["fileId"].toString().toInt();
+        final userId = data["userId"].toString().toInt();
+        //连接中转接收文件
+        try {
+          await FileSyncer.recFile(
+            isForward: true,
+            ip: forwardServerIp!,
+            port: forwardServerPort!,
+            size: size,
+            fileName: fileName,
+            devId: targetId,
+            userId: userId,
+            fileId: fileId,
+            context: Get.context!,
+            targetId: targetId,
+          );
+        } catch (err, stack) {
+          Log.debug(
+            tag,
+            "receive file failed from forward"
+            "$err $stack",
+          );
+        }
+        break;
+      case ForwardMsgType.fileReceiverConnected:
+        //接收方已连接，开始发送
+        final fileId = data["fileId"].toString().toInt();
+        if (_forwardFiles.containsKey(fileId)) {
+          _forwardFiles[fileId]!.onForwardReceiverConnected();
+        } else {
+          Log.warn(tag, "fileReceiverConnected but not fileId in waiting list");
         }
         break;
       default:
@@ -656,19 +692,25 @@ class SocketService extends GetxService {
     Log.debug(tag, "开始发现设备");
     //重新更新广播监听
     await _startListenMulticast();
-    //先发现自添加设备
     List<Future<void> Function()> tasks = [];
-    tasks.addAll(await _customDiscover());
-    //广播发现
-    tasks.addAll(_multicastDiscover());
-    // tasks = []; //测试屏蔽发现用
+    if (appConfig.onlyForwardMode) {
+      tasks = []; //测试屏蔽发现用
+    } else {
+      //先发现自添加设备
+      tasks.addAll(await _customDiscover());
+      //广播发现
+      tasks.addAll(_multicastDiscover());
+    }
     //并行处理
     _taskRunner = TaskRunner<void>(
       initialTasks: tasks,
       onFinish: () async {
-        //发现子网设备
-        tasks = await _subNetDiscover();
-        // tasks = []; //测试屏蔽发现用
+        if (appConfig.onlyForwardMode) {
+          tasks = []; //测试屏蔽发现用
+        } else {
+          //发现子网设备
+          tasks = await _subNetDiscover();
+        }
         _taskRunner = TaskRunner<void>(
           initialTasks: tasks,
           onFinish: () async {
@@ -775,21 +817,21 @@ class SocketService extends GetxService {
     var offlineList = lst.where((dev) => !_devSockets.keys.contains(dev.guid));
     for (var dev in offlineList) {
       if (forwardServerIp == null || forwardServerPort == null) continue;
-      tasks.add(() => manualConnectByForward(dev));
+      tasks.add(() => manualConnectByForward(dev.guid));
     }
     return tasks;
   }
 
   ///中转连接设备
-  Future<void> manualConnectByForward(Device dev) {
+  Future<void> manualConnectByForward(String devId) {
     return manualConnect(
       forwardServerIp!,
       port: forwardServerPort,
       forward: true,
-      targetDevId: dev.guid,
+      targetDevId: devId,
       onErr: (err) {
-        Log.debug(tag, '${dev.guid} 中转连接，发生错误:$err');
-        _onDevDisConnected(dev.guid);
+        Log.debug(tag, '$devId 中转连接，发生错误:$err');
+        _onDevDisConnected(devId);
       },
     );
   }
@@ -937,15 +979,21 @@ class SocketService extends GetxService {
     }
     _onDevConnected(
       dev,
-      client.ip,
-      client.port,
+      client,
       minVersion,
       version,
+      client.isForwardMode,
     );
     if (paired) {
       //已配对，请求所有缺失数据
       reqMissingData();
     }
+  }
+
+  ///判断某个设备使用使用中转
+  bool isUseForward(String guid) {
+    if (!_devSockets.containsKey(guid)) return false;
+    return _devSockets[guid]!.socket.isForwardMode;
   }
 
   Future<void> reqMissingData() async {
@@ -962,11 +1010,13 @@ class SocketService extends GetxService {
   ///设备连接成功
   void _onDevConnected(
     DevInfo dev,
-    String ip,
-    int port,
+    SecureSocketClient client,
     Version minVersion,
     Version version,
+    bool useForward,
   ) async {
+    final ip = client.ip;
+    final port = client.port;
     //更新连接地址
     String address = "$ip:$port";
     await dbService.deviceDao
@@ -978,12 +1028,22 @@ class SocketService extends GetxService {
           dev,
           minVersion,
           version,
-          ip == forwardServerIp,
+          useForward,
         );
       } catch (e, t) {
         Log.debug(tag, "$e $t");
       }
     }
+  }
+
+  ///断开所有连接（仅调试）
+  void disConnectAllConnections()async {
+    if (kReleaseMode) return;
+    for (var devSkt in _devSockets.values) {
+      await devSkt.socket.close();
+      _onDevDisConnected(devSkt.dev.guid);
+    }
+    _devSockets.clear();
   }
 
   ///设备配对成功
@@ -1208,5 +1268,18 @@ class SocketService extends GetxService {
       return true;
     }
     return false;
+  }
+
+  ///添加中转文件发送记录
+  void addSendFileRecordByForward(FileSyncer fileSyncer, int fileId) {
+    if (_forwardFiles.containsKey(fileId)) {
+      throw Exception("The file is already in the sending list: $fileId");
+    }
+    _forwardFiles[fileId] = fileSyncer;
+  }
+
+  ///移除中转文件发送记录
+  void removeSendFileRecordByForward(FileSyncer fileSyncer, int fileId) {
+    _forwardFiles.remove(fileId);
   }
 }

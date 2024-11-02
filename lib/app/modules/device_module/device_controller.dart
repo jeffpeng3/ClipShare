@@ -425,7 +425,7 @@ class DeviceController extends GetxController
                             var address = device.address;
                             var [ip, port] = address!.split(":");
                             if (isForward) {
-                              sktService.manualConnectByForward(device);
+                              sktService.manualConnectByForward(device.guid);
                             } else {
                               sktService.manualConnect(ip, port: port.toInt());
                             }

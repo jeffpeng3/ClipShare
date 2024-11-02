@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:clipshare/app/handlers/socket/data_packet_splitter.dart';
+import 'package:clipshare/app/handlers/socket/secure_socket_client.dart';
 import 'package:clipshare/app/utils/log.dart';
 
 class ForwardSocketClient {
@@ -11,8 +14,6 @@ class ForwardSocketClient {
   int get port => _port;
   late final Socket _socket;
   bool _listening = false;
-  String _data = "";
-  static const endChar = "\n";
   late final void Function(ForwardSocketClient client, String data)? _onMessage;
   void Function(Exception e, ForwardSocketClient client)? _onError;
   void Function(ForwardSocketClient client)? _onDone;
@@ -20,20 +21,8 @@ class ForwardSocketClient {
   late final StreamSubscription _stream;
   static const String tag = "ForwardSocketClient";
 
-  final StreamController<String> _msgStreamController = StreamController();
 
-  ForwardSocketClient._private(this.ip) {
-    _msgStreamController.stream.listen((data) {
-      try {
-        _socket.writeln(data);
-      } catch (e, stack) {
-        _msgStreamController.close();
-        Log.debug(tag, "发送失败：$e");
-        Log.debug(tag, "$stack");
-        _onDone?.call(this);
-      }
-    });
-  }
+  ForwardSocketClient._private(this.ip);
 
   static ForwardSocketClient empty = ForwardSocketClient._private("127.0.0.1");
 
@@ -91,26 +80,12 @@ class ForwardSocketClient {
     }
     _listening = true;
     try {
-      _stream = _socket.listen(
+      _stream = _socket.transform(DataPacketSplitter()).listen(
         (e) {
           var rec = utf8.decode(e);
-          _data += rec;
-          while (_data.contains(endChar)) {
-            // 以结束符分割数据包，找到第一个完整的数据包
-            var index = _data.indexOf(endChar);
-            var pkg = _data.substring(0, index + 1);
-            Log.debug(tag, pkg);
-            _data = _data.substring(index + 1);
-            try {
-              _onMessage?.call(this, pkg);
-            } catch (ex, stack) {
-              //解析出错
-              Log.error(tag, "解析出错：$ex\n$stack");
-            }
-          }
+          _onMessage?.call(this, rec);
         },
         onError: (e) {
-          _data = "";
           Log.error(tag, "error:$e");
           if (_onError != null) {
             _onError!(e, this);
@@ -131,9 +106,24 @@ class ForwardSocketClient {
 
   ///发送数据
   void send(Map map) {
-    var data = jsonEncode(map);
     try {
-      _msgStreamController.add(data);
+      //向中转服务器发送基本信息
+      final payload = utf8.encode(jsonEncode(map));
+      final msgSize = payload.length;
+      final header = SecureSocketClient.createPacketHeader(
+        msgSize,
+        msgSize,
+        1,
+        1,
+      );
+      // 组合头部和载荷
+      Uint8List packet = Uint8List(header.length + payload.length);
+      // 写入头部
+      packet.setAll(0, header);
+      // 写入载荷
+      packet.setAll(header.length, payload);
+      //写入数据
+      _socket.add(packet);
     } catch (e, stack) {
       Log.debug(tag, "发送失败：$e");
       Log.debug(tag, "_onDone ${_onDone == null}");
@@ -146,13 +136,11 @@ class ForwardSocketClient {
 
   ///关闭连接
   Future close() {
-    _msgStreamController.close();
     return _socket.close();
   }
 
   ///强制关闭
   void destroy() {
-    _msgStreamController.close();
     return _socket.destroy();
   }
 }

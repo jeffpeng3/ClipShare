@@ -9,6 +9,10 @@ enum ForwardMsgType {
   bothConnected,
   //请求连接设备
   requestConnect,
+  //文件接收者已连接
+  fileReceiverConnected,
+  //有设备向自己发送文件
+  sendFile,
   //未知key
   unknown;
 
@@ -20,4 +24,13 @@ enum ForwardMsgType {
           return ForwardMsgType.unknown;
         },
       );
+}
+
+enum ForwardConnType {
+  //存活连接
+  keepAlive,
+  //准备文件发送
+  sendFile,
+  //准备文件接收
+  recFile
 }

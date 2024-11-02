@@ -7,6 +7,7 @@ import 'package:clipshare/app/data/repository/entity/tables/config.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/version.dart';
 import 'package:clipshare/app/services/db_service.dart';
+import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/crypto.dart';
 import 'package:clipshare/app/utils/extension.dart';
@@ -277,6 +278,10 @@ class ConfigService extends GetxService {
 
   EnvironmentType? get workingMode => _workingMode.value;
 
+  late final RxBool _onlyForwardMode;
+
+  bool get onlyForwardMode => _onlyForwardMode.value;
+
   //endregion
 
   //endregion
@@ -401,6 +406,10 @@ class ConfigService extends GetxService {
           userId,
         ) ??
         "none";
+    var onlyForwardMode = await cfg.getConfig(
+      "onlyForwardMode",
+      userId,
+    );
     var fileStoreDir = Directory(fileStorePath ?? defaultFileStorePath);
     _port = port?.toInt().obs ?? Constants.port.obs;
     _localName =
@@ -436,6 +445,7 @@ class ConfigService extends GetxService {
     _forwardServer = forwardServer.obs;
     devInfo.name = _localName.value;
     _workingMode = EnvironmentType.parse(workingMode).obs;
+    _onlyForwardMode = onlyForwardMode?.toBool().obs ?? false.obs;
   }
 
   ///初始化路径信息
@@ -646,6 +656,14 @@ class ConfigService extends GetxService {
   Future<void> setWorkingMode(EnvironmentType workingMode) async {
     await _addOrUpdateDbConfig("workingMode", workingMode.name);
     _workingMode.value = workingMode;
+  }
+
+  Future<void> setOnlyForwardMode(bool onlyForwardMode) async {
+    await _addOrUpdateDbConfig("onlyForwardMode", onlyForwardMode.toString());
+    _onlyForwardMode.value = onlyForwardMode;
+    if (!onlyForwardMode) return;
+    final sktService = Get.find<SocketService>();
+    return sktService.disConnectAllConnections();
   }
 //endregion
 }
