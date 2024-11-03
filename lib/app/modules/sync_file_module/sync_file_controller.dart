@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:clipshare/app/data/repository/entity/syncing_file.dart';
+import 'package:clipshare/app/listeners/multi_selection_pop_scope_disable_listener.dart';
+import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/syncing_file_progress_service.dart';
@@ -20,7 +22,8 @@ class _SyncingFilePageTab {
   _SyncingFilePageTab({required this.name, required this.icon});
 }
 
-class SyncFileController extends GetxController {
+class SyncFileController extends GetxController
+    implements MultiSelectionPopScopeDisableListener {
   final appConfig = Get.find<ConfigService>();
   final dbService = Get.find<DbService>();
   static const logTag = "SyncingFilePage";
@@ -28,7 +31,15 @@ class SyncFileController extends GetxController {
 
   @override
   void onReady() {
+    final homeController = Get.find<HomeController>();
+    homeController.registerMultiSelectionPopScopeDisableListener(this);
     refreshHistoryFiles();
+  }
+  @override
+  void onClose() {
+    final homeController = Get.find<HomeController>();
+    homeController.removeMultiSelectionPopScopeDisableListener(this);
+    super.onClose();
   }
 
   final tabs = <_SyncingFilePageTab>[
@@ -173,5 +184,15 @@ class SyncFileController extends GetxController {
         );
       }
     });
+  }
+
+  void cancelSelectionMode() {
+    selected.clear();
+    selectMode = false;
+  }
+
+  @override
+  void onPopScopeDisableMultiSelection() {
+    cancelSelectionMode();
   }
 }

@@ -429,5 +429,6 @@ class HistoryController extends GetxController
       });
     });
   }
+
 //endregion
 }

@@ -73,6 +73,7 @@ class SearchController extends GetxController with WidgetsBindingObserver {
   @override
   void onClose() {
     WidgetsBinding.instance.removeObserver(this);
+    appConfig.disableMultiSelectionMode(true);
     super.onClose();
   }
 

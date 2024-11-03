@@ -6,7 +6,9 @@ import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/data/repository/entity/clip_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
+import 'package:clipshare/app/listeners/multi_selection_pop_scope_disable_listener.dart';
 import 'package:clipshare/app/modules/history_module/history_controller.dart';
+import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
@@ -16,6 +18,7 @@ import 'package:clipshare/app/services/device_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/global.dart';
+import 'package:clipshare/app/utils/strings.dart';
 import 'package:clipshare/app/widgets/clip_content_view.dart';
 import 'package:clipshare/app/widgets/clip_data_card.dart';
 import 'package:clipshare/app/widgets/clip_tag_row_view.dart';
@@ -57,7 +60,8 @@ class ClipListView extends StatefulWidget {
 }
 
 class ClipListViewState extends State<ClipListView>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver
+    implements MultiSelectionPopScopeDisableListener {
   final ScrollController _scrollController = ScrollController();
   final _scrollPhysics = const AlwaysScrollableScrollPhysics();
   String? language;
@@ -94,6 +98,8 @@ class ClipListViewState extends State<ClipListView>
     }
     //监听生命周期
     WidgetsBinding.instance.addObserver(this);
+    final homeController = Get.find<HomeController>();
+    homeController.registerMultiSelectionPopScopeDisableListener(this);
     // 监听滚动事件
     _scrollController.addListener(_scrollListener);
   }
@@ -103,6 +109,8 @@ class ClipListViewState extends State<ClipListView>
     WidgetsBinding.instance.removeObserver(this);
     // 释放资源
     _scrollController.dispose();
+    final homeController = Get.find<HomeController>();
+    homeController.removeMultiSelectionPopScopeDisableListener(this);
     super.dispose();
   }
 
@@ -393,8 +401,7 @@ class ClipListViewState extends State<ClipListView>
                               margin: const EdgeInsets.only(right: 10),
                               child: FloatingActionButton(
                                 onPressed: () {
-                                  _selectedItems.clear();
-                                  _selectMode = false;
+                                  _cancelSelectionMode();
                                   appConfig.disableMultiSelectionMode(true);
                                   setState(() {});
                                 },
@@ -678,6 +685,7 @@ class ClipListViewState extends State<ClipListView>
                           ),
                         ),
                         const Divider(height: 0.1),
+
                         ///底部操作栏
                         Padding(
                           padding: const EdgeInsets.only(top: 5),
@@ -715,5 +723,19 @@ class ClipListViewState extends State<ClipListView>
         ],
       ),
     );
+  }
+
+  ///取消选择模式
+  void _cancelSelectionMode() {
+    _selectedItems.clear();
+    _selectMode = false;
+    setState(() {
+
+    });
+  }
+
+  @override
+  void onPopScopeDisableMultiSelection() {
+    _cancelSelectionMode();
   }
 }

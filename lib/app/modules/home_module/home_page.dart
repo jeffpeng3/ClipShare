@@ -29,6 +29,7 @@ class HomePage extends GetView<HomeController> {
       onPopInvoked: (bool didPop) {
         if (appConfig.isMultiSelectionMode(currentPageController)) {
           appConfig.disableMultiSelectionMode(true);
+          controller.notifyMultiSelectionPopScopeDisable();
           return;
         }
         if (Platform.isAndroid) {

@@ -134,8 +134,7 @@ class SyncFilePage extends GetView<SyncFileController> {
                                   margin: const EdgeInsets.only(right: 10),
                                   child: FloatingActionButton(
                                     onPressed: () {
-                                      controller.selected.clear();
-                                      controller.selectMode = false;
+                                      controller.cancelSelectionMode();
                                       appConfig.disableMultiSelectionMode(true);
                                     },
                                     child: const Icon(Icons.close),

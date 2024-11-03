@@ -7,6 +7,7 @@ import 'package:clipshare/app/handlers/permission_handler.dart';
 import 'package:clipshare/app/handlers/sync/history_top_syncer.dart';
 import 'package:clipshare/app/handlers/sync/rules_syncer.dart';
 import 'package:clipshare/app/handlers/sync/tag_syncer.dart';
+import 'package:clipshare/app/listeners/multi_selection_pop_scope_disable_listener.dart';
 import 'package:clipshare/app/listeners/screen_opened_listener.dart';
 import 'package:clipshare/app/modules/debug_module/debug_page.dart';
 import 'package:clipshare/app/modules/device_module/device_page.dart';
@@ -36,6 +37,8 @@ class HomeController extends GetxController
   final settingsController = Get.find<SettingsController>();
 
   final androidChannelService = Get.find<AndroidChannelService>();
+  final Set<MultiSelectionPopScopeDisableListener>
+      _multiSelectionPopScopeDisableListeners = {};
 
   //region 属性
   final _index = 0.obs;
@@ -314,5 +317,26 @@ class HomeController extends GetxController
       Get.to(SyncFilePage());
     }
   }
+
 //endregion 页面跳转
+
+  //region 多选返回监听
+  void notifyMultiSelectionPopScopeDisable() {
+    for (var listener in _multiSelectionPopScopeDisableListeners) {
+      listener.onPopScopeDisableMultiSelection();
+    }
+  }
+
+  void registerMultiSelectionPopScopeDisableListener(
+    MultiSelectionPopScopeDisableListener listener,
+  ) {
+    _multiSelectionPopScopeDisableListeners.add(listener);
+  }
+
+  void removeMultiSelectionPopScopeDisableListener(
+    MultiSelectionPopScopeDisableListener listener,
+  ) {
+    _multiSelectionPopScopeDisableListeners.remove(listener);
+  }
+//endregion
 }
