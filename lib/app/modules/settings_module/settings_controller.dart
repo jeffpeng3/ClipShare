@@ -49,7 +49,8 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     Icons.warning,
     size: 40,
   );
-  final warningBgColor = Colors.orange[100];
+
+  Color get warningBgColor => Theme.of(Get.context!).colorScheme.surface;
   final normalIcon = const Icon(
     Icons.check_circle_outline_outlined,
     size: 40,

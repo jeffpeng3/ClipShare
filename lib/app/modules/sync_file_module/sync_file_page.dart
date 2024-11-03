@@ -21,7 +21,7 @@ class SyncFilePage extends GetView<SyncFileController> {
     return DefaultTabController(
       length: controller.tabs.length,
       child: Scaffold(
-        backgroundColor: appConfig.bgColor,
+        // backgroundColor: appConfig.bgColor,
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),
           child: TabBar(

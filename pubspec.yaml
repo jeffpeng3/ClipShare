@@ -102,6 +102,9 @@ dependencies:
   month_picker_dialog: ^5.1.2
   clipboard_listener:
     path: ../clipboard_listener
+  # 主题切换动画
+  animated_theme_switcher: ^2.0.8
+  # 大文本编辑器
   re_editor: ^0.4.0
 dev_dependencies:
   flutter_test:

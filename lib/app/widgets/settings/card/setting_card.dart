@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class SettingCard<T> extends StatefulWidget {
   final T value;
@@ -45,10 +46,11 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
     if (widget.showValueInSub) {
       sub = Text(widget.value.toString());
     }
+    final currentTheme = Theme.of(context);
     return ClipRRect(
       borderRadius: widget.borderRadius,
       child: Material(
-        color: Colors.white,
+        color: currentTheme.cardTheme.color ?? currentTheme.colorScheme.surface,
         child: InkWell(
           onTap: () {
             if (widget.onDoubleTap == null) {
@@ -88,13 +90,16 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: sub == null
                               ? [
-                                  DefaultTextStyle(
-                                    style: const TextStyle(
-                                      fontSize: 17,
-                                      color: Colors.black87,
-                                    ),
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: DefaultTextStyle(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium!
+                                          .copyWith(
+                                            fontWeight: FontWeight.normal,
+                                            fontSize: 17,
+                                          ),
                                       child: widget.main,
                                     ),
                                   ),
@@ -102,25 +107,31 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
                               : [
                                   Expanded(
                                     flex: 3,
-                                    child: DefaultTextStyle(
-                                      style: const TextStyle(
-                                        fontSize: 17,
-                                        color: Colors.black87,
-                                      ),
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: DefaultTextStyle(
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium!
+                                            .copyWith(
+                                              fontWeight: FontWeight.normal,
+                                              fontSize: 17,
+                                            ),
                                         child: widget.main,
                                       ),
                                     ),
                                   ),
                                   Expanded(
                                     flex: 2,
-                                    child: DefaultTextStyle(
-                                      style: const TextStyle(
-                                        color: Colors.grey,
-                                      ),
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: DefaultTextStyle(
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium!
+                                            .copyWith(
+                                              color: Colors.grey,
+                                            ),
                                         child: sub,
                                       ),
                                     ),
@@ -138,10 +149,12 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
                 ),
               ),
               widget.separate
-                  ? const Divider(
+                  ? Divider(
                       thickness: 1,
                       height: 1,
-                      color: Color.fromRGBO(232, 228, 228, 1.0),
+                      color: Get.isDarkMode
+                          ? null
+                          : const Color.fromRGBO(232, 228, 228, 1.0),
                     )
                   : const SizedBox.shrink(),
             ],

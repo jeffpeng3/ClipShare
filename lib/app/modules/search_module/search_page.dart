@@ -21,7 +21,7 @@ class SearchPage extends GetView<search_module.SearchController> {
     controller.screenWidth = MediaQuery.of(context).size.width;
     return Obx(
       () => Scaffold(
-        backgroundColor: appConfig.bgColor,
+        // backgroundColor: appConfig.bgColor,
         appBar: AppBar(
           scrolledUnderElevation: controller.showLeftBar ? 0 : null,
           automaticallyImplyLeading: !controller.showLeftBar,
@@ -120,7 +120,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                               );
                             },
                             selectedColor: controller.searchType == type
-                                ? Colors.blue[100]
+                                ? Theme.of(context).chipTheme.selectedColor
                                 : null,
                             label: Text(type),
                           ),
@@ -234,7 +234,6 @@ class SearchPage extends GetView<search_module.SearchController> {
                                 ),
                                 label: const Text(
                                   "仅未同步",
-                                  style: TextStyle(color: Colors.black),
                                 ),
                                 onPressed: () {
                                   setInnerState(() {
@@ -410,7 +409,6 @@ class SearchPage extends GetView<search_module.SearchController> {
                                 }
                                 setInnerState(() {});
                               },
-                              selectedColor: Colors.blue[100],
                               selected: devs.contains(dev.guid),
                               label: Text(dev.name),
                             ),
@@ -472,7 +470,6 @@ class SearchPage extends GetView<search_module.SearchController> {
                                 }
                                 setInnerState(() {});
                               },
-                              selectedColor: Colors.blue[100],
                               selected: tags.contains(tag),
                               label: Text(tag),
                             ),

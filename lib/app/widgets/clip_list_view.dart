@@ -289,7 +289,7 @@ class ClipListViewState extends State<ClipListView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: appConfig.bgColor,
+      // backgroundColor: appConfig.bgColor,
       body: Row(
         children: [
           Expanded(
@@ -489,7 +489,7 @@ class ClipListViewState extends State<ClipListView>
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: widget.detailBorderRadius,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(5),
@@ -642,7 +642,6 @@ class ClipListViewState extends State<ClipListView>
                               Obx(
                                 () => RoundedChip(
                                   avatar: const Icon(Icons.devices_rounded),
-                                  backgroundColor: const Color(0x1a000000),
                                   label: Text(
                                     devService
                                         .getName(_showHistoryData!.data.devId),
@@ -665,10 +664,7 @@ class ClipListViewState extends State<ClipListView>
                             ],
                           ),
                         ),
-                        const Divider(
-                          height: 0.1,
-                          color: Color(0xE1E1E0FF),
-                        ),
+                        const Divider(height: 0.1),
 
                         ///剪贴板内容
                         Expanded(
@@ -681,11 +677,7 @@ class ClipListViewState extends State<ClipListView>
                             ),
                           ),
                         ),
-                        const Divider(
-                          height: 0.1,
-                          color: Color(0xE1E1E0FF),
-                        ),
-
+                        const Divider(height: 0.1),
                         ///底部操作栏
                         Padding(
                           padding: const EdgeInsets.only(top: 5),

@@ -173,9 +173,8 @@ class _DeviceCardState extends State<DeviceCard> {
 
   @override
   Widget build(BuildContext context) {
-    const chipColor = Color.fromARGB(255, 213, 222, 232);
     return Card(
-      color: Colors.white,
+      color: Theme.of(context).cardTheme.color,
       elevation: 0,
       margin: const EdgeInsets.all(8),
       child: InkWell(
@@ -209,7 +208,6 @@ class _DeviceCardState extends State<DeviceCard> {
                       _empty
                           ? const RoundedChip(
                               label: Text("                  "),
-                              backgroundColor: chipColor,
                             )
                           : Row(
                               children: [
@@ -256,7 +254,6 @@ class _DeviceCardState extends State<DeviceCard> {
                           ),
                           RoundedChip(
                             label: Text(_empty ? "    " : widget.dev!.type),
-                            backgroundColor: chipColor,
                           ),
                           Visibility(
                             visible: widget.isSelf,
@@ -264,7 +261,6 @@ class _DeviceCardState extends State<DeviceCard> {
                               margin: const EdgeInsets.only(left: 5),
                               child: const RoundedChip(
                                 label: Text("本机"),
-                                backgroundColor: chipColor,
                               ),
                             ),
                           ),
@@ -274,7 +270,6 @@ class _DeviceCardState extends State<DeviceCard> {
                               margin: const EdgeInsets.only(left: 5),
                               child: const RoundedChip(
                                 label: Text("中转"),
-                                backgroundColor: chipColor,
                               ),
                             ),
                           ),

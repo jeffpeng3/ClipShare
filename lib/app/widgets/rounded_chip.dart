@@ -18,7 +18,7 @@ class RoundedChip extends RawChip {
     super.focusNode,
     super.autofocus = false,
     super.color,
-    super.backgroundColor=const Color(0x1a000000),
+    super.backgroundColor,
     super.padding,
     super.visualDensity = const VisualDensity(
       horizontal: VisualDensity.minimumDensity,

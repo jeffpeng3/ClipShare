@@ -81,7 +81,9 @@ class _OnlineDevicesWindowState extends State<OnlineDevicesWindow>
   Widget build(BuildContext context) {
     return MaterialApp(
       title: '历史记录',
-      theme: themeData,
+      theme: lightThemeData,
+      darkTheme: darkThemeData,
+      themeMode: ThemeMode.system,
       //当前运行环境配置
       locale: locale,
       //程序支持的语言环境配置

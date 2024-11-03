@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:clipshare/app/modules/views/windows/history/history_window.dart';
 import 'package:clipshare/app/modules/views/windows/online_devices/online_devices_window.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
-import 'package:clipshare/app/services/clipboard_service.dart';
 import 'package:clipshare/app/services/device_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/services/syncing_file_progress_service.dart';
@@ -72,7 +71,8 @@ Future<void> initServices() async {
   Get.put(MultiWindowChannelService());
   await Get.putAsync(() => DeviceService().init(), permanent: true);
   await Get.putAsync(() => TagService().init(), permanent: true);
-  await Get.putAsync(() => SyncingFileProgressService().init(), permanent: true);
+  await Get.putAsync(() => SyncingFileProgressService().init(),
+      permanent: true);
   if (PlatformExt.isDesktop) {
     await Get.putAsync(() => WindowService().init());
     await Get.putAsync(() => TrayService().init());
@@ -81,16 +81,25 @@ Future<void> initServices() async {
 
 void runMain(Widget home, String title) {
   runApp(
-    GetMaterialApp(
-      defaultTransition: Transition.native,
-      title: title,
-      initialRoute: Routes.SPLASH,
-      getPages: AppPages.pages,
-      theme: themeData,
-      locale: locale,
-      supportedLocales: supportedLocales,
-      localizationsDelegates: localizationsDelegates,
-      scrollBehavior: MyCustomScrollBehavior(),
+    ThemeProvider(
+      initTheme: Get.isPlatformDarkMode?darkThemeData:lightThemeData,
+      builder: (context, theme) {
+        return GetMaterialApp(
+          defaultTransition: Transition.native,
+          title: title,
+          initialRoute: Routes.SPLASH,
+          getPages: AppPages.pages,
+          theme: theme,
+          darkTheme: darkThemeData,
+          themeMode: theme.brightness == Brightness.dark
+              ? ThemeMode.dark
+              : ThemeMode.light,
+          locale: locale,
+          supportedLocales: supportedLocales,
+          localizationsDelegates: localizationsDelegates,
+          scrollBehavior: MyCustomScrollBehavior(),
+        );
+      },
     ),
   );
 }

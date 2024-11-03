@@ -125,7 +125,7 @@ class ClipDataCardState extends State<ClipDataCard> {
     _selected = widget.selected;
     return ContextMenuArea(
       child: Card(
-        color: Colors.white,
+        // color: Colors.white,
         elevation: 0,
         child: InkWell(
           mouseCursor: SystemMouseCursors.basic,

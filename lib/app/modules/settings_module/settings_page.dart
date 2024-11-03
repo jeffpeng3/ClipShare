@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:clipshare/app/handlers/hot_key_handler.dart';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/modules/log_module/log_controller.dart';
@@ -50,7 +51,7 @@ class SettingsPage extends GetView<SettingsController> {
         ListView(),
         RefreshIndicator(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+            padding: const EdgeInsets.fromLTRB(4, 0, 4, 0),
             child: ListView(
               children: [
                 //region 环境检测卡片
@@ -160,6 +161,63 @@ class SettingsPage extends GetView<SettingsController> {
                           },
                         ),
                         show: (v) => PlatformExt.isDesktop,
+                      ),
+                      SettingCard<ThemeMode>(
+                        main: const Text("主题"),
+                        value: appConfig.appTheme,
+                        action: (v) {
+                          var icon = Icons.brightness_auto_outlined;
+                          var toolTip = "跟随系统";
+                          if (v == ThemeMode.light) {
+                            icon = Icons.light_mode_outlined;
+                            toolTip = "亮色主题";
+                          } else if (v == ThemeMode.dark) {
+                            icon = Icons.dark_mode_outlined;
+                            toolTip = "暗色主题";
+                          }
+                          return ThemeSwitcher(builder: (switcherContext) {
+                            return PopupMenuButton<ThemeMode>(
+                              icon: Icon(icon),
+                              tooltip: toolTip,
+                              itemBuilder: (BuildContext context) {
+                                return ThemeMode.values.map(
+                                  (mode) {
+                                    var icon = Icons.brightness_auto_outlined;
+                                    if (mode == ThemeMode.light) {
+                                      icon = Icons.light_mode_outlined;
+                                    } else if (mode == ThemeMode.dark) {
+                                      icon = Icons.dark_mode_outlined;
+                                    }
+                                    return PopupMenuItem<ThemeMode>(
+                                      value: mode,
+                                      child: Row(
+                                        children: <Widget>[
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(right: 8),
+                                            child: Icon(icon),
+                                          ),
+                                          Text(mode.name),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ).toList();
+                              },
+                              onSelected: (mode) async {
+                                await appConfig
+                                    .setAppTheme(mode, switcherContext, () {
+                                  final currentBg =
+                                      controller.envStatusBgColor.value;
+                                  if (currentBg != null) {
+                                    controller.envStatusBgColor.value =
+                                        controller.warningBgColor;
+                                  }
+                                });
+                              },
+                            );
+                          });
+                        },
                       ),
                     ],
                   ),

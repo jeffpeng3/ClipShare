@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/data/repository/entity/dev_info.dart';
 import 'package:clipshare/app/data/repository/entity/tables/config.dart';
@@ -8,12 +9,14 @@ import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/version.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
+import 'package:clipshare/app/theme/app_theme.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/crypto.dart';
 import 'package:clipshare/app/utils/extension.dart';
 import 'package:clipshare/app/utils/snowflake.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -37,7 +40,8 @@ class ConfigService extends GetxService {
   final androidChannel = const MethodChannel(Constants.channelAndroid);
   final prime1 = CryptoUtil.getPrime();
   final prime2 = CryptoUtil.getPrime();
-  final bgColor = const Color.fromARGB(255, 238, 238, 238);
+
+  // final bgColor = const Color.fromARGB(255, 238, 238, 238);
   WindowController? compactWindow;
   WindowController? onlineDevicesWindow;
   final mainWindowId = 0;
@@ -197,6 +201,19 @@ class ConfigService extends GetxService {
   late final RxBool _rememberWindowSize;
 
   bool get rememberWindowSize => _rememberWindowSize.value;
+
+  //主题
+  late final RxString _appTheme;
+
+  ThemeMode get appTheme {
+    final value = _appTheme.value;
+    for (var mode in ThemeMode.values) {
+      if (mode.name.toLowerCase() == value.toLowerCase()) {
+        return mode;
+      }
+    }
+    return ThemeMode.system;
+  }
 
   //标签规则
   late final RxString _tagRules;
@@ -410,6 +427,10 @@ class ConfigService extends GetxService {
       "onlyForwardMode",
       userId,
     );
+    var appTheme = await cfg.getConfig(
+      "appTheme",
+      userId,
+    );
     var fileStoreDir = Directory(fileStorePath ?? defaultFileStorePath);
     _port = port?.toInt().obs ?? Constants.port.obs;
     _localName =
@@ -446,6 +467,8 @@ class ConfigService extends GetxService {
     devInfo.name = _localName.value;
     _workingMode = EnvironmentType.parse(workingMode).obs;
     _onlyForwardMode = onlyForwardMode?.toBool().obs ?? false.obs;
+    _appTheme = appTheme?.toString().obs ?? ThemeMode.system.name.obs;
+    Get.changeThemeMode(this.appTheme);
   }
 
   ///初始化路径信息
@@ -664,6 +687,25 @@ class ConfigService extends GetxService {
     if (!onlyForwardMode) return;
     final sktService = Get.find<SocketService>();
     return sktService.disConnectAllConnections();
+  }
+
+  Future<void> setAppTheme(
+    ThemeMode appTheme,
+    BuildContext context, [
+    VoidCallback? onAnimationFinish,
+  ]) async {
+    await _addOrUpdateDbConfig("appTheme", appTheme.name);
+    _appTheme.value = appTheme.name;
+    var theme = appTheme == ThemeMode.dark ? darkThemeData : lightThemeData;
+    if (appTheme == ThemeMode.system) {
+      print("Get.isPlatformDarkMode ${Get.isPlatformDarkMode}");
+      theme = Get.isPlatformDarkMode ? darkThemeData : lightThemeData;
+    }
+    ThemeSwitcher.of(context).changeTheme(
+      theme: theme,
+      isReversed: false,
+      onAnimationFinish: onAnimationFinish,
+    );
   }
 //endregion
 }

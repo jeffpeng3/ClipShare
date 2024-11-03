@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -21,12 +18,10 @@ class RoundedScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appConfig = Get.find<ConfigService>();
     bool isSmallScreen =
         MediaQuery.of(context).size.width <= Constants.smallScreenWidth;
-    return Scaffold(
-      //半透明解决弹窗圆角问题
-      backgroundColor: isSmallScreen ? appConfig.bgColor : Colors.transparent,
+    final scaffold = Scaffold(
+      // backgroundColor: Get.isDarkMode ? Colors.black : null,
       appBar: isSmallScreen
           ? AppBar(
               backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -55,12 +50,7 @@ class RoundedScaffold extends StatelessWidget {
                     ),
                     Expanded(
                       child: DefaultTextStyle(
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.black,
-                          fontFamily:
-                              Platform.isWindows ? 'Microsoft YaHei' : null,
-                        ),
+                        style: Theme.of(context).textTheme.titleLarge!,
                         child: title,
                       ),
                     ),
@@ -71,13 +61,6 @@ class RoundedScaffold extends StatelessWidget {
           ),
           Expanded(
             child: Ink(
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
-                ),
-                color: appConfig.bgColor,
-              ),
               child: child,
             ),
           ),
@@ -85,5 +68,12 @@ class RoundedScaffold extends StatelessWidget {
       ),
       floatingActionButton: floatingActionButton,
     );
+    if (!isSmallScreen) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: scaffold,
+      );
+    }
+    return scaffold;
   }
 }
