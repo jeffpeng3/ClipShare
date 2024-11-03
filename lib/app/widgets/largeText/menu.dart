@@ -22,34 +22,39 @@ class ContextMenuControllerImpl implements SelectionToolbarController {
   void hide(BuildContext context) {}
 
   @override
-  void show({
+  Future<void> show({
     required BuildContext context,
     required CodeLineEditingController controller,
     required TextSelectionToolbarAnchors anchors,
     Rect? renderRect,
     required LayerLink layerLink,
     required ValueNotifier<bool> visibility,
-  }) {
+  }) async {
+    final selection = controller.selection;
     showMenu(
       context: context,
       position: RelativeRect.fromSize(
-        anchors.primaryAnchor & const Size(150, double.infinity),
+        (anchors.secondaryAnchor ?? anchors.primaryAnchor) &
+            const Size(150, double.infinity),
         MediaQuery.of(context).size,
       ),
       items: [
         ContextMenuItemWidget(
-          text: 'Copy',
+          text: '复制',
           onTap: () {
             controller.copy();
           },
         ),
         ContextMenuItemWidget(
-          text: 'Select All',
+          text: '选择所有',
           onTap: () {
             controller.selectAll();
           },
         ),
       ],
     );
+    Future.delayed(const Duration(milliseconds: 100), () {
+      controller.selection = selection;
+    });
   }
 }
