@@ -52,6 +52,19 @@ class Constants {
     },
   );
 
+  //使用说明网页
+  static const usageWeb = "https://clipshare.coclyun.top/usages/android.html";
+
+  //Github
+  static const githubRepo = "https://github.com/aa2013/ClipShare";
+
+  //QQ group
+  static const qqGroup =
+      "http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=HQGbGZ-eYPNGLiawtVRuTk21RJyh87vp&authKey=mm0grlVTMpUJriGac5qBe8X50wShxlKILoeF9K6F2%2FmOpMPv60cBxZBZKs%2BSYmFI&noverify=0&group_code=622786394";
+
+  //ClipShare 官网
+  static const clipshareSite = "https://clipshare.coclyun.top";
+
   //默认历史弹窗快捷键（Ctrl + Alt + H）
   static const defaultHistoryWindowKeys = "458976,458978;458763";
 

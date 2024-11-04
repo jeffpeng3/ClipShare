@@ -2,7 +2,7 @@ import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:clipshare/app/modules/search_module/search_controller.dart'
     as search_module;
 import 'package:clipshare/app/services/config_service.dart';
-import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/utils/extensions/time_extension.dart';
 import 'package:clipshare/app/widgets/clip_list_view.dart';
 import 'package:clipshare/app/widgets/condition_widget.dart';
 import 'package:clipshare/app/widgets/loading.dart';

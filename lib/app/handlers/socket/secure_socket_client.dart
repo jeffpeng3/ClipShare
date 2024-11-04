@@ -7,7 +7,7 @@ import 'package:clipshare/app/data/enums/forward_msg_type.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/crypto.dart';
-import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:flutter/foundation.dart';

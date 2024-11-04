@@ -1,6 +1,7 @@
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/utils/constants.dart';
-import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/utils/extensions/number_extension.dart';
+import 'package:clipshare/app/utils/extensions/time_extension.dart';
 
 class ClipData {
   ClipData(this._data);

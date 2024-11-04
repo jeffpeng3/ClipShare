@@ -14,7 +14,7 @@ import 'package:clipshare/app/services/syncing_file_progress_service.dart';
 import 'package:clipshare/app/services/tag_service.dart';
 import 'package:clipshare/app/services/tray_service.dart';
 import 'package:clipshare/app/services/window_service.dart';
-import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -82,7 +82,7 @@ Future<void> initServices() async {
 void runMain(Widget home, String title) {
   runApp(
     ThemeProvider(
-      initTheme: Get.isPlatformDarkMode?darkThemeData:lightThemeData,
+      initTheme: Get.isPlatformDarkMode ? darkThemeData : lightThemeData,
       builder: (context, theme) {
         return GetMaterialApp(
           defaultTransition: Transition.native,

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
-import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:get/get.dart';
 

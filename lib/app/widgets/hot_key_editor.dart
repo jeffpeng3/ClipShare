@@ -1,4 +1,5 @@
-import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/utils/extensions/keyboard_key_extension.dart';
+import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';

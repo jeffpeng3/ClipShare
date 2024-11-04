@@ -3,7 +3,7 @@ import 'package:clipshare/app/data/chart/pie_data_item.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
-import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/utils/extensions/time_extension.dart';
 import 'package:get/get.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 /**
@@ -47,7 +47,9 @@ class StatisticsController extends GetxController {
 
   //region 页面方法
   int contentTypeNameCompare(String a, String b) {
-    return HistoryContentType.parse(a).order.compareTo(HistoryContentType.parse(b).order);
+    return HistoryContentType.parse(a)
+        .order
+        .compareTo(HistoryContentType.parse(b).order);
   }
 
   void padBarItems(

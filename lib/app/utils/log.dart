@@ -1,12 +1,13 @@
 import 'dart:io';
 
 import 'package:clipshare/app/services/config_service.dart';
+import 'package:clipshare/app/utils/extensions/time_extension.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
-import 'package:clipshare/app/utils/extension.dart';
 
 class Log {
   Log._private();
+
   static Future _writeFuture = Future.value();
   static final _logger = Logger(
     printer: PrettyPrinter(

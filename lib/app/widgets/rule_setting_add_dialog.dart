@@ -1,4 +1,4 @@
-import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:flutter/material.dart';
 
 class RuleSettingAddDialog extends StatefulWidget {

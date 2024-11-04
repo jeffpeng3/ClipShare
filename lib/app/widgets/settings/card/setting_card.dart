@@ -12,6 +12,7 @@ class SettingCard<T> extends StatefulWidget {
   final bool Function(T)? show;
   void Function()? onTap;
   void Function()? onDoubleTap;
+  late final EdgeInsetsGeometry padding;
 
   SettingCard({
     super.key,
@@ -25,6 +26,7 @@ class SettingCard<T> extends StatefulWidget {
     this.onDoubleTap,
     this.borderRadius = BorderRadius.zero,
     this.show,
+    this.padding = const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
   });
 
   @override
@@ -80,7 +82,7 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(8),
+                padding: widget.padding,
                 child: IntrinsicHeight(
                   child: Row(
                     children: [

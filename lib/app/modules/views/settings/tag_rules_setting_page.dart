@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
+import 'package:clipshare/app/modules/views/settings/rules_setting_page.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
-import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/global.dart';
-import 'package:clipshare/app/modules/views/settings/rules_setting_page.dart';
 import 'package:clipshare/app/widgets/rule_setting_add_dialog.dart';
 import 'package:clipshare/app/widgets/settings/card/setting_card.dart';
 import 'package:flutter/material.dart';
@@ -62,7 +62,7 @@ class TagRuleSettingPage extends StatelessWidget {
           },
         );
       },
-      editDialogLayout: (initData,onChange) {
+      editDialogLayout: (initData, onChange) {
         return RuleSettingAddDialog(
           labelText: "标签名",
           hintText: "请输入标签名",

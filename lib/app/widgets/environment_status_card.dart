@@ -25,7 +25,7 @@ class EnvironmentStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: backgroundColor ?? Colors.white,
+      color: backgroundColor,
       elevation: 0,
       margin:
           EdgeInsets.symmetric(vertical: edgeInset),

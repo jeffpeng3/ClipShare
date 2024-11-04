@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/services/syncing_file_progress_service.dart';
-import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/utils/extensions/time_extension.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';

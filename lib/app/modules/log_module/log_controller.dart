@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:clipshare/app/services/config_service.dart';
-import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/utils/extensions/file_extension.dart';
 import 'package:get/get.dart';
 /**
  * GetX Template Generator - fb.com/htngu.99

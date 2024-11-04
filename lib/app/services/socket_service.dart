@@ -19,7 +19,7 @@ import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/crypto.dart';
-import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:collection/collection.dart';
@@ -1037,7 +1037,7 @@ class SocketService extends GetxService {
   }
 
   ///断开所有连接（仅调试）
-  void disConnectAllConnections()async {
+  void disConnectAllConnections() async {
     if (kReleaseMode) return;
     for (var devSkt in _devSockets.values) {
       await devSkt.socket.close();

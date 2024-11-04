@@ -2,7 +2,8 @@ import 'dart:io';
 
 import 'package:clipshare/app/data/repository/entity/clip_data.dart';
 import 'package:clipshare/app/modules/views/preview_page.dart';
-import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/utils/extensions/platform_extension.dart';
+import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_content.dart';
 import 'package:clipshare/app/widgets/largeText/large_text.dart';
 import 'package:flutter/material.dart';

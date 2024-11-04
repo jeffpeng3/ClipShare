@@ -8,13 +8,14 @@ import 'package:clipshare/app/modules/log_module/log_page.dart';
 import 'package:clipshare/app/modules/settings_module/settings_controller.dart';
 import 'package:clipshare/app/modules/views/settings/sms_rules_setting_page.dart';
 import 'package:clipshare/app/modules/views/settings/tag_rules_setting_page.dart';
-import 'package:clipshare/app/modules/views/update_log_page.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
-import 'package:clipshare/app/utils/extension.dart';
+import 'package:clipshare/app/utils/extensions/number_extension.dart';
+import 'package:clipshare/app/utils/extensions/platform_extension.dart';
+import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/file_util.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
@@ -1214,28 +1215,27 @@ class SettingsPage extends GetView<SettingsController> {
                   icon: const Icon(Icons.info_outline),
                   cardList: [
                     SettingCard(
-                      main: const Text(
-                        "关于${Constants.appName}",
-                        maxLines: 1,
-                      ),
-                      sub: Text(
-                        "${appConfig.version.name}(${appConfig.version.code})",
-                        maxLines: 1,
+                      main: const Row(
+                        children: [
+                          Text(
+                            "关于 ${Constants.appName}",
+                            maxLines: 1,
+                          ),
+                        ],
                       ),
                       value: null,
                       action: (v) => IconButton(
                         onPressed: () {
-                          Get.dialog(
-                            const DynamicSizeWidget(
-                              child: UpdateLogPage(),
-                            ),
-                          );
+                          Get.toNamed(Routes.ABOUT);
                         },
                         icon: const Icon(
-                          Icons.info_outline,
+                          Icons.arrow_forward_rounded,
                           color: Colors.blueGrey,
                         ),
                       ),
+                      onTap: () {
+                        Get.toNamed(Routes.ABOUT);
+                      },
                     ),
                   ],
                 ),
