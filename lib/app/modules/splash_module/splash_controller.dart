@@ -134,11 +134,12 @@ class SplashController extends GetxController {
         case MultiWindowMethod.copy:
           int id = args["id"];
           dbService.historyDao.getById(id).then(
-            (history) {
+            (history) async {
               if (history == null) return;
               appConfig.innerCopy = true;
               var type = ClipboardContentType.parse(history.type);
-              clipboardManager.copy(type, history.content);
+              await clipboardManager.copy(type, history.content);
+              clipboardManager.pasteToPreviousWindow();
             },
           );
           break;

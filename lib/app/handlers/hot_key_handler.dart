@@ -39,6 +39,7 @@ class AppHotKeyHandler {
     await hotKeyManager.register(
       key,
       keyDownHandler: (hotKey) async {
+        clipboardManager.storeCurrentWindowHwnd();
         final appConfig = Get.find<ConfigService>();
         var ids = List.empty();
         try {
