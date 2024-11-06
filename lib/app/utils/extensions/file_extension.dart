@@ -14,11 +14,13 @@ extension DirectoryExt on Directory {
   }
 
   Future<bool> existsTargetFileShortcut(String realPath) async {
+    if (!Platform.isWindows) return false;
     realPath = realPath.normalizePath;
     for (var entity in listSync(recursive: true)) {
       if (entity is Directory) return false;
-      final String resolvedShortcutPath =
-          await (entity as File).resolveIfShortcut();
+      final file = entity as File;
+      if (file.extension != "lnk") return false;
+      final String resolvedShortcutPath = await file.resolveIfShortcut();
       if (resolvedShortcutPath.normalizePath == realPath) {
         return true;
       }
@@ -52,8 +54,7 @@ extension FileExt on File {
   String? get extension {
     final name = fileName;
     if (!name.contains(".")) return null;
-    final arr = name.split(".");
-    return arr[arr.length - 1];
+    return name.split(".").last;
   }
 
   String buildDuplicateSeqName() {
