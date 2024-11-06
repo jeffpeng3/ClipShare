@@ -164,7 +164,7 @@ class ConfigService extends GetxService {
   String get localName => _localName.value;
 
   //开机启动
-  late final RxBool _launchAtStartup;
+  final RxBool _launchAtStartup = false.obs;
 
   bool get launchAtStartup => _launchAtStartup.value;
 
@@ -331,10 +331,6 @@ class ConfigService extends GetxService {
       "startMini",
       userId,
     );
-    var launchAtStartup = await cfg.getConfig(
-      "launchAtStartup",
-      userId,
-    );
     var allowDiscover = await cfg.getConfig(
       "allowDiscover",
       userId,
@@ -437,7 +433,6 @@ class ConfigService extends GetxService {
     _localName =
         localName.isNotNullAndEmpty ? localName!.obs : devInfo.name.obs;
     _startMini = startMini?.toBool().obs ?? false.obs;
-    _launchAtStartup = launchAtStartup?.toBool().obs ?? false.obs;
     _allowDiscover = allowDiscover?.toBool().obs ?? true.obs;
     _showHistoryFloat = showHistoryFloat?.toBool().obs ?? false.obs;
     _firstStartup = firstStartup?.toBool().obs ?? true.obs;
@@ -554,7 +549,7 @@ class ConfigService extends GetxService {
   }
 
   Future<void> setLaunchAtStartup(bool launchAtStartup) async {
-    await _addOrUpdateDbConfig("launchAtStartup", launchAtStartup.toString());
+    // await _addOrUpdateDbConfig("launchAtStartup", launchAtStartup.toString());
     _launchAtStartup.value = launchAtStartup;
   }
 

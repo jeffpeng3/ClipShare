@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:crypto/crypto.dart' as crypto;
+import 'package:resolve_windows_shortcut/resolve_windows_shortcut.dart';
 
 extension DirectoryExt on Directory {
   String get normalizePath {
@@ -11,15 +12,24 @@ extension DirectoryExt on Directory {
       return absolute.path.replaceAll(RegExp(r'(/+|\\+)'), "/");
     }
   }
+
+  Future<bool> existsTargetFileShortcut(String realPath) async {
+    realPath = realPath.normalizePath;
+    for (var entity in listSync(recursive: true)) {
+      if (entity is Directory) return false;
+      final String resolvedShortcutPath =
+          await (entity as File).resolveIfShortcut();
+      if (resolvedShortcutPath.normalizePath == realPath) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 extension FileExt on File {
   String get normalizePath {
-    if (Platform.isWindows) {
-      return absolute.path.replaceAll(RegExp(r'(/+|\\+)'), "\\");
-    } else {
-      return absolute.path.replaceAll(RegExp(r'(/+|\\+)'), "/");
-    }
+    return absolute.path.normalizePath;
   }
 
   String get fileName {

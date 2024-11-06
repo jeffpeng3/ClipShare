@@ -6,7 +6,8 @@ publisher: coclyun
 publisher_url: https://github.com/aa2013/ClipShare
 display_name: ClipShare
 create_desktop_icon: true
-install_dir_name: ClipShare
+install_dir_name: "{userappdata}\\ClipShare"
+launch_at_startup: false
 locales:
   - en
   - zh

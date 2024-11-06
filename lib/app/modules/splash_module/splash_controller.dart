@@ -20,6 +20,8 @@ import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/device_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
+import 'package:clipshare/app/utils/extensions/file_extension.dart';
+import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
@@ -28,6 +30,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:launch_at_startup/launch_at_startup.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:window_manager/window_manager.dart';
 /**
@@ -62,6 +66,28 @@ class SplashController extends GetxController {
       await initWindowsManager();
       await initHotKey();
       initMultiWindowEvent();
+    }
+    if (PlatformExt.isDesktop) {
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      launchAtStartup.setup(
+        appName: packageInfo.appName,
+        appPath: Platform.resolvedExecutable,
+      );
+      var isLaunchAtStartup = await launchAtStartup.isEnabled();
+      if (Platform.isWindows) {
+        var username = Platform.environment['USERNAME'];
+        if (username != null) {
+          final startupPath =
+              'C:\\Users\\$username\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup';
+          final dir = Directory(startupPath);
+          final hasShortcut = await dir.existsTargetFileShortcut(
+            Platform.resolvedExecutable,
+          );
+          isLaunchAtStartup = isLaunchAtStartup || hasShortcut;
+        }
+      }
+
+      appConfig.setLaunchAtStartup(isLaunchAtStartup);
     }
     // 初始化channel
     initChannel();
@@ -172,7 +198,7 @@ class SplashController extends GetxController {
       var arguments = call.arguments;
       switch (call.method) {
         case ClipChannelMethod.ignoreNextCopy:
-          appConfig.innerCopy=true;
+          appConfig.innerCopy = true;
           break;
         case ClipChannelMethod.setTop:
           int id = arguments['id'];

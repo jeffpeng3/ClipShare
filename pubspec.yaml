@@ -71,6 +71,8 @@ dependencies:
   flutter_highlighting: ^0.9.0+11.8.0
   # 多窗口
   desktop_multi_window: ^0.2.0
+  # 解析 windows 快捷方式实际地址
+  resolve_windows_shortcut: ^2.0.0
   # 快捷键
   hotkey_manager: ^0.2.2
   # 允许 Flutter 桌面应用检索关于屏幕大小，显示，光标位置等信息。
