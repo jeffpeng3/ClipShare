@@ -27,6 +27,20 @@ extension DirectoryExt on Directory {
     }
     return false;
   }
+
+  Future<void> deleteTargetFileShortcut(String realPath) async {
+    if (!Platform.isWindows) return;
+    realPath = realPath.normalizePath;
+    for (var entity in listSync(recursive: true)) {
+      if (entity is Directory) return;
+      final file = entity as File;
+      if (file.extension != "lnk") return;
+      final String resolvedShortcutPath = await file.resolveIfShortcut();
+      if (resolvedShortcutPath.normalizePath == realPath) {
+        return file.deleteSync();
+      }
+    }
+  }
 }
 
 extension FileExt on File {

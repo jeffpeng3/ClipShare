@@ -549,8 +549,24 @@ class ConfigService extends GetxService {
   }
 
   Future<void> setLaunchAtStartup(bool launchAtStartup) async {
-    // await _addOrUpdateDbConfig("launchAtStartup", launchAtStartup.toString());
     _launchAtStartup.value = launchAtStartup;
+    if (launchAtStartup) return;
+    if (Platform.isWindows) {
+      final startupPaths = <String>[
+        Constants.windowsStartUpPath,
+      ];
+      final userStartupPath = Constants.windowsUserStartUpPath;
+      if (userStartupPath != null) {
+        startupPaths.add(userStartupPath);
+      }
+      for (var startupPath in startupPaths) {
+        final dir = Directory(startupPath);
+        if (!dir.existsSync()) continue;
+        await dir.deleteTargetFileShortcut(
+          Platform.resolvedExecutable,
+        );
+      }
+    }
   }
 
   Future<void> setPort(int port) async {

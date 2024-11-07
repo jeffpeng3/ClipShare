@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:clipshare/app/utils/log.dart';
 import 'package:flutter/material.dart';
@@ -74,6 +75,16 @@ class Constants {
   static const androidRootStoragePath = "/storage/emulated/0";
   static const androidDownloadPath = "$androidRootStoragePath/Download";
   static const androidPicturesPath = "$androidRootStoragePath/Pictures";
+  static const windowsStartUpPath =
+      r'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup';
+
+  static String? get windowsUserStartUpPath {
+    final username = Platform.environment['USERNAME'];
+    if (username == null) return null;
+    return r'C:\Users\' +
+        username +
+        r'\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup';
+  }
 
   //配对时限（秒）
   static const pairingLimit = 60;

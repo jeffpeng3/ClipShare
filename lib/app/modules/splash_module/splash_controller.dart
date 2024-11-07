@@ -75,18 +75,16 @@ class SplashController extends GetxController {
       );
       var isLaunchAtStartup = await launchAtStartup.isEnabled();
       if (Platform.isWindows) {
-        var username = Platform.environment['USERNAME'];
         final startupPaths = <String>[
-          r'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup',
+          Constants.windowsStartUpPath,
         ];
-        if (username != null) {
-          final startupPath =
-              'C:\\Users\\$username\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup';
-          startupPaths.add(startupPath);
+        final userStartupPath = Constants.windowsUserStartUpPath;
+        if (userStartupPath != null) {
+          startupPaths.add(userStartupPath);
         }
         for (var startupPath in startupPaths) {
           final dir = Directory(startupPath);
-          if(!dir.existsSync())continue;
+          if (!dir.existsSync()) continue;
           final hasShortcut = await dir.existsTargetFileShortcut(
             Platform.resolvedExecutable,
           );
