@@ -19,8 +19,10 @@ import 'package:clipshare/app/services/syncing_file_progress_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/file_extension.dart';
 import 'package:clipshare/app/utils/extensions/number_extension.dart';
+import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/extensions/time_extension.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
@@ -74,6 +76,8 @@ class FileSyncer {
             "self": appConfig.device.guid,
             "target": targetDevId!,
             "connType": ForwardConnType.sendFile.name,
+            "platform": defaultTargetPlatform.name.upperFirst(),
+            "appVersion": appConfig.version.toString(),
             "userId": appConfig.userId.toString(),
           }),
         );
@@ -98,7 +102,7 @@ class FileSyncer {
       //延时检测是否有客户端连接，超时取消发送
       _delayedClientCheck(() {
         _onDone();
-        sktService.removeSendFileRecordByForward(this, _fileId);
+        sktService.removeSendFileRecordByForward(this, _fileId,targetDevId!);
       });
     } else {
       ServerSocket.bind(InternetAddress.anyIPv4, 0).then((server) {
@@ -116,7 +120,7 @@ class FileSyncer {
 
   ///当文件接收方连接了中转服务器后由 SocketService 调用该方法通知发送端开始发送
   void onForwardReceiverConnected() {
-    sktService.removeSendFileRecordByForward(this, _fileId);
+    sktService.removeSendFileRecordByForward(this, _fileId,null);
     hasClient = true;
     //向 中转服务器 发送文件
     sendFile2Socket(_forwardSkt!);

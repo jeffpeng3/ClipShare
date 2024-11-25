@@ -17,6 +17,7 @@ import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/snowflake.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -298,7 +299,12 @@ class ConfigService extends GetxService {
 
   late final RxBool _onlyForwardMode;
 
-  bool get onlyForwardMode => _onlyForwardMode.value;
+  bool get onlyForwardMode {
+    if (kReleaseMode) {
+      return false;
+    }
+    return _onlyForwardMode.value;
+  }
 
   //endregion
 

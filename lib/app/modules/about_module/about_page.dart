@@ -185,20 +185,20 @@ class AboutPage extends GetView<AboutController> {
               SettingCard(
                 borderRadius: bottomBorderRadius,
                 padding: padding,
-                main: const Row(
+                main: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.info_outline,
                       color: Colors.blueGrey,
                       size: 28,
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 16,
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        const Row(
                           children: [
                             Text(
                               "软件版本",
@@ -209,8 +209,8 @@ class AboutPage extends GetView<AboutController> {
                         Row(
                           children: [
                             Text(
-                              "1.0.0-beat(3)",
-                              style: TextStyle(fontSize: 13),
+                              appConfig.version.toString(),
+                              style: const TextStyle(fontSize: 13),
                             ),
                           ],
                         ),

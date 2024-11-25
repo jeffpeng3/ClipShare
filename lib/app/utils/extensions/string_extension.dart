@@ -7,13 +7,19 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 extension StringExt on String {
-  String get normalizePath{
+  String upperFirst() {
+    if (isEmpty) return this;
+    return '${this[0].toUpperCase()}${substring(1)}';
+  }
+
+  String get normalizePath {
     if (Platform.isWindows) {
       return replaceAll(RegExp(r'(/+|\\+)'), "\\");
     } else {
       return replaceAll(RegExp(r'(/+|\\+)'), "/");
     }
   }
+
   bool get hasUrl {
     return matchRegExp(r"[a-zA-z]+://[^\s]*");
   }

@@ -13,6 +13,8 @@ enum ForwardMsgType {
   fileReceiverConnected,
   //有设备向自己发送文件
   sendFile,
+  //取消发送文件
+  cancelSendFile,
   //未知key
   unknown;
 
@@ -27,8 +29,8 @@ enum ForwardMsgType {
 }
 
 enum ForwardConnType {
-  //存活连接
-  keepAlive,
+  //基础连接
+  base,
   //准备文件发送
   sendFile,
   //准备文件接收

@@ -353,8 +353,10 @@ class SocketService extends GetxService {
         }
         //中转服务器连接成功后发送本机信息
         self.send({
-          "connType": ForwardConnType.keepAlive.name,
+          "connType": ForwardConnType.base.name,
           "self": appConfig.device.guid,
+          "platform": defaultTargetPlatform.name.upperFirst(),
+          "appVersion": appConfig.version.toString(),
         });
         if (startDiscovering) {
           Future.delayed(const Duration(seconds: 1), () async {
@@ -1279,7 +1281,17 @@ class SocketService extends GetxService {
   }
 
   ///移除中转文件发送记录
-  void removeSendFileRecordByForward(FileSyncer fileSyncer, int fileId) {
+  void removeSendFileRecordByForward(
+    FileSyncer fileSyncer,
+    int fileId,
+    String? targetDevId,
+  ) {
     _forwardFiles.remove(fileId);
+    if (targetDevId != null) {
+      _forwardClient?.send({
+        "type": ForwardMsgType.cancelSendFile.name,
+        "targetId": targetDevId,
+      });
+    }
   }
 }
