@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:clipshare/app/data/repository/entity/message_data.dart';
+import 'package:clipshare/app/data/models/message_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_sync.dart';
 import 'package:clipshare/app/services/config_service.dart';

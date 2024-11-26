@@ -26,6 +26,7 @@ import 'package:clipshare/app/widgets/environment_status_card.dart';
 import 'package:clipshare/app/widgets/hot_key_editor.dart';
 import 'package:clipshare/app/widgets/settings/card/setting_card.dart';
 import 'package:clipshare/app/widgets/settings/card/setting_card_group.dart';
+import 'package:clipshare/app/widgets/settings/forward_server_edit_dialog.dart';
 import 'package:clipshare/app/widgets/settings/text_edit_dialog.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -504,113 +505,103 @@ class SettingsPage extends GetView<SettingsController> {
 
                 ///region 中转
 
-                Obx(() => SettingCardGroup(
-                      groupName: "中转",
-                      icon: const Icon(Icons.cloud_sync_outlined),
-                      cardList: [
-                        SettingCard(
-                          main: Row(
-                            children: [
-                              const Text(
-                                "启用中转服务器",
-                                maxLines: 1,
-                              ),
-                              const SizedBox(
-                                width: 5,
-                              ),
-                              Tooltip(
-                                message: "下载中转程序",
-                                child: GestureDetector(
-                                  child: const MouseRegion(
-                                    cursor: SystemMouseCursors.click,
-                                    child: Icon(
-                                      Icons.info_outline,
-                                      color: Colors.blueGrey,
-                                      size: 15,
-                                    ),
+                Obx(
+                  () => SettingCardGroup(
+                    groupName: "中转",
+                    icon: const Icon(Icons.cloud_sync_outlined),
+                    cardList: [
+                      SettingCard(
+                        main: Row(
+                          children: [
+                            const Text(
+                              "启用中转服务器",
+                              maxLines: 1,
+                            ),
+                            const SizedBox(
+                              width: 5,
+                            ),
+                            Tooltip(
+                              message: "下载中转程序",
+                              child: GestureDetector(
+                                child: const MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: Icon(
+                                    Icons.info_outline,
+                                    color: Colors.blueGrey,
+                                    size: 15,
                                   ),
-                                  onTap: () async {
-                                    Constants.forwardDownloadUrl.askOpenUrl();
-                                  },
                                 ),
+                                onTap: () async {
+                                  Constants.forwardDownloadUrl.askOpenUrl();
+                                },
                               ),
-                            ],
-                          ),
-                          sub: const Text(
-                            "中转服务器可在公网环境下进行数据同步",
-                            maxLines: 1,
-                          ),
-                          value: appConfig.enableForward,
-                          action: (v) {
-                            return Switch(
-                              value: v,
-                              onChanged: (checked) async {
-                                HapticFeedback.mediumImpact();
-                                //启用中转服务器前先校验是否填写服务器地址
-                                if (appConfig.forwardServer.isNullOrEmpty) {
-                                  Global.showSnackBarErr(
-                                    context,
-                                    "请先设置中转服务器地址",
-                                  );
-                                  return;
-                                }
-                                await appConfig.setEnableForward(checked);
-                                if (checked) {
-                                  sktService.connectForwardServer(true);
-                                } else {
-                                  sktService.disConnectForwardServer();
-                                }
-                              },
-                            );
-                          },
+                            ),
+                          ],
                         ),
-                        SettingCard(
-                          main: const Text(
-                            "中转服务器地址",
-                            maxLines: 1,
-                          ),
-                          sub: const Text(
-                            "请使用可信地址或自行搭建",
-                            maxLines: 1,
-                          ),
-                          value: appConfig.forwardServer,
-                          action: (v) {
-                            String text = "更改";
-                            if (appConfig.forwardServer.isNullOrEmpty) {
-                              text = "配置";
-                            }
-                            return TextButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (ctx) => TextEditDialog(
-                                    title: "配置中转服务器",
-                                    labelText: "中转地址",
-                                    hint: "格式 ip:port",
-                                    initStr: appConfig.forwardServer ?? '',
-                                    verify: (str) {
-                                      if (str.isNullOrEmpty) return false;
-                                      if (!str.contains(":")) return false;
-                                      final [ip, port] = str.trim().split(':');
-                                      return ip.isIPv4 && port.isPort;
-                                    },
-                                    errorText: "请输入合法的地址",
-                                    onOk: (str) async {
-                                      if (str.trim() ==
-                                          appConfig.forwardServer) {
-                                        return;
-                                      }
-                                      await appConfig.setForwardServer(str);
-                                    },
-                                  ),
+                        sub: const Text(
+                          "中转服务器可在公网环境下进行数据同步",
+                          maxLines: 1,
+                        ),
+                        value: appConfig.enableForward,
+                        action: (v) {
+                          return Switch(
+                            value: v,
+                            onChanged: (checked) async {
+                              HapticFeedback.mediumImpact();
+                              //启用中转服务器前先校验是否填写服务器地址
+                              if (appConfig.forwardServer == null) {
+                                Global.showSnackBarErr(
+                                  context,
+                                  "请先设置中转服务器地址",
                                 );
-                              },
-                              child: Text(text),
-                            );
-                          },
+                                return;
+                              }
+                              await appConfig.setEnableForward(checked);
+                              if (checked) {
+                                sktService.connectForwardServer(true);
+                              } else {
+                                sktService.disConnectForwardServer();
+                              }
+                            },
+                          );
+                        },
+                      ),
+                      SettingCard(
+                        main: const Text(
+                          "中转服务器地址",
+                          maxLines: 1,
                         ),
-                      ],
-                    )),
+                        sub: const Text(
+                          "请使用可信地址或自行搭建",
+                          maxLines: 1,
+                        ),
+                        value: appConfig.forwardServer,
+                        action: (v) {
+                          String text = "更改";
+                          if (appConfig.forwardServer == null) {
+                            text = "配置";
+                          }
+                          return TextButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (ctx) {
+                                  return ForwardServerEditDialog(
+                                    initValue: v,
+                                    onOk: (server) {
+                                      appConfig.setForwardServer(server);
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                            child: Text(text),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
 
                 ///endregion
 

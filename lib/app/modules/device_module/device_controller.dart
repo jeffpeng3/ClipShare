@@ -1,11 +1,11 @@
 import 'dart:convert';
 
-import 'package:clipshare/app/data/repository/entity/dev_info.dart';
-import 'package:clipshare/app/data/repository/entity/message_data.dart';
+import 'package:clipshare/app/data/models/dev_info.dart';
+import 'package:clipshare/app/data/models/message_data.dart';
+import 'package:clipshare/app/data/models/version.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_sync.dart';
-import 'package:clipshare/app/data/repository/entity/version.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';

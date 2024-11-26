@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:clipshare/app/data/repository/entity/syncing_file.dart';
+import 'package:clipshare/app/data/models/syncing_file.dart';
 import 'package:clipshare/app/listeners/multi_selection_pop_scope_disable_listener.dart';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -35,6 +35,7 @@ class SyncFileController extends GetxController
     homeController.registerMultiSelectionPopScopeDisableListener(this);
     refreshHistoryFiles();
   }
+
   @override
   void onClose() {
     final homeController = Get.find<HomeController>();
@@ -153,8 +154,10 @@ class SyncFileController extends GetxController
         final files = selected.values;
         for (var syncFile in files) {
           final filePath = syncFile.syncingFile.filePath;
-          Log.debug(tag,
-              "will delete file $filePath, isSender ${syncFile.syncingFile.isSender}");
+          Log.debug(
+            tag,
+            "will delete file $filePath, isSender ${syncFile.syncingFile.isSender}",
+          );
           if (syncFile.syncingFile.isSender) continue;
           try {
             var file = File(filePath);

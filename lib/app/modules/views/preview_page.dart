@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:clipshare/app/data/repository/entity/clip_data.dart';
+import 'package:clipshare/app/data/models/clip_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';

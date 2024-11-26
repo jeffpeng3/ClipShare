@@ -5,8 +5,8 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:clipshare/app/data/enums/forward_msg_type.dart';
-import 'package:clipshare/app/data/repository/entity/dev_info.dart';
-import 'package:clipshare/app/data/repository/entity/syncing_file.dart';
+import 'package:clipshare/app/data/models/dev_info.dart';
+import 'package:clipshare/app/data/models/syncing_file.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/handlers/socket/secure_socket_client.dart';

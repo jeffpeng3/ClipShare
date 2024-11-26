@@ -1,4 +1,4 @@
-import 'package:clipshare/app/data/repository/entity/statistics/history_tag_cnt.dart';
+import 'package:clipshare/app/data/models/statistics/history_tag_cnt.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history_tag.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:floor/floor.dart';

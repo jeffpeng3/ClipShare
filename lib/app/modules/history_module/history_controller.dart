@@ -4,8 +4,8 @@ import 'dart:io';
 
 import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
-import 'package:clipshare/app/data/repository/entity/clip_data.dart';
-import 'package:clipshare/app/data/repository/entity/message_data.dart';
+import 'package:clipshare/app/data/models/clip_data.dart';
+import 'package:clipshare/app/data/models/message_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history_tag.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';

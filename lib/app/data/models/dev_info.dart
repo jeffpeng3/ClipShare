@@ -1,4 +1,4 @@
-import 'tables/device.dart';
+import '../repository/entity/tables/device.dart';
 
 class DevInfo {
   String guid;

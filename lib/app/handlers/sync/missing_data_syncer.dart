@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:clipshare/app/data/repository/entity/clip_data.dart';
-import 'package:clipshare/app/data/repository/entity/dev_info.dart';
+import 'package:clipshare/app/data/models/clip_data.dart';
+import 'package:clipshare/app/data/models/dev_info.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history_tag.dart';

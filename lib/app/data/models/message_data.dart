@@ -1,9 +1,8 @@
 import 'dart:convert';
 
+import 'package:clipshare/app/data/models/dev_info.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/log.dart';
-
-import 'dev_info.dart';
 
 class MessageData {
   int userId;

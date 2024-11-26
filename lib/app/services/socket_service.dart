@@ -5,9 +5,9 @@ import 'dart:math';
 
 import 'package:clipshare/app/data/enums/connection_mode.dart';
 import 'package:clipshare/app/data/enums/forward_msg_type.dart';
-import 'package:clipshare/app/data/repository/entity/dev_info.dart';
-import 'package:clipshare/app/data/repository/entity/message_data.dart';
-import 'package:clipshare/app/data/repository/entity/version.dart';
+import 'package:clipshare/app/data/models/dev_info.dart';
+import 'package:clipshare/app/data/models/message_data.dart';
+import 'package:clipshare/app/data/models/version.dart';
 import 'package:clipshare/app/handlers/dev_pairing_handler.dart';
 import 'package:clipshare/app/handlers/socket/forward_socket_client.dart';
 import 'package:clipshare/app/handlers/socket/secure_socket_client.dart';
@@ -123,16 +123,12 @@ class SocketService extends GetxService {
 
   String? get forwardServerIp {
     if (!appConfig.enableForward) return null;
-    var arr = appConfig.forwardServer?.split(":");
-    if (arr == null || arr.length < 2) return null;
-    return arr[0];
+    return appConfig.forwardServer!.host;
   }
 
   int? get forwardServerPort {
     if (!appConfig.enableForward) return null;
-    var arr = appConfig.forwardServer?.split(":");
-    if (arr == null || arr.length < 2) return null;
-    return arr[1].toInt();
+    return appConfig.forwardServer!.port.toInt();
   }
 
   List<RawDatagramSocket> multicasts = [];

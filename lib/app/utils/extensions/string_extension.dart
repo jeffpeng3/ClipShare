@@ -24,6 +24,11 @@ extension StringExt on String {
     return matchRegExp(r"[a-zA-z]+://[^\s]*");
   }
 
+  bool get isDomain {
+    return matchRegExp(
+        r'^[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\.?$');
+  }
+
   String substringMinLen(int start, int end) {
     return substring(start, min(end, length));
   }

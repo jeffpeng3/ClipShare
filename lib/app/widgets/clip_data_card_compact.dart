@@ -1,4 +1,4 @@
-import 'package:clipshare/app/data/repository/entity/clip_data.dart';
+import 'package:clipshare/app/data/models/clip_data.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_content.dart';

@@ -1,5 +1,5 @@
-import 'package:clipshare/app/data/repository/entity/statistics/history_cnt_for_device.dart';
-import 'package:clipshare/app/data/repository/entity/statistics/history_type_cnt.dart';
+import 'package:clipshare/app/data/models/statistics/history_cnt_for_device.dart';
+import 'package:clipshare/app/data/models/statistics/history_type_cnt.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:floor/floor.dart';

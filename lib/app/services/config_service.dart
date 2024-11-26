@@ -3,10 +3,11 @@ import 'dart:io';
 
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:clipboard_listener/enums.dart';
-import 'package:clipshare/app/data/repository/entity/dev_info.dart';
+import 'package:clipshare/app/data/models/dev_info.dart';
+import 'package:clipshare/app/data/models/forward_server_config.dart';
+import 'package:clipshare/app/data/models/version.dart';
 import 'package:clipshare/app/data/repository/entity/tables/config.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
-import 'package:clipshare/app/data/repository/entity/version.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/theme/app_theme.dart';
@@ -288,9 +289,9 @@ class ConfigService extends GetxService {
   bool get enableForward => _enableForward.value;
 
   //中转服务器地址
-  late final Rx<String?> _forwardServer;
+  late final Rx<ForwardServerConfig?> _forwardServer;
 
-  String? get forwardServer => _forwardServer.value;
+  ForwardServerConfig? get forwardServer => _forwardServer.value;
 
   //选择的工作模式（Android）
   late final Rx<EnvironmentType?> _workingMode;
@@ -465,7 +466,17 @@ class ConfigService extends GetxService {
     _appPassword = appPassword.obs;
     _enableSmsSync = enableSmsSync?.toBool().obs ?? false.obs;
     _enableForward = enableForward?.toBool().obs ?? false.obs;
-    _forwardServer = forwardServer.obs;
+    if (forwardServer == null) {
+      _forwardServer == null.obs;
+    } else {
+      if (forwardServer.startsWith("{")) {
+        _forwardServer = ForwardServerConfig.fromJson(forwardServer).obs;
+      } else {
+        final [host, port] = forwardServer.split(":");
+        _forwardServer =
+            ForwardServerConfig(host: host, port: port.toInt()).obs;
+      }
+    }
     devInfo.name = _localName.value;
     _workingMode = EnvironmentType.parse(workingMode).obs;
     _onlyForwardMode = onlyForwardMode?.toBool().obs ?? false.obs;
@@ -689,9 +700,9 @@ class ConfigService extends GetxService {
     _enableForward.value = enableForward;
   }
 
-  Future<void> setForwardServer(String forwardServer) async {
-    await _addOrUpdateDbConfig("forwardServer", forwardServer.toString());
-    _forwardServer.value = forwardServer;
+  Future<void> setForwardServer(ForwardServerConfig serverConfig) async {
+    await _addOrUpdateDbConfig("forwardServer", serverConfig.toString());
+    _forwardServer.value = serverConfig;
   }
 
   Future<void> setWorkingMode(EnvironmentType workingMode) async {

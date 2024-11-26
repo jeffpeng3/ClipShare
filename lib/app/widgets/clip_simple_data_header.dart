@@ -1,4 +1,4 @@
-import 'package:clipshare/app/data/repository/entity/clip_data.dart';
+import 'package:clipshare/app/data/models/clip_data.dart';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/services/device_service.dart';
 import 'package:clipshare/app/services/tag_service.dart';

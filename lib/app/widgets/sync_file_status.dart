@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:clipshare/app/data/repository/entity/syncing_file.dart';
+import 'package:clipshare/app/data/models/syncing_file.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/services/config_service.dart';

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:clipshare/app/data/repository/entity/dev_info.dart';
+import 'package:clipshare/app/data/models/dev_info.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:floor/floor.dart';

@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
-import 'package:clipshare/app/data/repository/entity/clip_data.dart';
+import 'package:clipshare/app/data/models/clip_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
 import 'package:clipshare/app/listeners/multi_selection_pop_scope_disable_listener.dart';
