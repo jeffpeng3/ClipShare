@@ -15,6 +15,8 @@ enum ForwardMsgType {
   sendFile,
   //取消发送文件
   cancelSendFile,
+  //检查中转是否有效
+  check,
   //未知key
   unknown;
 
@@ -34,5 +36,7 @@ enum ForwardConnType {
   //准备文件发送
   sendFile,
   //准备文件接收
-  recFile
+  recFile,
+  //检查中转是否有效
+  check,
 }

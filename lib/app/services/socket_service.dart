@@ -348,12 +348,17 @@ class SocketService extends GetxService {
           listener.onForwardServerConnected();
         }
         //中转服务器连接成功后发送本机信息
-        self.send({
+        final connData = {
           "connType": ForwardConnType.base.name,
           "self": appConfig.device.guid,
           "platform": defaultTargetPlatform.name.upperFirst(),
           "appVersion": appConfig.version.toString(),
-        });
+        };
+        final key = appConfig.forwardServer!.key;
+        // if (key != null) {
+        //   connData["key"] = key;
+        // }
+        self.send(connData);
         if (startDiscovering) {
           Future.delayed(const Duration(seconds: 1), () async {
             //发现中转设备
@@ -386,6 +391,25 @@ class SocketService extends GetxService {
   Future<void> _onForwardServerReceived(Map<String, dynamic> data) async {
     final type = ForwardMsgType.getValue(data["type"]);
     switch (type) {
+      case ForwardMsgType.check:
+        if (!data.containsKey("result")) {
+          Global.showTipsDialog(
+            context: Get.context!,
+            text: "未知的返回结果:\n ${data.toString()}",
+            title: "中转服务器连接失败",
+          );
+          return;
+        }
+        final result = data["result"];
+        if (result == "success") {
+          return;
+        }
+        Global.showTipsDialog(
+          context: Get.context!,
+          text: result,
+          title: "中转服务器连接失败",
+        );
+        break;
       case ForwardMsgType.requestConnect:
         final targetId = data["sender"];
         manualConnectByForward(targetId);
