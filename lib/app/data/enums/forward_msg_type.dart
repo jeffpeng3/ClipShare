@@ -17,6 +17,8 @@ enum ForwardMsgType {
   cancelSendFile,
   //检查中转是否有效
   check,
+  //不允许文件同步
+  fileSyncNotAllowed,
   //未知key
   unknown;
 

@@ -107,10 +107,26 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
               title: "连接失败",
             );
           } else {
-            if(!json.containsKey("deviceLimit")){
+            if (json.containsKey("unlimited")) {
               Global.showTipsDialog(
                 context: context,
-                text: "公开服务器，无任何限制",
+                text: "白名单设备无任何限制",
+                title: "连接成功",
+              );
+              return;
+            }
+            if (!json.containsKey("deviceLimit")) {
+              String content = "公开服务器\n";
+              if (json.containsKey("fileSyncRate")) {
+                content += "文件同步限速：${json["fileSyncRate"]} KB/s";
+              } else if (json.containsKey("fileSyncNotAllowed")) {
+                content += "该中转服务器不可进行文件同步";
+              } else {
+                content += "无任何限制";
+              }
+              Global.showTipsDialog(
+                context: context,
+                text: content,
                 title: "连接成功",
               );
               return;
@@ -136,8 +152,11 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
             String remaining = json["remaining"];
             if (remaining == "-1") {
               remaining = "未开始计时";
+            } else if (remaining != "0") {
+              remaining =
+                  "${(remaining.toDouble() / (24 * 60 * 60)).toStringAsFixed(2)} 天";
             } else {
-              remaining = "${remaining.toDouble() / (24 * 60 * 60)} 天";
+              remaining = "已耗尽";
             }
             String remark = json["remark"];
             String content = ""

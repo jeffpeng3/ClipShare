@@ -467,7 +467,7 @@ class ConfigService extends GetxService {
     _enableSmsSync = enableSmsSync?.toBool().obs ?? false.obs;
     _enableForward = enableForward?.toBool().obs ?? false.obs;
     if (forwardServer == null) {
-      _forwardServer == null.obs;
+      _forwardServer = null.obs;
     } else {
       if (forwardServer.startsWith("{")) {
         _forwardServer = ForwardServerConfig.fromJson(forwardServer).obs;

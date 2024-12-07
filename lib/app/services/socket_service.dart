@@ -354,10 +354,10 @@ class SocketService extends GetxService {
           "platform": defaultTargetPlatform.name.upperFirst(),
           "appVersion": appConfig.version.toString(),
         };
-        final key = appConfig.forwardServer!.key;
-        // if (key != null) {
-        //   connData["key"] = key;
-        // }
+        final key = appConfig.forwardServer?.key;
+        if (key != null) {
+          connData["key"] = key;
+        }
         self.send(connData);
         if (startDiscovering) {
           Future.delayed(const Duration(seconds: 1), () async {
@@ -391,19 +391,34 @@ class SocketService extends GetxService {
   Future<void> _onForwardServerReceived(Map<String, dynamic> data) async {
     final type = ForwardMsgType.getValue(data["type"]);
     switch (type) {
+      case ForwardMsgType.fileSyncNotAllowed:
+        Global.showTipsDialog(
+          context: Get.context!,
+          text: "连接的中转服务器不允许文件同步",
+          title: "发送失败",
+        );
+        break;
       case ForwardMsgType.check:
+        void disableForwardServerAfterDelay() {
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (_forwardClient != null) return;
+            appConfig.setEnableForward(false);
+          });
+        }
         if (!data.containsKey("result")) {
           Global.showTipsDialog(
             context: Get.context!,
             text: "未知的返回结果:\n ${data.toString()}",
             title: "中转服务器连接失败",
           );
+          disableForwardServerAfterDelay();
           return;
         }
         final result = data["result"];
         if (result == "success") {
           return;
         }
+        disableForwardServerAfterDelay();
         Global.showTipsDialog(
           context: Get.context!,
           text: result,
