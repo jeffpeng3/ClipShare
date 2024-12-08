@@ -37,11 +37,11 @@ class TagRuleSettingPage extends StatelessWidget {
         var key = UniqueKey();
         return SettingCard(
           key: key,
-          main: Text(
+          name: Text(
             "标签：$tag",
             maxLines: 1,
           ),
-          sub: Text(
+          description: Text(
             "规则：$rule",
             maxLines: 1,
           ),

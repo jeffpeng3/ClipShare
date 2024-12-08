@@ -37,7 +37,7 @@ class AboutPage extends GetView<AboutController> {
               SettingCard(
                 borderRadius: topBorderRadius,
                 padding: padding,
-                main: const Row(
+                name: const Row(
                   children: [
                     Icon(
                       Icons.help_outline_outlined,
@@ -64,7 +64,7 @@ class AboutPage extends GetView<AboutController> {
               ),
               SettingCard(
                 padding: padding,
-                main: const Row(
+                name: const Row(
                   children: [
                     Icon(
                       Icons.event_note_outlined,
@@ -84,7 +84,7 @@ class AboutPage extends GetView<AboutController> {
               ),
               SettingCard(
                 padding: padding,
-                main: Row(
+                name: Row(
                   children: [
                     Icon(
                       MdiIcons.github,
@@ -111,7 +111,7 @@ class AboutPage extends GetView<AboutController> {
               ),
               SettingCard(
                 padding: padding,
-                main: Row(
+                name: Row(
                   children: [
                     Icon(
                       MdiIcons.qqchat,
@@ -134,7 +134,7 @@ class AboutPage extends GetView<AboutController> {
               ),
               SettingCard(
                 padding: padding,
-                main: Row(
+                name: Row(
                   children: [
                     Icon(
                       MdiIcons.web,
@@ -161,7 +161,7 @@ class AboutPage extends GetView<AboutController> {
               ),
               SettingCard(
                 padding: padding,
-                main: Row(
+                name: Row(
                   children: [
                     Icon(
                       MdiIcons.update,
@@ -185,7 +185,7 @@ class AboutPage extends GetView<AboutController> {
               SettingCard(
                 borderRadius: bottomBorderRadius,
                 padding: padding,
-                main: Row(
+                name: Row(
                   children: [
                     const Icon(
                       Icons.info_outline,

@@ -325,52 +325,64 @@ class SocketService extends GetxService {
     disConnectForwardServer();
     if (!appConfig.enableForward) return;
     if (forwardServerIp == null || forwardServerPort == null) return;
-    _forwardClient = await ForwardSocketClient.connect(
-      ip: forwardServerIp!,
-      port: forwardServerPort!,
-      onMessage: (self, data) {
-        Log.debug(tag, "forwardClient onMessage $data");
-        _onForwardServerReceived(jsonDecode(data));
-      },
-      onDone: (self) {
-        _forwardClient = null;
-        for (var listener in _forwardStatusListener) {
-          listener.onForwardServerDisconnect();
-        }
-        Log.debug(tag, "forwardClient done");
-      },
-      onError: (ex, self) {
-        Log.debug(tag, "forwardClient onError $ex");
-      },
-      onConnected: (self) {
-        Log.debug(tag, "forwardClient onConnected");
-        for (var listener in _forwardStatusListener) {
-          listener.onForwardServerConnected();
-        }
-        //中转服务器连接成功后发送本机信息
-        final connData = {
-          "connType": ForwardConnType.base.name,
-          "self": appConfig.device.guid,
-          "platform": defaultTargetPlatform.name.upperFirst(),
-          "appVersion": appConfig.version.toString(),
-        };
-        final key = appConfig.forwardServer?.key;
-        if (key != null) {
-          connData["key"] = key;
-        }
-        self.send(connData);
-        if (startDiscovering) {
-          Future.delayed(const Duration(seconds: 1), () async {
-            //发现中转设备
-            TaskRunner<void>(
-              initialTasks: await _forwardDiscover(),
-              onFinish: () async {},
-              concurrency: 50,
-            );
-          });
-        }
-      },
-    );
+    try {
+      _forwardClient = await ForwardSocketClient.connect(
+        ip: forwardServerIp!,
+        port: forwardServerPort!,
+        onMessage: (self, data) {
+          Log.debug(tag, "forwardClient onMessage $data");
+          _onForwardServerReceived(jsonDecode(data));
+        },
+        onDone: (self) {
+          _forwardClient = null;
+          for (var listener in _forwardStatusListener) {
+            listener.onForwardServerDisconnect();
+          }
+          Log.debug(tag, "forwardClient done");
+          Future.delayed(
+            const Duration(milliseconds: 500),
+            () => connectForwardServer(true),
+          );
+        },
+        onError: (ex, self) {
+          Log.debug(tag, "forwardClient onError $ex");
+        },
+        onConnected: (self) {
+          Log.debug(tag, "forwardClient onConnected");
+          for (var listener in _forwardStatusListener) {
+            listener.onForwardServerConnected();
+          }
+          //中转服务器连接成功后发送本机信息
+          final connData = {
+            "connType": ForwardConnType.base.name,
+            "self": appConfig.device.guid,
+            "platform": defaultTargetPlatform.name.upperFirst(),
+            "appVersion": appConfig.version.toString(),
+          };
+          final key = appConfig.forwardServer?.key;
+          if (key != null) {
+            connData["key"] = key;
+          }
+          self.send(connData);
+          if (startDiscovering) {
+            Future.delayed(const Duration(seconds: 1), () async {
+              //发现中转设备
+              TaskRunner<void>(
+                initialTasks: await _forwardDiscover(),
+                onFinish: () async {},
+                concurrency: 50,
+              );
+            });
+          }
+        },
+      );
+    } catch (e) {
+      Log.debug(tag, "connect forward server failed $e");
+      Future.delayed(
+        const Duration(milliseconds: 500),
+        () => connectForwardServer(true),
+      );
+    }
   }
 
   ///断开中转服务器

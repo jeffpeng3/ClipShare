@@ -81,7 +81,7 @@ class SettingsPage extends GetView<SettingsController> {
                     icon: const Icon(Icons.discount_outlined),
                     cardList: [
                       SettingCard(
-                        main: const Text("开机启动"),
+                        name: const Text("开机启动"),
                         value: appConfig.launchAtStartup,
                         action: (v) => Switch(
                           value: v,
@@ -106,7 +106,7 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => Platform.isWindows,
                       ),
                       SettingCard(
-                        main: const Text("启动时最小化窗口"),
+                        name: const Text("启动时最小化窗口"),
                         value: appConfig.startMini,
                         action: (v) => Switch(
                           value: v,
@@ -117,7 +117,7 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => PlatformExt.isDesktop,
                       ),
                       SettingCard(
-                        main: const Text("显示历史记录悬浮窗"),
+                        name: const Text("显示历史记录悬浮窗"),
                         value: appConfig.showHistoryFloat,
                         action: (v) => Switch(
                           value: appConfig.showHistoryFloat,
@@ -134,7 +134,7 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => Platform.isAndroid,
                       ),
                       SettingCard(
-                        main: const Text("锁定悬浮窗位置"),
+                        name: const Text("锁定悬浮窗位置"),
                         value: appConfig.lockHistoryFloatLoc,
                         action: (v) => Switch(
                           value: appConfig.lockHistoryFloatLoc,
@@ -150,8 +150,8 @@ class SettingsPage extends GetView<SettingsController> {
                             Platform.isAndroid && appConfig.showHistoryFloat,
                       ),
                       SettingCard(
-                        main: const Text("记住上次窗口大小"),
-                        sub: Text(
+                        name: const Text("记住上次窗口大小"),
+                        description: Text(
                           "${appConfig.rememberWindowSize ? "记录值：${appConfig.windowSize}，" : ""}默认值：${Constants.defaultWindowSize}",
                         ),
                         value: appConfig.rememberWindowSize,
@@ -165,7 +165,7 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => PlatformExt.isDesktop,
                       ),
                       SettingCard<ThemeMode>(
-                        main: const Text("主题"),
+                        name: const Text("主题"),
                         value: appConfig.appTheme,
                         action: (v) {
                           var icon = Icons.brightness_auto_outlined;
@@ -234,8 +234,8 @@ class SettingsPage extends GetView<SettingsController> {
                       icon: const Icon(Icons.admin_panel_settings),
                       cardList: [
                         SettingCard(
-                          main: const Text("通知权限"),
-                          sub: const Text("用于启动前台服务"),
+                          name: const Text("通知权限"),
+                          description: const Text("用于启动前台服务"),
                           value: controller.hasNotifyPerm.value,
                           action: (val) => Icon(
                             val ? Icons.check_circle : Icons.help,
@@ -249,8 +249,8 @@ class SettingsPage extends GetView<SettingsController> {
                           },
                         ),
                         SettingCard(
-                          main: const Text("悬浮窗权限"),
-                          sub: const Text("高版本系统中通过悬浮窗获取剪贴板焦点"),
+                          name: const Text("悬浮窗权限"),
+                          description: const Text("高版本系统中通过悬浮窗获取剪贴板焦点"),
                           value: controller.hasFloatPerm.value,
                           action: (val) => Icon(
                             val ? Icons.check_circle : Icons.help,
@@ -264,8 +264,8 @@ class SettingsPage extends GetView<SettingsController> {
                           },
                         ),
                         SettingCard(
-                          main: const Text("电池优化"),
-                          sub: const Text("添加电池优化防止被后台系统杀死"),
+                          name: const Text("电池优化"),
+                          description: const Text("添加电池优化防止被后台系统杀死"),
                           value: controller.hasIgnoreBattery.value,
                           action: (val) => Icon(
                             val ? Icons.check_circle : Icons.help,
@@ -279,8 +279,8 @@ class SettingsPage extends GetView<SettingsController> {
                           },
                         ),
                         SettingCard(
-                          main: const Text("短信读取"),
-                          sub: const Text("已开启短信同步功能，请授予短信读取权限"),
+                          name: const Text("短信读取"),
+                          description: const Text("已开启短信同步功能，请授予短信读取权限"),
                           value: controller.hasSmsReadPerm.value,
                           action: (val) => Icon(
                             val ? Icons.check_circle : Icons.help,
@@ -304,11 +304,11 @@ class SettingsPage extends GetView<SettingsController> {
                     icon: const Icon(Icons.wifi),
                     cardList: [
                       SettingCard(
-                        main: const Text(
+                        name: const Text(
                           "设备名称",
                           maxLines: 1,
                         ),
-                        sub: Row(
+                        description: Row(
                           children: [
                             Text(
                               "id: ${appConfig.devInfo.guid}",
@@ -359,11 +359,11 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        main: const Text(
+                        name: const Text(
                           "端口",
                           maxLines: 1,
                         ),
-                        sub: const Text(
+                        description: const Text(
                           "默认值 ${Constants.port}。修改后可能无法被自动发现",
                           maxLines: 1,
                         ),
@@ -394,11 +394,11 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        main: const Text(
+                        name: const Text(
                           "可被发现",
                           maxLines: 1,
                         ),
-                        sub: const Text(
+                        description: const Text(
                           "可以被其它设备自动发现",
                           maxLines: 1,
                         ),
@@ -412,11 +412,11 @@ class SettingsPage extends GetView<SettingsController> {
                         ),
                       ),
                       SettingCard(
-                        main: const Text(
+                        name: const Text(
                           "仅中转发现（调试用）",
                           maxLines: 1,
                         ),
-                        sub: const Text(
+                        description: const Text(
                           "仅在开发环境中显示该功能",
                           maxLines: 1,
                         ),
@@ -431,7 +431,7 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => !kReleaseMode,
                       ),
                       SettingCard(
-                        main: Row(
+                        name: Row(
                           children: [
                             const Text(
                               "心跳检测间隔",
@@ -462,7 +462,7 @@ class SettingsPage extends GetView<SettingsController> {
                             ),
                           ],
                         ),
-                        sub: const Text(
+                        description: const Text(
                           "检测设备存活。默认30s，0不检测",
                           maxLines: 1,
                         ),
@@ -511,7 +511,7 @@ class SettingsPage extends GetView<SettingsController> {
                     icon: const Icon(Icons.cloud_sync_outlined),
                     cardList: [
                       SettingCard(
-                        main: Row(
+                        name: Row(
                           children: [
                             const Text(
                               "启用中转服务器",
@@ -538,7 +538,7 @@ class SettingsPage extends GetView<SettingsController> {
                             ),
                           ],
                         ),
-                        sub: const Text(
+                        description: const Text(
                           "中转服务器可在公网环境下进行数据同步",
                           maxLines: 1,
                         ),
@@ -567,11 +567,11 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        main: const Text(
+                        name: const Text(
                           "中转服务器地址",
                           maxLines: 1,
                         ),
-                        sub: const Text(
+                        description: const Text(
                           "请使用可信地址或自行搭建",
                           maxLines: 1,
                         ),
@@ -612,11 +612,11 @@ class SettingsPage extends GetView<SettingsController> {
                       icon: const Icon(Icons.fingerprint_outlined),
                       cardList: [
                         SettingCard(
-                          main: const Text(
+                          name: const Text(
                             "启用安全认证",
                             maxLines: 1,
                           ),
-                          sub: const Text(
+                          description: const Text(
                             "启用密码或生物识别认证",
                             maxLines: 1,
                           ),
@@ -644,11 +644,11 @@ class SettingsPage extends GetView<SettingsController> {
                           show: (v) => Platform.isAndroid,
                         ),
                         SettingCard(
-                          main: const Text(
+                          name: const Text(
                             "更改密码",
                             maxLines: 1,
                           ),
-                          sub: Text(
+                          description: Text(
                             "${appConfig.appPassword == null ? '新建' : '更改'}应用密码",
                             maxLines: 1,
                           ),
@@ -680,11 +680,11 @@ class SettingsPage extends GetView<SettingsController> {
                           show: (v) => Platform.isAndroid,
                         ),
                         SettingCard(
-                          main: const Text(
+                          name: const Text(
                             "密码重新验证",
                             maxLines: 1,
                           ),
-                          sub: const Text(
+                          description: const Text(
                             "在后台指定时长后重新验证密码",
                             maxLines: 1,
                           ),
@@ -727,11 +727,11 @@ class SettingsPage extends GetView<SettingsController> {
                       icon: const Icon(Icons.keyboard_alt_outlined),
                       cardList: [
                         SettingCard(
-                          main: const Text(
+                          name: const Text(
                             "历史弹窗",
                             maxLines: 1,
                           ),
-                          sub: const Text(
+                          description: const Text(
                             "在屏幕任意位置唤起历史记录弹窗",
                             maxLines: 1,
                           ),
@@ -788,11 +788,11 @@ class SettingsPage extends GetView<SettingsController> {
                           show: (v) => Platform.isWindows,
                         ),
                         SettingCard(
-                          main: const Text(
+                          name: const Text(
                             "文件发送",
                             maxLines: 1,
                           ),
-                          sub: const Text(
+                          description: const Text(
                             "将选定的文件同步到其他设备（桌面无效）",
                             maxLines: 1,
                           ),
@@ -854,144 +854,165 @@ class SettingsPage extends GetView<SettingsController> {
 
                 ///region 同步设置
 
-                Obx(() => SettingCardGroup(
-                      groupName: "同步",
-                      icon: const Icon(Icons.sync_rounded),
-                      cardList: [
-                        SettingCard(
-                          main: const Text(
-                            "短信同步",
-                            maxLines: 1,
-                          ),
-                          sub: const Text(
-                            "符合规则的短信将自动同步",
-                            maxLines: 1,
-                          ),
-                          value: appConfig.enableSmsSync,
-                          show: (v) => Platform.isAndroid,
-                          action: (v) {
-                            return Switch(
-                              value: v,
-                              onChanged: (checked) async {
-                                if (checked) {
-                                  var isGranted = await PermissionHelper
-                                      .testAndroidReadSms();
-                                  if (isGranted) {
-                                    androidChannelService.startSmsListen();
-                                  } else {
-                                    Global.showTipsDialog(
-                                      context: context,
-                                      text: "请先授予短信读取权限",
-                                      okText: "去授权",
-                                      showCancel: true,
-                                      onOk: () async {
-                                        await PermissionHelper
-                                            .reqAndroidReadSms();
-                                        if (await PermissionHelper
-                                            .testAndroidReadSms()) {
-                                          appConfig.setEnableSmsSync(true);
-                                          androidChannelService
-                                              .startSmsListen();
-                                        }
-                                      },
-                                    );
-                                    return;
-                                  }
-                                } else {
-                                  androidChannelService.stopSmsListen();
-                                }
-                                appConfig.setEnableSmsSync(checked);
-                              },
-                            );
-                          },
+                Obx(
+                  () => SettingCardGroup(
+                    groupName: "同步",
+                    icon: const Icon(Icons.sync_rounded),
+                    cardList: [
+                      SettingCard(
+                        name: const Text(
+                          "短信同步",
+                          maxLines: 1,
                         ),
-                        SettingCard(
-                          main: const Text(
-                            "图片存储至相册中",
-                            maxLines: 1,
-                          ),
-                          sub: const Text(
-                            "将保存至 Pictures/${Constants.appName} 中",
-                            maxLines: 1,
-                          ),
-                          value: appConfig.saveToPictures,
-                          action: (v) {
-                            return Switch(
-                              value: v,
-                              onChanged: (checked) async {
-                                HapticFeedback.mediumImpact();
-                                if (checked) {
-                                  var path =
-                                      "${Constants.androidPicturesPath}/${Constants.appName}";
-                                  var res = await PermissionHelper
-                                      .testAndroidStoragePerm(path);
-                                  if (res) {
-                                    appConfig.setSaveToPictures(true);
-                                    return;
-                                  }
+                        description: const Text(
+                          "符合规则的短信将自动同步",
+                          maxLines: 1,
+                        ),
+                        value: appConfig.enableSmsSync,
+                        show: (v) => Platform.isAndroid,
+                        action: (v) {
+                          return Switch(
+                            value: v,
+                            onChanged: (checked) async {
+                              if (checked) {
+                                var isGranted =
+                                    await PermissionHelper.testAndroidReadSms();
+                                if (isGranted) {
+                                  androidChannelService.startSmsListen();
+                                } else {
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: "无读写权限，需要进行授权",
+                                    text: "请先授予短信读取权限",
+                                    okText: "去授权",
                                     showCancel: true,
                                     onOk: () async {
-                                      Navigator.pop(context);
                                       await PermissionHelper
-                                          .reqAndroidStoragePerm(path);
-                                      if (!await PermissionHelper
-                                          .testAndroidStoragePerm(path)) {
-                                        appConfig.setSaveToPictures(false);
-                                        Global.showTipsDialog(
-                                          context: context,
-                                          text: "用户取消授权！",
-                                        );
-                                      } else {
-                                        //授权成功
-                                        appConfig.setSaveToPictures(true);
+                                          .reqAndroidReadSms();
+                                      if (await PermissionHelper
+                                          .testAndroidReadSms()) {
+                                        appConfig.setEnableSmsSync(true);
+                                        androidChannelService.startSmsListen();
                                       }
                                     },
-                                    okText: "去授权",
                                   );
-                                } else {
-                                  appConfig.setSaveToPictures(false);
+                                  return;
                                 }
-                              },
-                            );
-                          },
-                          show: (v) => Platform.isAndroid,
+                              } else {
+                                androidChannelService.stopSmsListen();
+                              }
+                              appConfig.setEnableSmsSync(checked);
+                            },
+                          );
+                        },
+                      ),
+                      SettingCard(
+                        name: const Text(
+                          "图片存储至相册中",
+                          maxLines: 1,
                         ),
-                        SettingCard(
-                          main: const Text(
-                            "文件存储路径",
-                            maxLines: 1,
-                          ),
-                          sub: Text(
+                        description: const Text(
+                          "将保存至 Pictures/${Constants.appName} 中",
+                          maxLines: 1,
+                        ),
+                        value: appConfig.saveToPictures,
+                        action: (v) {
+                          return Switch(
+                            value: v,
+                            onChanged: (checked) async {
+                              HapticFeedback.mediumImpact();
+                              if (checked) {
+                                var path =
+                                    "${Constants.androidPicturesPath}/${Constants.appName}";
+                                var res = await PermissionHelper
+                                    .testAndroidStoragePerm(path);
+                                if (res) {
+                                  appConfig.setSaveToPictures(true);
+                                  return;
+                                }
+                                Global.showTipsDialog(
+                                  context: context,
+                                  text: "无读写权限，需要进行授权",
+                                  showCancel: true,
+                                  onOk: () async {
+                                    Navigator.pop(context);
+                                    await PermissionHelper
+                                        .reqAndroidStoragePerm(path);
+                                    if (!await PermissionHelper
+                                        .testAndroidStoragePerm(path)) {
+                                      appConfig.setSaveToPictures(false);
+                                      Global.showTipsDialog(
+                                        context: context,
+                                        text: "用户取消授权！",
+                                      );
+                                    } else {
+                                      //授权成功
+                                      appConfig.setSaveToPictures(true);
+                                    }
+                                  },
+                                  okText: "去授权",
+                                );
+                              } else {
+                                appConfig.setSaveToPictures(false);
+                              }
+                            },
+                          );
+                        },
+                        show: (v) => Platform.isAndroid,
+                      ),
+                      SettingCard(
+                        name: const Text(
+                          "文件存储路径",
+                          maxLines: 1,
+                        ),
+                        description: Text(
+                          appConfig.fileStorePath,
+                          maxLines: 1,
+                        ),
+                        value: false,
+                        action: (v) {
+                          return TextButton(
+                            onPressed: () async {
+                              String? directory = await FilePicker.platform
+                                  .getDirectoryPath(lockParentWindow: true);
+                              if (directory != null) {
+                                appConfig.setFileStorePath(directory);
+                              }
+                            },
+                            child: const Text(
+                              "选择",
+                              maxLines: 1,
+                            ),
+                          );
+                        },
+                        onDoubleTap: () async {
+                          await OpenFile.open(
                             appConfig.fileStorePath,
-                            maxLines: 1,
-                          ),
-                          value: false,
-                          action: (v) {
-                            return TextButton(
-                              onPressed: () async {
-                                String? directory = await FilePicker.platform
-                                    .getDirectoryPath(lockParentWindow: true);
-                                if (directory != null) {
-                                  appConfig.setFileStorePath(directory);
-                                }
-                              },
-                              child: const Text(
-                                "选择",
-                                maxLines: 1,
-                              ),
-                            );
-                          },
-                          onDoubleTap: () async {
-                            await OpenFile.open(
-                              appConfig.fileStorePath,
-                            );
-                          },
+                          );
+                        },
+                      ),
+                      SettingCard(
+                        name: const Text(
+                          "图片自动复制到剪贴板",
+                          maxLines: 1,
                         ),
-                      ],
-                    )),
+                        description: const Text(
+                          "在 Android 上复制图片会自动返回到应用中，可关闭此项",
+                          maxLines: 1,
+                        ),
+                        show: (v) => Platform.isAndroid,
+                        value: appConfig.autoCopyImageAfterSync,
+                        action: (v) {
+                          return Switch(
+                            value: v,
+                            onChanged: (checked) async {
+                              appConfig.setAutoCopyImageAfterSync(checked);
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
 
                 ///endregion
 
@@ -1002,11 +1023,11 @@ class SettingsPage extends GetView<SettingsController> {
                   icon: const Icon(Icons.assignment_outlined),
                   cardList: [
                     SettingCard(
-                      main: const Text(
+                      name: const Text(
                         "标签规则",
                         maxLines: 1,
                       ),
-                      sub: const Text(
+                      description: const Text(
                         "符合规则的记录将会自动打上对应标签",
                         maxLines: 1,
                       ),
@@ -1031,11 +1052,11 @@ class SettingsPage extends GetView<SettingsController> {
                       },
                     ),
                     SettingCard(
-                      main: const Text(
+                      name: const Text(
                         "短信规则",
                         maxLines: 1,
                       ),
-                      sub: const Text(
+                      description: const Text(
                         "符合规则的短信将会同步，若未配置则全部同步",
                         maxLines: 1,
                       ),
@@ -1073,7 +1094,7 @@ class SettingsPage extends GetView<SettingsController> {
                     icon: const Icon(Icons.bug_report_outlined),
                     cardList: [
                       SettingCard(
-                        main: Row(
+                        name: Row(
                           children: [
                             const Text(
                               "启用日志记录",
@@ -1105,7 +1126,7 @@ class SettingsPage extends GetView<SettingsController> {
                             ),
                           ],
                         ),
-                        sub: Text(
+                        description: Text(
                           "将会占据额外空间，已产生 ${FileUtil.getDirectorySize(appConfig.logsDirPath).sizeStr} 日志",
                           maxLines: 1,
                         ),
@@ -1172,11 +1193,11 @@ class SettingsPage extends GetView<SettingsController> {
                   icon: const Icon(Icons.bar_chart),
                   cardList: [
                     SettingCard(
-                      main: const Text(
+                      name: const Text(
                         "查看统计",
                         maxLines: 1,
                       ),
-                      sub: const Text(
+                      description: const Text(
                         "以图表呈现对本地记录的简略统计分析",
                         maxLines: 1,
                       ),
@@ -1206,7 +1227,7 @@ class SettingsPage extends GetView<SettingsController> {
                   icon: const Icon(Icons.info_outline),
                   cardList: [
                     SettingCard(
-                      main: const Row(
+                      name: const Row(
                         children: [
                           Text(
                             "关于 ${Constants.appName}",

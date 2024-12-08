@@ -288,8 +288,14 @@ class ConfigService extends GetxService {
 
   bool get enableForward => _enableForward.value;
 
+  //图片同步后自动复制
+  late final RxBool _autoCopyImageAfterSync;
+
+  bool get autoCopyImageAfterSync => _autoCopyImageAfterSync.value;
+
   //中转服务器地址
-  late final Rx<ForwardServerConfig?> _forwardServer;
+  final Rx<ForwardServerConfig?> _forwardServer =
+      Rx<ForwardServerConfig?>(null);
 
   ForwardServerConfig? get forwardServer => _forwardServer.value;
 
@@ -435,6 +441,10 @@ class ConfigService extends GetxService {
       "appTheme",
       userId,
     );
+    var autoCopyImageAfterSync = await cfg.getConfig(
+      "autoCopyImageAfterSync",
+      userId,
+    );
     var fileStoreDir = Directory(fileStorePath ?? defaultFileStorePath);
     _port = port?.toInt().obs ?? Constants.port.obs;
     _localName =
@@ -466,21 +476,20 @@ class ConfigService extends GetxService {
     _appPassword = appPassword.obs;
     _enableSmsSync = enableSmsSync?.toBool().obs ?? false.obs;
     _enableForward = enableForward?.toBool().obs ?? false.obs;
-    if (forwardServer == null) {
-      _forwardServer = null.obs;
-    } else {
+    if (forwardServer != null) {
       if (forwardServer.startsWith("{")) {
-        _forwardServer = ForwardServerConfig.fromJson(forwardServer).obs;
+        _forwardServer.value = ForwardServerConfig.fromJson(forwardServer);
       } else {
         final [host, port] = forwardServer.split(":");
-        _forwardServer =
-            ForwardServerConfig(host: host, port: port.toInt()).obs;
+        _forwardServer.value =
+            ForwardServerConfig(host: host, port: port.toInt());
       }
     }
     devInfo.name = _localName.value;
     _workingMode = EnvironmentType.parse(workingMode).obs;
     _onlyForwardMode = onlyForwardMode?.toBool().obs ?? false.obs;
     _appTheme = appTheme?.toString().obs ?? ThemeMode.system.name.obs;
+    _autoCopyImageAfterSync = autoCopyImageAfterSync?.toBool().obs ?? false.obs;
     Get.changeThemeMode(this.appTheme);
   }
 
@@ -716,6 +725,10 @@ class ConfigService extends GetxService {
     if (!onlyForwardMode) return;
     final sktService = Get.find<SocketService>();
     return sktService.disConnectAllConnections();
+  }
+  Future<void> setAutoCopyImageAfterSync(bool autoCopyImageAfterSync) async {
+    await _addOrUpdateDbConfig("autoCopyImageAfterSync", autoCopyImageAfterSync.toString());
+    _autoCopyImageAfterSync.value = autoCopyImageAfterSync;
   }
 
   Future<void> setAppTheme(

@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 
 class SettingCard<T> extends StatefulWidget {
   final T value;
-  final Widget main;
-  final Widget? sub;
+  final Widget name;
+  final Widget? description;
   final Widget Function(T val)? action;
   bool separate;
   final bool showValueInSub;
@@ -16,9 +16,9 @@ class SettingCard<T> extends StatefulWidget {
 
   SettingCard({
     super.key,
-    required this.main,
+    required this.name,
     required this.value,
-    this.sub,
+    this.description,
     this.action,
     this.separate = false,
     this.showValueInSub = false,
@@ -44,7 +44,7 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
     if (widget.show != null && !widget.show!.call(widget.value)) {
       return const SizedBox.shrink();
     }
-    Widget? sub = widget.sub;
+    Widget? sub = widget.description;
     if (widget.showValueInSub) {
       sub = Text(widget.value.toString());
     }
@@ -102,7 +102,7 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
                                             fontWeight: FontWeight.normal,
                                             fontSize: 17,
                                           ),
-                                      child: widget.main,
+                                      child: widget.name,
                                     ),
                                   ),
                                 ]
@@ -119,7 +119,7 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
                                               fontWeight: FontWeight.normal,
                                               fontSize: 17,
                                             ),
-                                        child: widget.main,
+                                        child: widget.name,
                                       ),
                                     ),
                                   ),

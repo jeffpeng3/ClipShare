@@ -249,10 +249,9 @@ class HistoryController extends GetxController
       return;
     }
     //和上次复制的内容相同
-    if (_last?.content == content && _last?.type == type.value) {
+    if (_last?.type == type.value && _last?.content == content) {
       return;
     }
-    Log.debug(tag, content);
     int size = content.length;
     switch (type) {
       case HistoryContentType.text:
@@ -379,7 +378,10 @@ class HistoryController extends GetxController
         if (msg.key != MsgType.missingData) {
           appConfig.innerCopy = true;
           var type = ClipboardContentType.parse(history.type);
-          clipboardManager.copy(type, history.content);
+          if (!(type == ClipboardContentType.image &&
+              !appConfig.autoCopyImageAfterSync)) {
+            clipboardManager.copy(type, history.content);
+          }
         }
         break;
       case OpMethod.delete:
