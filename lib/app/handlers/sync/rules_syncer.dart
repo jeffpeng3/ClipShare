@@ -41,15 +41,15 @@ class RulesSyncer implements SyncListener {
     var send = msg.send;
     var opRecord = OperationRecord.fromJson(msg.data);
     Map<String, dynamic> json = jsonDecode(opRecord.data);
-    Rule rule = Rule.getValue(json["rule"]);
+    RuleType rule = RuleType.getValue(json["rule"]);
     Map<String, dynamic> data = json["data"];
     int newVersion = data["version"];
     dynamic localTagRules = {};
     switch (rule) {
-      case Rule.tag:
+      case RuleType.tag:
         localTagRules = jsonDecode(appConfig.tagRules);
         break;
-      case Rule.sms:
+      case RuleType.sms:
         localTagRules = jsonDecode(appConfig.smsRules);
         break;
       default:
@@ -59,10 +59,10 @@ class RulesSyncer implements SyncListener {
     if (localVersion <= newVersion) {
       //小于发送过来的版本，更新本地
       switch (rule) {
-        case Rule.tag:
+        case RuleType.tag:
           await appConfig.setTagRules(jsonEncode(data));
           break;
-        case Rule.sms:
+        case RuleType.sms:
           await appConfig.setSmsRules(jsonEncode(data));
           break;
         default:
@@ -70,7 +70,7 @@ class RulesSyncer implements SyncListener {
       }
       //本地插入一条操作记录，先移除旧的再插入
       await dbService.opRecordDao.removeRuleRecord(
-        Rule.tag.name,
+        RuleType.tag.name,
         appConfig.userId,
       );
       await dbService.opRecordDao.add(opRecord);

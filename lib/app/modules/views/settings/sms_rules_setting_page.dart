@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:clipshare/app/data/models/rule.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
 import 'package:clipshare/app/modules/views/settings/rules_setting_page.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -21,12 +22,15 @@ class SmsRuleSettingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RuleSettingPage(
-      initData: jsonDecode(
-        appConfig.smsRules,
-      )["data"],
+      initData: Rule.fromJson(
+        (jsonDecode(
+          appConfig.smsRules,
+        )["data"] as List<dynamic>)
+            .cast<Map<String, dynamic>>(),
+      ),
       onAdd: (data, remove) {
-        var name = data["name"] as String?;
-        var rule = data["rule"] as String?;
+        var name = data.name;
+        var rule = data.rule;
         if (name.isNullOrEmpty || rule.isNullOrEmpty) {
           Global.showTipsDialog(
             context: context,
@@ -83,12 +87,12 @@ class SmsRuleSettingPage extends StatelessWidget {
           Module.rules,
           OpMethod.update,
           jsonEncode({
-            "rule": Rule.sms.name,
+            "rule": RuleType.sms.name,
             "data": data,
           }),
         );
         await dbService.opRecordDao.removeRuleRecord(
-          Rule.sms.name,
+          RuleType.sms.name,
           appConfig.userId,
         );
         await appConfig.setSmsRules(json);

@@ -260,16 +260,16 @@ enum OpMethod {
       );
 }
 
-enum Rule {
+enum RuleType {
   tag,
   sms,
   unknown;
 
-  static Rule getValue(String name) => Rule.values.firstWhere(
+  static RuleType getValue(String name) => RuleType.values.firstWhere(
         (e) => e.name == name,
         orElse: () {
           Log.debug("Rule", "key '$name' unknown");
-          return Rule.unknown;
+          return RuleType.unknown;
         },
       );
 }

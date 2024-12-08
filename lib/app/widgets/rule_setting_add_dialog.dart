@@ -1,12 +1,13 @@
+import 'package:clipshare/app/data/models/rule.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:flutter/material.dart';
 
 class RuleSettingAddDialog extends StatefulWidget {
-  final Function(Map<String, dynamic>) onChange;
+  final Function(Rule) onChange;
   final String labelText;
   final String hintText;
 
-  final Map<String, dynamic>? initData;
+  final Rule? initData;
 
   const RuleSettingAddDialog({
     super.key,
@@ -34,18 +35,15 @@ class _RuleSettingAddDialogState extends State<RuleSettingAddDialog> {
   bool _useVerify = false;
 
   void _onChange() {
-    widget.onChange({
-      "name": _tagName,
-      "rule": _rule,
-    });
+    widget.onChange(Rule(name: _tagName, rule: _rule));
   }
 
   @override
   void initState() {
     super.initState();
     if (widget.initData == null) return;
-    _tagName = _tagController.text = widget.initData!["name"] ?? "";
-    _rule = _ruleController.text = widget.initData!["rule"] ?? "";
+    _tagName = _tagController.text = widget.initData?.name ?? "";
+    _rule = _ruleController.text = widget.initData?.rule ?? "";
   }
 
   @override

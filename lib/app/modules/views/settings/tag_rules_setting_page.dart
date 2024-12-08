@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:clipshare/app/data/models/rule.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
 import 'package:clipshare/app/modules/views/settings/rules_setting_page.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -21,12 +22,15 @@ class TagRuleSettingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RuleSettingPage(
-      initData: jsonDecode(
-        appConfig.tagRules,
-      )["data"],
+      initData: Rule.fromJson(
+        (jsonDecode(
+          appConfig.tagRules,
+        )["data"] as List<dynamic>)
+            .cast<Map<String, dynamic>>(),
+      ),
       onAdd: (data, remove) {
-        var tag = data["name"] as String?;
-        var rule = data["rule"] as String?;
+        var tag = data.name;
+        var rule = data.rule;
         if (tag.isNullOrEmpty || rule.isNullOrEmpty) {
           Global.showTipsDialog(
             context: context,
@@ -83,12 +87,12 @@ class TagRuleSettingPage extends StatelessWidget {
           Module.rules,
           OpMethod.update,
           jsonEncode({
-            "rule": Rule.tag.name,
+            "rule": RuleType.tag.name,
             "data": data,
           }),
         );
         await dbService.opRecordDao.removeRuleRecord(
-          Rule.tag.name,
+          RuleType.tag.name,
           appConfig.userId,
         );
         await appConfig.setTagRules(json);

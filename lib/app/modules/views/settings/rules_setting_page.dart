@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/models/rule.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/widgets/empty_content.dart';
 import 'package:clipshare/app/widgets/rounded_scaffold.dart';
@@ -6,16 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class RuleSettingPage extends StatefulWidget {
-  final SettingCard<Map<String, dynamic>>? Function(
-    Map<String, dynamic>,
+  final SettingCard<Rule>? Function(
+    Rule,
     Function(Key),
   ) onAdd;
   final Widget Function(
-    Map<String, dynamic>? initData,
-    Function(Map<String, dynamic>) onChange,
+    Rule? initData,
+    Function(Rule) onChange,
   ) editDialogLayout;
-  final void Function(List<Map<String, dynamic>> result) confirm;
-  final List<dynamic> initData;
+  final void Function(List<Rule> result) confirm;
+  final List<Rule> initData;
   final String title;
 
   const RuleSettingPage({
@@ -34,10 +35,9 @@ class RuleSettingPage extends StatefulWidget {
 }
 
 class _RuleSettingPageState extends State<RuleSettingPage> {
-  final List<SettingCard<Map<String, dynamic>>> _list =
-      List.empty(growable: true);
-  Map<String, dynamic> _addData = {};
-  Map<String, dynamic> _editData = {};
+  final List<SettingCard<Rule>> _list = List.empty(growable: true);
+  Rule? _addData;
+  Rule? _editData;
 
   @override
   void initState() {
@@ -58,7 +58,7 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
   bool get isSmallScreen =>
       MediaQuery.of(Get.context!).size.width <= Constants.smallScreenWidth;
 
-  void showEditDialog(int? idx, Map<String, dynamic>? initData) {
+  void showEditDialog(int? idx, Rule? initData) {
     if (initData != null) {
       _editData = initData;
     }
@@ -75,34 +75,58 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
             }
           }),
           actions: [
-            TextButton(
-              onPressed: () {
-                _addData = {};
-                _editData = {};
-                Navigator.pop(context);
-              },
-              child: const Text("取消"),
-            ),
-            TextButton(
-              onPressed: () {
-                var customWidget =
-                    widget.onAdd(idx == null ? _addData : _editData, remove);
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // TextButton.icon(
+                //   onPressed: () {
+                //     _addData = null;
+                //     _editData = null;
+                //     Navigator.pop(context);
+                //   },
+                //   label: const Text("导入"),
+                //   icon: const Icon(Icons.add),
+                // ),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          _addData = null;
+                          _editData = null;
+                          Navigator.pop(context);
+                        },
+                        child: const Text("取消"),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          var customWidget = widget.onAdd(
+                            idx == null ? _addData! : _editData!,
+                            remove,
+                          );
 
-                if (customWidget != null) {
-                  Navigator.pop(context);
-                  int i = idx ?? _list.length;
-                  customWidget.onTap = () => showEditDialog(i, _list[i].value);
-                  if (idx == null) {
-                    _list.add(customWidget);
-                  } else {
-                    _list[idx] = customWidget;
-                  }
-                  _addData = {};
-                  _editData = {};
-                  setState(() {});
-                }
-              },
-              child: Text(idx == null ? "添加" : "修改"),
+                          if (customWidget != null) {
+                            Navigator.pop(context);
+                            int i = idx ?? _list.length;
+                            customWidget.onTap =
+                                () => showEditDialog(i, _list[i].value);
+                            if (idx == null) {
+                              _list.add(customWidget);
+                            } else {
+                              _list[idx] = customWidget;
+                            }
+                            _addData = null;
+                            _editData = null;
+                            setState(() {});
+                          }
+                        },
+                        child: Text(idx == null ? "添加" : "修改"),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         );
