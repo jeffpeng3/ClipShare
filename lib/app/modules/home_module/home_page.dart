@@ -85,7 +85,7 @@ class HomePage extends GetView<HomeController> {
                                   int syncedCnt = 0;
                                   for (var progress in progresses) {
                                     total += progress.total;
-                                    syncedCnt += progress.seq;
+                                    syncedCnt += progress.syncedCount;
                                   }
                                   return LoadingDots(
                                     text: Text("同步中($syncedCnt/$total)"),

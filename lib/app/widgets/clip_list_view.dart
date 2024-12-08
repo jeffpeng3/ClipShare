@@ -18,7 +18,6 @@ import 'package:clipshare/app/services/device_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/global.dart';
-import 'package:clipshare/app/utils/strings.dart';
 import 'package:clipshare/app/widgets/clip_content_view.dart';
 import 'package:clipshare/app/widgets/clip_data_card.dart';
 import 'package:clipshare/app/widgets/clip_tag_row_view.dart';
@@ -210,7 +209,7 @@ class ClipListViewState extends State<ClipListView>
     );
     //通知其他设备
     dbService.opRecordDao.addAndNotify(opRecord);
-    if (!item.isImage) {
+    if (!item.isImage && !item.isFile) {
       return;
     }
     //如果是图片，删除并更新媒体库
@@ -218,7 +217,7 @@ class ClipListViewState extends State<ClipListView>
     var file = File(path);
     if (!file.existsSync()) return;
     file.deleteSync();
-    if (Platform.isAndroid) {
+    if (item.isImage && Platform.isAndroid) {
       androidChannelService.notifyMediaScan(path);
     }
   }
@@ -729,9 +728,7 @@ class ClipListViewState extends State<ClipListView>
   void _cancelSelectionMode() {
     _selectedItems.clear();
     _selectMode = false;
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   @override

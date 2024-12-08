@@ -21,7 +21,6 @@ class SearchPage extends GetView<search_module.SearchController> {
     controller.screenWidth = MediaQuery.of(context).size.width;
     return Obx(
       () => Scaffold(
-        // backgroundColor: appConfig.bgColor,
         appBar: AppBar(
           scrolledUnderElevation: controller.showLeftBar ? 0 : null,
           automaticallyImplyLeading: !controller.showLeftBar,

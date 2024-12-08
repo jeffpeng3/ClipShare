@@ -26,6 +26,12 @@ class PreviewPage extends StatefulWidget {
 
 class _PreviewPageState extends State<PreviewPage> {
   final TransformationController _controller = TransformationController();
+
+  bool get isImageZoomed {
+    //row 2 column 3 => scale
+    return _controller.value.getRow(2) != Matrix4.identity().getRow(2);
+  }
+
   int _current = 1;
   int _total = 1;
   bool _initFinished = false;
@@ -242,7 +248,7 @@ class _PreviewPageState extends State<PreviewPage> {
                               child: PageView.builder(
                                 itemCount: _images.length,
                                 controller: _pageController,
-                                physics: _pointerCnt == 2
+                                physics: _pointerCnt == 2 || isImageZoomed
                                     ? const NeverScrollableScrollPhysics()
                                     : null,
                                 onPageChanged: (idx) {
@@ -347,7 +353,7 @@ class _PreviewPageState extends State<PreviewPage> {
   }
 
   void _toggleZoom(Offset focalPoint) {
-    if (_controller.value != Matrix4.identity()) {
+    if (isImageZoomed) {
       _controller.value = Matrix4.identity();
     } else {
       _controller.value = Matrix4.identity()

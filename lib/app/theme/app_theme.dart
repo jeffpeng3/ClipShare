@@ -10,7 +10,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 const lightBackgroundColor = Color.fromARGB(255, 238, 238, 238);
 const darkBackgroundColor = Colors.black;
 final lightThemeData = ThemeData.light().copyWith(
-  colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
+  colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.lightBlueAccent, surfaceBright: Colors.white),
   cardTheme: const CardTheme(color: Colors.white),
   scaffoldBackgroundColor: lightBackgroundColor,
   textTheme: Platform.isWindows
@@ -21,6 +22,7 @@ final lightThemeData = ThemeData.light().copyWith(
     selectedColor: Colors.blue[100],
   ),
   dialogBackgroundColor: const Color(0xffdde1e3),
+  canvasColor: Colors.white,
 );
 final darkThemeData = ThemeData.dark().copyWith(
   colorScheme: ColorScheme.fromSeed(

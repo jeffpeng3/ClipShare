@@ -89,13 +89,16 @@ class DevSocket {
 
 class MissingDataSyncProgress {
   int seq;
+  int syncedCount = 1;
   int total;
 
   MissingDataSyncProgress(this.seq, this.total);
 
   MissingDataSyncProgress copy() {
-    return MissingDataSyncProgress(seq, total);
+    return MissingDataSyncProgress(seq, total)..syncedCount = syncedCount;
   }
+
+  bool get hasCompleted => syncedCount >= total;
 }
 
 class SocketService extends GetxService {
@@ -556,21 +559,19 @@ class SocketService extends GetxService {
         int seq = msg.data["seq"];
         //如果已经存在同步记录则更新或者移除
         if (missingDataSyncProgress.containsKey(devId)) {
-          var progress = missingDataSyncProgress[devId];
-          //取最大序号
-          if (progress != null && progress.seq > seq) {
-            progress.seq = seq;
-            progress.total = total;
-            missingDataSyncProgress[devId] = progress;
-          }
-          if (seq == total) {
+          var progress = missingDataSyncProgress[devId]!;
+          progress.seq = seq;
+          progress.total = total;
+          progress.syncedCount++;
+          missingDataSyncProgress[devId] = progress.copy();
+          if (progress.hasCompleted) {
             //同步完成，移除
             missingDataSyncProgress.remove(devId);
             if (missingDataSyncProgress.keys.isEmpty) {
               appConfig.isHistorySyncing.value = false;
             }
           }
-        } else {
+        } else if (total != 1) {
           final progress = MissingDataSyncProgress(1, total);
           //否则新增
           missingDataSyncProgress[devId] = progress;
