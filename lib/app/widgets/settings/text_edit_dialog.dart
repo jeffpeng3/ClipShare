@@ -77,8 +77,8 @@ class _TextEditDialogState extends State<TextEditDialog> {
                 return;
               }
             }
-            widget.onOk.call(_editor.text);
             Navigator.of(context).pop();
+            widget.onOk.call(_editor.text);
           },
           child: Text(widget.okText),
         ),

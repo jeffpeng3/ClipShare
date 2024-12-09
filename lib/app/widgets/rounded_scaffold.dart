@@ -7,7 +7,6 @@ class RoundedScaffold extends StatelessWidget {
   final Widget icon;
   final Widget child;
   final Widget? floatingActionButton;
-
   const RoundedScaffold({
     super.key,
     required this.title,

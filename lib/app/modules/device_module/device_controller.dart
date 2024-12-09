@@ -317,14 +317,14 @@ class DeviceController extends GetxController
           sktService.reqMissingData();
           return;
         }
-        Global.showSnackBarErr(Get.context!, "设备添加失败");
+        Global.showSnackBarErr(context: Get.context!, text: "设备添加失败");
       });
     } else {
       //新设备
       devService.addOrUpdate(newDev).then((res) {
         if (!res) {
           Log.debug(tag, "Device information addition failed");
-          Global.showSnackBarErr(Get.context!, "设备添加失败");
+          Global.showSnackBarErr(context: Get.context!, text: "设备添加失败");
           return;
         }
         _addPairedDevInPage(newDev);

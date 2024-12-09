@@ -25,4 +25,12 @@ class Rule {
   String toString() {
     return jsonEncode(toJson());
   }
+
+  @override
+  int get hashCode => name.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Rule && runtimeType == other.runtimeType && name == other.name;
 }

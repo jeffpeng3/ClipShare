@@ -570,7 +570,7 @@ packages:
     source: hosted
     version: "0.2.0"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       sha256: b9c29a161230ee03d3ccf545097fccd9b87a5264228c5d348202e0f0c28f9010
@@ -1310,6 +1310,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.2"
+  timer_snackbar:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: master
+      resolved-ref: "4d46b10a62d76c1ccdb34ac0d14f48d87de54884"
+      url: "https://github.com/aa2013/timer_snackbar.git"
+    source: git
+    version: "0.0.3"
   timing:
     dependency: transitive
     description:

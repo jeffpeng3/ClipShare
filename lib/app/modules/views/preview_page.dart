@@ -138,7 +138,8 @@ class _PreviewPageState extends State<PreviewPage> {
                         Clipboard.setData(
                           ClipboardData(text: _currentImage.content),
                         );
-                        Global.showSnackBarSuc(context, "复制路径成功");
+                        Global.showSnackBarSuc(
+                            text: "复制路径成功", context: context);
                       },
                     ),
                   ),

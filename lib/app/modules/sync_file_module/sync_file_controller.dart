@@ -177,13 +177,13 @@ class SyncFileController extends GetxController
       Navigator.pop(context);
       if (hasError) {
         Global.showSnackBarWarn(
-          context,
-          "部分删除失败",
+          context: context,
+          text: "部分删除失败",
         );
       } else {
         Global.showSnackBarSuc(
-          context,
-          "删除成功",
+          context: context,
+          text: "删除成功",
         );
       }
     });

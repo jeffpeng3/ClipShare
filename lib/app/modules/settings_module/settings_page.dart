@@ -331,8 +331,8 @@ class SettingsPage extends GetView<SettingsController> {
                                 Clipboard.setData(ClipboardData(
                                     text: appConfig.devInfo.guid));
                                 Global.showSnackBarSuc(
-                                  context,
-                                  "已复制设备id",
+                                  context: context,
+                                  text: "已复制设备id",
                                 );
                               },
                             )
@@ -350,8 +350,8 @@ class SettingsPage extends GetView<SettingsController> {
                               onOk: (str) {
                                 appConfig.setLocalName(str);
                                 Global.showSnackBarSuc(
-                                  context,
-                                  "修改后重启软件生效",
+                                  context: context,
+                                  text: "修改后重启软件生效",
                                 );
                               },
                             ),
@@ -385,8 +385,8 @@ class SettingsPage extends GetView<SettingsController> {
                               onOk: (str) {
                                 appConfig.setPort(str.toInt());
                                 Global.showSnackBarSuc(
-                                  context,
-                                  "修改后重启软件生效",
+                                  context: context,
+                                  text: "修改后重启软件生效",
                                 );
                               },
                             ),
@@ -551,8 +551,8 @@ class SettingsPage extends GetView<SettingsController> {
                               //启用中转服务器前先校验是否填写服务器地址
                               if (appConfig.forwardServer == null) {
                                 Global.showSnackBarErr(
-                                  context,
-                                  "请先设置中转服务器地址",
+                                  context: context,
+                                  text: "请先设置中转服务器地址",
                                 );
                                 return;
                               }

@@ -108,6 +108,12 @@ dependencies:
   animated_theme_switcher: ^2.0.8
   # 大文本编辑器
   re_editor: ^0.4.0
+  # http请求
+  http: ^1.2.2
+  timer_snackbar:
+    git:
+      url: https://github.com/aa2013/timer_snackbar.git
+      ref: master
 dev_dependencies:
   flutter_test:
     sdk: flutter

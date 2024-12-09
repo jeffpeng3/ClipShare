@@ -272,9 +272,9 @@ class ClipListViewState extends State<ClipListView>
         var type = ClipboardContentType.parse(history.type);
         final res = await clipboardManager.copy(type, history.content);
         if (res) {
-          Global.showSnackBarSuc(context, "复制成功");
+          Global.showSnackBarSuc(context: context, text: "复制成功");
         } else {
-          Global.showSnackBarErr(context, "复制失败");
+          Global.showSnackBarErr(context: context, text: "复制失败");
         }
       },
       onUpdate: widget.onUpdate,
@@ -431,8 +431,8 @@ class ClipListViewState extends State<ClipListView>
                                     }
                                     Get.back();
                                     Global.showSnackBarSuc(
-                                      context,
-                                      "删除完成",
+                                      context: context,
+                                      text: "删除完成",
                                     );
                                     _selectedItems.clear();
                                     _selectMode = false;

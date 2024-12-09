@@ -20,25 +20,46 @@ class Global {
     }
   }
 
-  static void showSnackBar(BuildContext context, String text, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(text),
-        backgroundColor: color,
-      ),
+  static void showSnackBar(
+    BuildContext? context,
+    ScaffoldMessengerState? scaffoldMessengerState,
+    String text,
+    Color color,
+  ) {
+    assert(context != null || scaffoldMessengerState != null);
+    final snackbar = SnackBar(
+      content: Text(text),
+      backgroundColor: color,
     );
+    if (context != null) {
+      ScaffoldMessenger.of(context).showSnackBar(snackbar);
+    } else {
+      scaffoldMessengerState!.showSnackBar(snackbar);
+    }
   }
 
-  static void showSnackBarSuc(BuildContext context, String text) {
-    showSnackBar(context, text, Colors.lightBlue);
+  static void showSnackBarSuc({
+    BuildContext? context,
+    ScaffoldMessengerState? scaffoldMessengerState,
+    required String text,
+  }) {
+    showSnackBar(context, scaffoldMessengerState, text, Colors.lightBlue);
   }
 
-  static void showSnackBarErr(BuildContext context, String text) {
-    showSnackBar(context, text, Colors.redAccent);
+  static void showSnackBarErr({
+    BuildContext? context,
+    ScaffoldMessengerState? scaffoldMessengerState,
+    required String text,
+  }) {
+    showSnackBar(context, scaffoldMessengerState, text, Colors.redAccent);
   }
 
-  static void showSnackBarWarn(BuildContext context, String text) {
-    showSnackBar(context, text, Colors.orange);
+  static void showSnackBarWarn({
+    BuildContext? context,
+    ScaffoldMessengerState? scaffoldMessengerState,
+    required String text,
+  }) {
+    showSnackBar(context, scaffoldMessengerState, text, Colors.orange);
   }
 
   static void showTipsDialog({
@@ -121,6 +142,7 @@ class Global {
     required BuildContext context,
     bool dismissible = false,
     bool showCancel = false,
+    void Function()? onCancel,
     String? loadingText,
   }) {
     showDialog(
@@ -131,26 +153,37 @@ class Global {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AlertDialog(
-              content: SizedBox(
-                height: 80,
-                child: Loading(
-                  width: 32,
-                  description: loadingText != null ? Text(loadingText) : null,
+              content: IntrinsicHeight(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 80,
+                      child: Loading(
+                        width: 32,
+                        description:
+                            loadingText != null ? Text(loadingText) : null,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Visibility(
+                      visible: showCancel,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              Get.back();
+                              onCancel?.call();
+                            },
+                            child: const Text("取消"),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ),
-            Visibility(
-              visible: showCancel,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      Get.back();
-                    },
-                    child: const Text("取消"),
-                  ),
-                ],
               ),
             ),
           ],
