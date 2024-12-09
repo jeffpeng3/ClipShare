@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:clipshare/app/data/models/rule.dart';
 import 'package:clipshare/app/modules/views/settings/rule_item.dart';
 import 'package:clipshare/app/utils/constants.dart';
+import 'package:clipshare/app/utils/file_util.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/widgets/empty_content.dart';
@@ -313,12 +314,32 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
           children: [
             Expanded(child: Text(widget.title)),
             Visibility(
-                visible: selectionMode,
+                visible: selectionMode && selectedList.isNotEmpty,
                 child: Tooltip(
-                  message: "分享",
+                  message: "导出",
                   child: IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.share),
+                    onPressed: () {
+                      FileUtil.exportFile(
+                        "导出规则",
+                        "export_rules.json",
+                        jsonEncode(selectedList.toList()),
+                      ).then((outputPath) {
+                        if (outputPath != null) {
+                          Global.showSnackBarSuc(
+                            text: "导出成功！",
+                            scaffoldMessengerState:
+                                mainScaffoldMessengerKey.currentState!,
+                          );
+                        }
+                      }).catchError((err) {
+                        Global.showSnackBarWarn(
+                          text: "导出失败：$err",
+                          scaffoldMessengerState:
+                              mainScaffoldMessengerKey.currentState!,
+                        );
+                      });
+                    },
+                    icon: const Icon(Icons.output),
                   ),
                 )),
             Tooltip(

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
+
 class FileUtil {
   FileUtil._private();
 
@@ -38,5 +40,22 @@ class FileUtil {
     }
     destFile.writeAsBytesSync(sourceFile.readAsBytesSync());
     sourceFile.deleteSync();
+  }
+
+  ///导出文件
+  static Future<String?> exportFile(
+      String title, String fileName, String content) async {
+    String? outputPath = await FilePicker.platform.saveFile(
+      dialogTitle: title,
+      fileName: fileName,
+    );
+    if (outputPath == null) {
+      return null;
+    }
+
+    // 写入文件
+    File file = File(outputPath);
+    await file.writeAsString(content);
+    return outputPath;
   }
 }
