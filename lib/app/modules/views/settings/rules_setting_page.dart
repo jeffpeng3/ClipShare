@@ -341,7 +341,7 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
                     },
                     icon: const Icon(Icons.output),
                   ),
-                )),
+                ),),
             Tooltip(
               message: "保存",
               child: IconButton(

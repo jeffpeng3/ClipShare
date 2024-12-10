@@ -12,6 +12,8 @@ import 'package:clipshare/app/listeners/screen_opened_listener.dart';
 import 'package:clipshare/app/modules/debug_module/debug_page.dart';
 import 'package:clipshare/app/modules/device_module/device_page.dart';
 import 'package:clipshare/app/modules/history_module/history_page.dart';
+import 'package:clipshare/app/modules/search_module/search_controller.dart'
+    as search_module;
 import 'package:clipshare/app/modules/search_module/search_page.dart';
 import 'package:clipshare/app/modules/settings_module/settings_controller.dart';
 import 'package:clipshare/app/modules/settings_module/settings_page.dart';
@@ -294,6 +296,8 @@ class HomeController extends GetxController
 
   ///导航至搜索页面
   void gotoSearchPage(String? devId, String? tagName) {
+    final searchController = Get.find<search_module.SearchController>();
+    searchController.loadFromExternalParams(devId, tagName);
     if (showLeftBar) {
       var i = _navBarItems
           .indexWhere((element) => (element.icon as Icon).icon == Icons.search);
@@ -313,8 +317,7 @@ class HomeController extends GetxController
       _index.value = i;
       _pages[i] = SyncFilePage();
     } else {
-      //todo 后期换成 named 形式
-      Get.to(SyncFilePage());
+      Get.toNamed(Routes.SYNC_FILE);
     }
   }
 

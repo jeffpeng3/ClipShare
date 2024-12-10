@@ -263,7 +263,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                               controller.selectedDevIds.clear();
                               controller.selectedDevIds.addAll(devs);
                               controller.searchOnlyNoSync = searchOnlyNoSync;
-                              controller.hasCondition = hasCondition;
+                              // controller.hasCondition = hasCondition;
                               controller.refreshData();
                             },
                             child: const Text("确定"),

@@ -17,8 +17,6 @@ class SearchController extends GetxController with WidgetsBindingObserver {
   final dbService = Get.find<DbService>();
 
   //region 属性
-  String? devId;
-  String? tagName;
   static const tag = "SearchController";
   final TextEditingController textController = TextEditingController();
   final searchFocus = FocusNode();
@@ -26,17 +24,39 @@ class SearchController extends GetxController with WidgetsBindingObserver {
   List<Device> allDevices = List.empty();
   List<String> allTagNames = List.empty();
   int? _minId;
-  static bool updating = false;
   final loading = true.obs;
 
-  ///搜索相关
-  var hasCondition = false;
-  final Set<String> selectedTags = {};
-  final Set<String> selectedDevIds = {};
-  var searchStartDate = "";
-  var searchEndDate = "";
-  var searchType = "全部";
-  var searchOnlyNoSync = false;
+  //region 搜索相关
+  bool get hasCondition =>
+      selectedTags.isNotEmpty ||
+      selectedDevIds.isNotEmpty ||
+      searchStartDate.isNotEmpty ||
+      searchEndDate.isNotEmpty ||
+      searchOnlyNoSync;
+  final selectedTags = <String>{}.obs;
+  final selectedDevIds = <String>{}.obs;
+  final _searchStartDate = "".obs;
+
+  String get searchStartDate => _searchStartDate.value;
+
+  set searchStartDate(value) => _searchStartDate.value = value;
+  final _searchEndDate = "".obs;
+
+  String get searchEndDate => _searchEndDate.value;
+
+  set searchEndDate(value) => _searchEndDate.value = value;
+  final _searchType = "全部".obs;
+
+  String get searchType => _searchType.value;
+
+  set searchType(value) => _searchType.value = value;
+  final _searchOnlyNoSync = false.obs;
+
+  bool get searchOnlyNoSync => _searchOnlyNoSync.value;
+
+  set searchOnlyNoSync(value) => _searchOnlyNoSync.value = value;
+
+  //endregion
 
   String get typeValue => HistoryContentType.typeMap.keys.contains(searchType)
       ? HistoryContentType.typeMap[searchType]!
@@ -58,16 +78,7 @@ class SearchController extends GetxController with WidgetsBindingObserver {
     super.onInit();
     //监听生命周期
     WidgetsBinding.instance.addObserver(this);
-    //初始化搜索参数
-    if (devId != null) {
-      selectedDevIds.add(devId!);
-    }
-    if (tagName != null) {
-      selectedTags.add(tagName!);
-    }
-    updating = false;
-    //加载数据
-    refreshData();
+    loadFromExternalParams(null, null);
   }
 
   @override
@@ -80,41 +91,43 @@ class SearchController extends GetxController with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed && Platform.isAndroid) {
-      debounceSetState();
-    }
+    if (state == AppLifecycleState.resumed && Platform.isAndroid) {}
   }
 
 //endregion
 
   //region 页面方法
-  //防抖更新
-  void debounceSetState() {
-    if (updating) {
-      return;
+  //根据外部参数刷新数据
+  void loadFromExternalParams(String? devId, String? tagName) {
+    //初始化搜索参数
+    if (devId != null) {
+      selectedDevIds.assignAll({devId});
+      if (tagName == null) {
+        selectedTags.clear();
+      }
     }
-    updating = true;
-    Future.delayed(const Duration(milliseconds: 500)).then((value) {
-      updating = false;
-      update();
-    });
+    if (tagName != null) {
+      selectedTags.assignAll({tagName});
+      if (devId == null) {
+        selectedDevIds.clear();
+      }
+    }
+    //加载数据
+    refreshData();
   }
 
   ///重新加载列表
   void refreshData() {
-    list.clear();
     _minId = null;
     loadSearchCondition();
     loadData(_minId).then((lst) {
       list.value = lst;
       loading.value = false;
-      debounceSetState();
     });
   }
 
   void sortList() {
     list.sort((a, b) => b.data.compareTo(a.data));
-    debounceSetState();
   }
 
   ///加载搜索条件
@@ -122,7 +135,6 @@ class SearchController extends GetxController with WidgetsBindingObserver {
     //加载所有标签名
     await dbService.historyTagDao.getAllTagNames().then((lst) {
       allTagNames = lst;
-      debounceSetState();
     });
     //加载所有设备名
     await dbService.deviceDao.getAllDevices(appConfig.userId).then((lst) {
@@ -130,7 +142,6 @@ class SearchController extends GetxController with WidgetsBindingObserver {
       tmpLst.add(appConfig.device);
       tmpLst.addAll(lst);
       allDevices = tmpLst;
-      debounceSetState();
     });
   }
 
