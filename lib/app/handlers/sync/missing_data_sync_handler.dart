@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:clipshare/app/data/models/clip_data.dart';
 import 'package:clipshare/app/data/models/dev_info.dart';
+import 'package:clipshare/app/data/models/sync_data_process_result.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history_tag.dart';
@@ -12,11 +12,9 @@ import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/file_extension.dart';
-import 'package:clipshare/app/utils/log.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
-class MissingDataSyncer {
+class MissingDataSyncHandler {
   static const tag = "SyncDataHandler";
 
   static void sendMissingData(DevInfo targetDev, List<String> devIds) async {
@@ -28,15 +26,15 @@ class MissingDataSyncer {
     for (var i = 0; i < lst.length; i++) {
       var item = lst[i];
       final seq = i + 1;
-      var shouldRemove = await process(item);
-      if (shouldRemove) {
+      var result = await process(item);
+      if (result.shouldRemove) {
         dbService.opRecordDao.deleteByIds([item.id]);
       } else {
         await sktService.sendData(
           targetDev,
           MsgType.missingData,
           {
-            "data": item,
+            "data": result.result,
             "total": lst.length,
             "seq": seq,
           },
@@ -46,11 +44,12 @@ class MissingDataSyncer {
     }
   }
 
-  static Future<bool> process(OperationRecord opRecord) async {
+  static Future<SyncDataProcessResult> process(OperationRecord opRecord) async {
     final appConfig = Get.find<ConfigService>();
     final dbService = Get.find<DbService>();
     var shouldRemove = false;
     var id = opRecord.data;
+    Map<String, dynamic>? result = opRecord.toJson();
     switch (opRecord.module) {
       case Module.device:
         final device = await dbService.deviceDao.getById(id, appConfig.userId);
@@ -63,10 +62,10 @@ class MissingDataSyncer {
             var empty = Device.empty();
             empty.guid = id;
             empty.uid = appConfig.userId;
-            opRecord.data = empty.toString();
+            result["data"] = empty.toJson();
           }
         } else {
-          opRecord.data = device.toString();
+          result["data"] = device.toJson();
         }
         break;
       case Module.tag:
@@ -77,10 +76,10 @@ class MissingDataSyncer {
           } else {
             var empty = HistoryTag.empty();
             empty.id = int.parse(id);
-            opRecord.data = empty.toString();
+            result["data"] = empty.toJson();
           }
         } else {
-          opRecord.data = historyTag.toString();
+          result["data"] = historyTag.toJson();
         }
         break;
       case Module.history:
@@ -91,31 +90,21 @@ class MissingDataSyncer {
           } else {
             var empty = History.empty();
             empty.id = int.parse(id);
-            opRecord.data = empty.toString();
+            result["data"] = empty.toJson();
           }
         } else {
-          try {
-            if (ClipData(history).isImage) {
-              var content = await compute(
-                (History v) {
-                  var file = File(v.content);
-                  var fileName = file.fileName;
-                  var bytes = file.readAsBytesSync();
-                  v.content = jsonEncode(
-                    {"fileName": fileName, "data": bytes},
-                  );
-                  return v.toString();
-                },
-                history,
-              );
-              opRecord.data = content;
+          var json = history.toJson();
+          if (ClipData(history).isImage) {
+            var file = File(history.content);
+            if (!file.existsSync()) {
+              shouldRemove = true;
             } else {
-              opRecord.data = history.toString();
+              var fileName = file.fileName;
+              var bytes = file.readAsBytesSync();
+              json["content"] = {"fileName": fileName, "data": bytes};
             }
-          } catch (e, t) {
-            shouldRemove = true;
-            Log.debug(tag, "$e\n$t");
           }
+          result["data"] = json;
         }
         break;
       case Module.historyTop:
@@ -127,7 +116,7 @@ class MissingDataSyncer {
         } else {
           //更新置顶状态，将内容设为空，提高传输效率
           history.content = "";
-          opRecord.data = history.toString();
+          result["data"] = history.toJson();
         }
         break;
       case Module.rules:
@@ -135,6 +124,6 @@ class MissingDataSyncer {
         break;
       default:
     }
-    return shouldRemove;
+    return SyncDataProcessResult(shouldRemove: shouldRemove, result: result);
   }
 }

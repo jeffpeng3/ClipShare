@@ -12,8 +12,8 @@ import 'package:clipshare/app/utils/log.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import "package:msgpack_dart/msgpack_dart.dart" as m2;
 import 'package:synchronized/synchronized.dart';
-
 import 'data_packet_splitter.dart';
 
 class AsyncLock {
@@ -41,7 +41,8 @@ class SecureSocketClient {
   bool _listening = false;
   bool _keyIsExchanged = false;
   late final void Function(SecureSocketClient)? _onConnected;
-  late final void Function(SecureSocketClient client, String data)? _onMessage;
+  late final void Function(
+      SecureSocketClient client, Map<String, dynamic> data)? _onMessage;
   void Function(Exception e, SecureSocketClient client)? _onError;
   void Function(SecureSocketClient client)? _onDone;
   bool? _cancelOnError;
@@ -82,7 +83,8 @@ class SecureSocketClient {
     String? targetDevId,
     String? selfDevId,
     void Function(SecureSocketClient)? onConnected,
-    void Function(SecureSocketClient client, String data)? onMessage,
+    void Function(SecureSocketClient client, Map<String, dynamic> data)?
+        onMessage,
     void Function(Exception e, SecureSocketClient client)? onError,
     void Function(SecureSocketClient client)? onDone,
     bool? cancelOnError,
@@ -127,7 +129,9 @@ class SecureSocketClient {
     String? selfDevId,
     int? serverPort,
     void Function(SecureSocketClient)? onConnected,
-    required void Function(SecureSocketClient client, String data)? onMessage,
+    required void Function(
+            SecureSocketClient client, Map<String, dynamic> data)?
+        onMessage,
     void Function(Exception e, SecureSocketClient client)? onError,
     void Function(SecureSocketClient client)? onDone,
     bool? cancelOnError,
@@ -190,11 +194,11 @@ class SecureSocketClient {
         //region 数据处理
         if (_keyIsExchanged) {
           //密钥已交换，此处需要解密
-          String decrypt;
+          Uint8List decrypt;
           if (bytes.length > useComputeThreshold) {
             decrypt = await compute(
               (List<dynamic> params) {
-                return CryptoUtil.decryptAESBytes(
+                return CryptoUtil.decryptAESAsBytes(
                   key: params[0],
                   encoded: params[2],
                   encrypter: params[1],
@@ -203,14 +207,15 @@ class SecureSocketClient {
               [_aesKey, _encrypter, bytes],
             );
           } else {
-            decrypt = CryptoUtil.decryptAESBytes(
+            decrypt = CryptoUtil.decryptAESAsBytes(
               key: _aesKey,
               encoded: bytes,
               encrypter: _encrypter,
             );
           }
           if (_onMessage != null) {
-            _onMessage(this, decrypt);
+            final map = m2.deserialize(decrypt);
+            _onMessage(this, (map as Map<dynamic, dynamic>).cast<String, dynamic>());
           }
         } else {
           //密钥未交换
@@ -359,29 +364,29 @@ class SecureSocketClient {
   }
 
   Future<Uint8List> _genSendData(Map map) async {
-    String json = jsonEncode(map);
     Uint8List bytes = Uint8List(0);
     if (_keyIsExchanged) {
-      if (json.length > useComputeThreshold) {
+      final serialized = m2.serialize(map);
+      if (serialized.length > useComputeThreshold) {
         bytes = await compute(
           (List<dynamic> params) {
-            return CryptoUtil.encryptAESBytes(
+            return CryptoUtil.encryptAESWithBytes(
               key: params[0],
               input: params[2],
               encrypter: params[1],
             );
           },
-          [_aesKey, _encrypter, json],
+          [_aesKey, _encrypter, serialized],
         );
       } else {
-        bytes = CryptoUtil.encryptAESBytes(
+        bytes = CryptoUtil.encryptAESWithBytes(
           key: _aesKey,
-          input: json,
+          input: serialized,
           encrypter: _encrypter,
         );
       }
     } else {
-      bytes = utf8.encode(json);
+      bytes = utf8.encode(jsonEncode(map));
     }
     return bytes;
   }

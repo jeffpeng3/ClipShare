@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/handlers/permission_handler.dart';
-import 'package:clipshare/app/handlers/sync/history_top_syncer.dart';
-import 'package:clipshare/app/handlers/sync/rules_syncer.dart';
-import 'package:clipshare/app/handlers/sync/tag_syncer.dart';
+import 'package:clipshare/app/handlers/sync/history_top_sync_handler.dart';
+import 'package:clipshare/app/handlers/sync/rules_sync_handler.dart';
+import 'package:clipshare/app/handlers/sync/tag_sync_handler.dart';
 import 'package:clipshare/app/listeners/multi_selection_pop_scope_disable_listener.dart';
 import 'package:clipshare/app/listeners/screen_opened_listener.dart';
 import 'package:clipshare/app/modules/debug_module/debug_page.dart';
@@ -90,9 +90,9 @@ class HomeController extends GetxController
       )
       .toList();
   var leftMenuExtend = true.obs;
-  late TagSyncer _tagSyncer;
-  late HistoryTopSyncer _historyTopSyncer;
-  late RulesSyncer _rulesSyncer;
+  late TagSyncHandler _tagSyncer;
+  late HistoryTopSyncHandler _historyTopSyncer;
+  late RulesSyncHandler _rulesSyncer;
   late StreamSubscription _networkListener;
   DateTime? pausedTime;
   final logoImg = Image.asset(
@@ -224,9 +224,9 @@ class HomeController extends GetxController
         sktService.restartDiscoveringDevices();
       }
     });
-    _tagSyncer = TagSyncer();
-    _historyTopSyncer = HistoryTopSyncer();
-    _rulesSyncer = RulesSyncer();
+    _tagSyncer = TagSyncHandler();
+    _historyTopSyncer = HistoryTopSyncHandler();
+    _rulesSyncer = RulesSyncHandler();
     //进入主页面后标记为不是第一次进入
     if (appConfig.firstStartup) {
       appConfig.setNotFirstStartup();

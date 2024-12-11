@@ -1,4 +1,4 @@
-import 'package:clipshare/app/handlers/sync/missing_data_syncer.dart';
+import 'package:clipshare/app/handlers/sync/missing_data_sync_handler.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
@@ -21,8 +21,8 @@ abstract class OperationRecordDao {
       if (cnt == 0) return cnt;
       final sktService = Get.find<SocketService>();
       //发送变更至已连接的所有设备
-      MissingDataSyncer.process(record).then((shouldRemove) {
-        sktService.sendData(null, MsgType.sync, record.toJson());
+      MissingDataSyncHandler.process(record).then((result) {
+        sktService.sendData(null, MsgType.sync, result.result);
       });
       return cnt;
     });

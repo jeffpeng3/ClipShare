@@ -12,8 +12,8 @@ import 'package:clipshare/app/handlers/dev_pairing_handler.dart';
 import 'package:clipshare/app/handlers/socket/forward_socket_client.dart';
 import 'package:clipshare/app/handlers/socket/secure_socket_client.dart';
 import 'package:clipshare/app/handlers/socket/secure_socket_server.dart';
-import 'package:clipshare/app/handlers/sync/file_syncer.dart';
-import 'package:clipshare/app/handlers/sync/missing_data_syncer.dart';
+import 'package:clipshare/app/handlers/sync/file_sync_handler.dart';
+import 'package:clipshare/app/handlers/sync/missing_data_sync_handler.dart';
 import 'package:clipshare/app/handlers/task_runner.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
@@ -119,7 +119,7 @@ class SocketService extends GetxService {
   //临时记录链接配对自定义ip设备记录
   final Set<String> ipSetTemp = {};
   final Set<String> _connectingAddress = {};
-  final Map<int, FileSyncer> _forwardFiles = {};
+  final Map<int, FileSyncHandler> _forwardFiles = {};
   Map<String, Future> broadcastProcessChain = {};
   bool pairing = false;
   static bool _isInit = false;
@@ -248,8 +248,7 @@ class SocketService extends GetxService {
         //告诉服务器配对状态
         client.send(pairedStatusData.toJson());
       },
-      onMessage: (client, data) {
-        Map<String, dynamic> json = jsonDecode(data);
+      onMessage: (client, json) {
         var msg = MessageData.fromJson(json);
         _onSocketReceived(client, msg);
       },
@@ -275,8 +274,7 @@ class SocketService extends GetxService {
           "新连接来自 ip:$ip port:$port",
         );
       },
-      onMessage: (client, data) {
-        Map<String, dynamic> json = jsonDecode(data);
+      onMessage: (client, json) {
         var msg = MessageData.fromJson(json);
         _onSocketReceived(client, msg);
       },
@@ -452,7 +450,7 @@ class SocketService extends GetxService {
         final userId = data["userId"].toString().toInt();
         //连接中转接收文件
         try {
-          await FileSyncer.recFile(
+          await FileSyncHandler.recFile(
             isForward: true,
             ip: forwardServerIp!,
             port: forwardServerPort!,
@@ -552,8 +550,8 @@ class SocketService extends GetxService {
       ///批量数据同步
       case MsgType.missingData:
         var copyMsg = MessageData.fromJson(msg.toJson());
-        var data = msg.data["data"];
-        copyMsg.data = data;
+        var data = msg.data["data"] as Map<dynamic, dynamic>;
+        copyMsg.data = data.cast<String, dynamic>();
         final devId = dev.guid;
         final total = msg.data["total"];
         int seq = msg.data["seq"];
@@ -585,7 +583,7 @@ class SocketService extends GetxService {
       ///请求批量同步
       case MsgType.reqMissingData:
         var devIds = (msg.data["devIds"] as List<dynamic>).cast<String>();
-        MissingDataSyncer.sendMissingData(dev, devIds);
+        MissingDataSyncHandler.sendMissingData(dev, devIds);
         break;
 
       ///请求配对我方，生成四位配对码
@@ -673,7 +671,7 @@ class SocketService extends GetxService {
         String fileName = msg.data["fileName"];
         int fileId = msg.data["fileId"];
         try {
-          await FileSyncer.recFile(
+          await FileSyncHandler.recFile(
             ip: ip,
             port: port,
             size: size,
@@ -929,8 +927,7 @@ class SocketService extends GetxService {
         );
         client.send(msg.toJson());
       },
-      onMessage: (client, data) {
-        Map<String, dynamic> json = jsonDecode(data);
+      onMessage: (client, json) {
         var msg = MessageData.fromJson(json);
         _onSocketReceived(client, msg);
       },
@@ -1321,7 +1318,7 @@ class SocketService extends GetxService {
   }
 
   ///添加中转文件发送记录
-  void addSendFileRecordByForward(FileSyncer fileSyncer, int fileId) {
+  void addSendFileRecordByForward(FileSyncHandler fileSyncer, int fileId) {
     if (_forwardFiles.containsKey(fileId)) {
       throw Exception("The file is already in the sending list: $fileId");
     }
@@ -1330,7 +1327,7 @@ class SocketService extends GetxService {
 
   ///移除中转文件发送记录
   void removeSendFileRecordByForward(
-    FileSyncer fileSyncer,
+    FileSyncHandler fileSyncer,
     int fileId,
     String? targetDevId,
   ) {

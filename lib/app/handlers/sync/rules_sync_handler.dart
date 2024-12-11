@@ -10,12 +10,12 @@ import 'package:clipshare/app/utils/constants.dart';
 import 'package:get/get.dart';
 
 ///规则同步器
-class RulesSyncer implements SyncListener {
+class RulesSyncHandler implements SyncListener {
   final sktService = Get.find<SocketService>();
   final appConfig = Get.find<ConfigService>();
   final dbService = Get.find<DbService>();
 
-  RulesSyncer() {
+  RulesSyncHandler() {
     sktService.addSyncListener(Module.rules, this);
   }
 
@@ -39,10 +39,13 @@ class RulesSyncer implements SyncListener {
   @override
   Future onSync(MessageData msg) async {
     var send = msg.send;
-    var opRecord = OperationRecord.fromJson(msg.data);
-    Map<String, dynamic> json = jsonDecode(opRecord.data);
-    RuleType rule = RuleType.getValue(json["rule"]);
-    Map<String, dynamic> data = json["data"];
+    final map = msg.data;
+    final ruleMap = map["data"] as Map<dynamic, dynamic>;
+    map["data"] = "";
+    var opRecord = OperationRecord.fromJson(map);
+    RuleType rule = RuleType.getValue(ruleMap["rule"]);
+    Map<String, dynamic> data =
+        (ruleMap["data"] as Map<dynamic, dynamic>).cast();
     int newVersion = data["version"];
     dynamic localTagRules = {};
     switch (rule) {

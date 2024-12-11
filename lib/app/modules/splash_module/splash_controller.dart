@@ -6,7 +6,7 @@ import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/handlers/hot_key_handler.dart';
-import 'package:clipshare/app/handlers/sync/file_syncer.dart';
+import 'package:clipshare/app/handlers/sync/file_sync_handler.dart';
 import 'package:clipshare/app/listeners/history_data_listener.dart';
 import 'package:clipshare/app/listeners/screen_opened_listener.dart';
 import 'package:clipshare/app/modules/device_module/device_controller.dart';
@@ -186,7 +186,7 @@ class SplashController extends GetxController {
           }
           Log.info(tag, "files $files");
           Log.info(tag, "devIds $devices");
-          FileSyncer.sendFiles(
+          FileSyncHandler.sendFiles(
             devices: devices,
             paths: files,
             context: Get.context!,
@@ -320,7 +320,7 @@ class SplashController extends GetxController {
           showAppBar: true,
           devices: devices,
           onSendClicked: (BuildContext context, List<Device> selectedDevices) {
-            FileSyncer.sendFiles(
+            FileSyncHandler.sendFiles(
               devices: selectedDevices,
               paths: files,
               context: context,

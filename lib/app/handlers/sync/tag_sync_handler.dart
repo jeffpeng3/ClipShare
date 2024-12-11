@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:clipshare/app/data/models/message_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history_tag.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
@@ -12,13 +10,13 @@ import 'package:clipshare/app/utils/constants.dart';
 import 'package:get/get.dart';
 
 /// 标签同步处理器
-class TagSyncer implements SyncListener {
+class TagSyncHandler implements SyncListener {
   final sktService = Get.find<SocketService>();
   final appConfig = Get.find<ConfigService>();
   final dbService = Get.find<DbService>();
   final tagService = Get.find<TagService>();
 
-  TagSyncer() {
+  TagSyncHandler() {
     sktService.addSyncListener(Module.tag, this);
   }
 
@@ -42,9 +40,11 @@ class TagSyncer implements SyncListener {
   @override
   Future onSync(MessageData msg) async {
     var send = msg.send;
-    var opRecord = OperationRecord.fromJson(msg.data);
-    Map<String, dynamic> json = jsonDecode(opRecord.data);
-    HistoryTag tag = HistoryTag.fromJson(json);
+    final map = msg.data;
+    final tagMap = map["data"] as Map<dynamic, dynamic>;
+    map["data"] = "";
+    var opRecord = OperationRecord.fromJson(map);
+    HistoryTag tag = HistoryTag.fromJson(tagMap.cast());
     bool success = false;
     switch (opRecord.method) {
       case OpMethod.add:

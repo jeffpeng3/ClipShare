@@ -114,6 +114,7 @@ dependencies:
     git:
       url: https://github.com/aa2013/timer_snackbar.git
       ref: master
+  msgpack_dart: ^1.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

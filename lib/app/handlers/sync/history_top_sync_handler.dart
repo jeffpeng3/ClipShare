@@ -12,13 +12,13 @@ import 'package:clipshare/app/utils/constants.dart';
 import 'package:get/get.dart';
 
 /// 记录置顶操作同步处理器
-class HistoryTopSyncer implements SyncListener {
+class HistoryTopSyncHandler implements SyncListener {
   final appConfig = Get.find<ConfigService>();
   final dbService = Get.find<DbService>();
   final sktService = Get.find<SocketService>();
   final historyController = Get.find<HistoryController>();
 
-  HistoryTopSyncer() {
+  HistoryTopSyncHandler() {
     sktService.addSyncListener(Module.historyTop, this);
   }
 
@@ -42,9 +42,11 @@ class HistoryTopSyncer implements SyncListener {
   @override
   Future onSync(MessageData msg) async {
     var send = msg.send;
-    var opRecord = OperationRecord.fromJson(msg.data);
-    Map<String, dynamic> json = jsonDecode(opRecord.data);
-    History history = History.fromJson(json);
+    final map = msg.data;
+    final historyMap = map["data"] as Map<dynamic,dynamic>;
+    map["data"]="";
+    var opRecord = OperationRecord.fromJson(map);
+    History history = History.fromJson(historyMap.cast());
     bool success = false;
     switch (opRecord.method) {
       case OpMethod.update:

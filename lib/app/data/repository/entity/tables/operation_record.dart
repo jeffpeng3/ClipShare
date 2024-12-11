@@ -57,7 +57,7 @@ class OperationRecord {
   static OperationRecord fromJson(map) {
     var id = map["id"];
     var uid = map["uid"];
-    var module = Module.getValue(map["module"]);
+    var module = Module.getValue((map["module"]));
     var method = OpMethod.getValue(map["method"]);
     var data = map["data"];
     var time = map["time"];

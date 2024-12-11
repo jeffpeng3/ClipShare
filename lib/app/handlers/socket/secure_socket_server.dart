@@ -13,7 +13,7 @@ class SecureSocketServer {
   late final ServerSocket _server;
   bool _listening = false;
   late final void Function(String ip, int port) _onConnected;
-  late final void Function(SecureSocketClient client, String data) _onMessage;
+  late final void Function(SecureSocketClient client, Map<String,dynamic> data) _onMessage;
   Function? _onError;
   void Function(
     Exception e,
@@ -38,7 +38,7 @@ class SecureSocketServer {
     required String ip,
     required int port,
     required void Function(String ip, int port) onConnected,
-    required void Function(SecureSocketClient client, String data) onMessage,
+    required void Function(SecureSocketClient client, Map<String,dynamic> data) onMessage,
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,

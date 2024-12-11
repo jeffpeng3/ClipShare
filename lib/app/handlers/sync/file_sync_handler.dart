@@ -28,7 +28,7 @@ import 'package:get/get.dart';
 
 import '../../utils/log.dart';
 
-class FileSyncer {
+class FileSyncHandler {
   static const tag = "FileSyncer";
   final appConfig = Get.find<ConfigService>();
   final dbService = Get.find<DbService>();
@@ -42,9 +42,9 @@ class FileSyncer {
   late final BuildContext context;
   late final void Function() _onDone;
 
-  FileSyncer._private({
+  FileSyncHandler._private({
     required String path,
-    required void Function(FileSyncer) onReady,
+    required void Function(FileSyncHandler) onReady,
     required void Function() onDone,
     required this.context,
     bool useForward = false,
@@ -262,7 +262,7 @@ class FileSyncer {
   }) async {
     final sktService = Get.find<SocketService>();
     final useForward = sktService.isUseForward(device.guid);
-    FileSyncer._private(
+    FileSyncHandler._private(
       path: path,
       context: context,
       useForward: useForward,

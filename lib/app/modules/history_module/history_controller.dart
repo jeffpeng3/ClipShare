@@ -25,7 +25,6 @@ import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/file_util.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 /**
@@ -100,17 +99,16 @@ class HistoryController extends GetxController
   ///移除数据
   void removeById(int id) {
     _tempList.removeWhere(
-      (item) => item.data.id == id,
+          (item) => item.data.id == id,
     );
     debounceUpdate();
   }
 
   ///更新页面数据
-  void updateData(
-    bool Function(History history) where,
-    void Function(History history) cb, [
-    bool shouldRefresh = false,
-  ]) {
+  void updateData(bool Function(History history) where,
+      void Function(History history) cb, [
+        bool shouldRefresh = false,
+      ]) {
     for (var i = 0; i < _tempList.length; i++) {
       final item = _tempList[i];
       //查找符合条件的数据
@@ -255,10 +253,10 @@ class HistoryController extends GetxController
     int size = content.length;
     switch (type) {
       case HistoryContentType.text:
-        //文本无特殊实现，此处留空
+      //文本无特殊实现，此处留空
         break;
       case HistoryContentType.image:
-        //如果上次也是复制的图片/文件，判断其md5与本次比较，若相同则跳过
+      //如果上次也是复制的图片/文件，判断其md5与本次比较，若相同则跳过
         if (_last?.type == HistoryContentType.image.value) {
           var md51 = await File(_last!.content).md5;
           var md52 = await File(content).md5;
@@ -271,7 +269,9 @@ class HistoryController extends GetxController
         var tempFile = File(content);
         size = await tempFile.length();
         var newPath =
-            "${Platform.isAndroid ? appConfig.androidPrivatePicturesPath : appConfig.fileStorePath}/${tempFile.fileName}";
+            "${Platform.isAndroid
+            ? appConfig.androidPrivatePicturesPath
+            : appConfig.fileStorePath}/${tempFile.fileName}";
         var newFile = File(newPath);
         FileUtil.moveFile(content, newPath);
         content = newFile.normalizePath;
@@ -281,7 +281,7 @@ class HistoryController extends GetxController
       case HistoryContentType.file:
         break;
       case HistoryContentType.sms:
-        //判断是否符合短信同步规则，符合则继续，否则终止
+      //判断是否符合短信同步规则，符合则继续，否则终止
         var rules = jsonDecode(
           appConfig.smsRules,
         )["data"] as List<dynamic>;
@@ -315,17 +315,15 @@ class HistoryController extends GetxController
   @override
   Future<void> onSync(MessageData msg) async {
     var send = msg.send;
+    Map<dynamic, dynamic> data = msg.data["data"];
+    msg.data["data"] = "";
     var opRecord = OperationRecord.fromJson(msg.data);
-    Map<String, dynamic> json;
-    if (opRecord.data.length > 1024 * 1024) {
-      json = await compute(
-        (String jsonStr) => jsonDecode(jsonStr),
-        opRecord.data,
-      );
-    } else {
-      json = jsonDecode(opRecord.data);
+    final historyMap = data.cast<String, dynamic>();
+    dynamic historyContent = historyMap["content"];
+    if (historyContent is Map) {
+      historyMap["content"] = "";
     }
-    History history = History.fromJson(json);
+    History history = History.fromJson(historyMap);
     history.sync = true;
     if (opRecord.module == Module.historyTop) {
       //发送同步确认
@@ -338,8 +336,8 @@ class HistoryController extends GetxController
       return dbService.historyDao.setTop(history.id, history.top).then((v) {
         //更新页面
         updateData(
-          (h) => h.id == history.id,
-          (his) => his.top = history.top,
+              (h) => h.id == history.id,
+              (his) => his.top = history.top,
         );
       });
     }
@@ -347,13 +345,12 @@ class HistoryController extends GetxController
     if ([OpMethod.add, OpMethod.update].contains(opRecord.method)) {
       switch (HistoryContentType.parse(history.type)) {
         case HistoryContentType.image:
-          var content = jsonDecode(history.content);
-          var fileName = content["fileName"];
-          var data = content["data"].cast<int>();
+          var fileName = historyContent["fileName"];
+          var data = historyContent["data"].cast<int>();
           var path = "${appConfig.fileStorePath}/$fileName";
           if (appConfig.saveToPictures) {
             path =
-                "${Constants.androidPicturesPath}/${Constants.appName}/$fileName";
+            "${Constants.androidPicturesPath}/${Constants.appName}/$fileName";
             Log.debug(tag, "newPath $path");
           }
           history.content = path;
@@ -396,7 +393,7 @@ class HistoryController extends GetxController
               _last = _tempList
                   .reduce(
                     (curr, next) => curr.data.id > next.data.id ? curr : next,
-                  )
+              )
                   .data;
             }
           }
@@ -408,7 +405,7 @@ class HistoryController extends GetxController
         f = dbService.historyDao.updateHistory(history).then((cnt) {
           if (cnt == 0) return 0;
           var i =
-              _tempList.indexWhere((element) => element.data.id == history.id);
+          _tempList.indexWhere((element) => element.data.id == history.id);
           if (i == -1) return cnt;
           _tempList[i] = ClipData(history);
           debounceUpdate();

@@ -21,15 +21,21 @@ class MessageData {
 
   static MessageData fromJson(Map<String, dynamic> map) {
     int userId = map["userId"];
-    DevInfo devInfo = DevInfo.fromJson(map["send"]);
-    DevInfo? recv = map["recv"] != null ? DevInfo.fromJson(map["recv"]) : null;
+    DevInfo devInfo = DevInfo.fromJson(
+      (map["send"] as Map<dynamic, dynamic>).cast<String, dynamic>(),
+    );
+    DevInfo? recv = map["recv"] != null
+        ? DevInfo.fromJson(
+            (map["recv"] as Map<dynamic, dynamic>).cast<String, dynamic>(),
+          )
+        : null;
     MsgType key = MsgType.getValue(map["key"]);
-    Map<String, dynamic> data = map["data"];
+    Map<dynamic, dynamic> data = map["data"];
     return MessageData(
       userId: userId,
       send: devInfo,
       key: key,
-      data: data,
+      data: data.cast<String, dynamic>(),
       recv: recv,
     );
   }

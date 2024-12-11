@@ -94,8 +94,9 @@ class CryptoUtil {
     final iv = IV.fromUtf8(key.substring(0, ivLen));
     return (encrypter ?? getEncrypter(key)).encrypt(input, iv: iv).base64;
   }
+
   ///加密 AES 数据
-  static Uint8List encryptAESBytes({
+  static Uint8List encryptAESAsBytes({
     required String key,
     required String input,
     Encrypter? encrypter,
@@ -103,6 +104,17 @@ class CryptoUtil {
   }) {
     final iv = IV.fromUtf8(key.substring(0, ivLen));
     return (encrypter ?? getEncrypter(key)).encrypt(input, iv: iv).bytes;
+  }
+
+  ///加密 AES 数据
+  static Uint8List encryptAESWithBytes({
+    required String key,
+    required List<int> input,
+    Encrypter? encrypter,
+    int ivLen = 16,
+  }) {
+    final iv = IV.fromUtf8(key.substring(0, ivLen));
+    return (encrypter ?? getEncrypter(key)).encryptBytes(input, iv: iv).bytes;
   }
 
   ///解密 AES 数据
@@ -115,8 +127,9 @@ class CryptoUtil {
     final iv = IV.fromUtf8(key.substring(0, ivLen));
     return (encrypter ?? getEncrypter(key)).decrypt64(encoded, iv: iv);
   }
+
   ///解密 AES 数据
-  static String decryptAESBytes({
+  static String decryptAESWithBytes({
     required String key,
     required Uint8List encoded,
     Encrypter? encrypter,
@@ -124,6 +137,19 @@ class CryptoUtil {
   }) {
     final iv = IV.fromUtf8(key.substring(0, ivLen));
     return (encrypter ?? getEncrypter(key)).decrypt(Encrypted(encoded), iv: iv);
+  }
+
+  ///解密 AES 数据
+  static Uint8List decryptAESAsBytes({
+    required String key,
+    required Uint8List encoded,
+    Encrypter? encrypter,
+    int ivLen = 16,
+  }) {
+    final iv = IV.fromUtf8(key.substring(0, ivLen));
+    final list = (encrypter ?? getEncrypter(key))
+        .decryptBytes(Encrypted(encoded), iv: iv);
+    return Uint8List.fromList(list);
   }
 
   static String generateRandomKey([
