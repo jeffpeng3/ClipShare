@@ -18,7 +18,7 @@
 
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
-
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <application
         android:name="${applicationName}"
@@ -29,10 +29,11 @@
             android:name=".service.HistoryFloatService"
             android:enabled="true"
             android:exported="false" />
-        <!--    声明前台服务-->
+        <!--    声明前台服务 android 需要声明 foregroundServiceType-->
         <service
             android:name="top.coclyun.clipshare.clipboard_listener.service.ForegroundService"
             android:enabled="true"
+            android:foregroundServiceType="specialUse"
             android:exported="false" />
 
         <receiver

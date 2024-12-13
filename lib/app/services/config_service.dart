@@ -151,6 +151,7 @@ class ConfigService extends GetxService {
   set userId(value) => _userId.value = value;
 
   int get userId => _userId.value;
+  final deviceDiscoveryStatus = Rx<String?>(null);
 
   //endregion
 
@@ -489,7 +490,7 @@ class ConfigService extends GetxService {
     _workingMode = EnvironmentType.parse(workingMode).obs;
     _onlyForwardMode = onlyForwardMode?.toBool().obs ?? false.obs;
     _appTheme = appTheme?.toString().obs ?? ThemeMode.system.name.obs;
-    _autoCopyImageAfterSync = autoCopyImageAfterSync?.toBool().obs ?? false.obs;
+    _autoCopyImageAfterSync = autoCopyImageAfterSync?.toBool().obs ?? true.obs;
     Get.changeThemeMode(this.appTheme);
   }
 
@@ -726,8 +727,10 @@ class ConfigService extends GetxService {
     final sktService = Get.find<SocketService>();
     return sktService.disConnectAllConnections();
   }
+
   Future<void> setAutoCopyImageAfterSync(bool autoCopyImageAfterSync) async {
-    await _addOrUpdateDbConfig("autoCopyImageAfterSync", autoCopyImageAfterSync.toString());
+    await _addOrUpdateDbConfig(
+        "autoCopyImageAfterSync", autoCopyImageAfterSync.toString());
     _autoCopyImageAfterSync.value = autoCopyImageAfterSync;
   }
 

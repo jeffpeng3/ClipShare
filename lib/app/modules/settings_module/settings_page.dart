@@ -514,7 +514,7 @@ class SettingsPage extends GetView<SettingsController> {
                         name: Row(
                           children: [
                             const Text(
-                              "启用中转服务器",
+                              "使用中转服务",
                               maxLines: 1,
                             ),
                             const SizedBox(
@@ -992,14 +992,14 @@ class SettingsPage extends GetView<SettingsController> {
                       ),
                       SettingCard(
                         name: const Text(
-                          "图片自动复制到剪贴板",
+                          "自动复制图片",
                           maxLines: 1,
                         ),
                         description: const Text(
-                          "在 Android 上复制图片会自动返回到应用中，可关闭此项",
+                          "启用后若其他设备复制了图片本机也会自动复制",
                           maxLines: 1,
                         ),
-                        show: (v) => Platform.isAndroid,
+                        show: (v) => true,
                         value: appConfig.autoCopyImageAfterSync,
                         action: (v) {
                           return Switch(

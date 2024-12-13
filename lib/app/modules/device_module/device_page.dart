@@ -5,6 +5,7 @@ import 'package:clipshare/app/widgets/add_device_dialog.dart';
 import 'package:clipshare/app/widgets/condition_widget.dart';
 import 'package:clipshare/app/widgets/device_card.dart';
 import 'package:clipshare/app/widgets/dot.dart';
+import 'package:clipshare/app/widgets/loading_dots.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 /**
@@ -83,7 +84,8 @@ class DevicePage extends GetView<DeviceController> {
                   Obx(
                     () => Icon(
                       Icons.online_prediction_rounded,
-                      color: controller.discovering.value ? Colors.blueGrey : null,
+                      color:
+                          controller.discovering.value ? Colors.blueGrey : null,
                     ),
                   ),
                   const SizedBox(width: 5),
@@ -149,6 +151,20 @@ class DevicePage extends GetView<DeviceController> {
                       ),
                     ),
                   ),
+                  Obx(() {
+                    if (appConfig.deviceDiscoveryStatus.value == null) {
+                      return const SizedBox.shrink();
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 15,left: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          LoadingDots(text: Text(appConfig.deviceDiscoveryStatus.value!)),
+                        ],
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),

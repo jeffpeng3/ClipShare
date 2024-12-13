@@ -749,10 +749,12 @@ class SocketService extends GetxService {
       //广播发现
       tasks.addAll(_multicastDiscover());
     }
+    appConfig.deviceDiscoveryStatus.value = "广播发现";
     //并行处理
     _taskRunner = TaskRunner<void>(
       initialTasks: tasks,
       onFinish: () async {
+        appConfig.deviceDiscoveryStatus.value = "扫描网络";
         if (appConfig.onlyForwardMode) {
           tasks = []; //测试屏蔽发现用
         } else {
@@ -762,11 +764,13 @@ class SocketService extends GetxService {
         _taskRunner = TaskRunner<void>(
           initialTasks: tasks,
           onFinish: () async {
+            appConfig.deviceDiscoveryStatus.value = "中转发现";
             //发现中转设备
             tasks = await _forwardDiscover();
             _taskRunner = TaskRunner<void>(
               initialTasks: tasks,
               onFinish: () async {
+                appConfig.deviceDiscoveryStatus.value = null;
                 _taskRunner = null;
                 _discovering = false;
                 for (var listener in _discoverListeners) {
@@ -785,6 +789,7 @@ class SocketService extends GetxService {
 
   ///停止发现设备
   Future<void> stopDiscoveringDevices([bool restart = false]) async {
+    appConfig.deviceDiscoveryStatus.value = null;
     Log.debug(tag, "停止发现设备");
     _taskRunner?.stop();
     _taskRunner = null;

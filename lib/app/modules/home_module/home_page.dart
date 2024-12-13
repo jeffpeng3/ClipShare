@@ -24,6 +24,7 @@ class HomePage extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     controller.screenWidth = MediaQuery.of(context).size.width;
+    final currentTheme = Theme.of(context);
     return PopScope(
       canPop: false,
       onPopInvoked: (bool didPop) {
@@ -41,7 +42,7 @@ class HomePage extends GetView<HomeController> {
           // backgroundColor: appConfig.bgColor,
           appBar: !controller.showLeftBar
               ? AppBar(
-                  backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+                  backgroundColor: currentTheme.colorScheme.inversePrimary,
                   title: Row(
                     children: [
                       Expanded(
@@ -182,7 +183,7 @@ class HomePage extends GetView<HomeController> {
               ? Obx(
                   () => BottomNavigationBar(
                     type: BottomNavigationBarType.fixed,
-                    backgroundColor: Theme.of(context).colorScheme.surface,
+                    backgroundColor: currentTheme.colorScheme.surface,
                     currentIndex: controller.index,
                     onTap: (i) => controller.index = i,
                     items: controller.navBarItems,

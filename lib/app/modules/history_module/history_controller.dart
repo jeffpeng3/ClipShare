@@ -99,16 +99,17 @@ class HistoryController extends GetxController
   ///移除数据
   void removeById(int id) {
     _tempList.removeWhere(
-          (item) => item.data.id == id,
+      (item) => item.data.id == id,
     );
     debounceUpdate();
   }
 
   ///更新页面数据
-  void updateData(bool Function(History history) where,
-      void Function(History history) cb, [
-        bool shouldRefresh = false,
-      ]) {
+  void updateData(
+    bool Function(History history) where,
+    void Function(History history) cb, [
+    bool shouldRefresh = false,
+  ]) {
     for (var i = 0; i < _tempList.length; i++) {
       final item = _tempList[i];
       //查找符合条件的数据
@@ -207,6 +208,15 @@ class HistoryController extends GetxController
             }
           }
           break;
+        case HistoryContentType.sms:
+          //添加标签
+          tagService.add(
+            HistoryTag(
+              "短信",
+              history.id,
+            ),
+          );
+          break;
         default:
       }
       return cnt;
@@ -253,10 +263,10 @@ class HistoryController extends GetxController
     int size = content.length;
     switch (type) {
       case HistoryContentType.text:
-      //文本无特殊实现，此处留空
+        //文本无特殊实现，此处留空
         break;
       case HistoryContentType.image:
-      //如果上次也是复制的图片/文件，判断其md5与本次比较，若相同则跳过
+        //如果上次也是复制的图片/文件，判断其md5与本次比较，若相同则跳过
         if (_last?.type == HistoryContentType.image.value) {
           var md51 = await File(_last!.content).md5;
           var md52 = await File(content).md5;
@@ -269,9 +279,7 @@ class HistoryController extends GetxController
         var tempFile = File(content);
         size = await tempFile.length();
         var newPath =
-            "${Platform.isAndroid
-            ? appConfig.androidPrivatePicturesPath
-            : appConfig.fileStorePath}/${tempFile.fileName}";
+            "${Platform.isAndroid ? appConfig.androidPrivatePicturesPath : appConfig.fileStorePath}/${tempFile.fileName}";
         var newFile = File(newPath);
         FileUtil.moveFile(content, newPath);
         content = newFile.normalizePath;
@@ -281,7 +289,7 @@ class HistoryController extends GetxController
       case HistoryContentType.file:
         break;
       case HistoryContentType.sms:
-      //判断是否符合短信同步规则，符合则继续，否则终止
+        //判断是否符合短信同步规则，符合则继续，否则终止
         var rules = jsonDecode(
           appConfig.smsRules,
         )["data"] as List<dynamic>;
@@ -336,8 +344,8 @@ class HistoryController extends GetxController
       return dbService.historyDao.setTop(history.id, history.top).then((v) {
         //更新页面
         updateData(
-              (h) => h.id == history.id,
-              (his) => his.top = history.top,
+          (h) => h.id == history.id,
+          (his) => his.top = history.top,
         );
       });
     }
@@ -350,7 +358,7 @@ class HistoryController extends GetxController
           var path = "${appConfig.fileStorePath}/$fileName";
           if (appConfig.saveToPictures) {
             path =
-            "${Constants.androidPicturesPath}/${Constants.appName}/$fileName";
+                "${Constants.androidPicturesPath}/${Constants.appName}/$fileName";
             Log.debug(tag, "newPath $path");
           }
           history.content = path;
@@ -375,8 +383,9 @@ class HistoryController extends GetxController
         if (msg.key != MsgType.missingData) {
           appConfig.innerCopy = true;
           var type = ClipboardContentType.parse(history.type);
-          if (!(type == ClipboardContentType.image &&
-              !appConfig.autoCopyImageAfterSync)) {
+          if (type != ClipboardContentType.image) {
+            clipboardManager.copy(type, history.content);
+          } else if (appConfig.autoCopyImageAfterSync) {
             clipboardManager.copy(type, history.content);
           }
         }
@@ -393,7 +402,7 @@ class HistoryController extends GetxController
               _last = _tempList
                   .reduce(
                     (curr, next) => curr.data.id > next.data.id ? curr : next,
-              )
+                  )
                   .data;
             }
           }
@@ -405,7 +414,7 @@ class HistoryController extends GetxController
         f = dbService.historyDao.updateHistory(history).then((cnt) {
           if (cnt == 0) return 0;
           var i =
-          _tempList.indexWhere((element) => element.data.id == history.id);
+              _tempList.indexWhere((element) => element.data.id == history.id);
           if (i == -1) return cnt;
           _tempList[i] = ClipData(history);
           debounceUpdate();

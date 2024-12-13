@@ -37,7 +37,13 @@ class _LoadingDotsState extends State<LoadingDots> {
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [widget.text, Text("." * _dots)],
+      children: [
+        widget.text,
+        SizedBox(
+          width: 15,
+          child: Text("." * _dots),
+        )
+      ],
     );
   }
 }

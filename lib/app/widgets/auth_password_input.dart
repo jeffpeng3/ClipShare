@@ -105,7 +105,10 @@ class _AuthPasswordInputState extends State<AuthPasswordInput> {
 
   @override
   Widget build(BuildContext context) {
+    final currentTheme = Theme.of(context);
+    final numberContainerBg= currentTheme.cardTheme.color ?? currentTheme.colorScheme.surface;
     return Material(
+      color: currentTheme.scaffoldBackgroundColor,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -176,10 +179,10 @@ class _AuthPasswordInputState extends State<AuthPasswordInput> {
                                       bottom: paddingBottom,
                                     ),
                                     child: Ink(
-                                      decoration: const BoxDecoration(
+                                      decoration: BoxDecoration(
                                         //颜色放外面的Ink，否则水波纹被遮挡
-                                        color: Color(0Xfff2f2f2),
-                                        borderRadius: BorderRadius.all(
+                                        color: numberContainerBg,
+                                        borderRadius: const BorderRadius.all(
                                           Radius.circular(50),
                                         ),
                                       ),
@@ -214,7 +217,7 @@ class _AuthPasswordInputState extends State<AuthPasswordInput> {
                             children: [
                               Padding(
                                 padding: const EdgeInsets.only(
-                                    bottom: paddingBottom),
+                                    bottom: paddingBottom,),
                                 child: SizedBox(
                                   width: edgeLen,
                                   height: edgeLen,
@@ -222,12 +225,12 @@ class _AuthPasswordInputState extends State<AuthPasswordInput> {
                               ),
                               Padding(
                                 padding: const EdgeInsets.only(
-                                    bottom: paddingBottom),
+                                    bottom: paddingBottom,),
                                 child: Ink(
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     //颜色放外面的Ink，否则水波纹被遮挡
-                                    color: Color(0Xfff2f2f2),
-                                    borderRadius: BorderRadius.all(
+                                    color: numberContainerBg,
+                                    borderRadius: const BorderRadius.all(
                                       Radius.circular(50),
                                     ),
                                   ),

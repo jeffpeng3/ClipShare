@@ -30,7 +30,7 @@ class Constants {
   static const heartbeatInterval = 30;
 
   //中转程序下载地址
-  static const forwardDownloadUrl = "http://www.coclyun.top";
+  static const forwardDownloadUrl = "https://clipshare.coclyun.top/usages/forward.html";
 
   //默认标签规则
   static final defaultTagRules = jsonEncode(
