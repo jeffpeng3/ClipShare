@@ -71,8 +71,10 @@ Future<void> initServices() async {
   Get.put(MultiWindowChannelService());
   await Get.putAsync(() => DeviceService().init(), permanent: true);
   await Get.putAsync(() => TagService().init(), permanent: true);
-  await Get.putAsync(() => SyncingFileProgressService().init(),
-      permanent: true);
+  await Get.putAsync(
+    () => SyncingFileProgressService().init(),
+    permanent: true,
+  );
   if (PlatformExt.isDesktop) {
     await Get.putAsync(() => WindowService().init());
     await Get.putAsync(() => TrayService().init());

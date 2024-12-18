@@ -486,7 +486,9 @@ class SettingsPage extends GetView<SettingsController> {
                                 await appConfig.setHeartbeatInterval(str);
                                 var enable = str.toInt() > 0;
                                 Log.debug(
-                                    logTag, "${enable ? '启用' : '禁用'}心跳检测");
+                                  logTag,
+                                  "${enable ? '启用' : '禁用'}心跳检测",
+                                );
                                 if (enable) {
                                   sktService.startHeartbeatTest();
                                 } else {

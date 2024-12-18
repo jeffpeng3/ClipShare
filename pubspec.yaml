@@ -110,10 +110,12 @@ dependencies:
   re_editor: ^0.4.0
   # http请求
   http: ^1.2.2
+  # 倒计时的 snackbar ，支持在指定的scaffold上显示
   timer_snackbar:
     git:
       url: https://github.com/aa2013/timer_snackbar.git
       ref: master
+  # 类 json 的二进制序列化
   msgpack_dart: ^1.0.1
 dev_dependencies:
   flutter_test:

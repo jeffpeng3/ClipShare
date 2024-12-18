@@ -488,7 +488,7 @@ class SocketService extends GetxService {
     SecureSocketClient client,
     MessageData msg,
   ) async {
-    // Log.debug(tag, msg.key);
+    Log.debug(tag, msg.key);
     DevInfo dev = msg.send;
     var address =
         ipSetTemp.firstWhereOrNull((ip) => ip.split(":")[0] == client.ip);
@@ -582,8 +582,8 @@ class SocketService extends GetxService {
 
       ///请求批量同步
       case MsgType.reqMissingData:
-        var devIds = (msg.data["devIds"] as List<dynamic>).cast<String>();
-        MissingDataSyncHandler.sendMissingData(dev, devIds);
+        // var devIds = (msg.data["devIds"] as List<dynamic>).cast<String>();
+        MissingDataSyncHandler.sendMissingData(dev, [appConfig.device.guid]);
         break;
 
       ///请求配对我方，生成四位配对码
@@ -1049,14 +1049,12 @@ class SocketService extends GetxService {
   }
 
   Future<void> reqMissingData() async {
-    var devices = await dbService.deviceDao.getAllDevices(appConfig.userId);
-    var devIds =
-        devices.where((dev) => dev.isPaired).map((e) => e.guid).toList();
-    if (devIds.isNotEmpty) {
-      sendData(null, MsgType.reqMissingData, {
-        "devIds": devIds,
-      });
-    }
+    // var devices = await dbService.deviceDao.getAllDevices(appConfig.userId);
+    // var devIds =
+    //     devices.where((dev) => dev.isPaired).map((e) => e.guid).toList();
+    sendData(null, MsgType.reqMissingData, {
+      "devIds": [],
+    });
   }
 
   ///设备连接成功
@@ -1145,6 +1143,7 @@ class SocketService extends GetxService {
     //更新timer
     _heartbeatTimer = Timer.periodic(Duration(seconds: interval), (timer) {
       if (_devSockets.isEmpty) return;
+      Log.debug(tag, "send ping");
       sendData(null, MsgType.ping, {});
     });
   }

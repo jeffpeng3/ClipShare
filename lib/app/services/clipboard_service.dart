@@ -34,7 +34,7 @@ class ClipboardService extends GetxService with ClipboardListener {
 
   @override
   void onClose() {
-    super.onClose();
     clipboardManager.removeListener(this);
+    super.onClose();
   }
 }
