@@ -26,7 +26,9 @@ class AppUpdateInfoUtil {
     for (var log in logs) {
       log['url'] = body["downloads"][system.upperFirst()]["url"];
       final ul = UpdateLog.fromJson(log);
-      if (ul.platform.toLowerCase() != system || ul.version <= currentVersion) {
+      if ((ul.platform.toLowerCase() != system &&
+              ul.platform.toLowerCase() != 'all') ||
+          ul.version <= currentVersion) {
         continue;
       }
       updateLogs.add(ul);

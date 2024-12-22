@@ -222,8 +222,8 @@ class HomeController extends GetxController
         .onConnectivityChanged
         .listen((ConnectivityResult result) {
       Log.debug(tag, "网络变化 -> ${result.name}");
+      sktService.disConnectAllConnections();
       if (result != ConnectivityResult.none) {
-        sktService.startHeartbeatTest();
         sktService.restartDiscoveringDevices();
       }
     });

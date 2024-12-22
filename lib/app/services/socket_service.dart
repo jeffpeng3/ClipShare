@@ -1116,12 +1116,12 @@ class SocketService extends GetxService {
     }
   }
 
-  ///断开所有连接（仅调试）
-  void disConnectAllConnections() async {
-    if (kReleaseMode) return;
+  ///断开所有连接
+  void disConnectAllConnections() {
+    _forwardClient?.destroy();
     var skts = _devSockets.values.toList();
     for (var devSkt in skts) {
-      await devSkt.socket.close();
+      devSkt.socket.destroy();
       _onDevDisConnected(devSkt.dev.guid);
     }
     _devSockets.clear();
