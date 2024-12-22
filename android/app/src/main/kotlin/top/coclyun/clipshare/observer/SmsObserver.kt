@@ -13,6 +13,20 @@ class SmsObserver(private val mainActivity: MainActivity, handler: Handler) :
     ContentObserver(handler) {
     private val tag = "SmsObserver"
     private var lastSmsId: Long = -1
+
+    init {
+        val cursor: Cursor? = mainActivity.contentResolver.query(
+                Uri.parse("content://sms/inbox"),
+                null,
+                null,
+                null,
+                "date DESC LIMIT 1"
+            )
+        if (cursor != null && cursor.moveToFirst()) {
+            lastSmsId = cursor.getLong(cursor.getColumnIndex("_id"))
+        }
+    }
+
     override fun onChange(selfChange: Boolean, uri: Uri?) {
         super.onChange(selfChange, uri)
         Log.d(tag, uri.toString())
@@ -42,7 +56,7 @@ class SmsObserver(private val mainActivity: MainActivity, handler: Handler) :
 //            Log.d(tag, "Sender: $address, Message: $body")
             cursor.close()
             mainActivity.onSmsChanged(body)
-        }else{
+        } else {
             Log.d(tag, "no result")
         }
     }
