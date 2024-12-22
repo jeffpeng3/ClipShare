@@ -22,6 +22,7 @@ import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
+import 'package:clipshare/app/utils/app_update_info_util.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/utils/permission_helper.dart';
@@ -154,6 +155,7 @@ class HomeController extends GetxController
         settingsController.checkPermissions();
       });
     }
+    AppUpdateInfoUtil.showUpdateInfo();
   }
 
   @override
@@ -221,6 +223,7 @@ class HomeController extends GetxController
         .listen((ConnectivityResult result) {
       Log.debug(tag, "网络变化 -> ${result.name}");
       if (result != ConnectivityResult.none) {
+        sktService.startHeartbeatTest();
         sktService.restartDiscoveringDevices();
       }
     });

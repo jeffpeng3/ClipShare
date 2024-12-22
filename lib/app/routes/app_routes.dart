@@ -21,4 +21,5 @@ abstract class Routes {
   static const SYNC_FILE = '/sync_file'; // SyncFile page
   static const ABOUT = '/about'; // About page
   static const UPDATE_LOG = '/update_log'; // UpdateLog page
+  static const LICENSES = '/licenses'; // Licenses page
 }

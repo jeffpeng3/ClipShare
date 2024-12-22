@@ -58,7 +58,7 @@ class FileSyncHandler {
     }
     if (useForward) {
       //检查中转设置
-      var host = sktService.forwardServerIp;
+      var host = sktService.forwardServerHost;
       var port = sktService.forwardServerPort;
       var forwardEnabled = appConfig.enableForward;
       if (!forwardEnabled || host == null || port == null) {

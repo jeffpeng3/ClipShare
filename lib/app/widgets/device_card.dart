@@ -20,8 +20,8 @@ class DeviceCard extends StatefulWidget {
   final bool isPaired;
   final bool isSelf;
   final bool isConnected;
-  final Version? minVersion;
-  final Version? version;
+  final AppVersion? minVersion;
+  final AppVersion? version;
   final bool isForward;
   final appConfig = Get.find<ConfigService>();
 
@@ -54,8 +54,8 @@ class DeviceCard extends StatefulWidget {
     bool? isPaired,
     bool? isConnected,
     bool? isSelf,
-    Version? minVersion,
-    Version? version,
+    AppVersion? minVersion,
+    AppVersion? version,
     bool? isForward,
   }) {
     isConnected = isConnected ?? this.isConnected;
@@ -167,7 +167,7 @@ class _DeviceCardState extends State<DeviceCard> {
     );
   }
 
-  Version get minVersion => appConfig.minVersion > widget.minVersion!
+  AppVersion get minVersion => appConfig.minVersion > widget.minVersion!
       ? appConfig.minVersion
       : widget.minVersion!;
 

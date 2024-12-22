@@ -184,10 +184,6 @@ class SecureSocketClient {
             _forwardReady = true;
             sendKey();
             break;
-          case ForwardMsgType.alreadyConnected:
-            Log.warn(tag, "alreadyConnected");
-            close();
-            break;
           default:
         }
       } else {

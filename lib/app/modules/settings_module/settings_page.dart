@@ -81,7 +81,7 @@ class SettingsPage extends GetView<SettingsController> {
                     icon: const Icon(Icons.discount_outlined),
                     cardList: [
                       SettingCard(
-                        name: const Text("开机启动"),
+                        title: const Text("开机启动"),
                         value: appConfig.launchAtStartup,
                         action: (v) => Switch(
                           value: v,
@@ -106,7 +106,7 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => Platform.isWindows,
                       ),
                       SettingCard(
-                        name: const Text("启动时最小化窗口"),
+                        title: const Text("启动时最小化窗口"),
                         value: appConfig.startMini,
                         action: (v) => Switch(
                           value: v,
@@ -117,7 +117,7 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => PlatformExt.isDesktop,
                       ),
                       SettingCard(
-                        name: const Text("显示历史记录悬浮窗"),
+                        title: const Text("显示历史记录悬浮窗"),
                         value: appConfig.showHistoryFloat,
                         action: (v) => Switch(
                           value: appConfig.showHistoryFloat,
@@ -134,7 +134,7 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => Platform.isAndroid,
                       ),
                       SettingCard(
-                        name: const Text("锁定悬浮窗位置"),
+                        title: const Text("锁定悬浮窗位置"),
                         value: appConfig.lockHistoryFloatLoc,
                         action: (v) => Switch(
                           value: appConfig.lockHistoryFloatLoc,
@@ -150,7 +150,7 @@ class SettingsPage extends GetView<SettingsController> {
                             Platform.isAndroid && appConfig.showHistoryFloat,
                       ),
                       SettingCard(
-                        name: const Text("记住上次窗口大小"),
+                        title: const Text("记住上次窗口大小"),
                         description: Text(
                           "${appConfig.rememberWindowSize ? "记录值：${appConfig.windowSize}，" : ""}默认值：${Constants.defaultWindowSize}",
                         ),
@@ -165,7 +165,7 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => PlatformExt.isDesktop,
                       ),
                       SettingCard<ThemeMode>(
-                        name: const Text("主题"),
+                        title: const Text("主题"),
                         value: appConfig.appTheme,
                         action: (v) {
                           var icon = Icons.brightness_auto_outlined;
@@ -234,7 +234,7 @@ class SettingsPage extends GetView<SettingsController> {
                       icon: const Icon(Icons.admin_panel_settings),
                       cardList: [
                         SettingCard(
-                          name: const Text("通知权限"),
+                          title: const Text("通知权限"),
                           description: const Text("用于启动前台服务"),
                           value: controller.hasNotifyPerm.value,
                           action: (val) => Icon(
@@ -249,7 +249,7 @@ class SettingsPage extends GetView<SettingsController> {
                           },
                         ),
                         SettingCard(
-                          name: const Text("悬浮窗权限"),
+                          title: const Text("悬浮窗权限"),
                           description: const Text("高版本系统中通过悬浮窗获取剪贴板焦点"),
                           value: controller.hasFloatPerm.value,
                           action: (val) => Icon(
@@ -264,7 +264,7 @@ class SettingsPage extends GetView<SettingsController> {
                           },
                         ),
                         SettingCard(
-                          name: const Text("电池优化"),
+                          title: const Text("电池优化"),
                           description: const Text("添加电池优化防止被后台系统杀死"),
                           value: controller.hasIgnoreBattery.value,
                           action: (val) => Icon(
@@ -279,7 +279,7 @@ class SettingsPage extends GetView<SettingsController> {
                           },
                         ),
                         SettingCard(
-                          name: const Text("短信读取"),
+                          title: const Text("短信读取"),
                           description: const Text("已开启短信同步功能，请授予短信读取权限"),
                           value: controller.hasSmsReadPerm.value,
                           action: (val) => Icon(
@@ -304,7 +304,7 @@ class SettingsPage extends GetView<SettingsController> {
                     icon: const Icon(Icons.wifi),
                     cardList: [
                       SettingCard(
-                        name: const Text(
+                        title: const Text(
                           "设备名称",
                           maxLines: 1,
                         ),
@@ -359,7 +359,7 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        name: const Text(
+                        title: const Text(
                           "端口",
                           maxLines: 1,
                         ),
@@ -394,7 +394,7 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        name: const Text(
+                        title: const Text(
                           "可被发现",
                           maxLines: 1,
                         ),
@@ -412,7 +412,7 @@ class SettingsPage extends GetView<SettingsController> {
                         ),
                       ),
                       SettingCard(
-                        name: const Text(
+                        title: const Text(
                           "仅中转发现（调试用）",
                           maxLines: 1,
                         ),
@@ -431,7 +431,7 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => !kReleaseMode,
                       ),
                       SettingCard(
-                        name: Row(
+                        title: Row(
                           children: [
                             const Text(
                               "心跳检测间隔",
@@ -513,7 +513,7 @@ class SettingsPage extends GetView<SettingsController> {
                     icon: const Icon(Icons.cloud_sync_outlined),
                     cardList: [
                       SettingCard(
-                        name: Row(
+                        title: Row(
                           children: [
                             const Text(
                               "使用中转服务",
@@ -569,7 +569,7 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        name: const Text(
+                        title: const Text(
                           "中转服务器地址",
                           maxLines: 1,
                         ),
@@ -614,7 +614,7 @@ class SettingsPage extends GetView<SettingsController> {
                       icon: const Icon(Icons.fingerprint_outlined),
                       cardList: [
                         SettingCard(
-                          name: const Text(
+                          title: const Text(
                             "启用安全认证",
                             maxLines: 1,
                           ),
@@ -646,7 +646,7 @@ class SettingsPage extends GetView<SettingsController> {
                           show: (v) => Platform.isAndroid,
                         ),
                         SettingCard(
-                          name: const Text(
+                          title: const Text(
                             "更改密码",
                             maxLines: 1,
                           ),
@@ -682,7 +682,7 @@ class SettingsPage extends GetView<SettingsController> {
                           show: (v) => Platform.isAndroid,
                         ),
                         SettingCard(
-                          name: const Text(
+                          title: const Text(
                             "密码重新验证",
                             maxLines: 1,
                           ),
@@ -729,7 +729,7 @@ class SettingsPage extends GetView<SettingsController> {
                       icon: const Icon(Icons.keyboard_alt_outlined),
                       cardList: [
                         SettingCard(
-                          name: const Text(
+                          title: const Text(
                             "历史弹窗",
                             maxLines: 1,
                           ),
@@ -790,7 +790,7 @@ class SettingsPage extends GetView<SettingsController> {
                           show: (v) => Platform.isWindows,
                         ),
                         SettingCard(
-                          name: const Text(
+                          title: const Text(
                             "文件发送",
                             maxLines: 1,
                           ),
@@ -862,7 +862,7 @@ class SettingsPage extends GetView<SettingsController> {
                     icon: const Icon(Icons.sync_rounded),
                     cardList: [
                       SettingCard(
-                        name: const Text(
+                        title: const Text(
                           "短信同步",
                           maxLines: 1,
                         ),
@@ -908,7 +908,7 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        name: const Text(
+                        title: const Text(
                           "图片存储至相册中",
                           maxLines: 1,
                         ),
@@ -962,7 +962,7 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => Platform.isAndroid,
                       ),
                       SettingCard(
-                        name: const Text(
+                        title: const Text(
                           "文件存储路径",
                           maxLines: 1,
                         ),
@@ -993,7 +993,7 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        name: const Text(
+                        title: const Text(
                           "自动复制图片",
                           maxLines: 1,
                         ),
@@ -1025,7 +1025,7 @@ class SettingsPage extends GetView<SettingsController> {
                   icon: const Icon(Icons.assignment_outlined),
                   cardList: [
                     SettingCard(
-                      name: const Text(
+                      title: const Text(
                         "标签规则",
                         maxLines: 1,
                       ),
@@ -1054,7 +1054,7 @@ class SettingsPage extends GetView<SettingsController> {
                       },
                     ),
                     SettingCard(
-                      name: const Text(
+                      title: const Text(
                         "短信规则",
                         maxLines: 1,
                       ),
@@ -1096,7 +1096,7 @@ class SettingsPage extends GetView<SettingsController> {
                     icon: const Icon(Icons.bug_report_outlined),
                     cardList: [
                       SettingCard(
-                        name: Row(
+                        title: Row(
                           children: [
                             const Text(
                               "启用日志记录",
@@ -1195,7 +1195,7 @@ class SettingsPage extends GetView<SettingsController> {
                   icon: const Icon(Icons.bar_chart),
                   cardList: [
                     SettingCard(
-                      name: const Text(
+                      title: const Text(
                         "查看统计",
                         maxLines: 1,
                       ),
@@ -1229,7 +1229,7 @@ class SettingsPage extends GetView<SettingsController> {
                   icon: const Icon(Icons.info_outline),
                   cardList: [
                     SettingCard(
-                      name: const Row(
+                      title: const Row(
                         children: [
                           Text(
                             "关于 ${Constants.appName}",

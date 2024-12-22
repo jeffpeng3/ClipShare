@@ -55,9 +55,9 @@ class ConfigService extends GetxService {
   late final DevInfo devInfo;
   late final Device device;
   late final Snowflake snowflake;
-  late final Version version;
+  late final AppVersion version;
   late final double osVersion;
-  final minVersion = const Version("1.0.0-beta", "3");
+  final minVersion = const AppVersion("1.0.0-beta", "3");
 
   //路径
   late final String documentPath;
@@ -314,6 +314,10 @@ class ConfigService extends GetxService {
     return _onlyForwardMode.value;
   }
 
+  final Rx<String?> _ignoreUpdateVersion = Rx<String?>(null);
+
+  String? get ignoreUpdateVersion => _ignoreUpdateVersion.value;
+
   //endregion
 
   //endregion
@@ -446,6 +450,10 @@ class ConfigService extends GetxService {
       "autoCopyImageAfterSync",
       userId,
     );
+    var ignoreUpdateVersion = await cfg.getConfig(
+      "ignoreUpdateVersion",
+      userId,
+    );
     var fileStoreDir = Directory(fileStorePath ?? defaultFileStorePath);
     _port = port?.toInt().obs ?? Constants.port.obs;
     _localName =
@@ -491,6 +499,7 @@ class ConfigService extends GetxService {
     _onlyForwardMode = onlyForwardMode?.toBool().obs ?? false.obs;
     _appTheme = appTheme?.toString().obs ?? ThemeMode.system.name.obs;
     _autoCopyImageAfterSync = autoCopyImageAfterSync?.toBool().obs ?? true.obs;
+    _ignoreUpdateVersion.value = ignoreUpdateVersion;
     Get.changeThemeMode(this.appTheme);
   }
 
@@ -518,7 +527,7 @@ class ConfigService extends GetxService {
   Future<void> initDeviceInfo() async {
     //读取版本信息
     var pkgInfo = await PackageInfo.fromPlatform();
-    version = Version(pkgInfo.version, pkgInfo.buildNumber);
+    version = AppVersion(pkgInfo.version, pkgInfo.buildNumber);
     //读取设备id信息
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
@@ -751,6 +760,11 @@ class ConfigService extends GetxService {
       isReversed: false,
       onAnimationFinish: onAnimationFinish,
     );
+  }
+
+  Future<void> setIgnoreUpdateVersion(String versionCode) async {
+    await _addOrUpdateDbConfig("ignoreUpdateVersion", versionCode);
+    _ignoreUpdateVersion.value = versionCode;
   }
 //endregion
 }

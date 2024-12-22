@@ -31,8 +31,8 @@ abstract class DevAliveListener {
   //连接成功
   void onConnected(
     DevInfo info,
-    Version minVersion,
-    Version version,
+    AppVersion minVersion,
+    AppVersion version,
     bool isForward,
   );
 
@@ -68,15 +68,16 @@ abstract class DiscoverListener {
 abstract class ForwardStatusListener {
   void onForwardServerConnected();
 
-  void onForwardServerDisconnect();
+  void onForwardServerDisconnected();
 }
 
 class DevSocket {
   DevInfo dev;
   SecureSocketClient socket;
   bool isPaired;
-  Version? minVersion;
-  Version? version;
+  AppVersion? minVersion;
+  AppVersion? version;
+  DateTime? lastPingTime;
 
   DevSocket({
     required this.dev,
@@ -85,6 +86,10 @@ class DevSocket {
     this.minVersion,
     this.version,
   });
+
+  void updatePingTime() {
+    lastPingTime = DateTime.now();
+  }
 }
 
 class MissingDataSyncProgress {
@@ -107,6 +112,8 @@ class SocketService extends GetxService {
   static const String tag = "SocketService";
   final Map<Module, List<SyncListener>> _syncListeners = {};
   Timer? _heartbeatTimer;
+  Timer? _forwardClientHeartbeatTimer;
+  DateTime? _lastForwardServerPingTime;
   final List<DevAliveListener> _devAliveListeners = List.empty(growable: true);
   final List<DiscoverListener> _discoverListeners = List.empty(growable: true);
   final List<ForwardStatusListener> _forwardStatusListener =
@@ -124,7 +131,7 @@ class SocketService extends GetxService {
   bool pairing = false;
   static bool _isInit = false;
 
-  String? get forwardServerIp {
+  String? get forwardServerHost {
     if (!appConfig.enableForward) return null;
     return appConfig.forwardServer!.host;
   }
@@ -185,7 +192,7 @@ class SocketService extends GetxService {
             if (!inChain && !connecting) {
               _connectingAddress.add(address);
               broadcastProcessChain[devId] =
-                  _onReceivedBroadcastInfo(msg, datagram);
+                  _onBroadcastInfoReceived(msg, datagram);
             }
             break;
           default:
@@ -195,7 +202,7 @@ class SocketService extends GetxService {
   }
 
   ///接收广播设备信息
-  Future<void> _onReceivedBroadcastInfo(
+  Future<void> _onBroadcastInfoReceived(
     MessageData msg,
     Datagram datagram,
   ) async {
@@ -284,7 +291,8 @@ class SocketService extends GetxService {
       onClientError: (e, ip, port, client) {
         //此处端口不是客户端的服务端口，是客户端的socket进程端口
         Log.error(tag, "client 出现错误 $ip $port $e");
-        for (var id in _devSockets.keys) {
+        final keys = _devSockets.keys;
+        for (var id in keys) {
           var skt = _devSockets[id]!;
           if (skt.socket.ip == ip) {
             _onDevDisConnected(id);
@@ -295,7 +303,8 @@ class SocketService extends GetxService {
       onClientDone: (ip, port, client) {
         //此处端口不是客户端的服务端口，是客户端的socket进程端口
         Log.error(tag, "client done $ip $port");
-        for (var id in _devSockets.keys) {
+        final keys = _devSockets.keys;
+        for (var id in keys) {
           var skt = _devSockets[id]!;
           Log.error(
             tag,
@@ -309,7 +318,8 @@ class SocketService extends GetxService {
       },
       onDone: () {
         Log.debug(tag, "服务端连接关闭");
-        for (var id in _devSockets.keys) {
+        final keys = _devSockets.keys;
+        for (var id in keys) {
           _onDevDisConnected(id);
         }
       },
@@ -325,10 +335,10 @@ class SocketService extends GetxService {
   Future<void> connectForwardServer([bool startDiscovering = false]) async {
     disConnectForwardServer();
     if (!appConfig.enableForward) return;
-    if (forwardServerIp == null || forwardServerPort == null) return;
+    if (forwardServerHost == null || forwardServerPort == null) return;
     try {
       _forwardClient = await ForwardSocketClient.connect(
-        ip: forwardServerIp!,
+        ip: forwardServerHost!,
         port: forwardServerPort!,
         onMessage: (self, data) {
           Log.debug(tag, "forwardClient onMessage $data");
@@ -337,8 +347,9 @@ class SocketService extends GetxService {
         onDone: (self) {
           _forwardClient = null;
           for (var listener in _forwardStatusListener) {
-            listener.onForwardServerDisconnect();
+            listener.onForwardServerDisconnected();
           }
+          _stopJudgeForwardClientAlive();
           Log.debug(tag, "forwardClient done");
           Future.delayed(
             const Duration(milliseconds: 500),
@@ -353,6 +364,7 @@ class SocketService extends GetxService {
           for (var listener in _forwardStatusListener) {
             listener.onForwardServerConnected();
           }
+          _startJudgeForwardClientAlivePeriod();
           //中转服务器连接成功后发送本机信息
           final connData = {
             "connType": ForwardConnType.base.name,
@@ -367,9 +379,10 @@ class SocketService extends GetxService {
           self.send(connData);
           if (startDiscovering) {
             Future.delayed(const Duration(seconds: 1), () async {
+              final list = await _forwardDiscover();
               //发现中转设备
               TaskRunner<void>(
-                initialTasks: await _forwardDiscover(),
+                initialTasks: list,
                 onFinish: () async {},
                 concurrency: 50,
               );
@@ -391,19 +404,28 @@ class SocketService extends GetxService {
     _forwardClient?.close();
     _forwardClient = null;
     for (var listener in _forwardStatusListener) {
-      listener.onForwardServerDisconnect();
+      listener.onForwardServerDisconnected();
     }
-    for (var devId in _devSockets.keys) {
+    _disconnectForwardSockets();
+  }
+
+  ///断开所有通过中转服务器的连接
+  void _disconnectForwardSockets() {
+    final keys = _devSockets.keys.toList();
+    for (var devId in keys) {
       var skt = _devSockets[devId];
       if (skt == null || !skt.socket.isForwardMode) continue;
-      skt.socket.destroy();
       _onDevDisConnected(devId);
+      skt.socket.destroy();
     }
   }
 
   Future<void> _onForwardServerReceived(Map<String, dynamic> data) async {
     final type = ForwardMsgType.getValue(data["type"]);
     switch (type) {
+      case ForwardMsgType.ping:
+        _lastForwardServerPingTime = DateTime.now();
+        break;
       case ForwardMsgType.fileSyncNotAllowed:
         Global.showTipsDialog(
           context: Get.context!,
@@ -452,7 +474,7 @@ class SocketService extends GetxService {
         try {
           await FileSyncHandler.recFile(
             isForward: true,
-            ip: forwardServerIp!,
+            ip: forwardServerHost!,
             port: forwardServerPort!,
             size: size,
             fileName: fileName,
@@ -488,11 +510,20 @@ class SocketService extends GetxService {
     SecureSocketClient client,
     MessageData msg,
   ) async {
-    Log.debug(tag, msg.key);
+    assert(() {
+      Log.debug(tag, msg.key);
+      return true;
+    }());
     DevInfo dev = msg.send;
     var address =
         ipSetTemp.firstWhereOrNull((ip) => ip.split(":")[0] == client.ip);
     switch (msg.key) {
+      case MsgType.ping:
+        if (_devSockets.containsKey(dev.guid)) {
+          _devSockets[dev.guid]!.updatePingTime();
+        }
+        break;
+
       ///客户端连接
       case MsgType.connect:
         var device =
@@ -869,7 +900,7 @@ class SocketService extends GetxService {
     var lst = await dbService.deviceDao.getAllDevices(appConfig.userId);
     var offlineList = lst.where((dev) => !_devSockets.keys.contains(dev.guid));
     for (var dev in offlineList) {
-      if (forwardServerIp == null || forwardServerPort == null) continue;
+      if (forwardServerHost == null || forwardServerPort == null) continue;
       tasks.add(() => manualConnectByForward(dev.guid));
     }
     return tasks;
@@ -878,7 +909,7 @@ class SocketService extends GetxService {
   ///中转连接设备
   Future<void> manualConnectByForward(String devId) {
     return manualConnect(
-      forwardServerIp!,
+      forwardServerHost!,
       port: forwardServerPort,
       forward: true,
       targetDevId: devId,
@@ -1011,8 +1042,8 @@ class SocketService extends GetxService {
     var minCode = msg.data["minVersionCode"];
     var versionName = msg.data["versionName"];
     var versionCode = msg.data["versionCode"];
-    var minVersion = Version(minName, minCode);
-    var version = Version(versionName, versionCode);
+    var minVersion = AppVersion(minName, minCode);
+    var version = AppVersion(versionName, versionCode);
     Log.debug(tag, "minVersion $minVersion version $version");
     //添加到本地
     if (_devSockets.containsKey(dev.guid)) {
@@ -1061,8 +1092,8 @@ class SocketService extends GetxService {
   void _onDevConnected(
     DevInfo dev,
     SecureSocketClient client,
-    Version minVersion,
-    Version version,
+    AppVersion minVersion,
+    AppVersion version,
     bool useForward,
   ) async {
     final ip = client.ip;
@@ -1071,6 +1102,7 @@ class SocketService extends GetxService {
     String address = "$ip:$port";
     await dbService.deviceDao
         .updateDeviceAddress(dev.guid, appConfig.userId, address);
+    _devSockets[dev.guid]!.updatePingTime();
     broadcastProcessChain.remove(dev.guid);
     for (var listener in _devAliveListeners) {
       try {
@@ -1089,7 +1121,8 @@ class SocketService extends GetxService {
   ///断开所有连接（仅调试）
   void disConnectAllConnections() async {
     if (kReleaseMode) return;
-    for (var devSkt in _devSockets.values) {
+    var skts = _devSockets.values.toList();
+    for (var devSkt in skts) {
       await devSkt.socket.close();
       _onDevDisConnected(devSkt.dev.guid);
     }
@@ -1138,23 +1171,82 @@ class SocketService extends GetxService {
   void startHeartbeatTest() {
     //先停止
     stopHeartbeatTest();
+    //首次直接发送
+    sendData(null, MsgType.ping, {}, false);
+    judgeDeviceHeartbeatTimeout();
     var interval = appConfig.heartbeatInterval;
     if (interval <= 0) return;
     //更新timer
     _heartbeatTimer = Timer.periodic(Duration(seconds: interval), (timer) {
       if (_devSockets.isEmpty) return;
-      Log.debug(tag, "send ping");
-      sendData(null, MsgType.ping, {});
+      judgeDeviceHeartbeatTimeout();
+      sendData(null, MsgType.ping, {}, false);
     });
   }
 
   ///停止所有设备的心跳测试
   void stopHeartbeatTest() {
     _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
+  }
+
+  ///定时判断中转服务连接存活状态
+  void _startJudgeForwardClientAlivePeriod() {
+    //先停止
+    _stopJudgeForwardClientAlive();
+    if (_forwardClient == null) {
+      return;
+    }
+    //更新timer
+    _forwardClientHeartbeatTimer =
+        Timer.periodic(const Duration(seconds: 35), (timer) {
+      var disconnected = false;
+      if (_lastForwardServerPingTime == null) {
+        disconnected = true;
+      } else {
+        final now = DateTime.now();
+        if (now.difference(_lastForwardServerPingTime!).inSeconds >= 35) {
+          disconnected = true;
+        }
+      }
+      if (!disconnected) return;
+      _forwardClient?.destroy();
+    });
+  }
+
+  ///停止定时判断中转服务连接存活状态
+  void _stopJudgeForwardClientAlive() {
+    _forwardClientHeartbeatTimer?.cancel();
+    _forwardClientHeartbeatTimer = null;
+  }
+
+  ///判断设备心跳是否超时
+  void judgeDeviceHeartbeatTimeout() {
+    var interval = appConfig.heartbeatInterval * 1.3;
+    final now = DateTime.now();
+    var skts = _devSockets.values.toList();
+    for (var ds in skts) {
+      if (ds.lastPingTime == null) {
+        continue;
+      }
+      final diff = now.difference(ds.lastPingTime!);
+      if (diff.inSeconds > interval) {
+        //心跳超时
+        print("judgeDeviceHeartbeatTimeout ${ds.dev.guid}");
+        disconnectDevice(ds.dev, true);
+      }
+    }
   }
 
   ///设备断开连接
   void _onDevDisConnected(String devId) {
+    final ds = _devSockets[devId];
+    if (ds != null && ds.socket.isForwardMode) {
+      final host = appConfig.forwardServer!.host;
+      final port = appConfig.forwardServer!.port;
+      final address = "$host:$port:$devId";
+      _connectingAddress.remove(address);
+    }
     //移除socket
     _devSockets.remove(devId);
     missingDataSyncProgress.remove(devId);
@@ -1307,18 +1399,18 @@ class SocketService extends GetxService {
     return sockets;
   }
 
-  ///断开主动设备连接
-  bool disConnectDevice(DevInfo dev, bool backSend) {
+  ///主动断开设备连接
+  bool disconnectDevice(DevInfo dev, bool backSend) {
     var id = dev.guid;
-    if (_devSockets.containsKey(id)) {
-      if (backSend) {
-        sendData(dev, MsgType.disConnect, {});
-      }
-      _devSockets[id]!.socket.destroy();
-      _onDevDisConnected(id);
-      return true;
+    if (!_devSockets.containsKey(id)) {
+      return false;
     }
-    return false;
+    if (backSend) {
+      sendData(dev, MsgType.disConnect, {});
+    }
+    _devSockets[id]!.socket.destroy();
+    _onDevDisConnected(id);
+    return true;
   }
 
   ///添加中转文件发送记录

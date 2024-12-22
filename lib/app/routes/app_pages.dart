@@ -1,3 +1,5 @@
+import '../../app/modules/licenses_module/licenses_page.dart';
+import '../../app/modules/licenses_module/licenses_bindings.dart';
 import '../../app/modules/update_log_module/update_log_page.dart';
 import '../../app/modules/update_log_module/update_log_bindings.dart';
 import '../../app/modules/about_module/about_page.dart';
@@ -115,6 +117,11 @@ abstract class AppPages {
       name: Routes.UPDATE_LOG,
       page: () => UpdateLogPage(),
       binding: UpdateLogBinding(),
+    ),
+    GetPage(
+      name: Routes.LICENSES,
+      page: () => LicensesPage(),
+      binding: LicensesBinding(),
     ),
   ];
 }

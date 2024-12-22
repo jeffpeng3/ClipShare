@@ -1,38 +1,42 @@
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
 
-class Version {
+class AppVersion {
   final String name;
   final String code;
 
   int get codeNum => code.toInt();
 
-  const Version(this.name, this.code);
+  const AppVersion(this.name, this.code);
 
   @override
   String toString() {
     return "$name($code)";
   }
 
-  bool operator >=(Version other) {
+  bool operator >=(AppVersion other) {
     return codeNum >= other.codeNum;
   }
 
-  bool operator <=(Version other) {
+  bool operator <=(AppVersion other) {
     return codeNum <= other.codeNum;
   }
 
-  bool operator >(Version other) {
+  bool operator >(AppVersion other) {
     return codeNum > other.codeNum;
   }
 
-  bool operator <(Version other) {
+  bool operator <(AppVersion other) {
     return codeNum < other.codeNum;
+  }
+
+  int operator -(AppVersion other) {
+    return codeNum - other.codeNum;
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Version &&
+      other is AppVersion &&
           runtimeType == other.runtimeType &&
           code == other.code;
 

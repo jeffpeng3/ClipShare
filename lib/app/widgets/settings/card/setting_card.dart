@@ -3,11 +3,13 @@ import 'package:get/get.dart';
 
 class SettingCard<T> extends StatefulWidget {
   final T value;
-  final Widget name;
+  final Widget title;
   final Widget? description;
   final Widget Function(T val)? action;
   bool separate;
   final bool showValueInSub;
+  final int titleFlex;
+  final int descFlex;
   late BorderRadius borderRadius;
   final bool Function(T)? show;
   void Function()? onTap;
@@ -16,8 +18,10 @@ class SettingCard<T> extends StatefulWidget {
 
   SettingCard({
     super.key,
-    required this.name,
+    required this.title,
     required this.value,
+    this.titleFlex=3,
+    this.descFlex=2,
     this.description,
     this.action,
     this.separate = false,
@@ -102,13 +106,13 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
                                             fontWeight: FontWeight.normal,
                                             fontSize: 17,
                                           ),
-                                      child: widget.name,
+                                      child: widget.title,
                                     ),
                                   ),
                                 ]
                               : [
                                   Expanded(
-                                    flex: 3,
+                                    flex: widget.titleFlex,
                                     child: SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,
                                       child: DefaultTextStyle(
@@ -119,12 +123,12 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
                                               fontWeight: FontWeight.normal,
                                               fontSize: 17,
                                             ),
-                                        child: widget.name,
+                                        child: widget.title,
                                       ),
                                     ),
                                   ),
                                   Expanded(
-                                    flex: 2,
+                                    flex: widget.descFlex,
                                     child: SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,
                                       child: DefaultTextStyle(

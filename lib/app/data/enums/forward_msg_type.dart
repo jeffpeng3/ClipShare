@@ -3,8 +3,6 @@ import 'package:clipshare/app/utils/log.dart';
 enum ForwardMsgType {
   //中转模式已准备好
   forwardReady,
-  //中转已经连接
-  alreadyConnected,
   //中转双方已连接
   bothConnected,
   //请求连接设备
@@ -19,6 +17,8 @@ enum ForwardMsgType {
   check,
   //不允许文件同步
   fileSyncNotAllowed,
+  //ping
+  ping,
   //未知key
   unknown;
 

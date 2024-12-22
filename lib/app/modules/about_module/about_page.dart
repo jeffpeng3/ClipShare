@@ -4,6 +4,7 @@ import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
+import 'package:clipshare/app/widgets/check_update_button.dart';
 import 'package:clipshare/app/widgets/settings/card/setting_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -37,7 +38,7 @@ class AboutPage extends GetView<AboutController> {
               SettingCard(
                 borderRadius: topBorderRadius,
                 padding: padding,
-                name: const Row(
+                title: const Row(
                   children: [
                     Icon(
                       Icons.help_outline_outlined,
@@ -64,7 +65,10 @@ class AboutPage extends GetView<AboutController> {
               ),
               SettingCard(
                 padding: padding,
-                name: const Row(
+                onTap: () {
+                  Get.toNamed(Routes.LICENSES);
+                },
+                title: const Row(
                   children: [
                     Icon(
                       Icons.event_note_outlined,
@@ -84,7 +88,7 @@ class AboutPage extends GetView<AboutController> {
               ),
               SettingCard(
                 padding: padding,
-                name: Row(
+                title: Row(
                   children: [
                     Icon(
                       MdiIcons.github,
@@ -111,7 +115,7 @@ class AboutPage extends GetView<AboutController> {
               ),
               SettingCard(
                 padding: padding,
-                name: Row(
+                title: Row(
                   children: [
                     Icon(
                       MdiIcons.qqchat,
@@ -134,7 +138,7 @@ class AboutPage extends GetView<AboutController> {
               ),
               SettingCard(
                 padding: padding,
-                name: Row(
+                title: Row(
                   children: [
                     Icon(
                       MdiIcons.web,
@@ -161,7 +165,7 @@ class AboutPage extends GetView<AboutController> {
               ),
               SettingCard(
                 padding: padding,
-                name: Row(
+                title: Row(
                   children: [
                     Icon(
                       MdiIcons.update,
@@ -185,7 +189,8 @@ class AboutPage extends GetView<AboutController> {
               SettingCard(
                 borderRadius: bottomBorderRadius,
                 padding: padding,
-                name: Row(
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Icon(
                       Icons.info_outline,
@@ -198,26 +203,21 @@ class AboutPage extends GetView<AboutController> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
-                          children: [
-                            Text(
-                              "软件版本",
-                              style: fontSize,
-                            ),
-                          ],
+                        const Text(
+                          "软件版本",
+                          style: fontSize,
                         ),
-                        Row(
-                          children: [
-                            Text(
-                              appConfig.version.toString(),
-                              style: const TextStyle(fontSize: 13),
-                            ),
-                          ],
+                        Text(
+                          appConfig.version.toString(),
+                          style: const TextStyle(fontSize: 13),
                         ),
                       ],
                     ),
                   ],
                 ),
+                action: (v) {
+                  return const CheckUpdateButton();
+                },
                 value: null,
               ),
             ],

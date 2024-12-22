@@ -171,8 +171,8 @@ class DeviceController extends GetxController
   @override
   void onConnected(
     DevInfo info,
-    Version minVersion,
-    Version version,
+    AppVersion minVersion,
+    AppVersion version,
     bool isForward,
   ) async {
     var dev = await Device.fromDevInfo(info);
@@ -282,7 +282,7 @@ class DeviceController extends GetxController
   }
 
   @override
-  void onForwardServerDisconnect() {
+  void onForwardServerDisconnected() {
     forwardConnected.value = false;
   }
 
@@ -418,7 +418,7 @@ class DeviceController extends GetxController
                         onTap: () {
                           var devInfo = DevInfo.fromDevice(device);
                           if (isConnected) {
-                            sktService.disConnectDevice(
+                            sktService.disconnectDevice(
                               devInfo,
                               true,
                             );
