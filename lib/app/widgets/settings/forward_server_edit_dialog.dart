@@ -9,7 +9,6 @@ import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/widgets/loading.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -73,13 +72,10 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
       ip: hostEditor.text,
       port: portEditor.text.toInt(),
       onConnected: (client) {
-        final appConfig = Get.find<ConfigService>();
-        final data = {
-          "connType": ForwardConnType.check.name,
-          "self": appConfig.device.guid,
-          "platform": defaultTargetPlatform.name.upperFirst(),
-          "appVersion": appConfig.version.toString(),
-        };
+        final data = ForwardSocketClient.baseMsg
+          ..addAll({
+            "connType": ForwardConnType.check.name,
+          });
         if (useKey) {
           data["key"] = keyEditor.text;
         }

@@ -366,12 +366,10 @@ class SocketService extends GetxService {
           }
           _startJudgeForwardClientAlivePeriod();
           //中转服务器连接成功后发送本机信息
-          final connData = {
-            "connType": ForwardConnType.base.name,
-            "self": appConfig.device.guid,
-            "platform": defaultTargetPlatform.name.upperFirst(),
-            "appVersion": appConfig.version.toString(),
-          };
+          final connData = ForwardSocketClient.baseMsg
+            ..addAll({
+              "connType": ForwardConnType.base.name,
+            });
           final key = appConfig.forwardServer?.key;
           if (key != null) {
             connData["key"] = key;

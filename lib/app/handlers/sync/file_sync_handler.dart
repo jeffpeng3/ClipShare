@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:clipshare/app/data/enums/forward_msg_type.dart';
 import 'package:clipshare/app/data/models/dev_info.dart';
 import 'package:clipshare/app/data/models/syncing_file.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
+import 'package:clipshare/app/handlers/socket/forward_socket_client.dart';
 import 'package:clipshare/app/handlers/socket/secure_socket_client.dart';
 import 'package:clipshare/app/modules/history_module/history_controller.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
@@ -67,19 +67,20 @@ class FileSyncHandler {
       //连接中转服务器
       Socket.connect(host, port).then((skt) async {
         _forwardSkt = skt;
+        var baseMsg = ForwardSocketClient.baseMsg;
         //向中转服务器发送基本信息
         final payload = utf8.encode(
-          json.encode({
-            "fileName": _file.fileName,
-            "size": (await _file.length()).toString(),
-            "fileId": _fileId.toString(),
-            "self": appConfig.device.guid,
-            "target": targetDevId!,
-            "connType": ForwardConnType.sendFile.name,
-            "platform": defaultTargetPlatform.name.upperFirst(),
-            "appVersion": appConfig.version.toString(),
-            "userId": appConfig.userId.toString(),
-          }),
+          json.encode(
+            baseMsg
+              ..addAll({
+                "fileName": _file.fileName,
+                "size": (await _file.length()).toString(),
+                "fileId": _fileId.toString(),
+                "target": targetDevId!,
+                "connType": ForwardConnType.sendFile.name,
+                "userId": appConfig.userId.toString(),
+              }),
+          ),
         );
         final msgSize = payload.length;
         final header = SecureSocketClient.createPacketHeader(
@@ -102,7 +103,7 @@ class FileSyncHandler {
       //延时检测是否有客户端连接，超时取消发送
       _delayedClientCheck(() {
         _onDone();
-        sktService.removeSendFileRecordByForward(this, _fileId,targetDevId!);
+        sktService.removeSendFileRecordByForward(this, _fileId, targetDevId!);
       });
     } else {
       ServerSocket.bind(InternetAddress.anyIPv4, 0).then((server) {
@@ -120,7 +121,7 @@ class FileSyncHandler {
 
   ///当文件接收方连接了中转服务器后由 SocketService 调用该方法通知发送端开始发送
   void onForwardReceiverConnected() {
-    sktService.removeSendFileRecordByForward(this, _fileId,null);
+    sktService.removeSendFileRecordByForward(this, _fileId, null);
     hasClient = true;
     //向 中转服务器 发送文件
     sendFile2Socket(_forwardSkt!);

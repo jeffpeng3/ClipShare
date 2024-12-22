@@ -328,8 +328,11 @@ class SettingsPage extends GetView<SettingsController> {
                               ),
                               onTap: () async {
                                 HapticFeedback.mediumImpact();
-                                Clipboard.setData(ClipboardData(
-                                    text: appConfig.devInfo.guid));
+                                Clipboard.setData(
+                                  ClipboardData(
+                                    text: appConfig.devInfo.guid,
+                                  ),
+                                );
                                 Global.showSnackBarSuc(
                                   context: context,
                                   text: "已复制设备id",

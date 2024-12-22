@@ -1,13 +1,27 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:clipshare/app/data/enums/forward_msg_type.dart';
 import 'package:clipshare/app/handlers/socket/data_packet_splitter.dart';
 import 'package:clipshare/app/handlers/socket/secure_socket_client.dart';
+import 'package:clipshare/app/services/config_service.dart';
+import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/log.dart';
+import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 
 class ForwardSocketClient {
+  static Map<String, dynamic> get baseMsg {
+    final appConfig = Get.find<ConfigService>();
+    return {
+      "self": appConfig.device.guid,
+      "devName": appConfig.localName,
+      "platform": defaultTargetPlatform.name.upperFirst(),
+      "appVersion": appConfig.version.toString(),
+    };
+  }
+
   final String ip;
   late final int _port;
 
@@ -20,7 +34,6 @@ class ForwardSocketClient {
   bool? _cancelOnError;
   late final StreamSubscription _stream;
   static const String tag = "ForwardSocketClient";
-
 
   ForwardSocketClient._private(this.ip);
 
