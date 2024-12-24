@@ -1,7 +1,9 @@
 import 'package:clipshare/app/utils/log.dart';
 
-abstract class ScreenOpenedObserver {
-  void onOpened();
+abstract mixin class ScreenOpenedObserver {
+  void onScreenOpened(){}
+
+  void onScreenClosed(){}
 }
 
 class ScreenOpenedListener {
@@ -24,10 +26,14 @@ class ScreenOpenedListener {
     return this;
   }
 
-  void notify() {
+  void notify(bool open) {
     for (var observer in _list) {
       try {
-        observer.onOpened();
+        if (open) {
+          observer.onScreenOpened();
+        } else {
+          observer.onScreenClosed();
+        }
       } catch (e, stacktrace) {
         Log.debug(tag, e);
         Log.debug(tag, stacktrace);

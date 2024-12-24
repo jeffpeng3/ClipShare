@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import "package:msgpack_dart/msgpack_dart.dart" as m2;
 import 'package:synchronized/synchronized.dart';
+
 import 'data_packet_splitter.dart';
 
 class AsyncLock {
@@ -211,7 +212,8 @@ class SecureSocketClient {
           }
           if (_onMessage != null) {
             final map = m2.deserialize(decrypt);
-            _onMessage(this, (map as Map<dynamic, dynamic>).cast<String, dynamic>());
+            _onMessage(
+                this, (map as Map<dynamic, dynamic>).cast<String, dynamic>());
           }
         } else {
           //密钥未交换

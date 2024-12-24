@@ -15,6 +15,7 @@ import 'package:clipshare/app/handlers/socket/secure_socket_server.dart';
 import 'package:clipshare/app/handlers/sync/file_sync_handler.dart';
 import 'package:clipshare/app/handlers/sync/missing_data_sync_handler.dart';
 import 'package:clipshare/app/handlers/task_runner.dart';
+import 'package:clipshare/app/listeners/screen_opened_listener.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
@@ -23,7 +24,6 @@ import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -106,7 +106,7 @@ class MissingDataSyncProgress {
   bool get hasCompleted => syncedCount >= total;
 }
 
-class SocketService extends GetxService {
+class SocketService extends GetxService with ScreenOpenedObserver {
   final appConfig = Get.find<ConfigService>();
   final dbService = Get.find<DbService>();
   static const String tag = "SocketService";
@@ -508,11 +508,8 @@ class SocketService extends GetxService {
     SecureSocketClient client,
     MessageData msg,
   ) async {
-    assert(() {
-      Log.debug(tag, msg.key);
-      return true;
-    }());
     DevInfo dev = msg.send;
+    Log.debug(tag, "${dev.name} ${msg.key}");
     var address =
         ipSetTemp.firstWhereOrNull((ip) => ip.split(":")[0] == client.ip);
     switch (msg.key) {
@@ -1165,19 +1162,21 @@ class SocketService extends GetxService {
     }
   }
 
+  //region 心跳相关
   ///开始所有设备的心跳测试
   void startHeartbeatTest() {
     //先停止
     stopHeartbeatTest();
     //首次直接发送
     sendData(null, MsgType.ping, {}, false);
-    judgeDeviceHeartbeatTimeout();
+    // judgeDeviceHeartbeatTimeout();
     var interval = appConfig.heartbeatInterval;
     if (interval <= 0) return;
     //更新timer
     _heartbeatTimer = Timer.periodic(Duration(seconds: interval), (timer) {
       if (_devSockets.isEmpty) return;
-      judgeDeviceHeartbeatTimeout();
+      Log.debug(tag, "send ping");
+      // judgeDeviceHeartbeatTimeout();
       sendData(null, MsgType.ping, {}, false);
     });
   }
@@ -1220,6 +1219,7 @@ class SocketService extends GetxService {
 
   ///判断设备心跳是否超时
   void judgeDeviceHeartbeatTimeout() {
+    //手机在息屏后无法发送网络数据
     var interval = appConfig.heartbeatInterval * 1.3;
     final now = DateTime.now();
     var skts = _devSockets.values.toList();
@@ -1230,12 +1230,18 @@ class SocketService extends GetxService {
       final diff = now.difference(ds.lastPingTime!);
       if (diff.inSeconds > interval) {
         //心跳超时
-        print("judgeDeviceHeartbeatTimeout ${ds.dev.guid}");
+        Log.debug(tag, "judgeDeviceHeartbeatTimeout ${ds.dev.guid}");
         disconnectDevice(ds.dev, true);
       }
     }
   }
 
+  @override
+  void onScreenOpened() {
+    startDiscoveringDevices();
+  }
+
+  //endregion
   ///设备断开连接
   void _onDevDisConnected(String devId) {
     final ds = _devSockets[devId];
@@ -1304,6 +1310,7 @@ class SocketService extends GetxService {
         data: data,
         recv: null,
       );
+      Log.debug(tag, skt.dev.name);
       await skt.socket.send(msg.toJson());
     }
   }

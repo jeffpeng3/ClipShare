@@ -249,7 +249,10 @@ class SplashController extends GetxController {
       appConfig.androidChannel.setMethodCallHandler((call) async {
         switch (call.method) {
           case AndroidChannelMethod.onScreenOpened:
-            ScreenOpenedListener.inst.notify();
+            ScreenOpenedListener.inst.notify(true);
+            break;
+          case AndroidChannelMethod.onScreenClosed:
+            ScreenOpenedListener.inst.notify(false);
             break;
           case AndroidChannelMethod.onSmsChanged:
             final content = call.arguments["content"]!;

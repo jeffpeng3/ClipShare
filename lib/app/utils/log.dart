@@ -18,40 +18,40 @@ class Log {
   static void debug(String tag, dynamic) {
     var log = "[$tag] ${DateTime.now().format()} | $dynamic";
     _logger.d(log);
-    writeFiles("[debug] | $log");
+    writeLog("[debug] | $log");
   }
 
   static void trace(String tag, dynamic) {
     var log = "[$tag] ${DateTime.now().format()} | $dynamic";
     _logger.t(log);
-    writeFiles("[trace] | $log");
+    writeLog("[trace] | $log");
   }
 
   static void info(String tag, dynamic) {
     var log = "[$tag] ${DateTime.now().format()} | $dynamic";
     _logger.i(log);
-    writeFiles("[info] | $log");
+    writeLog("[info] | $log");
   }
 
   static void warn(String tag, dynamic) {
     var log = "[$tag] ${DateTime.now().format()} | $dynamic";
     _logger.w(log);
-    writeFiles("[warn] | $log");
+    writeLog("[warn] | $log");
   }
 
   static void fatal(String tag, dynamic) {
     var log = "[$tag] ${DateTime.now().format()} | $dynamic";
     _logger.w(log);
-    writeFiles("[fatal] | $log");
+    writeLog("[fatal] | $log");
   }
 
   static void error(String tag, dynamic) {
     var log = "[$tag] ${DateTime.now().format()} | $dynamic";
     _logger.e(log);
-    writeFiles("[error] | $log");
+    writeLog("[error] | $log");
   }
 
-  static void writeFiles(String content) {
+  static void writeLog(String content) {
     final appConfig = Get.find<ConfigService>();
     try {
       if (!appConfig.enableLogsRecord) {
@@ -64,9 +64,8 @@ class Log {
     var filePath = "${appConfig.logsDirPath}/$dateStr.txt";
     Directory(appConfig.logsDirPath).createSync();
     var file = File(filePath);
-    var f = file
-        .writeAsString(content, mode: FileMode.writeOnlyAppend)
-        .then((f) => f.writeAsString("\n", mode: FileMode.writeOnlyAppend));
-    _writeFuture = _writeFuture.then((v) => f);
+    _writeFuture = _writeFuture.then(
+      (v) => file.writeAsString("$content\n", mode: FileMode.writeOnlyAppend),
+    );
   }
 }

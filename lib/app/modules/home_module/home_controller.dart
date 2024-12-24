@@ -34,8 +34,7 @@ import 'package:get/get.dart';
  * */
 
 class HomeController extends GetxController
-    with WidgetsBindingObserver
-    implements ScreenOpenedObserver {
+    with WidgetsBindingObserver, ScreenOpenedObserver {
   final appConfig = Get.find<ConfigService>();
   final settingsController = Get.find<SettingsController>();
 
@@ -159,7 +158,7 @@ class HomeController extends GetxController
   }
 
   @override
-  Future<void> onOpened() async {
+  Future<void> onScreenOpened() async {
     //此处应该发送socket通知同步剪贴板到本机
     sktService.reqMissingData();
     if (appConfig.authenticating.value || !appConfig.useAuthentication) return;

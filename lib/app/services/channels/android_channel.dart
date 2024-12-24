@@ -12,6 +12,7 @@ class AndroidChannelMethod {
   AndroidChannelMethod._private();
 
   static const onScreenOpened = "onScreenOpened";
+  static const onScreenClosed = "onScreenClosed";
   static const notifyMediaScan = "notifyMediaScan";
   static const showHistoryFloatWindow = "showHistoryFloatWindow";
   static const closeHistoryFloatWindow = "closeHistoryFloatWindow";

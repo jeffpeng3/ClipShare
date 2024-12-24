@@ -17,7 +17,12 @@ class PermissionHelper {
     if (!Platform.isAndroid) return true;
     final appConfig = Get.find<ConfigService>();
     dirPath = dirPath ?? appConfig.fileStorePath;
-    var isGranted = await Permission.storage.isGranted;
+    bool isGranted = false;
+    if (appConfig.osVersion >= 13) {
+      isGranted = await Permission.manageExternalStorage.isGranted;
+    } else {
+      isGranted = await Permission.storage.isGranted;
+    }
     if (isGranted && _testFileOperate(dirPath)) {
       return true;
     }
@@ -40,7 +45,12 @@ class PermissionHelper {
       var status = await Permission.manageExternalStorage.request();
       Log.info(tag, "request manageExternalStoragePermission: $status");
     }
-    var status = await Permission.storage.request();
+    late final PermissionStatus status;
+    if (appConfig.osVersion >= 13) {
+      status = await Permission.manageExternalStorage.request();
+    } else {
+      status = await Permission.storage.request();
+    }
     Log.info(tag, "request storagePermission: $status");
   }
 
