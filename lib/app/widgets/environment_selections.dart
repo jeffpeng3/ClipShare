@@ -2,6 +2,7 @@ import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/global.dart';
+import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/widgets/environment_selection_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -21,8 +22,64 @@ class EnvironmentSelections extends StatefulWidget {
 }
 
 class _EnvironmentSelectionsState extends State<EnvironmentSelections>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, ClipboardListener {
   EnvironmentType? _selectedEnv;
+  bool requesting = false;
+  EnvironmentType? requestingPerm;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    clipboardManager.addListener(this);
+  }
+
+  @override
+  void onPermissionStatusChanged(EnvironmentType environment, bool isGranted) {
+    Log.debug(
+      "EnvironmentSelections",
+      "onPermissionStatusChanged $environment $isGranted",
+    );
+    if (!requesting || requestingPerm != environment) return;
+    //关闭等待弹窗
+    Get.back();
+    setState(() {
+      requesting = false;
+      requestingPerm = null;
+    });
+    if (isGranted) {
+      setState(() {
+        _selectedEnv = environment;
+        widget.onSelected(_selectedEnv);
+      });
+    } else {
+      if (environment == EnvironmentType.shizuku) {
+        Global.showTipsDialog(
+          context: context,
+          title: '请求失败',
+          text: "Shizuku 权限请求失败，请确保已启动Shizuku并重试",
+          showCancel: false,
+          onOk: () {
+            Get.back();
+          },
+        );
+      } else if (environment == EnvironmentType.root) {
+        Global.showTipsDialog(
+          context: context,
+          title: '请求失败',
+          text: "似乎没有 Root 权限，可选择 Shizuku 模式启动",
+          showCancel: false,
+        );
+      }
+    }
+  }
+
+  @override
+  void onClipboardChanged(ClipboardContentType type, String content) {
+    // TODO: implement onClipboardChanged
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +96,7 @@ class _EnvironmentSelectionsState extends State<EnvironmentSelections>
           tipContent: Row(
             children: [
               const Text(
-                "Shizuka 模式",
+                "Shizuku 模式",
                 style: TextStyle(
                   color: Colors.blueGrey,
                   fontWeight: FontWeight.bold,
@@ -69,26 +126,13 @@ class _EnvironmentSelectionsState extends State<EnvironmentSelections>
             "无需 Root，需要安装 Shizuku，重启手机后需要重新激活",
             style: TextStyle(fontSize: 12, color: Color(0xff6d6d70)),
           ),
-          onTap: () async {
-            await clipboardManager.requestPermission(EnvironmentType.shizuku);
-            var hasPermission =
-                await clipboardManager.checkPermission(EnvironmentType.shizuku);
-            if (hasPermission) {
-              setState(() {
-                _selectedEnv = EnvironmentType.shizuku;
-              });
-              widget.onSelected(_selectedEnv);
-            } else {
-              Global.showTipsDialog(
-                context: context,
-                title: '请求失败',
-                text: "Shizuku 权限请求失败，请确保已启动Shizuku并重试",
-                showCancel: false,
-                onOk: () {
-                  Get.back();
-                },
-              );
-            }
+          onTap: () {
+            setState(() {
+              requesting = true;
+              requestingPerm = EnvironmentType.shizuku;
+            });
+            Global.showLoadingDialog(context: context, loadingText: '等待请求结果');
+            clipboardManager.requestPermission(EnvironmentType.shizuku);
           },
         ),
         EnvironmentSelectionCard(
@@ -110,23 +154,13 @@ class _EnvironmentSelectionsState extends State<EnvironmentSelections>
             "以 Root 权限启动，重启手机无需重新激活",
             style: TextStyle(fontSize: 12, color: Color(0xff6d6d70)),
           ),
-          onTap: () async {
-            await clipboardManager.requestPermission(EnvironmentType.root);
-            var hasPermission =
-                await clipboardManager.checkPermission(EnvironmentType.root);
-            if (hasPermission) {
-              setState(() {
-                _selectedEnv = EnvironmentType.root;
-              });
-              widget.onSelected(_selectedEnv);
-            } else {
-              Global.showTipsDialog(
-                context: context,
-                title: '请求失败',
-                text: "似乎没有 Root 权限，可选择 Shizuku 模式启动",
-                showCancel: false,
-              );
-            }
+          onTap: () {
+            setState(() {
+              requesting = true;
+              requestingPerm = EnvironmentType.root;
+            });
+            Global.showLoadingDialog(context: context, loadingText: '等待请求结果');
+            clipboardManager.requestPermission(EnvironmentType.root);
           },
         ),
         EnvironmentSelectionCard(
@@ -135,6 +169,8 @@ class _EnvironmentSelectionsState extends State<EnvironmentSelections>
             setState(() {
               _selectedEnv = EnvironmentType.none;
               widget.onSelected.call(EnvironmentType.none);
+              requestingPerm = null;
+              requesting = false;
             });
           },
           icon: const Icon(
@@ -158,7 +194,4 @@ class _EnvironmentSelectionsState extends State<EnvironmentSelections>
       ],
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }

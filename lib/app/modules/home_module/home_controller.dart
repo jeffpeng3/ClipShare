@@ -20,6 +20,7 @@ import 'package:clipshare/app/modules/settings_module/settings_page.dart';
 import 'package:clipshare/app/modules/sync_file_module/sync_file_page.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
+import 'package:clipshare/app/services/clipboard_service.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/app_update_info_util.dart';
@@ -146,10 +147,15 @@ class HomeController extends GetxController
     }
     _initSearchPageShow();
     if (Platform.isWindows) {
-      clipboardManager.startListening();
+      clipboardManager.startListening(
+        notificationContentConfig: ClipboardService.notificationContentConfig,
+      );
     } else {
       clipboardManager
-          .startListening(startEnv: appConfig.workingMode)
+          .startListening(
+        startEnv: appConfig.workingMode,
+        notificationContentConfig: ClipboardService.notificationContentConfig,
+      )
           .then((started) {
         settingsController.checkPermissions();
       });
@@ -180,6 +186,7 @@ class HomeController extends GetxController
     super.didChangeAppLifecycleState(state);
     switch (state) {
       case AppLifecycleState.resumed:
+        AppUpdateInfoUtil.showUpdateInfo();
         if (!appConfig.useAuthentication ||
             appConfig.authenticating.value ||
             pausedTime == null) {

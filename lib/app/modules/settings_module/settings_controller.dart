@@ -4,6 +4,7 @@ import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/handlers/permission_handler.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
+import 'package:clipshare/app/services/clipboard_service.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/permission_helper.dart';
 import 'package:clipshare/app/widgets/auth_password_input.dart';
@@ -166,7 +167,10 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     if (envStatusBgColor.value != warningBgColor) return;
     await clipboardManager.requestPermission(appConfig.workingMode!);
     clipboardManager.stopListening();
-    clipboardManager.startListening(startEnv: appConfig.workingMode);
+    clipboardManager.startListening(
+      startEnv: appConfig.workingMode,
+      notificationContentConfig: ClipboardService.notificationContentConfig,
+    );
   }
 
   ///EnvironmentStatusCard action click
@@ -238,7 +242,10 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     envStatusBgColor.value = hasPermission && listening ? null : warningBgColor;
     if (restart) {
       clipboardManager.stopListening();
-      clipboardManager.startListening(startEnv: mode);
+      clipboardManager.startListening(
+        startEnv: mode,
+        notificationContentConfig: ClipboardService.notificationContentConfig,
+      );
       checkPermissions();
     }
   }

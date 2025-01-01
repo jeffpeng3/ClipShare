@@ -7,10 +7,14 @@ import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/global.dart';
+import 'package:clipshare/app/utils/log.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
 class AppUpdateInfoUtil {
+  //上次检测app更新的时间
+  static DateTime? _lastCheckUpdateTime;
+
   static Future<List<UpdateLog>> fetchUpdateLogs() async {
     final resp = await http.get(Uri.parse(Constants.appUpdateInfoUtl));
     if (resp.statusCode != 200) {
@@ -37,7 +41,16 @@ class AppUpdateInfoUtil {
     return updateLogs;
   }
 
-  static Future<bool> showUpdateInfo() async {
+  static Future<bool> showUpdateInfo([bool debounce = false]) async {
+    final now = DateTime.now();
+    if (_lastCheckUpdateTime != null && debounce) {
+      final diffMinutes = now.difference(_lastCheckUpdateTime!).inHours;
+      //检测间隔不能低于6h
+      if (diffMinutes < 6) {
+        return false;
+      }
+    }
+    _lastCheckUpdateTime = now;
     final logs = await fetchUpdateLogs();
     if (logs.isEmpty) {
       return false;

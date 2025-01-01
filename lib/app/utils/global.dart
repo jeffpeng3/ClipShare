@@ -149,44 +149,47 @@ class Global {
       context: context,
       barrierDismissible: dismissible,
       builder: (context) {
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AlertDialog(
-              content: IntrinsicHeight(
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 80,
-                      child: Loading(
-                        width: 32,
-                        description:
-                            loadingText != null ? Text(loadingText) : null,
+        return PopScope(
+          canPop: dismissible,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AlertDialog(
+                content: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 80,
+                        child: Loading(
+                          width: 32,
+                          description:
+                              loadingText != null ? Text(loadingText) : null,
+                        ),
                       ),
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Visibility(
-                      visible: showCancel,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TextButton(
-                            onPressed: () {
-                              Get.back();
-                              onCancel?.call();
-                            },
-                            child: const Text("取消"),
-                          ),
-                        ],
+                      const SizedBox(
+                        height: 10,
                       ),
-                    ),
-                  ],
+                      Visibility(
+                        visible: showCancel,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                Get.back();
+                                onCancel?.call();
+                              },
+                              child: const Text("取消"),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );

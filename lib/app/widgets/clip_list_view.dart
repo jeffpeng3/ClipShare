@@ -445,7 +445,8 @@ class ClipListViewState extends State<ClipListView>
                                     text: "是否删除选中的 ${_selectedItems.length} 项？",
                                     showCancel: true,
                                     autoDismiss: false,
-                                    showNeutral: true,
+                                    showNeutral: _selectedItems
+                                        .any((item) => item.isFile),
                                     neutralText: "连带文件删除",
                                     onCancel: () {
                                       Navigator.pop(context);
