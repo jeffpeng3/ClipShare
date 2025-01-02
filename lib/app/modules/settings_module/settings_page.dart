@@ -411,6 +411,7 @@ class SettingsPage extends GetView<SettingsController> {
                           onChanged: (checked) {
                             HapticFeedback.mediumImpact();
                             appConfig.setAllowDiscover(checked);
+                            sktService.disConnectAllConnections(true);
                           },
                         ),
                       ),

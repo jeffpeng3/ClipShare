@@ -104,8 +104,9 @@ class _DeviceCardState extends State<DeviceCard> {
   void initState() {
     super.initState();
     _empty = widget.dev == null;
-    _setTimer();
-    setState(() {});
+    if(_empty) {
+      _setTimer();
+    }
   }
 
   @override

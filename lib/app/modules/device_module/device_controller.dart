@@ -222,7 +222,7 @@ class DeviceController extends GetxController
   }
 
   @override
-  void onDisConnected(String devId) {
+  void onDisconnected(String devId) {
     discoverList.removeWhere((dev) => dev.dev?.guid == devId);
     for (var i = 0; i < pairedList.length; i++) {
       var dev = pairedList[i];
@@ -425,7 +425,8 @@ class DeviceController extends GetxController
                           } else {
                             var address = device.address;
                             var [ip, port] = address!.split(":");
-                            if (isForward) {
+                            final forwardHost = appConfig.forwardServer?.host;
+                            if (isForward || ip == forwardHost) {
                               sktService.manualConnectByForward(device.guid);
                             } else {
                               sktService.manualConnect(ip, port: port.toInt());
