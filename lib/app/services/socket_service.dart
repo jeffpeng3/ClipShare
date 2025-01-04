@@ -560,6 +560,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
       ///主动断开连接
       case MsgType.disConnect:
         _onDevDisconnected(dev.guid, false);
+        client.destroy();
         break;
 
       ///忘记设备
