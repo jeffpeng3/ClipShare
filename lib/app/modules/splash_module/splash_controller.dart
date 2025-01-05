@@ -57,6 +57,12 @@ class SplashController extends GetxController {
       } else {
         Get.offNamed(Routes.HOME);
       }
+    }).catchError((err, stack) {
+      Global.showTipsDialog(
+        context: Get.context!,
+        text: "$err\n$stack",
+        title: "错误",
+      );
     });
   }
 

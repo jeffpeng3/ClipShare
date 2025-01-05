@@ -20,9 +20,14 @@ extension DirectoryExt on Directory {
       if (entity is Directory) return false;
       final file = entity as File;
       if (file.extension != "lnk") return false;
-      final String resolvedShortcutPath = await file.resolveIfShortcut();
-      if (resolvedShortcutPath.normalizePath == realPath) {
-        return true;
+      try {
+        final String resolvedShortcutPath = await file.resolveIfShortcut();
+        if (resolvedShortcutPath.normalizePath == realPath) {
+          return true;
+        }
+      } catch (err, stack) {
+        print(err);
+        print(stack);
       }
     }
     return false;
@@ -35,9 +40,14 @@ extension DirectoryExt on Directory {
       if (entity is Directory) return;
       final file = entity as File;
       if (file.extension != "lnk") return;
-      final String resolvedShortcutPath = await file.resolveIfShortcut();
-      if (resolvedShortcutPath.normalizePath == realPath) {
-        return file.deleteSync();
+      try {
+        final String resolvedShortcutPath = await file.resolveIfShortcut();
+        if (resolvedShortcutPath.normalizePath == realPath) {
+          return file.deleteSync();
+        }
+      } catch (err, stack) {
+        print(err);
+        print(stack);
       }
     }
   }
