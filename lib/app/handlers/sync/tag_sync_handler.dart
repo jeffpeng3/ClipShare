@@ -1,3 +1,6 @@
+import 'package:clipshare/app/data/enums/module.dart';
+import 'package:clipshare/app/data/enums/msg_type.dart';
+import 'package:clipshare/app/data/enums/op_method.dart';
 import 'package:clipshare/app/data/models/message_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history_tag.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
@@ -6,7 +9,6 @@ import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/services/tag_service.dart';
-import 'package:clipshare/app/utils/constants.dart';
 import 'package:get/get.dart';
 
 /// 标签同步处理器

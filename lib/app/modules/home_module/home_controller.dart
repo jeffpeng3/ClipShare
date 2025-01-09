@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/handlers/permission_handler.dart';
 import 'package:clipshare/app/handlers/sync/history_top_sync_handler.dart';
 import 'package:clipshare/app/handlers/sync/rules_sync_handler.dart';
@@ -61,24 +62,7 @@ class HomeController extends GetxController
 
   RxList<GetView> get pages => _pages;
 
-  final _navBarItems = List<BottomNavigationBarItem>.from(const [
-    BottomNavigationBarItem(
-      icon: Icon(Icons.history),
-      label: '历史记录',
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.devices_rounded),
-      label: '我的设备',
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.sync_alt_outlined),
-      label: '传输记录',
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.settings),
-      label: '应用设置',
-    ),
-  ]).obs;
+  final _navBarItems = <BottomNavigationBarItem>[].obs;
 
   RxList<BottomNavigationBarItem> get navBarItems => _navBarItems;
 
@@ -90,6 +74,7 @@ class HomeController extends GetxController
         ),
       )
       .toList();
+
   var leftMenuExtend = true.obs;
   late TagSyncHandler _tagSyncer;
   late HistoryTopSyncHandler _historyTopSyncer;
@@ -123,13 +108,8 @@ class HomeController extends GetxController
   @override
   void onInit() {
     super.onInit();
+    initNavBarItems();
     assert(() {
-      _navBarItems.add(
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.bug_report_outlined),
-          label: "Debug",
-        ),
-      );
       _pages.add(DebugPage());
       return true;
     }());
@@ -160,7 +140,7 @@ class HomeController extends GetxController
         settingsController.checkPermissions();
       });
     }
-    AppUpdateInfoUtil.showUpdateInfo();
+    AppUpdateInfoUtil.showUpdateInfo(true);
   }
 
   @override
@@ -168,7 +148,9 @@ class HomeController extends GetxController
     //此处应该发送socket通知同步剪贴板到本机
     sktService.reqMissingData();
     if (appConfig.authenticating.value || !appConfig.useAuthentication) return;
-    gotoAuthenticationPage("超时验证");
+    gotoAuthenticationPage(
+      TranslationKey.authenticationPageBackendTimeoutVerificationTitle.tr,
+    );
   }
 
   @override
@@ -186,7 +168,7 @@ class HomeController extends GetxController
     super.didChangeAppLifecycleState(state);
     switch (state) {
       case AppLifecycleState.resumed:
-        AppUpdateInfoUtil.showUpdateInfo();
+        AppUpdateInfoUtil.showUpdateInfo(true);
         if (!appConfig.useAuthentication ||
             appConfig.authenticating.value ||
             pausedTime == null) {
@@ -203,7 +185,9 @@ class HomeController extends GetxController
         if (offsetMinutes < authDurationSeconds) {
           return;
         }
-        gotoAuthenticationPage("超时验证");
+        gotoAuthenticationPage(
+          TranslationKey.authenticationPageBackendTimeoutVerificationTitle.tr,
+        );
         break;
       case AppLifecycleState.paused:
         if (appConfig.authenticating.value) {
@@ -266,35 +250,81 @@ class HomeController extends GetxController
     }
   }
 
-  void _initSearchPageShow() {
-    var i = _navBarItems
-        .indexWhere((element) => (element.icon as Icon).icon == Icons.search);
-    var hasSearchPage = i != -1;
-    if (!hasSearchPage && showLeftBar) {
-      var i = _navBarItems
-          .indexWhere((e) => (e.icon as Icon).icon == Icons.settings);
-      _navBarItems.insert(
-        i,
+  ///初始化导航栏
+  void initNavBarItems() {
+    final items = [
+      BottomNavigationBarItem(
+        icon: const Icon(Icons.history),
+        label: TranslationKey.historyRecord.tr,
+      ),
+      BottomNavigationBarItem(
+        icon: const Icon(Icons.devices_rounded),
+        label: TranslationKey.myDevice.tr,
+      ),
+      BottomNavigationBarItem(
+        icon: const Icon(Icons.sync_alt_outlined),
+        label: TranslationKey.fileTransfer.tr,
+      ),
+      BottomNavigationBarItem(
+        icon: const Icon(Icons.settings),
+        label: TranslationKey.appSettings.tr,
+      ),
+    ];
+    assert(() {
+      items.add(
         const BottomNavigationBarItem(
-          icon: Icon(Icons.search),
-          label: "搜索历史",
+          icon: Icon(Icons.bug_report_outlined),
+          label: "Debug",
         ),
       );
-      _pages.insert(
-        i,
-        SearchPage(),
-      );
-    }
-    if (hasSearchPage && !showLeftBar) {
-      _pages.removeAt(i);
-      _navBarItems.removeAt(i);
+      return true;
+    }());
+    _navBarItems.value = items;
+  }
+
+  void _initSearchPageShow() {
+    var searchNavBarIdx = _navBarItems
+        .indexWhere((element) => (element.icon as Icon).icon == Icons.search);
+    final searchPageIdx = _pages.indexWhere((p) => p is SearchPage);
+    var settingNavBarIdx =
+        _navBarItems.indexWhere((e) => (e.icon as Icon).icon == Icons.settings);
+    var hasSearchPage = searchPageIdx != -1;
+    var hasSearchNavBar = searchNavBarIdx != -1;
+    if (showLeftBar) {
+      //大屏幕
+      //如果没有搜索页则加入
+      if (!hasSearchPage) {
+        _pages.insert(
+          settingNavBarIdx,
+          SearchPage(),
+        );
+      }
+      if (!hasSearchNavBar) {
+        _navBarItems.insert(
+          settingNavBarIdx,
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.search),
+            label: TranslationKey.bottomNavigationSearchHistoryBarItemLabel.tr,
+          ),
+        );
+      }
+    } else {
+      //如果有搜索页则移除
+      if (hasSearchPage) {
+        _pages.removeAt(searchPageIdx);
+      }
+      //如果有搜索导航栏且则移除
+      if (hasSearchNavBar) {
+        _navBarItems.removeAt(searchNavBarIdx);
+      }
     }
   }
 
   //endregion
 
   //region 页面跳转相关
-  //跳转验证页面
+
+  ///跳转验证页面
   Future? gotoAuthenticationPage(localizedReason, [bool lock = true]) {
     appConfig.authenticating.value = true;
     return Get.toNamed(

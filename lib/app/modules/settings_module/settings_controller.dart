@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/handlers/permission_handler.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/clipboard_service.dart';
@@ -38,9 +39,9 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   //region environment status widgets
   final Rx<Widget> envStatusIcon = Rx<Widget>(const Loading(width: 32));
   final Rx<Widget> envStatusTipContent = Rx<Widget>(
-    const Text(
-      "Loading Environment Status...",
-      style: TextStyle(fontSize: 16),
+    Text(
+      TranslationKey.envStatusLoadingText.tr,
+      style: const TextStyle(fontSize: 16),
     ),
   );
   final Rx<Widget> envStatusTipDesc = Rx<Widget>(const SizedBox.shrink());
@@ -59,57 +60,59 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   );
 
   //region Shizuku
-  final shizukuEnvNormalTipContent = const Text(
-    "Shizuku 模式",
-    style: TextStyle(
+  final shizukuEnvNormalTipContent = Text(
+    TranslationKey.shizukuModeStatusTitle.tr,
+    style: const TextStyle(
       fontSize: 20,
       fontWeight: FontWeight.bold,
       color: Colors.blueGrey,
     ),
   );
-  final shizukuEnvErrorTipContent = const Text(
-    "Shizuku 模式",
-    style: TextStyle(fontSize: 16),
+  final shizukuEnvErrorTipContent = Text(
+    TranslationKey.shizukuModeStatusTitle.tr,
+    style: const TextStyle(fontSize: 16),
   );
   final Rx<int?> shizukuVersion = Rx<int?>(null);
 
   Widget get shizukuEnvNormalTipDesc => Obx(
         () => Text(
-          "服务已运行，API ${shizukuVersion.value}",
+          TranslationKey.shizukuModeRunningDescription.trParams({
+            'version': shizukuVersion.value?.toString() ?? "",
+          }),
           style: const TextStyle(fontSize: 14, color: Color(0xff6d6d70)),
         ),
       );
-  final shizukuEnvErrorTipDesc = const Text(
-    "服务未运行，部分功能不可用",
-    style: TextStyle(fontSize: 14),
+  final shizukuEnvErrorTipDesc = Text(
+    TranslationKey.serverNotRunningDescription.tr,
+    style: const TextStyle(fontSize: 14),
   );
 
   //endregion
 
   //region Root
-  final rootEnvNormalTipContent = const Text(
-    "Root 模式",
-    style: TextStyle(fontSize: 16),
+  final rootEnvNormalTipContent = Text(
+    TranslationKey.rootModeStatusTitle.tr,
+    style: const TextStyle(fontSize: 16),
   );
-  final rootEnvErrorTipContent = const Text(
-    "Root 模式",
-    style: TextStyle(fontSize: 16),
+  final rootEnvErrorTipContent = Text(
+    TranslationKey.rootModeStatusTitle.tr,
+    style: const TextStyle(fontSize: 16),
   );
-  final rootEnvNormalTipDesc = const Text(
-    "已授权，服务已运行",
-    style: TextStyle(fontSize: 14),
+  final rootEnvNormalTipDesc = Text(
+    TranslationKey.rootModeRunningDescription.tr,
+    style: const TextStyle(fontSize: 14),
   );
-  final rootEnvErrorTipDesc = const Text(
-    "服务未运行，部分功能不可用",
-    style: TextStyle(fontSize: 14),
+  final rootEnvErrorTipDesc = Text(
+    TranslationKey.serverNotRunningDescription.tr,
+    style: const TextStyle(fontSize: 14),
   );
 
   //endregion
 
   //region Android Pre 10
-  final androidPre10TipContent = const Text(
-    "无需特殊权限",
-    style: TextStyle(fontSize: 16),
+  final androidPre10TipContent = Text(
+    TranslationKey.noSpecialPermissionRequired.tr,
+    style: const TextStyle(fontSize: 16),
   );
 
   Widget get androidPre10EnvNormalTipDesc => Text(
@@ -120,14 +123,14 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   //endregion
 
   //region ignore
-  final ignoreTipContent = const Text(
-    "已忽略权限",
-    style: TextStyle(fontSize: 16),
+  final ignoreTipContent = Text(
+    TranslationKey.envPermissionIgnored.tr,
+    style: const TextStyle(fontSize: 16),
   );
 
-  final ignoreTipDesc = const Text(
-    "部分功能可能不可用",
-    style: TextStyle(fontSize: 14),
+  final ignoreTipDesc = Text(
+    TranslationKey.envPermissionIgnoredDescription.tr,
+    style: const TextStyle(fontSize: 14),
   );
 
   //endregion
@@ -144,7 +147,7 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     envStatusAction.value = IconButton(
       icon: const Icon(Icons.more_horiz_outlined),
-      tooltip: "切换工作模式",
+      tooltip: TranslationKey.switchWorkingMode.tr,
       onPressed: onEnvironmentStatusCardActionClick,
     );
     checkPermissions();

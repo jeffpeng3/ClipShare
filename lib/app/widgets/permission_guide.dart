@@ -1,4 +1,4 @@
-import 'package:clipshare/app/utils/log.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:flutter/material.dart';
 
 class PermissionGuide extends StatefulWidget {
@@ -105,7 +105,11 @@ class _PermissionGuideState extends State<PermissionGuide>
                             color: Colors.blue,
                           )
                         : const SizedBox.shrink(),
-                    label: Text(_hasPerm ? "已授权" : "去授权"),
+                    label: Text(
+                      _hasPerm
+                          ? TranslationKey.goAuthorize.tr
+                          : TranslationKey.authorized.tr,
+                    ),
                   )),
       ],
     );

@@ -1,7 +1,7 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/handlers/guide/base_guide.dart';
 import 'package:clipshare/app/handlers/permission_handler.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
-import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/widgets/permission_guide.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,9 +13,9 @@ class NotifyPermGuide extends BaseGuide {
 
   NotifyPermGuide() {
     super.widget = PermissionGuide(
-      title: "通知权限",
+      title: TranslationKey.notificationPermGuideTitle.tr,
       icon: Icons.notifications_active_outlined,
-      description: "开启通知，以启动前台服务",
+      description: TranslationKey.notificationPermGuideDescription.tr,
       grantPerm: permHandler.request,
       checkPerm: canNext,
     );

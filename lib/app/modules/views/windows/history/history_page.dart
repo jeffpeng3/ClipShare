@@ -133,7 +133,7 @@ class _CompactPageState extends State<CompactPage> {
       body: RefreshIndicator(
         onRefresh: refresh,
         child: _list.isEmpty
-            ? const EmptyContent()
+            ? EmptyContent()
             : ListView.builder(
                 itemCount: _list.length,
                 controller: _scrollController,

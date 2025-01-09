@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/widgets/loading.dart';
 import 'package:flutter/material.dart';
@@ -65,10 +66,10 @@ class Global {
   static void showTipsDialog({
     required BuildContext context,
     required String text,
-    String title = "提示",
-    String okText = "确定",
-    String cancelText = "取消",
-    String neutralText = "中立按钮",
+    String? title,
+    String? okText,
+    String? cancelText,
+    String? neutralText,
     bool showCancel = false,
     bool showOk = true,
     bool showNeutral = false,
@@ -77,12 +78,16 @@ class Global {
     void Function()? onNeutral,
     bool autoDismiss = true,
   }) {
+    title = title ?? TranslationKey.tips.tr;
+    okText = okText ?? TranslationKey.dialogConfirmText.tr;
+    cancelText = cancelText ?? TranslationKey.dialogCancelText.tr;
+    neutralText = neutralText ?? TranslationKey.dialogNeutralText.tr;
     showDialog(
       context: context,
       barrierDismissible: autoDismiss,
       builder: (context) {
         return AlertDialog(
-          title: Text(title),
+          title: Text(title!),
           content: Text(text),
           actions: [
             Row(
@@ -97,7 +102,7 @@ class Global {
                       }
                       onNeutral?.call();
                     },
-                    child: Text(neutralText),
+                    child: Text(neutralText!),
                   ),
                 ),
                 IntrinsicWidth(
@@ -112,7 +117,7 @@ class Global {
                             }
                             onCancel?.call();
                           },
-                          child: Text(cancelText),
+                          child: Text(cancelText!),
                         ),
                       ),
                       Visibility(
@@ -124,7 +129,7 @@ class Global {
                             }
                             onOk?.call();
                           },
-                          child: Text(okText),
+                          child: Text(okText!),
                         ),
                       ),
                     ],
@@ -179,7 +184,7 @@ class Global {
                                 Get.back();
                                 onCancel?.call();
                               },
-                              child: const Text("取消"),
+                              child: Text(TranslationKey.dialogCancelText.tr),
                             ),
                           ],
                         ),

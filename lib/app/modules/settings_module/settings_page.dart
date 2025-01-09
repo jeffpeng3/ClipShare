@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/handlers/hot_key_handler.dart';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/modules/log_module/log_controller.dart';
@@ -16,11 +17,11 @@ import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/number_extension.dart';
 import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
+import 'package:clipshare/app/utils/extensions/translation_key_extension.dart';
 import 'package:clipshare/app/utils/file_util.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/utils/permission_helper.dart';
-import 'package:clipshare/app/widgets/authentication_time_setting_dialog.dart';
 import 'package:clipshare/app/widgets/dynamic_size_widget.dart';
 import 'package:clipshare/app/widgets/environment_status_card.dart';
 import 'package:clipshare/app/widgets/hot_key_editor.dart';
@@ -28,6 +29,7 @@ import 'package:clipshare/app/widgets/settings/card/setting_card.dart';
 import 'package:clipshare/app/widgets/settings/card/setting_card_group.dart';
 import 'package:clipshare/app/widgets/settings/forward_server_edit_dialog.dart';
 import 'package:clipshare/app/widgets/settings/text_edit_dialog.dart';
+import 'package:clipshare/app/widgets/single_select_dialog.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -77,11 +79,12 @@ class SettingsPage extends GetView<SettingsController> {
                 ///region 常规
                 Obx(
                   () => SettingCardGroup(
-                    groupName: "常规",
+                    groupName: TranslationKey.commonSettingsGroupName.tr,
                     icon: const Icon(Icons.discount_outlined),
                     cardList: [
                       SettingCard(
-                        title: const Text("开机启动"),
+                        title:
+                            Text(TranslationKey.commonSettingsRunAtStartup.tr),
                         value: appConfig.launchAtStartup,
                         action: (v) => Switch(
                           value: v,
@@ -106,7 +109,8 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => Platform.isWindows,
                       ),
                       SettingCard(
-                        title: const Text("启动时最小化窗口"),
+                        title:
+                            Text(TranslationKey.commonSettingsRunMinimize.tr),
                         value: appConfig.startMini,
                         action: (v) => Switch(
                           value: v,
@@ -117,7 +121,8 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => PlatformExt.isDesktop,
                       ),
                       SettingCard(
-                        title: const Text("显示历史记录悬浮窗"),
+                        title: Text(TranslationKey
+                            .commonSettingsShowHistoriesFloatWindow.tr),
                         value: appConfig.showHistoryFloat,
                         action: (v) => Switch(
                           value: appConfig.showHistoryFloat,
@@ -134,7 +139,8 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => Platform.isAndroid,
                       ),
                       SettingCard(
-                        title: const Text("锁定悬浮窗位置"),
+                        title: Text(TranslationKey
+                            .commonSettingsLockHistoriesFloatWindowPosition.tr),
                         value: appConfig.lockHistoryFloatLoc,
                         action: (v) => Switch(
                           value: appConfig.lockHistoryFloatLoc,
@@ -150,9 +156,10 @@ class SettingsPage extends GetView<SettingsController> {
                             Platform.isAndroid && appConfig.showHistoryFloat,
                       ),
                       SettingCard(
-                        title: const Text("记住上次窗口大小"),
+                        title: Text(
+                            TranslationKey.commonSettingsRememberWindowSize.tr),
                         description: Text(
-                          "${appConfig.rememberWindowSize ? "记录值：${appConfig.windowSize}，" : ""}默认值：${Constants.defaultWindowSize}",
+                          "${appConfig.rememberWindowSize ? "${TranslationKey.commonSettingsWindowSizeRecordValue.tr}: ${appConfig.windowSize}，" : ""}${TranslationKey.commonSettingsWindowSizeDefaultValue.tr}: ${Constants.defaultWindowSize}",
                         ),
                         value: appConfig.rememberWindowSize,
                         action: (v) => Switch(
@@ -165,17 +172,17 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => PlatformExt.isDesktop,
                       ),
                       SettingCard<ThemeMode>(
-                        title: const Text("主题"),
+                        title: Text(TranslationKey.commonSettingsTheme.tr),
                         value: appConfig.appTheme,
                         action: (v) {
                           var icon = Icons.brightness_auto_outlined;
-                          var toolTip = "跟随系统";
+                          var toolTip = TranslationKey.themeAuto.name.tr;
                           if (v == ThemeMode.light) {
                             icon = Icons.light_mode_outlined;
-                            toolTip = "亮色主题";
+                            toolTip = TranslationKey.themeLight.name.tr;
                           } else if (v == ThemeMode.dark) {
                             icon = Icons.dark_mode_outlined;
-                            toolTip = "暗色主题";
+                            toolTip = TranslationKey.themeDark.name.tr;
                           }
                           return ThemeSwitcher(builder: (switcherContext) {
                             return PopupMenuButton<ThemeMode>(
@@ -199,7 +206,7 @@ class SettingsPage extends GetView<SettingsController> {
                                                 const EdgeInsets.only(right: 8),
                                             child: Icon(icon),
                                           ),
-                                          Text(mode.name),
+                                          Text(mode.tk.name.tr),
                                         ],
                                       ),
                                     );
@@ -221,6 +228,37 @@ class SettingsPage extends GetView<SettingsController> {
                           });
                         },
                       ),
+                      SettingCard<String?>(
+                        title: Text(TranslationKey.language.tr),
+                        value: appConfig.language,
+                        onTap: () {
+                          SingleSelectDialog.show(
+                            selections: Constants.languageSelections,
+                            title: Text(TranslationKey.selectLanguage.tr),
+                            context: context,
+                            defaultValue: appConfig.language,
+                            onSelected: (selected) {
+                              Future.delayed(
+                                const Duration(milliseconds: 100),
+                              ).then(
+                                (_) {
+                                  appConfig.setAppLanguage(selected);
+                                  Get.back();
+                                },
+                              );
+                            },
+                          );
+                        },
+                        padding: const EdgeInsets.all(16),
+                        action: (v) {
+                          for (var lg in Constants.languageSelections) {
+                            if (lg.value == v) {
+                              return Text(lg.label);
+                            }
+                          }
+                          return const Text("Unknown");
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -230,12 +268,14 @@ class SettingsPage extends GetView<SettingsController> {
                 ///region 权限
 
                 Obx(() => SettingCardGroup(
-                      groupName: "权限",
+                      groupName: TranslationKey.permissionSettingsGroupName.tr,
                       icon: const Icon(Icons.admin_panel_settings),
                       cardList: [
                         SettingCard(
-                          title: const Text("通知权限"),
-                          description: const Text("用于启动前台服务"),
+                          title: Text(TranslationKey
+                              .permissionSettingsNotificationTitle.tr),
+                          description: Text(TranslationKey
+                              .permissionSettingsNotificationDesc.tr),
                           value: controller.hasNotifyPerm.value,
                           action: (val) => Icon(
                             val ? Icons.check_circle : Icons.help,
@@ -249,8 +289,10 @@ class SettingsPage extends GetView<SettingsController> {
                           },
                         ),
                         SettingCard(
-                          title: const Text("悬浮窗权限"),
-                          description: const Text("高版本系统中通过悬浮窗获取剪贴板焦点"),
+                          title: Text(
+                              TranslationKey.permissionSettingsFloatTitle.tr),
+                          description: Text(
+                              TranslationKey.permissionSettingsFloatDesc.tr),
                           value: controller.hasFloatPerm.value,
                           action: (val) => Icon(
                             val ? Icons.check_circle : Icons.help,
@@ -264,8 +306,10 @@ class SettingsPage extends GetView<SettingsController> {
                           },
                         ),
                         SettingCard(
-                          title: const Text("电池优化"),
-                          description: const Text("添加电池优化防止被后台系统杀死"),
+                          title: Text(TranslationKey
+                              .permissionSettingsBatteryOptimiseTitle.tr),
+                          description: Text(TranslationKey
+                              .permissionSettingsBatteryOptimiseDesc.tr),
                           value: controller.hasIgnoreBattery.value,
                           action: (val) => Icon(
                             val ? Icons.check_circle : Icons.help,
@@ -279,8 +323,10 @@ class SettingsPage extends GetView<SettingsController> {
                           },
                         ),
                         SettingCard(
-                          title: const Text("短信读取"),
-                          description: const Text("已开启短信同步功能，请授予短信读取权限"),
+                          title: Text(
+                              TranslationKey.permissionSettingsSmsTitle.tr),
+                          description:
+                              Text(TranslationKey.permissionSettingsSmsDesc.tr),
                           value: controller.hasSmsReadPerm.value,
                           action: (val) => Icon(
                             val ? Icons.check_circle : Icons.help,
@@ -300,12 +346,12 @@ class SettingsPage extends GetView<SettingsController> {
 
                 Obx(
                   () => SettingCardGroup(
-                    groupName: "发现",
+                    groupName: TranslationKey.discoveringSettingsGroupName.tr,
                     icon: const Icon(Icons.wifi),
                     cardList: [
                       SettingCard(
-                        title: const Text(
-                          "设备名称",
+                        title: Text(
+                          TranslationKey.discoveringSettingsLocalDeviceName.tr,
                           maxLines: 1,
                         ),
                         description: Row(
@@ -335,7 +381,8 @@ class SettingsPage extends GetView<SettingsController> {
                                 );
                                 Global.showSnackBarSuc(
                                   context: context,
-                                  text: "已复制设备id",
+                                  text: TranslationKey
+                                      .discoveringSettingsDeviceNameCopyTip.tr,
                                 );
                               },
                             )
@@ -347,14 +394,15 @@ class SettingsPage extends GetView<SettingsController> {
                           showDialog(
                             context: context,
                             builder: (ctx) => TextEditDialog(
-                              title: "修改设备名称",
-                              labelText: "设备名称",
+                              title: TranslationKey.modifyDeviceName.tr,
+                              labelText: TranslationKey.deviceName.tr,
                               initStr: appConfig.localName,
                               onOk: (str) {
                                 appConfig.setLocalName(str);
                                 Global.showSnackBarSuc(
                                   context: context,
-                                  text: "修改后重启软件生效",
+                                  text: TranslationKey
+                                      .modifyDeviceNameCompletedTooltip.tr,
                                 );
                               },
                             ),
@@ -362,12 +410,12 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        title: const Text(
-                          "端口",
+                        title: Text(
+                          TranslationKey.port.tr,
                           maxLines: 1,
                         ),
-                        description: const Text(
-                          "默认值 ${Constants.port}。修改后可能无法被自动发现",
+                        description: Text(
+                          TranslationKey.discoveringSettingsPortDesc.tr,
                           maxLines: 1,
                         ),
                         value: appConfig.port,
@@ -376,20 +424,22 @@ class SettingsPage extends GetView<SettingsController> {
                           showDialog(
                             context: context,
                             builder: (ctx) => TextEditDialog(
-                              title: "修改端口",
-                              labelText: "端口",
+                              title: TranslationKey.modifyPort.tr,
+                              labelText: TranslationKey.port.tr,
                               initStr: appConfig.port.toString(),
                               verify: (str) {
                                 var port = int.tryParse(str);
                                 if (port == null) return false;
                                 return port >= 0 && port <= 65535;
                               },
-                              errorText: "端口号范围0-65535",
+                              errorText: TranslationKey.modifyPortErrorText.tr,
                               onOk: (str) {
                                 appConfig.setPort(str.toInt());
                                 Global.showSnackBarSuc(
                                   context: context,
-                                  text: "修改后重启软件生效",
+                                  text: TranslationKey
+                                      .discoveringSettingsModifyPortCompletedTooltip
+                                      .tr,
                                 );
                               },
                             ),
@@ -397,12 +447,13 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        title: const Text(
-                          "可被发现",
+                        title: Text(
+                          TranslationKey.allowDiscovering.tr,
                           maxLines: 1,
                         ),
-                        description: const Text(
-                          "可以被其它设备自动发现",
+                        description: Text(
+                          TranslationKey
+                              .discoveringSettingsAllowDiscoveringDesc.tr,
                           maxLines: 1,
                         ),
                         value: appConfig.allowDiscover,
@@ -416,12 +467,15 @@ class SettingsPage extends GetView<SettingsController> {
                         ),
                       ),
                       SettingCard(
-                        title: const Text(
-                          "仅中转发现（调试用）",
+                        title: Text(
+                          TranslationKey
+                              .discoveringSettingsOnlyForwardDiscoveringTitle
+                              .tr,
                           maxLines: 1,
                         ),
-                        description: const Text(
-                          "仅在开发环境中显示该功能",
+                        description: Text(
+                          TranslationKey
+                              .discoveringSettingsOnlyForwardDiscoveringDesc.tr,
                           maxLines: 1,
                         ),
                         value: appConfig.onlyForwardMode,
@@ -437,15 +491,18 @@ class SettingsPage extends GetView<SettingsController> {
                       SettingCard(
                         title: Row(
                           children: [
-                            const Text(
-                              "心跳检测间隔",
+                            Text(
+                              TranslationKey
+                                  .discoveringSettingsHeartbeatIntervalTitle.tr,
                               maxLines: 1,
                             ),
                             const SizedBox(
                               width: 5,
                             ),
                             Tooltip(
-                              message: "说明",
+                              message: TranslationKey
+                                  .discoveringSettingsHeartbeatIntervalTooltip
+                                  .tr,
                               child: GestureDetector(
                                 child: const MouseRegion(
                                   cursor: SystemMouseCursors.click,
@@ -458,26 +515,33 @@ class SettingsPage extends GetView<SettingsController> {
                                 onTap: () async {
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: "当设备切换网络时无法自动检测到设备是否掉线\n"
-                                        "启用心跳检测将会定时检查设备存活情况。",
+                                    text: TranslationKey
+                                        .discoveringSettingsHeartbeatIntervalTooltipDialogContent
+                                        .tr,
                                   );
                                 },
                               ),
                             ),
                           ],
                         ),
-                        description: const Text(
-                          "检测设备存活。默认30s，0不检测",
+                        description: Text(
+                          TranslationKey
+                              .discoveringSettingsHeartbeatIntervalDesc.tr,
                           maxLines: 1,
                         ),
                         value: appConfig.heartbeatInterval,
-                        action: (v) => Text(v <= 0 ? '不检测' : '${v}s'),
+                        action: (v) => Text(
+                            v <= 0 ? TranslationKey.dontDetect.tr : '${v}s'),
                         onTap: () {
                           showDialog(
                             context: context,
                             builder: (ctx) => TextEditDialog(
-                              title: "心跳间隔",
-                              labelText: "心跳间隔",
+                              title: TranslationKey
+                                  .discoveringSettingsModifyHeartbeatDialogTitle
+                                  .tr,
+                              labelText: TranslationKey
+                                  .discoveringSettingsModifyHeartbeatDialogInputLabel
+                                  .tr,
                               initStr:
                                   "${appConfig.heartbeatInterval <= 0 ? '' : appConfig.heartbeatInterval}",
                               verify: (str) {
@@ -485,14 +549,12 @@ class SettingsPage extends GetView<SettingsController> {
                                 if (port == null) return false;
                                 return true;
                               },
-                              errorText: "单位秒，0为禁用检测",
+                              errorText: TranslationKey
+                                  .discoveringSettingsModifyHeartbeatDialogInputErrorText
+                                  .tr,
                               onOk: (str) async {
                                 await appConfig.setHeartbeatInterval(str);
                                 var enable = str.toInt() > 0;
-                                Log.debug(
-                                  logTag,
-                                  "${enable ? '启用' : '禁用'}心跳检测",
-                                );
                                 if (enable) {
                                   sktService.startHeartbeatTest();
                                 } else {
@@ -513,21 +575,22 @@ class SettingsPage extends GetView<SettingsController> {
 
                 Obx(
                   () => SettingCardGroup(
-                    groupName: "中转",
+                    groupName: TranslationKey.forwardSettingsGroupName.tr,
                     icon: const Icon(Icons.cloud_sync_outlined),
                     cardList: [
                       SettingCard(
                         title: Row(
                           children: [
-                            const Text(
-                              "使用中转服务",
+                            Text(
+                              TranslationKey.forwardSettingsForwardTitle.tr,
                               maxLines: 1,
                             ),
                             const SizedBox(
                               width: 5,
                             ),
                             Tooltip(
-                              message: "下载中转程序",
+                              message: TranslationKey
+                                  .forwardSettingsForwardDownloadTooltip.tr,
                               child: GestureDetector(
                                 child: const MouseRegion(
                                   cursor: SystemMouseCursors.click,
@@ -544,8 +607,8 @@ class SettingsPage extends GetView<SettingsController> {
                             ),
                           ],
                         ),
-                        description: const Text(
-                          "中转服务器可在公网环境下进行数据同步",
+                        description: Text(
+                          TranslationKey.forwardSettingsForwardDesc.tr,
                           maxLines: 1,
                         ),
                         value: appConfig.enableForward,
@@ -558,7 +621,9 @@ class SettingsPage extends GetView<SettingsController> {
                               if (appConfig.forwardServer == null) {
                                 Global.showSnackBarErr(
                                   context: context,
-                                  text: "请先设置中转服务器地址",
+                                  text: TranslationKey
+                                      .forwardSettingsForwardEnableRequiredText
+                                      .tr,
                                 );
                                 return;
                               }
@@ -573,19 +638,19 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        title: const Text(
-                          "中转服务器地址",
+                        title: Text(
+                          TranslationKey.forwardSettingsForwardAddressTitle.tr,
                           maxLines: 1,
                         ),
-                        description: const Text(
-                          "请使用可信地址或自行搭建",
+                        description: Text(
+                          TranslationKey.forwardSettingsForwardAddressDesc.tr,
                           maxLines: 1,
                         ),
                         value: appConfig.forwardServer,
                         action: (v) {
-                          String text = "更改";
+                          String text = TranslationKey.change.tr;
                           if (appConfig.forwardServer == null) {
-                            text = "配置";
+                            text = TranslationKey.configure.tr;
                           }
                           return TextButton(
                             onPressed: () {
@@ -613,132 +678,153 @@ class SettingsPage extends GetView<SettingsController> {
 
                 ///region 安全设置
 
-                Obx(() => SettingCardGroup(
-                      groupName: "安全",
-                      icon: const Icon(Icons.fingerprint_outlined),
-                      cardList: [
-                        SettingCard(
-                          title: const Text(
-                            "启用安全认证",
-                            maxLines: 1,
-                          ),
-                          description: const Text(
-                            "启用密码或生物识别认证",
-                            maxLines: 1,
-                          ),
-                          value: appConfig.useAuthentication,
-                          action: (v) {
-                            return Switch(
-                              value: v,
-                              onChanged: (checked) {
-                                HapticFeedback.mediumImpact();
-                                if (appConfig.appPassword == null && checked) {
-                                  Global.showTipsDialog(
-                                    context: context,
-                                    text: "请先创建应用密码",
-                                    onOk: controller.gotoSetPwd,
-                                    okText: "去创建",
-                                    showCancel: true,
-                                  );
-                                  appConfig.setUseAuthentication(false);
-                                } else {
-                                  appConfig.setUseAuthentication(checked);
-                                }
-                              },
-                            );
-                          },
-                          show: (v) => Platform.isAndroid,
+                Obx(
+                  () => SettingCardGroup(
+                    groupName: TranslationKey.securitySettingsGroupName.tr,
+                    icon: const Icon(Icons.fingerprint_outlined),
+                    cardList: [
+                      SettingCard(
+                        title: Text(
+                          TranslationKey.securitySettingsEnableSecurityTitle.tr,
+                          maxLines: 1,
                         ),
-                        SettingCard(
-                          title: const Text(
-                            "更改密码",
-                            maxLines: 1,
-                          ),
-                          description: Text(
-                            "${appConfig.appPassword == null ? '新建' : '更改'}应用密码",
-                            maxLines: 1,
-                          ),
-                          value: appConfig.appPassword,
-                          action: (v) {
-                            return TextButton(
-                              onPressed: () {
-                                if (appConfig.appPassword == null) {
-                                  controller.gotoSetPwd();
-                                } else {
-                                  //第一步验证
-                                  appConfig.authenticating.value = true;
-                                  final homeController =
-                                      Get.find<HomeController>();
-                                  homeController
-                                      .gotoAuthenticationPage("身份验证", false)
-                                      ?.then((v) {
-                                    //null为正常验证，设置密码，否则主动退出
-                                    if (v != null) {
-                                      controller.gotoSetPwd();
-                                    }
-                                  });
-                                }
-                              },
-                              child: Text(
-                                  appConfig.appPassword == null ? '新建' : '更改'),
-                            );
-                          },
-                          show: (v) => Platform.isAndroid,
+                        description: Text(
+                          TranslationKey.securitySettingsEnableSecurityDesc.tr,
+                          maxLines: 1,
                         ),
-                        SettingCard(
-                          title: const Text(
-                            "密码重新验证",
-                            maxLines: 1,
-                          ),
-                          description: const Text(
-                            "在后台指定时长后重新验证密码",
-                            maxLines: 1,
-                          ),
-                          value: appConfig.appRevalidateDuration,
-                          onTap: () {
-                            AuthenticationTimeSettingDialog.show(
-                              context: context,
-                              defaultValue: appConfig.appRevalidateDuration,
-                              selected: (v) {
-                                return v == appConfig.appRevalidateDuration;
-                              },
-                              onSelected: (duration) {
-                                Future.delayed(
-                                  const Duration(milliseconds: 100),
-                                ).then(
-                                  (value) {
-                                    appConfig
-                                        .setAppRevalidateDuration(duration);
-                                    Navigator.pop(context);
-                                  },
+                        value: appConfig.useAuthentication,
+                        action: (v) {
+                          return Switch(
+                            value: v,
+                            onChanged: (checked) {
+                              HapticFeedback.mediumImpact();
+                              if (appConfig.appPassword == null && checked) {
+                                Global.showTipsDialog(
+                                  context: context,
+                                  text: TranslationKey
+                                      .securitySettingsEnableSecurityAppPwdRequiredDialogContent
+                                      .tr,
+                                  onOk: controller.gotoSetPwd,
+                                  okText: TranslationKey
+                                      .securitySettingsEnableSecurityAppPwdRequiredDialogOkText
+                                      .tr,
+                                  showCancel: true,
                                 );
-                              },
-                            );
-                          },
-                          action: (v) {
-                            var duration = appConfig.appRevalidateDuration;
-                            return Text(duration <= 0 ? "立即" : "$duration 分钟");
-                          },
-                          show: (v) => Platform.isAndroid,
+                                appConfig.setUseAuthentication(false);
+                              } else {
+                                appConfig.setUseAuthentication(checked);
+                              }
+                            },
+                          );
+                        },
+                        show: (v) => Platform.isAndroid,
+                      ),
+                      SettingCard(
+                        title: Text(
+                          TranslationKey
+                              .securitySettingsEnableSecurityAppPwdModifyTitle
+                              .tr,
+                          maxLines: 1,
                         ),
-                      ],
-                    )),
+                        description: Text(
+                          appConfig.appPassword == null
+                              ? TranslationKey.createAppPwd.tr
+                              : TranslationKey.changeAppPwd.tr,
+                          maxLines: 1,
+                        ),
+                        value: appConfig.appPassword,
+                        action: (v) {
+                          return TextButton(
+                            onPressed: () {
+                              if (appConfig.appPassword == null) {
+                                controller.gotoSetPwd();
+                              } else {
+                                //第一步验证
+                                appConfig.authenticating.value = true;
+                                final homeController =
+                                    Get.find<HomeController>();
+                                homeController
+                                    .gotoAuthenticationPage(
+                                        TranslationKey
+                                            .authenticationPageTitle.tr,
+                                        false)
+                                    ?.then((v) {
+                                  //null为正常验证，设置密码，否则主动退出
+                                  if (v != null) {
+                                    controller.gotoSetPwd();
+                                  }
+                                });
+                              }
+                            },
+                            child: Text(
+                              appConfig.appPassword == null
+                                  ? TranslationKey.create.tr
+                                  : TranslationKey.change.tr,
+                            ),
+                          );
+                        },
+                        show: (v) => Platform.isAndroid,
+                      ),
+                      SettingCard(
+                        title: Text(
+                          TranslationKey.securitySettingsReverificationTitle.tr,
+                          maxLines: 1,
+                        ),
+                        description: Text(
+                          TranslationKey.securitySettingsReverificationDesc.tr,
+                          maxLines: 1,
+                        ),
+                        value: appConfig.appRevalidateDuration,
+                        onTap: () {
+                          SingleSelectDialog.show(
+                            context: context,
+                            defaultValue: appConfig.appRevalidateDuration,
+                            onSelected: (duration) {
+                              Future.delayed(
+                                const Duration(milliseconds: 100),
+                              ).then(
+                                (value) {
+                                  appConfig.setAppRevalidateDuration(duration);
+                                  Navigator.pop(context);
+                                },
+                              );
+                            },
+                            selections: Constants.authBackEndTimeSelections,
+                            title: Text(TranslationKey
+                                .securitySettingsReverificationTitle.tr),
+                          );
+                        },
+                        action: (v) {
+                          var duration = appConfig.appRevalidateDuration;
+                          return Text(
+                            duration <= 0
+                                ? TranslationKey.immediately.tr
+                                : TranslationKey
+                                    .securitySettingsReverificationValue
+                                    .trParams({"value": duration.toString()}),
+                          );
+                        },
+                        show: (v) => Platform.isAndroid,
+                      ),
+                    ],
+                  ),
+                ),
 
                 ///endregion
 
                 ///region 快捷键
 
                 Obx(() => SettingCardGroup(
-                      groupName: "热键",
+                      groupName: TranslationKey.hotKeySettingsGroupName.tr,
                       icon: const Icon(Icons.keyboard_alt_outlined),
                       cardList: [
                         SettingCard(
-                          title: const Text(
-                            "历史弹窗",
+                          title: Text(
+                            TranslationKey.hotKeySettingsHistoryTitle.tr,
                             maxLines: 1,
                           ),
-                          description: const Text(
-                            "在屏幕任意位置唤起历史记录弹窗",
+                          description: Text(
+                            TranslationKey.hotKeySettingsHistoryDesc.tr,
                             maxLines: 1,
                           ),
                           value: appConfig.historyWindowHotKeys,
@@ -751,12 +837,16 @@ class SettingsPage extends GetView<SettingsController> {
                                 if (modifiers.isEmpty || key == null) {
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: "快捷键必须是控制键和非控制键的组合！",
+                                    text: TranslationKey
+                                        .hotKeySettingsCombinationInvalidText
+                                        .tr,
                                   );
                                 } else {
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: "是否保存快捷键（$showText）设置？",
+                                    text: TranslationKey
+                                        .hotKeySettingsSaveKeysDialogText
+                                        .trParams({"keys": showText}),
                                     showCancel: true,
                                     onOk: () {
                                       var hotkey =
@@ -772,7 +862,9 @@ class SettingsPage extends GetView<SettingsController> {
                                       }).catchError((err) {
                                         Global.showTipsDialog(
                                           context: context,
-                                          text: "设置失败 $err",
+                                          text: TranslationKey
+                                              .hotKeySettingsSaveKeysFailedText
+                                              .trParams({"err": err}),
                                         );
                                         //设置为原始值
                                         appConfig.setHistoryWindowHotKeys(
@@ -794,12 +886,12 @@ class SettingsPage extends GetView<SettingsController> {
                           show: (v) => Platform.isWindows,
                         ),
                         SettingCard(
-                          title: const Text(
-                            "文件发送",
+                          title: Text(
+                            TranslationKey.sendFile.tr,
                             maxLines: 1,
                           ),
-                          description: const Text(
-                            "将选定的文件同步到其他设备（桌面无效）",
+                          description: Text(
+                            TranslationKey.hotKeySettingsFileDesc.tr,
                             maxLines: 1,
                           ),
                           value: appConfig.syncFileHotKeys,
@@ -812,12 +904,16 @@ class SettingsPage extends GetView<SettingsController> {
                                 if (modifiers.isEmpty || key == null) {
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: "快捷键必须是控制键和非控制键的组合！",
+                                    text: TranslationKey
+                                        .hotKeySettingsCombinationInvalidText
+                                        .tr,
                                   );
                                 } else {
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: "是否保存快捷键（$showText）设置？",
+                                    text: TranslationKey
+                                        .hotKeySettingsSaveKeysDialogText
+                                        .trParams({"keys": showText}),
                                     showCancel: true,
                                     onOk: () {
                                       var hotkey =
@@ -832,7 +928,9 @@ class SettingsPage extends GetView<SettingsController> {
                                       }).catchError((err) {
                                         Global.showTipsDialog(
                                           context: context,
-                                          text: "设置失败 $err",
+                                          text: TranslationKey
+                                              .hotKeySettingsSaveKeysFailedText
+                                              .trParams({"err": err}),
                                         );
                                         //设置为原始值
                                         appConfig.setSyncFileHotKeys(
@@ -862,16 +960,16 @@ class SettingsPage extends GetView<SettingsController> {
 
                 Obx(
                   () => SettingCardGroup(
-                    groupName: "同步",
+                    groupName: TranslationKey.syncSettingsGroupName.tr,
                     icon: const Icon(Icons.sync_rounded),
                     cardList: [
                       SettingCard(
-                        title: const Text(
-                          "短信同步",
+                        title: Text(
+                          TranslationKey.syncSettingsSmsTitle.tr,
                           maxLines: 1,
                         ),
-                        description: const Text(
-                          "符合规则的短信将自动同步",
+                        description: Text(
+                          TranslationKey.syncSettingsSmsDesc.tr,
                           maxLines: 1,
                         ),
                         value: appConfig.enableSmsSync,
@@ -888,8 +986,8 @@ class SettingsPage extends GetView<SettingsController> {
                                 } else {
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: "请先授予短信读取权限",
-                                    okText: "去授权",
+                                    text: TranslationKey.syncSettingsSmsPermissionRequired.tr,
+                                    okText: TranslationKey.dialogAuthorizationButtonText.tr,
                                     showCancel: true,
                                     onOk: () async {
                                       await PermissionHelper
@@ -912,12 +1010,12 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        title: const Text(
-                          "图片存储至相册中",
+                        title: Text(
+                          TranslationKey.syncSettingsStoreImg2PicturesTitle.tr,
                           maxLines: 1,
                         ),
-                        description: const Text(
-                          "将保存至 Pictures/${Constants.appName} 中",
+                        description: Text(
+                          TranslationKey.syncSettingsStoreImg2PicturesDesc.tr,
                           maxLines: 1,
                         ),
                         value: appConfig.saveToPictures,
@@ -937,7 +1035,7 @@ class SettingsPage extends GetView<SettingsController> {
                                 }
                                 Global.showTipsDialog(
                                   context: context,
-                                  text: "无读写权限，需要进行授权",
+                                  text: TranslationKey.syncSettingsStoreImg2PicturesNoPermText.tr,
                                   showCancel: true,
                                   onOk: () async {
                                     Navigator.pop(context);
@@ -948,14 +1046,14 @@ class SettingsPage extends GetView<SettingsController> {
                                       appConfig.setSaveToPictures(false);
                                       Global.showTipsDialog(
                                         context: context,
-                                        text: "用户取消授权！",
+                                        text:TranslationKey.syncSettingsStoreImg2PicturesCancelPerm.tr,
                                       );
                                     } else {
                                       //授权成功
                                       appConfig.setSaveToPictures(true);
                                     }
                                   },
-                                  okText: "去授权",
+                                  okText: TranslationKey.dialogAuthorizationButtonText.tr,
                                 );
                               } else {
                                 appConfig.setSaveToPictures(false);
@@ -966,8 +1064,8 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => Platform.isAndroid,
                       ),
                       SettingCard(
-                        title: const Text(
-                          "文件存储路径",
+                        title: Text(
+                          TranslationKey.syncSettingsStoreFilePathTitle.tr,
                           maxLines: 1,
                         ),
                         description: Text(
@@ -984,8 +1082,8 @@ class SettingsPage extends GetView<SettingsController> {
                                 appConfig.setFileStorePath(directory);
                               }
                             },
-                            child: const Text(
-                              "选择",
+                            child: Text(
+                              TranslationKey.selection.tr,
                               maxLines: 1,
                             ),
                           );
@@ -997,12 +1095,12 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        title: const Text(
-                          "自动复制图片",
+                        title: Text(
+                          TranslationKey.syncSettingsAutoCopyImgTitle.tr,
                           maxLines: 1,
                         ),
-                        description: const Text(
-                          "启用后若其他设备复制了图片本机也会自动复制",
+                        description: Text(
+                          TranslationKey.syncSettingsAutoCopyImgDesc.tr,
                           maxLines: 1,
                         ),
                         show: (v) => true,
@@ -1025,16 +1123,16 @@ class SettingsPage extends GetView<SettingsController> {
                 ///region 规则设置
 
                 SettingCardGroup(
-                  groupName: "规则",
+                  groupName: TranslationKey.ruleSettingsGroupName.tr,
                   icon: const Icon(Icons.assignment_outlined),
                   cardList: [
                     SettingCard(
-                      title: const Text(
-                        "标签规则",
+                      title: Text(
+                        TranslationKey.ruleSettingsTagRuleTitle.tr,
                         maxLines: 1,
                       ),
-                      description: const Text(
-                        "符合规则的记录将会自动打上对应标签",
+                      description: Text(
+                        TranslationKey.ruleSettingsTagRuleDesc.tr,
                         maxLines: 1,
                       ),
                       value: false,
@@ -1053,17 +1151,17 @@ class SettingsPage extends GetView<SettingsController> {
                               );
                             }
                           },
-                          child: const Text("配置"),
+                          child: Text(TranslationKey.configure.tr),
                         );
                       },
                     ),
                     SettingCard(
-                      title: const Text(
-                        "短信规则",
+                      title: Text(
+                        TranslationKey.ruleSettingsSmsRuleTitle.tr,
                         maxLines: 1,
                       ),
-                      description: const Text(
-                        "符合规则的短信将会同步，若未配置则全部同步",
+                      description: Text(
+                        TranslationKey.ruleSettingsSmsRuleDesc.tr,
                         maxLines: 1,
                       ),
                       value: false,
@@ -1083,7 +1181,7 @@ class SettingsPage extends GetView<SettingsController> {
                               );
                             }
                           },
-                          child: const Text("配置"),
+                          child: Text(TranslationKey.configure.tr),
                         );
                       },
                     ),
@@ -1096,21 +1194,21 @@ class SettingsPage extends GetView<SettingsController> {
 
                 Obx(
                   () => SettingCardGroup(
-                    groupName: "日志",
+                    groupName: TranslationKey.logSettingsGroupName.tr,
                     icon: const Icon(Icons.bug_report_outlined),
                     cardList: [
                       SettingCard(
                         title: Row(
                           children: [
-                            const Text(
-                              "启用日志记录",
+                            Text(
+                              TranslationKey.logSettingsEnableTitle.tr,
                               maxLines: 1,
                             ),
                             const SizedBox(
                               width: 5,
                             ),
                             Tooltip(
-                              message: "打开文件夹",
+                              message: TranslationKey.openFolder.tr,
                               child: GestureDetector(
                                 child: const MouseRegion(
                                   cursor: SystemMouseCursors.click,
@@ -1133,7 +1231,7 @@ class SettingsPage extends GetView<SettingsController> {
                           ],
                         ),
                         description: Text(
-                          "将会占据额外空间，已产生 ${FileUtil.getDirectorySize(appConfig.logsDirPath).sizeStr} 日志",
+                          TranslationKey.logSettingsEnableDesc.trParams({"size":FileUtil.getDirectorySize(appConfig.logsDirPath).sizeStr}),
                           maxLines: 1,
                         ),
                         value: appConfig.enableLogsRecord,
@@ -1160,14 +1258,14 @@ class SettingsPage extends GetView<SettingsController> {
                                   context: context,
                                   builder: (context) {
                                     return AlertDialog(
-                                      title: const Text("提示"),
-                                      content: const Text("是否删除日志文件？"),
+                                      title: Text(TranslationKey.tips.tr),
+                                      content: Text(TranslationKey.logSettingsAckDelLogFiles.tr),
                                       actions: [
                                         TextButton(
                                           onPressed: () {
                                             Navigator.pop(context);
                                           },
-                                          child: const Text("取消"),
+                                          child: Text(TranslationKey.dialogCancelText.tr),
                                         ),
                                         TextButton(
                                           onPressed: () {
@@ -1176,7 +1274,7 @@ class SettingsPage extends GetView<SettingsController> {
                                             );
                                             Navigator.pop(context);
                                           },
-                                          child: const Text("确定"),
+                                          child: Text(TranslationKey.dialogConfirmText.tr),
                                         ),
                                       ],
                                     );
@@ -1195,16 +1293,16 @@ class SettingsPage extends GetView<SettingsController> {
 
                 ///region 统计分析
                 SettingCardGroup(
-                  groupName: "统计",
+                  groupName: TranslationKey.statisticsSettingsGroupName.tr,
                   icon: const Icon(Icons.bar_chart),
                   cardList: [
                     SettingCard(
-                      title: const Text(
-                        "查看统计",
+                      title: Text(
+                        TranslationKey.statisticsSettingsTitle.tr,
                         maxLines: 1,
                       ),
-                      description: const Text(
-                        "以图表呈现对本地记录的简略统计分析",
+                      description: Text(
+                        TranslationKey.statisticsSettingsDesc.tr,
                         maxLines: 1,
                       ),
                       value: null,
@@ -1229,14 +1327,14 @@ class SettingsPage extends GetView<SettingsController> {
                 ///region 关于
 
                 SettingCardGroup(
-                  groupName: "关于",
+                  groupName: TranslationKey.about.tr,
                   icon: const Icon(Icons.info_outline),
                   cardList: [
                     SettingCard(
-                      title: const Row(
+                      title: Row(
                         children: [
                           Text(
-                            "关于 ${Constants.appName}",
+                            "${TranslationKey.about.tr} ${Constants.appName}",
                             maxLines: 1,
                           ),
                         ],

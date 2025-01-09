@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/modules/log_module/log_controller.dart';
 import 'package:clipshare/app/modules/views/log_detail_page.dart';
 import 'package:clipshare/app/utils/extensions/file_extension.dart';
@@ -19,7 +20,7 @@ class LogPage extends GetView<LogController> {
   @override
   Widget build(BuildContext context) {
     return RoundedScaffold(
-      title: const Text("日志记录"),
+      title: Text(TranslationKey.logPageAppBarTitle.tr),
       icon: const Icon(Icons.bug_report_outlined),
       child: RefreshIndicator(
         onRefresh: () {
@@ -36,7 +37,7 @@ class LogPage extends GetView<LogController> {
               visible: Stack(
                 children: [
                   ListView(),
-                  const EmptyContent(),
+                  EmptyContent(),
                 ],
               ),
               invisible: ListView.builder(

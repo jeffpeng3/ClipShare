@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:clipshare/app/data/enums/syncing_file_state.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/syncing_file.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
@@ -149,7 +151,7 @@ class SyncFileStatus extends StatelessWidget {
                                   ),
                                 ),
                                 child: Tooltip(
-                                  message: "打开文件夹",
+                                  message: TranslationKey.openFolder.tr,
                                   child: IconButton(
                                     onPressed: () async {
                                       final path = File(syncingFile.filePath)
@@ -171,7 +173,7 @@ class SyncFileStatus extends StatelessWidget {
                               Visibility(
                                 visible: !isLocal,
                                 child: Tooltip(
-                                  message: "停止",
+                                  message: TranslationKey.stop.tr,
                                   child: IconButton(
                                     onPressed: () async {
                                       syncingFile.close(false);
@@ -274,7 +276,7 @@ class SyncFileStatus extends StatelessWidget {
                                           child: Text(
                                             syncingFile.state ==
                                                     SyncingFileState.error
-                                                ? '失败'
+                                                ? TranslationKey.failed.tr
                                                 : "${(factor * 10000).round() / 100}%",
                                           ),
                                         ),

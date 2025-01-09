@@ -3,6 +3,10 @@ import 'dart:io';
 
 import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
+import 'package:clipshare/app/data/enums/module.dart';
+import 'package:clipshare/app/data/enums/msg_type.dart';
+import 'package:clipshare/app/data/enums/op_method.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/clip_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
@@ -10,7 +14,6 @@ import 'package:clipshare/app/services/channels/clip_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
-import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/file_extension.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/widgets/clip_content_view.dart';
@@ -71,9 +74,10 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                 Container(
                   alignment: Alignment.topLeft,
                   padding: const EdgeInsets.only(left: 7, top: 7, bottom: 7),
-                  child: const Text(
-                    "剪贴板",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                  child: Text(
+                    TranslationKey.clipboard.tr,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.w700),
                   ),
                 ),
                 Row(
@@ -86,7 +90,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                       onPressed: () {
                         widget.onRemoveClicked(widget.clip);
                       },
-                      tooltip: "删除记录",
+                      tooltip: TranslationKey.deleteRecord.tr,
                     ),
                     IconButton(
                       icon: Icon(
@@ -113,7 +117,9 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                           dbService.opRecordDao.addAndNotify(opRecord);
                         });
                       },
-                      tooltip: widget.clip.data.top ? "取消置顶" : "置顶",
+                      tooltip: widget.clip.data.top
+                          ? TranslationKey.cancelTopUp.tr
+                          : TranslationKey.topUp.tr,
                     ),
                     Visibility(
                       visible: !widget.clip.isFile,
@@ -134,10 +140,11 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                           Future.delayed(const Duration(milliseconds: 500), () {
                             setState(() {});
                           });
-                          var type = ClipboardContentType.parse(widget.clip.data.type);
+                          var type =
+                              ClipboardContentType.parse(widget.clip.data.type);
                           clipboardManager.copy(type, widget.clip.data.content);
                         },
-                        tooltip: "复制内容",
+                        tooltip: TranslationKey.copyContent.tr,
                       ),
                     ),
                     Visibility(
@@ -166,7 +173,9 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                             );
                           });
                         },
-                        tooltip: widget.clip.data.top ? "重新同步" : "同步记录",
+                        tooltip: widget.clip.data.top
+                            ? TranslationKey.resyncRecord.tr
+                            : TranslationKey.syncRecord.tr,
                       ),
                     ),
                     Visibility(
@@ -182,7 +191,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                             file.normalizePath,
                           );
                         },
-                        tooltip: "打开文件",
+                        tooltip: TranslationKey.openFile.tr,
                       ),
                     ),
                     Visibility(
@@ -198,7 +207,7 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                             file.parent.normalizePath,
                           );
                         },
-                        tooltip: "打开所在文件夹",
+                        tooltip: TranslationKey.openFileFolder.tr,
                       ),
                     ),
                     Visibility(
@@ -211,10 +220,10 @@ class ClipDetailDialogState extends State<ClipDetailDialog> {
                         onPressed: () {
                           Share.shareXFiles(
                             [XFile(widget.clip.data.content)],
-                            text: '分享文件',
+                            text: TranslationKey.shareFile.tr,
                           );
                         },
-                        tooltip: "分享文件",
+                        tooltip: TranslationKey.shareFile.tr,
                       ),
                     ),
                   ],

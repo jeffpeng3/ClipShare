@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/modules/working_mode_selection_module/working_mode_selection_controller.dart';
 import 'package:clipshare/app/widgets/environment_selections.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +12,9 @@ class WorkingModeSelectionPage extends GetView<WorkingModeSelectionController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "选择工作模式",
-          style: TextStyle(
+        title: Text(
+          TranslationKey.selectWorkMode.tr,
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 22,
             color: Colors.blueGrey,
@@ -36,9 +37,9 @@ class WorkingModeSelectionPage extends GetView<WorkingModeSelectionController> {
                 children: [
                   TextButton(
                     onPressed: Get.back,
-                    child: const Text(
-                      "取消",
-                      style: TextStyle(color: Colors.blue),
+                    child: Text(
+                      TranslationKey.dialogCancelText.tr,
+                      style: const TextStyle(color: Colors.blue),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -48,7 +49,7 @@ class WorkingModeSelectionPage extends GetView<WorkingModeSelectionController> {
                           ? controller.confirm
                           : null,
                       child: Text(
-                        "确定",
+                        TranslationKey.dialogConfirmText.tr,
                         style: controller.selected.value != null
                             ? const TextStyle(color: Colors.blue)
                             : null,

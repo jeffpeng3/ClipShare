@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/modules/sync_file_module/sync_file_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
@@ -71,7 +72,8 @@ class SyncFilePage extends GetView<SyncFileController> {
                                   controller.selectMode = true;
                                   appConfig.enableMultiSelectionMode(
                                     controller: controller,
-                                    selectionTips: "多选删除",
+                                    selectionTips:
+                                        TranslationKey.multiDelete.tr,
                                   );
                                 },
                                 onTap: () {
@@ -129,7 +131,7 @@ class SyncFilePage extends GetView<SyncFileController> {
                             Visibility(
                               visible: controller.selectMode,
                               child: Tooltip(
-                                message: "取消选择",
+                                message: TranslationKey.deselect.tr,
                                 child: Container(
                                   margin: const EdgeInsets.only(right: 10),
                                   child: FloatingActionButton(
@@ -146,17 +148,22 @@ class SyncFilePage extends GetView<SyncFileController> {
                               visible: controller.selectMode &&
                                   controller.selected.isNotEmpty,
                               child: Tooltip(
-                                message: "删除",
+                                message: TranslationKey.delete.tr,
                                 child: FloatingActionButton(
                                   onPressed: () {
                                     Global.showTipsDialog(
                                       context: context,
-                                      text:
-                                          "是否删除选中的 ${controller.selected.length} 项？\n发送记录的文件不会被删除",
+                                      text: TranslationKey
+                                          .deleteWithFilesOnSyncFilePageAckDialogText
+                                          .trParams({
+                                        "length": controller.selected.length
+                                            .toString()
+                                      }),
                                       showCancel: true,
                                       showNeutral: true,
-                                      neutralText: "连带文件删除",
-                                      okText: "仅删除记录",
+                                      neutralText:
+                                          TranslationKey.deleteWithFiles.tr,
+                                      okText: TranslationKey.onlyDeleteRecordsText.tr,
                                       autoDismiss: false,
                                       onOk: () async {
                                         await controller.deleteRecord(false);
@@ -187,7 +194,7 @@ class SyncFilePage extends GetView<SyncFileController> {
                     ],
                   ),
                   child: Stack(
-                    children: [const EmptyContent(), ListView()],
+                    children: [ EmptyContent(), ListView()],
                   ),
                 ),
               ),
@@ -198,7 +205,7 @@ class SyncFilePage extends GetView<SyncFileController> {
                 replacement: ListView(
                   children: controller.recList,
                 ),
-                child: const EmptyContent(),
+                child: EmptyContent(),
               ),
             ),
             Obx(
@@ -207,7 +214,7 @@ class SyncFilePage extends GetView<SyncFileController> {
                 replacement: ListView(
                   children: controller.sendList,
                 ),
-                child: const EmptyContent(),
+                child: EmptyContent(),
               ),
             ),
           ],

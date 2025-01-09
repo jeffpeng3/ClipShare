@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/modules/user_guide_module/user_guide_controller.dart';
 import 'package:clipshare/app/widgets/condition_widget.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +39,7 @@ class UserGuidePage extends GetView<UserGuideController> {
                           controller.guides[controller.current.value]
                                       .allowSkip &&
                                   !controller.canNextGuide.value
-                              ? "跳过此项"
+                              ? TranslationKey.skipGuide.tr
                               : "",
                         ),
                       ),
@@ -77,7 +78,7 @@ class UserGuidePage extends GetView<UserGuideController> {
                         onPressed: controller.current.value == 0
                             ? null
                             : controller.gotoPre,
-                        child: const Text("上一步"),
+                        child: Text(TranslationKey.previousGuide.tr),
                       ),
                     ),
                     Expanded(
@@ -129,8 +130,8 @@ class UserGuidePage extends GetView<UserGuideController> {
                             () => Text(
                               controller.current.value ==
                                       controller.guides.length - 1
-                                  ? "完成"
-                                  : "下一步",
+                                  ? TranslationKey.finishGuide.tr
+                                  : TranslationKey.nextGuide.tr,
                             ),
                           ),
                         ),

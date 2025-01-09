@@ -1,9 +1,12 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:flutter/material.dart';
 
 class EmptyContent extends StatelessWidget {
-  final String description;
+  String? description;
 
-  const EmptyContent({super.key, this.description = "无数据"});
+  EmptyContent({super.key, this.description}) {
+    description = description ?? TranslationKey.emptyData.tr;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +21,7 @@ class EmptyContent extends StatelessWidget {
           ),
         ),
         Text(
-          description,
+          description!,
           style: const TextStyle(color: Colors.grey),
         ),
       ],

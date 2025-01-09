@@ -4,6 +4,7 @@ import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
 import 'package:clipshare/app/theme/app_theme.dart';
 import 'package:clipshare/app/modules/views/windows/online_devices/online_devices_page.dart';
+import 'package:clipshare/app/utils/constants.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -85,11 +86,11 @@ class _OnlineDevicesWindowState extends State<OnlineDevicesWindow>
       darkTheme: darkThemeData,
       themeMode: ThemeMode.system,
       //当前运行环境配置
-      locale: locale,
+      locale: Constants.defaultLocale,
       //程序支持的语言环境配置
-      supportedLocales: supportedLocales,
+      supportedLocales: Constants.supportedLocales,
       //Material 风格代理配置
-      localizationsDelegates: localizationsDelegates,
+      localizationsDelegates: Constants.localizationsDelegates,
       home: OnlineDevicesPage(
         devices: _devices,
         onSendClicked: (context, selectedDevices) async {

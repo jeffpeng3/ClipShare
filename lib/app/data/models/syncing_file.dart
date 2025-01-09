@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:clipshare/app/data/enums/syncing_file_state.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/services/syncing_file_progress_service.dart';
 import 'package:clipshare/app/utils/extensions/time_extension.dart';
@@ -7,17 +8,7 @@ import 'package:clipshare/app/utils/log.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
-enum SyncingFileState {
-  syncing(0, "同步中"),
-  wait(1, "等待"),
-  error(2, "错误"),
-  done(3, "完成");
 
-  final int order;
-  final String name;
-
-  const SyncingFileState(this.order, this.name);
-}
 
 class SyncingFile {
   static const tag = "SyncingFile";

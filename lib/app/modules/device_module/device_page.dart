@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/modules/device_module/device_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
@@ -39,7 +40,11 @@ class DevicePage extends GetView<DeviceController> {
                                 width: 5,
                               ),
                               Text(
-                                "我的设备(${controller.pairedList.length})",
+                                TranslationKey.devicePageMyDevicesText.name
+                                    .trParams({
+                                  'pairedLength':
+                                      controller.pairedList.length.toString(),
+                                }),
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
@@ -63,7 +68,7 @@ class DevicePage extends GetView<DeviceController> {
                                           : Colors.grey,
                                     ),
                                   ),
-                                  const Text("中转连接"),
+                                  Text(TranslationKey.devicePageForwardServerText.tr),
                                   const SizedBox(width: 10),
                                 ],
                               ),
@@ -91,7 +96,10 @@ class DevicePage extends GetView<DeviceController> {
                   const SizedBox(width: 5),
                   Obx(
                     () => Text(
-                      "发现设备(${controller.discoverList.length})",
+                      TranslationKey.devicePageDiscoverDevicesText.trParams({
+                        'length':
+                        controller.discoverList.length.toString(),
+                      }),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -99,7 +107,7 @@ class DevicePage extends GetView<DeviceController> {
                     ),
                   ),
                   Tooltip(
-                    message: "重新发现设备",
+                    message: TranslationKey.devicePageRediscoverTooltip.tr,
                     child: Obx(
                       () => RotationTransition(
                         turns: controller.animation.value,
@@ -123,7 +131,7 @@ class DevicePage extends GetView<DeviceController> {
                     ),
                   ),
                   Tooltip(
-                    message: "手动添加设备",
+                    message: TranslationKey.devicePageManuallyTooltip.tr,
                     child: IconButton(
                       onPressed: () {
                         _showAddDeviceDialog(context);
@@ -138,7 +146,7 @@ class DevicePage extends GetView<DeviceController> {
                     () => Visibility(
                       visible: controller.discovering.value,
                       child: Tooltip(
-                        message: "停止发现",
+                        message: TranslationKey.devicePageStopDiscoveringTooltip.tr,
                         child: IconButton(
                           onPressed: () {
                             sktService.stopDiscoveringDevices();
@@ -156,11 +164,13 @@ class DevicePage extends GetView<DeviceController> {
                       return const SizedBox.shrink();
                     }
                     return Padding(
-                      padding: const EdgeInsets.only(right: 15,left: 10),
+                      padding: const EdgeInsets.only(right: 15, left: 10),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          LoadingDots(text: Text(appConfig.deviceDiscoveryStatus.value!)),
+                          LoadingDots(
+                              text:
+                                  Text(appConfig.deviceDiscoveryStatus.value!)),
                         ],
                       ),
                     );

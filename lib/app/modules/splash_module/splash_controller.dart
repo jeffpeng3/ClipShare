@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
+import 'package:clipshare/app/data/enums/history_content_type.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/handlers/hot_key_handler.dart';
@@ -61,7 +63,7 @@ class SplashController extends GetxController {
       Global.showTipsDialog(
         context: Get.context!,
         text: "$err\n$stack",
-        title: "错误",
+        title: TranslationKey.errorDialogTitle.tr,
       );
     });
   }
@@ -103,6 +105,11 @@ class SplashController extends GetxController {
     // 初始化channel
     initChannel();
     initShareHandler();
+    initLanguage();
+  }
+
+  void initLanguage() {
+    appConfig.updateLanguage();
   }
 
   Future<void> initWindowsManager() async {
@@ -162,7 +169,7 @@ class SplashController extends GetxController {
             lst = await historyDao.getHistoriesPage(appConfig.userId, fromId);
           }
           var devMap = devService.toIdNameMap();
-          devMap[appConfig.devInfo.guid] = "本机";
+          devMap[appConfig.devInfo.guid] = TranslationKey.selfDeviceName.tr;
           var res = {
             "list": lst,
             "devInfos": devMap,
@@ -292,8 +299,8 @@ class SplashController extends GetxController {
       } else if (media.content != null) {
         Global.showTipsDialog(
           context: Get.context!,
-          text: "该文件无法直接读取\n\n是否先保存到【文件存储路径】？",
-          okText: "保存",
+          text: TranslationKey.saveFileToPathForSettingDialogText.tr,
+          okText: TranslationKey.save.tr,
           autoDismiss: false,
           onOk: () async {
             var filePath = await androidChannelService.copyFileFromUri(
@@ -314,7 +321,9 @@ class SplashController extends GetxController {
           },
         );
       } else {
-        Global.showTipsDialog(context: Get.context!, text: "不支持的类型");
+        Global.showTipsDialog(
+            context: Get.context!,
+            text: TranslationKey.saveFileNotSupportDialogText.tr);
         return;
       }
     });

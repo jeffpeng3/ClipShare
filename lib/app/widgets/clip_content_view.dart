@@ -11,9 +11,8 @@ import 'package:flutter_linkify/flutter_linkify.dart';
 
 class ClipContentView extends StatefulWidget {
   final ClipData clipData;
-  final String? language;
 
-  const ClipContentView({super.key, required this.clipData, this.language});
+  const ClipContentView({super.key, required this.clipData});
 
   @override
   State<StatefulWidget> createState() {

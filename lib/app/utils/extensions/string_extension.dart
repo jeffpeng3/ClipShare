@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:get/get.dart';
@@ -77,9 +78,9 @@ extension StringExt on String {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      "打开链接",
-                      style: TextStyle(
+                     Text(
+                      TranslationKey.openLink.tr,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -89,7 +90,7 @@ extension StringExt on String {
                         openUrl();
                         Navigator.pop(context);
                       },
-                      child: const Text("打开"),
+                      child: Text(TranslationKey.open.tr),
                     ),
                   ],
                 ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/rule.dart';
 import 'package:clipshare/app/modules/views/settings/rule_item.dart';
 import 'package:clipshare/app/utils/constants.dart';
@@ -65,8 +66,8 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
     setState(() {});
     timerSnackbar(
       scaffoldMessengerState: mainScaffoldMessengerKey.currentState!,
-      contentText: "删除成功",
-      buttonLabel: "撤销",
+      contentText: TranslationKey.deleteSuccess.tr,
+      buttonLabel: TranslationKey.revoke.tr,
       margin: null,
       second: 5,
       onActionTap: () {
@@ -84,15 +85,15 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
     Get.dialog(
       AlertDialog(
         contentPadding: const EdgeInsets.all(16),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.add),
-            SizedBox(
+            const Icon(Icons.add),
+            const SizedBox(
               width: 10,
             ),
             Text(
-              "导入规则",
-              style: TextStyle(fontSize: 16),
+              TranslationKey.importRules.tr,
+              style: const TextStyle(fontSize: 16),
             ),
           ],
         ),
@@ -112,7 +113,8 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
             setState(() {});
             Global.showSnackBarSuc(
               scaffoldMessengerState: mainScaffoldMessengerKey.currentState!,
-              text: "成功导入${importData.length}条",
+              text: TranslationKey.importRulesSuccess
+                  .trParams({"length": importData.length.toString()}),
             );
             //导入成功关闭自身
             Get.back();
@@ -127,18 +129,18 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
   void onUrlTypeClicked() {
     Get.dialog(
       TextEditDialog(
-        title: "从网络导入",
+        title: TranslationKey.importFromNet.tr,
         labelText: "url",
         verify: (url) => url.isURL,
-        errorText: "请输入正确的URL",
+        errorText: TranslationKey.urlFormatErrorText.tr,
         initStr: "",
-        okText: "获取",
+        okText: TranslationKey.fetch.tr,
         onOk: (url) async {
           bool cancel = false;
           bool closeLoading = false;
           Global.showLoadingDialog(
             context: Get.context!,
-            loadingText: "正在获取数据...",
+            loadingText: TranslationKey.fetchingData.tr,
             showCancel: true,
             onCancel: () {
               closeLoading = true;
@@ -156,7 +158,7 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
               Global.showTipsDialog(
                 context: context,
                 text: resp.statusCode.toString(),
-                title: "加载失败",
+                title: TranslationKey.failedToLoad.tr,
               );
             } else {
               final rules = Rule.fromJson(
@@ -175,7 +177,7 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
             }
             Global.showTipsDialog(
               context: context,
-              title: "加载失败",
+              title: TranslationKey.failedToLoad.tr,
               text: err.toString(),
             );
           }
@@ -197,7 +199,7 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
     var platformFile = result.files[0];
     if (platformFile.path == null) {
       Global.showSnackBarWarn(
-        text: "选择的文件路径不存在!",
+        text: TranslationKey.noSuchFile.tr,
         scaffoldMessengerState: mainScaffoldMessengerKey.currentState!,
       );
     }
@@ -211,7 +213,7 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
     }).catchError((err) {
       Log.error(tag, err);
       Global.showSnackBarWarn(
-        text: "文件读取失败",
+        text: TranslationKey.failedToReadFile.tr,
         scaffoldMessengerState: mainScaffoldMessengerKey.currentState!,
       );
     });
@@ -225,7 +227,7 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("添加规则"),
+          title: Text(TranslationKey.addRule.tr),
           content: widget.editDialogLayout.call(initData, (data) {
             if (idx == null) {
               _addData = data;
@@ -241,15 +243,15 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
                   onPressed: () {
                     Get.dialog(
                       AlertDialog(
-                        title: const Row(
+                        title: Row(
                           children: [
-                            Icon(Icons.add),
-                            SizedBox(
+                            const Icon(Icons.add),
+                            const SizedBox(
                               width: 10,
                             ),
                             Text(
-                              "导入规则",
-                              style: TextStyle(fontSize: 16),
+                              TranslationKey.importRule.tr,
+                              style: const TextStyle(fontSize: 16),
                             ),
                           ],
                         ),
@@ -260,7 +262,7 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
                       ),
                     ).then((v) => Get.back());
                   },
-                  label: const Text("导入"),
+                  label: Text(TranslationKey.import.tr),
                   icon: const Icon(Icons.add),
                 ),
                 Expanded(
@@ -273,7 +275,7 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
                           _editData = null;
                           Navigator.pop(context);
                         },
-                        child: const Text("取消"),
+                        child: Text(TranslationKey.dialogCancelText.tr),
                       ),
                       TextButton(
                         onPressed: () {
@@ -290,7 +292,9 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
                           _editData = null;
                           setState(() {});
                         },
-                        child: Text(idx == null ? "添加" : "修改"),
+                        child: Text(idx == null
+                            ? TranslationKey.add.tr
+                            : TranslationKey.modify.tr),
                       ),
                     ],
                   ),
@@ -314,36 +318,37 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
           children: [
             Expanded(child: Text(widget.title)),
             Visibility(
-                visible: selectionMode && selectedList.isNotEmpty,
-                child: Tooltip(
-                  message: "导出",
-                  child: IconButton(
-                    onPressed: () {
-                      FileUtil.exportFile(
-                        "导出规则",
-                        "export_rules.json",
-                        jsonEncode(selectedList.toList()),
-                      ).then((outputPath) {
-                        if (outputPath != null) {
-                          Global.showSnackBarSuc(
-                            text: "导出成功！",
-                            scaffoldMessengerState:
-                                mainScaffoldMessengerKey.currentState!,
-                          );
-                        }
-                      }).catchError((err) {
-                        Global.showSnackBarWarn(
-                          text: "导出失败：$err",
+              visible: selectionMode && selectedList.isNotEmpty,
+              child: Tooltip(
+                message: TranslationKey.output.tr,
+                child: IconButton(
+                  onPressed: () {
+                    FileUtil.exportFile(
+                      TranslationKey.outputRule.tr,
+                      "export_rules.json",
+                      jsonEncode(selectedList.toList()),
+                    ).then((outputPath) {
+                      if (outputPath != null) {
+                        Global.showSnackBarSuc(
+                          text: TranslationKey.outputSuccess.tr,
                           scaffoldMessengerState:
                               mainScaffoldMessengerKey.currentState!,
                         );
-                      });
-                    },
-                    icon: const Icon(Icons.output),
-                  ),
-                ),),
+                      }
+                    }).catchError((err) {
+                      Global.showSnackBarWarn(
+                        text: "${TranslationKey.outputFailed.tr}: $err",
+                        scaffoldMessengerState:
+                            mainScaffoldMessengerKey.currentState!,
+                      );
+                    });
+                  },
+                  icon: const Icon(Icons.output),
+                ),
+              ),
+            ),
             Tooltip(
-              message: "保存",
+              message: TranslationKey.save.tr,
               child: IconButton(
                 onPressed: () {
                   Navigator.pop(context);
@@ -355,7 +360,7 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
             Visibility(
               visible: !isSmallScreen,
               child: Tooltip(
-                message: "取消",
+                message: TranslationKey.dialogCancelText.tr,
                 child: IconButton(
                   onPressed: () {
                     Get.back();
@@ -371,7 +376,9 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Tooltip(
-              message: selectionMode ? "退出选择模式" : "添加规则",
+              message: selectionMode
+                  ? TranslationKey.exitSelectionMode.tr
+                  : TranslationKey.addRule.tr,
               child: FloatingActionButton(
                 onPressed: () {
                   if (selectionMode) {
@@ -392,7 +399,9 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
               child: Container(
                 margin: const EdgeInsets.only(left: 10),
                 child: Tooltip(
-                  message: selectedList.length == _list.length ? "取消全选" : "全选",
+                  message: selectedList.length == _list.length
+                      ? TranslationKey.cancelSelectAll.tr
+                      : TranslationKey.selectAll.tr,
                   child: FloatingActionButton(
                     onPressed: () {
                       if (selectedList.length == _list.length) {
@@ -462,7 +471,7 @@ class _RuleSettingPageState extends State<RuleSettingPage> {
               },
             ),
           ),
-          child: const EmptyContent(),
+          child: EmptyContent(),
         ),
       ),
     );

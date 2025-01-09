@@ -3,11 +3,13 @@ import 'dart:io';
 
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:clipboard_listener/enums.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/dev_info.dart';
 import 'package:clipshare/app/data/models/forward_server_config.dart';
 import 'package:clipshare/app/data/models/version.dart';
 import 'package:clipshare/app/data/repository/entity/tables/config.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
+import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/theme/app_theme.dart';
@@ -113,7 +115,8 @@ class ConfigService extends GetxService {
 
   final _isMultiSelectionMode = false.obs;
   GetxController? _selectionModeController;
-  final _multiSelectionText = "多选操作".obs;
+  final _multiSelectionText =
+      TranslationKey.multipleChoiceOperationAppBarTitle.tr.obs;
 
   bool isMultiSelectionMode(GetxController controller) {
     if (controller == _selectionModeController && _isMultiSelectionMode.value) {
@@ -218,6 +221,11 @@ class ConfigService extends GetxService {
     }
     return ThemeMode.system;
   }
+
+  //语言
+  final RxString _language = 'auto'.obs;
+
+  String get language => _language.value;
 
   //标签规则
   late final RxString _tagRules;
@@ -454,6 +462,10 @@ class ConfigService extends GetxService {
       "ignoreUpdateVersion",
       userId,
     );
+    var appLanguage = await cfg.getConfig(
+      "appLanguage",
+      userId,
+    );
     var fileStoreDir = Directory(fileStorePath ?? defaultFileStorePath);
     _port = port?.toInt().obs ?? Constants.port.obs;
     _localName =
@@ -485,6 +497,9 @@ class ConfigService extends GetxService {
     _appPassword = appPassword.obs;
     _enableSmsSync = enableSmsSync?.toBool().obs ?? false.obs;
     _enableForward = enableForward?.toBool().obs ?? false.obs;
+    if (appLanguage != null) {
+      _language.value = appLanguage.toString();
+    }
     if (forwardServer != null) {
       if (forwardServer.startsWith("{")) {
         _forwardServer.value = ForwardServerConfig.fromJson(forwardServer);
@@ -765,6 +780,27 @@ class ConfigService extends GetxService {
   Future<void> setIgnoreUpdateVersion(String versionCode) async {
     await _addOrUpdateDbConfig("ignoreUpdateVersion", versionCode);
     _ignoreUpdateVersion.value = versionCode;
+  }
+
+  Future<void> setAppLanguage(String language) async {
+    await _addOrUpdateDbConfig("appLanguage", language);
+    _language.value = language;
+    updateLanguage();
+    final homeController = Get.find<HomeController>();
+    homeController.initNavBarItems();
+  }
+
+//endregion
+
+  //region 其他方法
+
+  void updateLanguage() {
+    if (language == "auto") {
+      Get.updateLocale(Constants.defaultLocale);
+    } else {
+      final codes = language.split('_');
+      Get.updateLocale(Locale(codes[0], codes.length == 1 ? null : codes[1]));
+    }
   }
 //endregion
 }

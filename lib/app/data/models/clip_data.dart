@@ -1,5 +1,6 @@
+import 'package:clipshare/app/data/enums/history_content_type.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
-import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/number_extension.dart';
 import 'package:clipshare/app/utils/extensions/time_extension.dart';
 
@@ -24,7 +25,8 @@ class ClipData {
 
   String get sizeText {
     int size = data.size;
-    if (isText || isRichText || isSms) return "$size 字";
+    if (isText || isRichText || isSms)
+      return "$size ${TranslationKey.unitWord.tr}";
     return size.sizeStr;
   }
 

@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/clip_data.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
 import 'package:clipshare/app/utils/global.dart';
@@ -39,7 +40,7 @@ class ClipDataCardCompact extends StatelessWidget {
               }
               multiWindowChannelService.copy(0, _clip.data.id).then(
                     (args) =>
-                        Global.showSnackBarSuc(context: context, text: "复制成功"),
+                        Global.showSnackBarSuc(context: context, text: TranslationKey.copySuccess.tr),
                   );
               isDouble = false;
             } else {

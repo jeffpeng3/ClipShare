@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/rule.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:flutter/material.dart';
@@ -58,7 +59,7 @@ class _RuleSettingAddDialogState extends State<RuleSettingAddDialog> {
             decoration: InputDecoration(
               labelText: widget.labelText,
               hintText: widget.hintText,
-              errorText: _showTagErr ? "${widget.labelText}不能为空" : null,
+              errorText: _showTagErr ? "${widget.labelText}${TranslationKey.cannotEmpty.tr}" : null,
               border: const OutlineInputBorder(),
             ),
             onChanged: (txt) {
@@ -75,9 +76,9 @@ class _RuleSettingAddDialogState extends State<RuleSettingAddDialog> {
           TextField(
             controller: _ruleController,
             decoration: InputDecoration(
-              labelText: "规则",
-              hintText: "请输入正则表达式",
-              errorText: _showRuleErr ? "规则不能为空" : null,
+              labelText: TranslationKey.ruleAddDialogLabel.tr,
+              hintText: TranslationKey.ruleAddDialogHint.tr,
+              errorText: _showRuleErr ? TranslationKey.ruleCannotEmpty.tr : null,
               border: const OutlineInputBorder(),
             ),
             onChanged: (txt) {
@@ -99,7 +100,7 @@ class _RuleSettingAddDialogState extends State<RuleSettingAddDialog> {
             height: 10,
           ),
           CheckboxListTile(
-            title: const Text("验证测试"),
+            title: Text(TranslationKey.validationTesting.tr),
             value: _useVerify,
             onChanged: (v) {
               setState(() {
@@ -115,8 +116,8 @@ class _RuleSettingAddDialogState extends State<RuleSettingAddDialog> {
             child: TextField(
               controller: _verifyController,
               decoration: InputDecoration(
-                labelText: _showVerifyErr ? "验证失败" : "验证",
-                hintText: "请输入",
+                labelText: _showVerifyErr ? TranslationKey.validationFailed.tr : TranslationKey.verify.tr,
+                hintText: TranslationKey.pleaseInput.tr,
                 border: OutlineInputBorder(
                   borderSide: _showVerifyErr
                       ? const BorderSide(color: Colors.red)

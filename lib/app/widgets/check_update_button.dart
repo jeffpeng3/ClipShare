@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/utils/app_update_info_util.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ class _CheckUpdateButtonState extends State<CheckUpdateButton> {
         });
         AppUpdateInfoUtil.showUpdateInfo().then((hasNewest) {
           if (!hasNewest) {
-            Global.showSnackBarSuc(context: context, text: "已是最新版本");
+            Global.showSnackBarSuc(context: context, text: TranslationKey.alreadyNewestAppVersion.tr);
           }
         }).catchError((err) {
           Global.showTipsDialog(
@@ -35,7 +36,7 @@ class _CheckUpdateButtonState extends State<CheckUpdateButton> {
         });
       },
       child: Visibility(
-        replacement: const Text("检查更新"),
+        replacement: Text(TranslationKey.checkUpdate.tr),
         visible: loading,
         child: const CircularProgressIndicator(
           strokeWidth: 2.0,

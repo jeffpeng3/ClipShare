@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:clipshare/app/data/enums/syncing_file_state.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/syncing_file.dart';
 import 'package:clipshare/app/listeners/multi_selection_pop_scope_disable_listener.dart';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
@@ -45,21 +47,21 @@ class SyncFileController extends GetxController
 
   final tabs = <_SyncingFilePageTab>[
     _SyncingFilePageTab(
-      name: "历史",
+      name: TranslationKey.syncingFilePageHistoryTabText.tr,
       icon: const Icon(
         Icons.history,
         size: 18,
       ),
     ),
     _SyncingFilePageTab(
-      name: "接收",
+      name: TranslationKey.syncingFilePageReceiveTabText.tr,
       icon: const Icon(
         Icons.file_download,
         size: 18,
       ),
     ),
     _SyncingFilePageTab(
-      name: "发送",
+      name: TranslationKey.syncingFilePageSendTabText.tr,
       icon: const Icon(
         Icons.upload,
         size: 18,
@@ -140,7 +142,7 @@ class SyncFileController extends GetxController
     Navigator.pop(context);
     Global.showLoadingDialog(
       context: context,
-      loadingText: "删除中...",
+      loadingText: TranslationKey.deleting.tr,
     );
     return dbService.historyDao
         .deleteByIds(
@@ -178,12 +180,12 @@ class SyncFileController extends GetxController
       if (hasError) {
         Global.showSnackBarWarn(
           context: context,
-          text: "部分删除失败",
+          text: TranslationKey.partialDeletionFailed.tr,
         );
       } else {
         Global.showSnackBarSuc(
           context: context,
-          text: "删除成功",
+          text: TranslationKey.deletingSuccess.tr,
         );
       }
     });

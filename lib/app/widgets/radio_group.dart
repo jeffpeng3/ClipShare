@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 
 class RadioData<T> {
   final T value;
-  final Widget label;
+  final String label;
+  Widget? widget;
 
-  const RadioData({required this.value, required this.label});
+  RadioData({
+    required this.value,
+    required this.label,
+    this.widget,
+  });
 }
 
 class RadioGroup<T> extends StatefulWidget {
@@ -12,7 +17,6 @@ class RadioGroup<T> extends StatefulWidget {
   final Axis direction;
   final T defaultValue;
   final void Function(T value) onSelected;
-  final bool Function(T value) selected;
 
   const RadioGroup({
     super.key,
@@ -20,7 +24,6 @@ class RadioGroup<T> extends StatefulWidget {
     this.direction = Axis.vertical,
     required this.defaultValue,
     required this.onSelected,
-    required this.selected,
   });
 
   @override
@@ -29,7 +32,7 @@ class RadioGroup<T> extends StatefulWidget {
   }
 }
 
-class _RadioGroupState<T> extends State<RadioGroup> {
+class _RadioGroupState<T> extends State<RadioGroup<T>> {
   late T groupValue;
 
   @override
@@ -42,12 +45,12 @@ class _RadioGroupState<T> extends State<RadioGroup> {
         return RadioListTile<T>(
           value: v,
           groupValue: groupValue,
-          selected: widget.selected.call(v),
-          title: widget.data[index].label,
+          selected: groupValue == v,
+          title: widget.data[index].widget ?? Text(widget.data[index].label),
           onChanged: (T? value) {
             groupValue = v;
             setState(() {});
-            widget.onSelected(value!);
+            widget.onSelected(value as T);
           },
         );
       },

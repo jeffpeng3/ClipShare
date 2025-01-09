@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/modules/views/tag_edit_page.dart';
 import 'package:clipshare/app/services/tag_service.dart';
@@ -71,10 +72,10 @@ class ClipTagRowView extends StatelessWidget {
                   onPressed: () {
                     TagEditPage.goto(hisId);
                   },
-                  icon: const Row(
+                  icon: Row(
                     children: [
-                      Text("标签"),
-                      Icon(
+                      Text(TranslationKey.tag.tr),
+                      const Icon(
                         Icons.add,
                         size: 22,
                       ),

@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:clipshare/app/utils/log.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
+import 'package:clipshare/app/widgets/radio_group.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class Constants {
@@ -30,23 +32,25 @@ class Constants {
   static const heartbeatInterval = 30;
 
   //中转程序下载地址
-  static const forwardDownloadUrl = "https://clipshare.coclyun.top/usages/forward.html";
+  static const forwardDownloadUrl =
+      "https://clipshare.coclyun.top/usages/forward.html";
 
   //更新信息地址
-  static const appUpdateInfoUtl = "https://clipshare.coclyun.top/version-info.json";
+  static const appUpdateInfoUtl =
+      "https://clipshare.coclyun.top/version-info.json";
 
   //默认标签规则
-  static final defaultTagRules = jsonEncode(
-    {
-      "version": 1,
-      "data": [
+  static String get defaultTagRules => jsonEncode(
         {
-          "name": "链接",
-          "rule": r"[a-zA-z]+://[^\s]*",
-        }
-      ],
-    },
-  );
+          "version": 1,
+          "data": [
+            {
+              "name": TranslationKey.defaultLinkTagName.tr,
+              "rule": r"[a-zA-z]+://[^\s]*",
+            }
+          ],
+        },
+      );
 
   //默认短信规则
   static final defaultSmsRules = jsonEncode(
@@ -101,6 +105,31 @@ class Constants {
   static const logoIcoPath = "assets/images/logo/logo.ico";
   static const shizukuLogoPath = "assets/images/logo/shizuku.png";
   static const rootLogoPath = "assets/images/logo/root.png";
+
+  static List<RadioData<int>> get authBackEndTimeSelections => [
+        RadioData(value: 0, label: TranslationKey.immediately.tr),
+        RadioData(value: 1, label: "1 ${TranslationKey.minute.tr}"),
+        RadioData(value: 2, label: "2 ${TranslationKey.minute.tr}"),
+        RadioData(value: 5, label: "5 ${TranslationKey.minute.tr}"),
+        RadioData(value: 10, label: "10 ${TranslationKey.minute.tr}"),
+        RadioData(value: 30, label: "30 ${TranslationKey.minute.tr}"),
+      ];
+  static final languageSelections = [
+    RadioData(value: 'zh_CN', label: "简体中文"),
+    RadioData(value: 'en_US', label: "English"),
+  ]
+    ..sort((a, b) => a.label.compareTo(b.label))
+    ..insert(0, RadioData(value: 'auto', label: "Auto"));
+
+  static const defaultLocale = Locale("zh", "CN");
+  static final supportedLocales = languageSelections.sublist(1).map((item) {
+    final codes = item.value.split("_");
+    return Locale(codes[0], codes.length == 1 ? null : codes[1]);
+  });
+  static const localizationsDelegates = [
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   //设备类型图片
   static final Map<String, Icon> devTypeIcons = {
@@ -158,142 +187,4 @@ class Constants {
       "name": "-",
     },
   ];
-}
-
-enum Option { add, delete, update }
-
-enum HistoryContentType {
-  unknown(label: "未知", value: "unknown", order: 9999),
-  all(label: "全部", value: "", order: 9999),
-  text(label: "文本", value: "Text", order: 1),
-  image(label: "图片", value: "Image", order: 2),
-  richText(label: "富文本", value: "RichText", order: 3),
-  sms(label: "短信", value: "Sms", order: 4),
-  file(label: "文件", value: "File", order: 5);
-
-  const HistoryContentType({
-    required this.label,
-    required this.value,
-    required this.order,
-  });
-
-  final String value;
-  final String label;
-  final int order;
-
-  static HistoryContentType parse(String value) =>
-      HistoryContentType.values.firstWhere(
-        (e) => e.value.toUpperCase() == value.toUpperCase(),
-        orElse: () {
-          Log.debug("ContentType", "key '$value' unknown");
-          return HistoryContentType.unknown;
-        },
-      );
-
-  static Map<String, String> get typeMap {
-    var lst = HistoryContentType.values
-        .where((e) => e != HistoryContentType.unknown)
-        .toList();
-    Map<String, String> res = {};
-    for (var t in lst) {
-      res[t.label] = t.value;
-    }
-    return res;
-  }
-}
-
-enum MsgType {
-  //设备连接
-  connect,
-  //同步确认
-  ackSync,
-  //在线数据同步
-  sync,
-  //广播信息
-  broadcastInfo,
-  //请求配对（生成配对码）
-  reqPairing,
-  //请求配对（验证配对码）
-  pairing,
-  //取消配对
-  cancelPairing,
-  //设备配对成功
-  paired,
-  //设置置顶（或非置顶）
-  setTop,
-  //请求缺失数据
-  reqMissingData,
-  //同步缺失数据
-  missingData,
-  //删除记录
-  rmHistory,
-  //配对情况
-  pairedStatus,
-  //手动断开连接
-  disConnect,
-  //忘记设备
-  forgetDev,
-  ping,
-  //文件同步
-  file,
-  //未知key
-  unknown;
-
-  static MsgType getValue(String name) => MsgType.values.firstWhere(
-        (e) => e.name == name,
-        orElse: () {
-          Log.debug("MsgKey", "key '$name' unknown");
-          return MsgType.unknown;
-        },
-      );
-}
-
-enum OpMethod {
-  add,
-  delete,
-  update,
-  unknown;
-
-  static OpMethod getValue(String name) => OpMethod.values.firstWhere(
-        (e) => e.name == name,
-        orElse: () {
-          Log.debug("OpMethod", "key '$name' unknown");
-          return OpMethod.unknown;
-        },
-      );
-}
-
-enum RuleType {
-  tag,
-  sms,
-  unknown;
-
-  static RuleType getValue(String name) => RuleType.values.firstWhere(
-        (e) => e.name == name,
-        orElse: () {
-          Log.debug("Rule", "key '$name' unknown");
-          return RuleType.unknown;
-        },
-      );
-}
-
-enum Module {
-  unknown(moduleName: "未知"),
-  device(moduleName: "设备管理"),
-  tag(moduleName: "标签管理"),
-  history(moduleName: "历史记录"),
-  rules(moduleName: "规则设置"),
-  historyTop(moduleName: "历史记录置顶");
-
-  const Module({required this.moduleName});
-
-  final String moduleName;
-
-  static Module getValue(String name) => Module.values.firstWhere(
-        (e) => e.moduleName == name,
-        orElse: () {
-          Log.debug("Module", "key '$name' unknown");
-          return Module.unknown;
-        },
-      );
 }

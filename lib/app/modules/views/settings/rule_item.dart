@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/rule.dart';
 import 'package:flutter/material.dart';
 
@@ -71,7 +72,7 @@ class _RuleItemState extends State<RuleItem> {
                                         fontWeight: FontWeight.normal,
                                         fontSize: 17,
                                       ),
-                                  child: Text("名称：${widget.rule.name}"),
+                                  child: Text("${TranslationKey.name_.tr}: ${widget.rule.name}"),
                                 ),
                               ),
                             ),
@@ -86,7 +87,7 @@ class _RuleItemState extends State<RuleItem> {
                                       .copyWith(
                                         color: Colors.grey,
                                       ),
-                                  child: Text("规则：${widget.rule.rule}"),
+                                  child: Text("${TranslationKey.ruleContent.tr}: ${widget.rule.rule}"),
                                 ),
                               ),
                             ),

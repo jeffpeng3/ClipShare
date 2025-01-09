@@ -1,5 +1,6 @@
 import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
@@ -58,8 +59,8 @@ class _EnvironmentSelectionsState extends State<EnvironmentSelections>
       if (environment == EnvironmentType.shizuku) {
         Global.showTipsDialog(
           context: context,
-          title: '请求失败',
-          text: "Shizuku 权限请求失败，请确保已启动Shizuku并重试",
+          title: TranslationKey.requestFailed.tr,
+          text: TranslationKey.shizukuRequestFailedDialogText.tr,
           showCancel: false,
           onOk: () {
             Get.back();
@@ -68,8 +69,8 @@ class _EnvironmentSelectionsState extends State<EnvironmentSelections>
       } else if (environment == EnvironmentType.root) {
         Global.showTipsDialog(
           context: context,
-          title: '请求失败',
-          text: "似乎没有 Root 权限，可选择 Shizuku 模式启动",
+          title: TranslationKey.requestFailed.tr,
+          text: TranslationKey.rootRequestFailedDialogText.tr,
           showCancel: false,
         );
       }
@@ -95,9 +96,9 @@ class _EnvironmentSelectionsState extends State<EnvironmentSelections>
           ),
           tipContent: Row(
             children: [
-              const Text(
-                "Shizuku 模式",
-                style: TextStyle(
+              Text(
+                TranslationKey.shizukuMode.tr,
+                style: const TextStyle(
                   color: Colors.blueGrey,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -115,23 +116,23 @@ class _EnvironmentSelectionsState extends State<EnvironmentSelections>
                 onTap: () {
                   Global.showTipsDialog(
                     context: context,
-                    text: "为保证正常授权，请确保将 Shizuku 添加到电池优化白名单并允许后台运行",
+                    text: TranslationKey.shizukuModeBatteryOptimiseTips.tr,
                     showCancel: false,
                   );
                 },
               ),
             ],
           ),
-          tipDesc: const Text(
-            "无需 Root，需要安装 Shizuku，重启手机后需要重新激活",
-            style: TextStyle(fontSize: 12, color: Color(0xff6d6d70)),
+          tipDesc: Text(
+            TranslationKey.shizukuModeDesc.tr,
+            style: const TextStyle(fontSize: 12, color: Color(0xff6d6d70)),
           ),
           onTap: () {
             setState(() {
               requesting = true;
               requestingPerm = EnvironmentType.shizuku;
             });
-            Global.showLoadingDialog(context: context, loadingText: '等待请求结果');
+            Global.showLoadingDialog(context: context, loadingText: TranslationKey.waitingRequestResult.tr);
             clipboardManager.requestPermission(EnvironmentType.shizuku);
           },
         ),
@@ -142,24 +143,24 @@ class _EnvironmentSelectionsState extends State<EnvironmentSelections>
             width: 48,
             height: 48,
           ),
-          tipContent: const Text(
-            "Root模式",
-            style: TextStyle(
+          tipContent: Text(
+            TranslationKey.rootMode.tr,
+            style: const TextStyle(
               color: Colors.blueGrey,
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
           ),
-          tipDesc: const Text(
-            "以 Root 权限启动，重启手机无需重新激活",
-            style: TextStyle(fontSize: 12, color: Color(0xff6d6d70)),
+          tipDesc: Text(
+            TranslationKey.rootModeDesc.tr,
+            style: const TextStyle(fontSize: 12, color: Color(0xff6d6d70)),
           ),
           onTap: () {
             setState(() {
               requesting = true;
               requestingPerm = EnvironmentType.root;
             });
-            Global.showLoadingDialog(context: context, loadingText: '等待请求结果');
+            Global.showLoadingDialog(context: context, loadingText: TranslationKey.waitingRequestResult.tr);
             clipboardManager.requestPermission(EnvironmentType.root);
           },
         ),
@@ -178,17 +179,17 @@ class _EnvironmentSelectionsState extends State<EnvironmentSelections>
             size: 40,
             color: Colors.blueGrey,
           ),
-          tipContent: const Text(
-            "忽略",
-            style: TextStyle(
+          tipContent: Text(
+            TranslationKey.ignoreMode.tr,
+            style: const TextStyle(
               color: Colors.blueGrey,
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
           ),
-          tipDesc: const Text(
-            "剪贴板将无法后台监听，只能被动同步",
-            style: TextStyle(fontSize: 12, color: Color(0xff6d6d70)),
+          tipDesc: Text(
+            TranslationKey.ignoreModeDesc.tr,
+            style: const TextStyle(fontSize: 12, color: Color(0xff6d6d70)),
           ),
         ),
       ],

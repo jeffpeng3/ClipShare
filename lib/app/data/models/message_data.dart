@@ -1,7 +1,7 @@
 import 'dart:convert';
 
+import 'package:clipshare/app/data/enums/msg_type.dart';
 import 'package:clipshare/app/data/models/dev_info.dart';
-import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/log.dart';
 
 class MessageData {

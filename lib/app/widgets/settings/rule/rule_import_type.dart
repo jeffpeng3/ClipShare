@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
@@ -20,12 +21,12 @@ class RuleImportType extends StatelessWidget {
           children: [
             ListTile(
               leading: Icon(MdiIcons.web),
-              title: const Text("从网络导入"),
+              title: Text(TranslationKey.importFromNet.tr),
               onTap: onUrlTypeClicked,
             ),
             ListTile(
               leading: Icon(MdiIcons.fileDocumentOutline),
-              title: const Text("从本地导入"),
+              title: Text(TranslationKey.importFromLocal.tr),
               onTap: onLocalFileTypeClicked,
             ),
           ],

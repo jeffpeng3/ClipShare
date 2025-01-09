@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/modules/statistics_module/statistics_controller.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/widgets/empty_content.dart';
@@ -18,12 +19,12 @@ class StatisticsPage extends GetView<StatisticsController> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Row(
+        title: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(Icons.bar_chart),
-            SizedBox(width: 10),
-            Text("统计分析"),
+            const Icon(Icons.bar_chart),
+            const SizedBox(width: 10),
+            Text(TranslationKey.statisticsPageAppBarText.tr),
           ],
         ),
       ),
@@ -34,7 +35,7 @@ class StatisticsPage extends GetView<StatisticsController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
-                const Text("统计范围"),
+                Text(TranslationKey.statisticsPageFilterRangeText.tr),
                 const SizedBox(width: 10),
                 RoundedChip(
                   onPressed: controller.selectRangeMonth,
@@ -51,7 +52,7 @@ class StatisticsPage extends GetView<StatisticsController> {
                   avatar: const Icon(Icons.date_range_outlined),
                 ),
                 Tooltip(
-                  message: '刷新',
+                  message: TranslationKey.refresh.tr,
                   child: IconButton(
                     onPressed: () {
                       controller.refreshData();
@@ -81,26 +82,26 @@ class StatisticsPage extends GetView<StatisticsController> {
                             if (controller.historyTypeCntItems.isNotEmpty)
                               BarChart(
                                 data: controller.historyTypeCntItems,
-                                title: '各类别记录数量',
+                                title: TranslationKey.statisticsPageHistoryTypeCntTitle.tr,
                               ),
                             if (controller.syncRatePieItems.isNotEmpty)
                               PieChart(
                                 data: controller.syncRatePieItems,
-                                title: '同步比例',
+                                title: TranslationKey.statisticsPageSyncRatePie.tr,
                               ),
                             if (controller.historyCntForDeviceItems.isNotEmpty)
                               BarChart(
                                 data: controller.historyCntForDeviceItems,
-                                title: '各设备记录数量',
+                                title: TranslationKey.statisticsPageHistoryCntForDevice.tr,
                               ),
                             if (controller.historyTagCntItems.isNotEmpty)
                               BarChart(
                                 data: controller.historyTagCntItems,
-                                title: '各标签记录数量',
+                                title: TranslationKey.statisticsPageHistoryTagCnt.tr,
                               ),
                           ],
                         ),
-                        child: const EmptyContent(),
+                        child: EmptyContent(),
                       ),
                     ),
                   ),

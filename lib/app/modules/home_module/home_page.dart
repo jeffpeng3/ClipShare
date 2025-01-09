@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -89,7 +90,9 @@ class HomePage extends GetView<HomeController> {
                                     syncedCnt += progress.syncedCount;
                                   }
                                   return LoadingDots(
-                                    text: Text("同步中($syncedCnt/$total)"),
+                                    text: Text(
+                                      "${TranslationKey.homeAppBarSyncingProgressText.tr}($syncedCnt/$total)",
+                                    ),
                                   );
                                 }
                                 return Text(
@@ -109,7 +112,7 @@ class HomePage extends GetView<HomeController> {
                               //导航至搜索页面
                               controller.gotoSearchPage(null, null);
                             },
-                            tooltip: "搜索",
+                            tooltip: TranslationKey.search.tr,
                             icon: const Icon(
                               Icons.search_rounded,
                             ),

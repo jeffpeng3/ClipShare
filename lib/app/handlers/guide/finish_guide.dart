@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/handlers/guide/base_guide.dart';
 import 'package:clipshare/app/widgets/permission_guide.dart';
 import 'package:flutter/material.dart';
@@ -7,9 +8,9 @@ class FinishGuide extends BaseGuide {
 
   FinishGuide() {
     super.widget = PermissionGuide(
-      title: "已完成",
+      title: TranslationKey.completed.tr,
       icon: Icons.check_circle,
-      description: "已完成全部设置",
+      description: TranslationKey.completedGuideTitleDescription.tr,
       grantPerm: null,
       checkPerm: canNext,
     );

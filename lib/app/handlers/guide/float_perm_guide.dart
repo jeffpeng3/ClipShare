@@ -1,6 +1,6 @@
-import 'package:clipshare/app/handlers/permission_handler.dart';
-import 'package:clipshare/app/utils/constants.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/handlers/guide/base_guide.dart';
+import 'package:clipshare/app/handlers/permission_handler.dart';
 import 'package:clipshare/app/widgets/permission_guide.dart';
 import 'package:flutter/material.dart';
 
@@ -9,10 +9,9 @@ class FloatPermGuide extends BaseGuide {
 
   FloatPermGuide() {
     super.widget = PermissionGuide(
-      title: "悬浮窗权限",
+      title: TranslationKey.floatPermGuideTitle.tr,
       icon: Icons.filter_none_rounded,
-      description:
-          "由于高版本Android系统限制，${Constants.appName}需要通过悬浮窗获取剪贴板焦点，开启悬浮窗后还可以随时从屏幕边缘查看剪贴板历史并进行拖拽选择",
+      description: TranslationKey.floatPermGuideDescription.tr,
       grantPerm: permHandler.request,
       checkPerm: canNext,
     );

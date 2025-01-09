@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/update_log.dart';
 import 'package:clipshare/app/exceptions/fetch_update_logs_exception.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/global.dart';
-import 'package:clipshare/app/utils/log.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
@@ -44,9 +44,9 @@ class AppUpdateInfoUtil {
   static Future<bool> showUpdateInfo([bool debounce = false]) async {
     final now = DateTime.now();
     if (_lastCheckUpdateTime != null && debounce) {
-      final diffMinutes = now.difference(_lastCheckUpdateTime!).inHours;
+      final diffHours = now.difference(_lastCheckUpdateTime!).inHours;
       //检测间隔不能低于6h
-      if (diffMinutes < 6) {
+      if (diffHours < 6) {
         return false;
       }
     }
@@ -67,17 +67,17 @@ class AppUpdateInfoUtil {
     }
     Global.showTipsDialog(
       context: Get.context!,
-      title: "新版本",
+      title: TranslationKey.newVersionDialogTitle.tr,
       text: content,
       showCancel: true,
       showNeutral: true,
-      neutralText: "跳过该次更新",
-      cancelText: "取消",
+      neutralText: TranslationKey.newVersionDialogSkipText.tr,
+      cancelText: TranslationKey.dialogCancelText.tr,
       onNeutral: () {
         //写入数据库跳过更新的版本号
         appConfig.setIgnoreUpdateVersion(latestVersionCode);
       },
-      okText: "下载更新",
+      okText: TranslationKey.newVersionDialogOkText.tr,
       onOk: () {
         logs.first.downloadUrl.askOpenUrl();
       },

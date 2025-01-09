@@ -1,6 +1,7 @@
 import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
 import 'package:clipboard_listener/notification_content_config.dart';
+import 'package:clipshare/app/data/enums/history_content_type.dart';
 import 'package:clipshare/app/listeners/history_data_listener.dart';
 import 'package:clipshare/app/modules/settings_module/settings_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';

@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:clipshare/app/data/enums/module.dart';
+import 'package:clipshare/app/data/enums/op_method.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/version.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
@@ -104,7 +107,7 @@ class _DeviceCardState extends State<DeviceCard> {
   void initState() {
     super.initState();
     _empty = widget.dev == null;
-    if(_empty) {
+    if (_empty) {
       _setTimer();
     }
   }
@@ -130,9 +133,9 @@ class _DeviceCardState extends State<DeviceCard> {
             child: TextField(
               autofocus: true,
               controller: textController,
-              decoration: const InputDecoration(
-                label: Text("请输入"),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                label: Text(TranslationKey.pleaseInput.tr),
+                border: const OutlineInputBorder(),
               ),
             ),
           ),
@@ -141,7 +144,7 @@ class _DeviceCardState extends State<DeviceCard> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text("取消"),
+              child: Text(TranslationKey.dialogCancelText.tr),
             ),
             TextButton(
               onPressed: () {
@@ -160,7 +163,7 @@ class _DeviceCardState extends State<DeviceCard> {
                   }
                 });
               },
-              child: const Text("保存"),
+              child: Text(TranslationKey.save.tr),
             ),
           ],
         );
@@ -230,7 +233,7 @@ class _DeviceCardState extends State<DeviceCard> {
                                         icon: const Icon(
                                           Icons.edit_note,
                                         ),
-                                        tooltip: "重命名",
+                                        tooltip: TranslationKey.rename.tr,
                                         visualDensity: VisualDensity.compact,
                                       )
                                     : const SizedBox.shrink(),
@@ -260,8 +263,8 @@ class _DeviceCardState extends State<DeviceCard> {
                             visible: widget.isSelf,
                             child: Container(
                               margin: const EdgeInsets.only(left: 5),
-                              child: const RoundedChip(
-                                label: Text("本机"),
+                              child: RoundedChip(
+                                label: Text(TranslationKey.selfDeviceName.tr),
                               ),
                             ),
                           ),
@@ -269,8 +272,8 @@ class _DeviceCardState extends State<DeviceCard> {
                             visible: widget.isForward,
                             child: Container(
                               margin: const EdgeInsets.only(left: 5),
-                              child: const RoundedChip(
-                                label: Text("中转"),
+                              child: RoundedChip(
+                                label: Text(TranslationKey.forward.tr),
                               ),
                             ),
                           ),
@@ -284,9 +287,14 @@ class _DeviceCardState extends State<DeviceCard> {
                                     onPressed: () => {
                                       Global.showTipsDialog(
                                         context: context,
-                                        text: "与该设备的软件版本不兼容，禁用数据同步功能。"
-                                            "\n最低版本要求为 ${minVersion.name}(${minVersion.code})"
-                                            "\n当前软件版本为 ${appConfig.version.name}(${appConfig.version.code})",
+                                        text: TranslationKey
+                                            .notCompatibleDialogText
+                                            .trParams({
+                                          "minName": minVersion.name,
+                                          "minCode": minVersion.code,
+                                          "selfName": appConfig.version.name,
+                                          "selfCode": appConfig.version.code,
+                                        }),
                                       ),
                                     },
                                     icon: const Icon(
@@ -294,9 +302,9 @@ class _DeviceCardState extends State<DeviceCard> {
                                       color: Colors.orange,
                                     ),
                                   ),
-                                  const Text(
-                                    "版本不兼容",
-                                    style: TextStyle(
+                                  Text(
+                                    TranslationKey.notCompatible.tr,
+                                    style: const TextStyle(
                                       color: Colors.orange,
                                     ),
                                   ),

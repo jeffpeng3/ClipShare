@@ -1,4 +1,5 @@
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/modules/search_module/search_controller.dart'
     as search_module;
 import 'package:clipshare/app/services/config_service.dart';
@@ -41,7 +42,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                       left: 8,
                       right: 8,
                     ),
-                    hintText: "搜索",
+                    hintText: TranslationKey.search.tr,
                     border: controller.showLeftBar
                         ? OutlineInputBorder(
                             borderRadius: BorderRadius.circular(4), // 边框圆角
@@ -58,9 +59,9 @@ class SearchPage extends GetView<search_module.SearchController> {
                       splashColor: Colors.black12,
                       highlightColor: Colors.black12,
                       borderRadius: BorderRadius.circular(50),
-                      child: const Tooltip(
-                        message: "搜索",
-                        child: Icon(
+                      child: Tooltip(
+                        message: TranslationKey.search.tr,
+                        child: const Icon(
                           Icons.search_rounded,
                           size: 25,
                         ),
@@ -79,7 +80,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                     await controller.loadSearchCondition();
                     _showExtendSearchDialog();
                   },
-                  tooltip: "更多筛选项",
+                  tooltip: TranslationKey.moreFilter.tr,
                   icon: Icon(
                     controller.hasCondition
                         ? Icons.playlist_add_check_outlined
@@ -102,7 +103,13 @@ class SearchPage extends GetView<search_module.SearchController> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    for (var type in ["全部", "文本", "图片", "文件", "短信"])
+                    for (var type in [
+                      TranslationKey.all.tr,
+                      TranslationKey.text.tr,
+                      TranslationKey.image.tr,
+                      TranslationKey.file.tr,
+                      TranslationKey.sms.tr
+                    ])
                       Row(
                         children: [
                           RoundedChip(
@@ -155,7 +162,8 @@ class SearchPage extends GetView<search_module.SearchController> {
                       topLeft: Radius.circular(4),
                       topRight: Radius.circular(4),
                     ),
-                    imageMasonryGridViewLayout: controller.searchType == "图片",
+                    imageMasonryGridViewLayout:
+                        controller.searchType == TranslationKey.image.tr,
                   ),
                 ),
               ),
@@ -175,10 +183,11 @@ class SearchPage extends GetView<search_module.SearchController> {
       elevation: 100,
       builder: (context) {
         var start = controller.searchStartDate == ""
-            ? "开始日期"
+            ? TranslationKey.startDate.tr
             : controller.searchStartDate;
-        var end =
-            controller.searchEndDate == "" ? "结束日期" : controller.searchEndDate;
+        var end = controller.searchEndDate == ""
+            ? TranslationKey.endDate.tr
+            : controller.searchEndDate;
         var now = DateTime.now();
         var nowDayStr = now.toString().substring(0, 10);
         var tags = Set<String>.from(controller.selectedTags);
@@ -214,10 +223,10 @@ class SearchPage extends GetView<search_module.SearchController> {
                       margin: const EdgeInsets.only(bottom: 5),
                       child: Row(
                         children: [
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              "筛选日期",
-                              style: TextStyle(
+                              TranslationKey.filterByDate.tr,
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -231,8 +240,9 @@ class SearchPage extends GetView<search_module.SearchController> {
                                       ? Icons.check_box
                                       : Icons.check_box_outline_blank_sharp,
                                 ),
-                                label: const Text(
-                                  "仅未同步",
+                                label: Text(
+                                  TranslationKey
+                                      .onlyNotSync.tr,
                                 ),
                                 onPressed: () {
                                   setInnerState(() {
@@ -247,17 +257,29 @@ class SearchPage extends GetView<search_module.SearchController> {
                               Navigator.pop(context);
                               var hasCondition = false;
                               //判断是否加入了筛选条件
-                              if (!start.contains("日期") ||
-                                  !end.contains("日期") ||
+                              if (!start.contains(TranslationKey
+                                      .searchPageMoreFilterByDateJudgeText
+                                      .tr) ||
+                                  !end.contains(TranslationKey
+                                      .searchPageMoreFilterByDateJudgeText
+                                      .tr) ||
                                   tags.isNotEmpty ||
                                   devs.isNotEmpty ||
                                   searchOnlyNoSync) {
                                 hasCondition = true;
                               }
-                              controller.searchStartDate =
-                                  start.contains("日期") ? "" : start;
-                              controller.searchEndDate =
-                                  end.contains("日期") ? "" : end;
+                              controller.searchStartDate = start.contains(
+                                TranslationKey
+                                    .searchPageMoreFilterByDateJudgeText.tr,
+                              )
+                                  ? ""
+                                  : start;
+                              controller.searchEndDate = end.contains(
+                                TranslationKey
+                                    .searchPageMoreFilterByDateJudgeText.tr,
+                              )
+                                  ? ""
+                                  : end;
                               controller.selectedTags.clear();
                               controller.selectedTags.addAll(tags);
                               controller.selectedDevIds.clear();
@@ -266,7 +288,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                               // controller.hasCondition = hasCondition;
                               controller.refreshData();
                             },
-                            child: const Text("确定"),
+                            child: Text(TranslationKey.confirm.tr),
                           ),
                         ],
                       ),
@@ -282,23 +304,23 @@ class SearchPage extends GetView<search_module.SearchController> {
                             start,
                             style: TextStyle(
                               color: controller.searchStartDate == "" &&
-                                      start == "开始日期"
+                                      start == TranslationKey.startDate.tr
                                   ? Colors.blueGrey
                                   : null,
                             ),
                           ),
                           avatar: const Icon(Icons.date_range_outlined),
                           deleteIcon: Icon(
-                            start != nowDayStr || start == "开始日期"
+                            start != nowDayStr || start ==TranslationKey.startDate.tr
                                 ? Icons.location_on
                                 : Icons.close,
                             size: 17,
                             color: Colors.blue,
                           ),
                           deleteButtonTooltipMessage:
-                              start != nowDayStr || start == "开始日期"
-                                  ? "定位到今天"
-                                  : "清除",
+                              start != nowDayStr || start == TranslationKey.startDate.tr
+                                  ? TranslationKey.toToday.tr
+                                  : TranslationKey.clear.tr,
                           onDeleted: start != nowDayStr
                               ? () {
                                   start = DateTime.now()
@@ -307,7 +329,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                                   setInnerState(() {});
                                 }
                               : () {
-                                  start = "开始日期";
+                                  start = TranslationKey.startDate.tr;
                                   setInnerState(() {});
                                 },
                         ),
@@ -357,9 +379,9 @@ class SearchPage extends GetView<search_module.SearchController> {
                       children: <Widget>[
                         Container(
                           margin: const EdgeInsets.only(top: 10, bottom: 10),
-                          child: const Text(
-                            "筛选设备",
-                            style: TextStyle(
+                          child: Text(
+                            TranslationKey.filterByDevice.tr,
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -374,7 +396,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                                 width: 25,
                                 child: IconButton(
                                   padding: const EdgeInsets.all(2),
-                                  tooltip: "清除",
+                                  tooltip: TranslationKey.clear.tr,
                                   iconSize: 13,
                                   color: Colors.blueGrey,
                                   onPressed: () {
@@ -419,9 +441,9 @@ class SearchPage extends GetView<search_module.SearchController> {
                       children: <Widget>[
                         Container(
                           margin: const EdgeInsets.only(top: 10, bottom: 10),
-                          child: const Text(
-                            "筛选标签",
-                            style: TextStyle(
+                          child: Text(
+                            TranslationKey.filterByTag.tr,
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -436,7 +458,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                                 width: 25,
                                 child: IconButton(
                                   padding: const EdgeInsets.all(2),
-                                  tooltip: "清除",
+                                  tooltip: TranslationKey.clear.tr,
                                   iconSize: 13,
                                   color: Colors.blueGrey,
                                   onPressed: () {

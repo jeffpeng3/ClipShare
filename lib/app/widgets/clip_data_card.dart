@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
+import 'package:clipshare/app/data/enums/module.dart';
+import 'package:clipshare/app/data/enums/op_method.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/clip_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
 import 'package:clipshare/app/modules/views/preview_page.dart';
@@ -240,7 +243,7 @@ class ClipDataCardState extends State<ClipDataCard> {
             widget.clip.data.top ? Icons.push_pin : Icons.push_pin_outlined,
             color: Colors.blueGrey,
           ),
-          title: Text(widget.clip.data.top ? "取消置顶" : "置顶"),
+          title: Text(widget.clip.data.top ? TranslationKey.cancelTopUp.tr : TranslationKey.topUp.tr),
           onTap: () {
             var id = widget.clip.data.id;
             //置顶取反
@@ -267,7 +270,7 @@ class ClipDataCardState extends State<ClipDataCard> {
               Icons.copy,
               color: Colors.blueGrey,
             ),
-            title: const Text("复制内容"),
+            title: Text(TranslationKey.copyContent.tr),
             onTap: () {
               appConfig.innerCopy = true;
               var type = ClipboardContentType.parse(widget.clip.data.type);
@@ -279,7 +282,7 @@ class ClipDataCardState extends State<ClipDataCard> {
         Visibility(
           visible: !widget.clip.isFile,
           child: ListTile(
-            title: Text(widget.clip.data.sync ? "重新同步" : "同步记录"),
+            title: Text(widget.clip.data.sync ? TranslationKey.resyncRecord.tr : TranslationKey.syncRecord.tr),
             leading: const Icon(
               Icons.sync,
               color: Colors.blueGrey,
@@ -298,7 +301,7 @@ class ClipDataCardState extends State<ClipDataCard> {
         Visibility(
             visible: widget.clip.isFile,
             child: ListTile(
-              title: const Text("打开文件"),
+              title: Text(TranslationKey.openFile.tr),
               leading: const Icon(
                 Icons.file_open,
                 color: Colors.blueGrey,
@@ -314,7 +317,7 @@ class ClipDataCardState extends State<ClipDataCard> {
         Visibility(
           visible: widget.clip.isFile,
           child: ListTile(
-            title: const Text("打开所在文件夹"),
+            title: Text(TranslationKey.openFileFolder.tr),
             leading: const Icon(
               Icons.folder,
               color: Colors.blueGrey,
@@ -329,7 +332,7 @@ class ClipDataCardState extends State<ClipDataCard> {
           ),
         ),
         ListTile(
-          title: const Text("标签管理"),
+          title: Text(TranslationKey.tagsManagement.tr),
           leading: const Icon(
             Icons.tag,
             color: Colors.blueGrey,
@@ -344,7 +347,7 @@ class ClipDataCardState extends State<ClipDataCard> {
             Icons.delete,
             color: Colors.blueGrey,
           ),
-          title: const Text("删除"),
+          title: Text(TranslationKey.delete.tr),
           onTap: () {
             Get.back();
             widget.onRemoveClicked(widget.clip);

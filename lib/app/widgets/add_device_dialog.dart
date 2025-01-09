@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
@@ -18,7 +19,7 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
   final tag = "AddDeviceDialog";
   final _ipEditor = TextEditingController();
   final _portEditor = TextEditingController()..text = Constants.port.toString();
-  final _ipErrTxt = "请输入正确的IPv4地址";
+  final _ipErrTxt = TranslationKey.errorFormatIpv4.tr;
   final _portErrTxt = "0-65535";
   var _showIpErr = false;
   var _showPortErr = false;
@@ -30,7 +31,7 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('添加设备'),
+      title: Text(TranslationKey.addDeviceAppBarTittle.tr),
       content: SizedBox(
         width: 250,
         child: IntrinsicHeight(
@@ -72,7 +73,7 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
                       enabled: !_connecting,
                       controller: _portEditor,
                       decoration: InputDecoration(
-                        labelText: "端口",
+                        labelText: TranslationKey.port.tr,
                         errorText: _showPortErr ? _portErrTxt : null,
                         border: const OutlineInputBorder(),
                       ),
@@ -94,7 +95,7 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
       actionsAlignment: MainAxisAlignment.spaceBetween,
       actions: [
         Text(
-          _connectErr ? "连接失败" : "",
+          _connectErr ?  TranslationKey.connectFailed.tr: "",
           style: const TextStyle(color: Colors.red),
         ),
         IntrinsicWidth(
@@ -110,7 +111,7 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
                     Navigator.pop(context);
                   }
                 },
-                child: const Text("取消"),
+                child: Text(TranslationKey.dialogCancelText.tr),
               ),
               const SizedBox(
                 width: 10,
@@ -167,7 +168,7 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
                           strokeWidth: 2.0,
                         ),
                       )
-                    : const Text("连接"),
+                    : Text(TranslationKey.connect.tr),
               ),
             ],
           ),

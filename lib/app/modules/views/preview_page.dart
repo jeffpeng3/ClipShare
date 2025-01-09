@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/clip_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -93,8 +94,8 @@ class _PreviewPageState extends State<PreviewPage> {
         height: ct.maxHeight,
       );
     }
-    return const EmptyContent(
-      description: "图片不存在或已被删除",
+    return EmptyContent(
+      description: TranslationKey.previewPageNoSuchFile.tr,
     );
   }
 
@@ -139,7 +140,9 @@ class _PreviewPageState extends State<PreviewPage> {
                           ClipboardData(text: _currentImage.content),
                         );
                         Global.showSnackBarSuc(
-                            text: "复制路径成功", context: context);
+                          text: TranslationKey.copyPathSuccess.tr,
+                          context: context,
+                        );
                       },
                     ),
                   ),
@@ -201,7 +204,7 @@ class _PreviewPageState extends State<PreviewPage> {
               child: IconButton(
                 onPressed: () {
                   final path = _currentImage.content;
-                  Share.shareXFiles([XFile(path)], text: '分享文件');
+                  Share.shareXFiles([XFile(path)], text: TranslationKey.shareFile.tr);
                 },
                 hoverColor: Colors.white12,
                 icon: const Icon(

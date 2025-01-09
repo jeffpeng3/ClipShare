@@ -1,7 +1,8 @@
 import 'dart:convert';
 
+import 'package:clipshare/app/data/enums/module.dart';
+import 'package:clipshare/app/data/enums/op_method.dart';
 import 'package:clipshare/app/services/config_service.dart';
-import 'package:clipshare/app/utils/constants.dart';
 import 'package:floor/floor.dart';
 import 'package:get/get.dart';
 

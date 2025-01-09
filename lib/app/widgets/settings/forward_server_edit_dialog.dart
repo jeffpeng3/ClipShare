@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:clipshare/app/data/enums/forward_msg_type.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/forward_server_config.dart';
 import 'package:clipshare/app/handlers/socket/forward_socket_client.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -51,19 +52,19 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
 
   bool checkHostEditor() {
     hostErrText = !hostEditor.text.isDomain && !hostEditor.text.isIPv4
-        ? '请输入合法的域名/ipv4地址'
+        ? TranslationKey.pleaseInputValidDomainOrIpv4.tr
         : null;
     return hostErrText == null;
   }
 
   bool checkPortEditor() {
-    portErrText = !portEditor.text.isPort ? '请输入合法的端口' : null;
+    portErrText = !portEditor.text.isPort ?TranslationKey.pleaseInputValidPort.tr  : null;
     return portErrText == null;
   }
 
   bool checkKeyEditor() {
     if (useKey == false) return true;
-    keyErrText = keyEditor.text == "" ? '请输入密钥' : null;
+    keyErrText = keyEditor.text == "" ? TranslationKey.pleaseInputKey.tr : null;
     return keyErrText == null;
   }
 
@@ -92,7 +93,7 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
           Global.showTipsDialog(
             context: context,
             text: data,
-            title: "未知的返回结果",
+            title: TranslationKey.forwardServerUnknownResult.tr,
           );
         } else {
           String result = json['result'];
@@ -100,73 +101,73 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
             Global.showTipsDialog(
               context: context,
               text: result,
-              title: "连接失败",
+              title:TranslationKey.connectFailed.tr,
             );
           } else {
             if (json.containsKey("unlimited")) {
               Global.showTipsDialog(
                 context: context,
-                text: "白名单设备无任何限制",
-                title: "连接成功",
+                text: TranslationKey.forwardServerUnlimitedDevices.tr,
+                title:TranslationKey.connectSuccess.tr,
               );
               return;
             }
             if (!json.containsKey("deviceLimit")) {
-              String content = "公开服务器\n";
+              String content = "${TranslationKey.publicForwardServer.tr}\n";
               if (json.containsKey("fileSyncRate")) {
-                content += "文件同步限速：${json["fileSyncRate"]} KB/s";
+                content += "${TranslationKey.forwardServerSyncFileRateLimit.tr}: ${json["fileSyncRate"]} KB/s";
               } else if (json.containsKey("fileSyncNotAllowed")) {
-                content += "该中转服务器不可进行文件同步";
+                content += TranslationKey.forwardServerCannotSyncFile.tr;
               } else {
-                content += "无任何限制";
+                content +=TranslationKey.forwardServerNoLimits.tr;
               }
               Global.showTipsDialog(
                 context: context,
                 text: content,
-                title: "连接成功",
+                title: TranslationKey.connectSuccess.tr,
               );
               return;
             }
             String deviceLimit = json["deviceLimit"];
             if (deviceLimit == "∞") {
-              deviceLimit = "无限制";
+              deviceLimit = TranslationKey.noLimits.tr;
             } else {
-              deviceLimit += " 台";
+              deviceLimit += " ${TranslationKey.deviceUnit.tr}";
             }
             String lifeSpan = json["lifeSpan"];
             if (lifeSpan == "∞") {
-              lifeSpan = "无限制";
+              lifeSpan = TranslationKey.noLimits.tr;
             } else {
-              lifeSpan += " 天";
+              lifeSpan += " ${TranslationKey.day.tr}";
             }
             String rate = json["rate"];
             if (rate == "∞") {
-              rate = "无限制";
+              rate = TranslationKey.noLimits.tr;
             } else {
               rate += " KB/s";
             }
             String remaining = json["remaining"];
             if (remaining == "-1") {
-              remaining = "未开始计时";
+              remaining =TranslationKey.forwardServerKeyNotStarted.tr;
             } else if (remaining != "0") {
               remaining =
                   "${(remaining.toDouble() / (24 * 60 * 60)).toStringAsFixed(2)} 天";
             } else {
-              remaining = "已耗尽";
+              remaining = TranslationKey.exhausted.tr;
             }
             String remark = json["remark"];
             String content = ""
-                "设备同时连接限制：$deviceLimit\n"
-                "有效期：$lifeSpan\n"
-                "剩余时间：$remaining\n"
-                "速率限制：$rate\n";
+                "${TranslationKey.forwardServerDeviceConnectionLimit.tr}: $deviceLimit\n"
+                "${TranslationKey.forwardServerLifeSpan.tr}: $lifeSpan\n"
+                "${TranslationKey.forwardServerRemainingTime.tr}: $remaining\n"
+                "${TranslationKey.forwardServerRateLimit.tr}: $rate\n";
             if (remark.isNotEmpty) {
-              content += "备注：\n$remark\n";
+              content += "${TranslationKey.forwardServerRemark.tr}：\n$remark\n";
             }
             Global.showTipsDialog(
               context: context,
               text: content,
-              title: "连接成功",
+              title: TranslationKey.connectSuccess.tr,
             );
           }
         }
@@ -177,7 +178,7 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
         Global.showTipsDialog(
           context: context,
           text: err.toString(),
-          title: "连接失败",
+          title: TranslationKey.connectFailed.tr,
         );
         setState(() {
           detecting = false;
@@ -187,7 +188,7 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
       Global.showTipsDialog(
         context: context,
         text: (err as SocketException).message,
-        title: "连接失败",
+        title: TranslationKey.connectFailed.tr,
       );
       setState(() {
         detecting = false;
@@ -198,7 +199,7 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("配置中转服务器"),
+      title: Text(TranslationKey.configureForwardServerDialogTitle.tr),
       content: SizedBox(
         width: 350,
         child: IntrinsicHeight(
@@ -212,8 +213,8 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
                       controller: hostEditor,
                       autofocus: true,
                       decoration: InputDecoration(
-                        hintText: "域名/ip",
-                        labelText: "主机",
+                        hintText: TranslationKey.domainAndIp.tr,
+                        labelText: TranslationKey.host.tr,
                         border: const OutlineInputBorder(),
                         errorText: hostErrText,
                         helperText: "",
@@ -233,8 +234,8 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
                       enabled: !detecting,
                       controller: portEditor,
                       decoration: InputDecoration(
-                          hintText: "端口",
-                          labelText: "端口",
+                          hintText: TranslationKey.port.tr,
+                          labelText: TranslationKey.port.tr,
                           border: const OutlineInputBorder(),
                           errorText: portErrText,
                           helperText: "",
@@ -251,7 +252,7 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
                 margin: const EdgeInsets.only(bottom: 8),
                 child: CheckboxListTile(
                   enabled: !detecting,
-                  title: const Text("使用密钥"),
+                  title: Text(TranslationKey.useKey.tr),
                   value: useKey,
                   onChanged: (v) {
                     if (v == false) {
@@ -275,8 +276,8 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
                         maxLines: 3,
                         controller: keyEditor,
                         decoration: InputDecoration(
-                          hintText: "访问密钥",
-                          labelText: "请输入访问密钥",
+                          hintText:  TranslationKey.accessKey.tr,
+                          labelText: TranslationKey.pleaseInputAccessKey.tr,
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           border: const OutlineInputBorder(),
                           errorText: keyErrText,
@@ -310,7 +311,7 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
                   setState(() {});
                   checkConn();
                 },
-                child: const Text("连接检测"),
+                child: Text(TranslationKey.forwardServerConnCheck.tr),
               ),
             ),
             IntrinsicWidth(
@@ -322,7 +323,7 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
                         : () {
                             Navigator.of(context).pop();
                           },
-                    child: const Text("取消"),
+                    child: Text(TranslationKey.dialogCancelText.tr),
                   ),
                   TextButton(
                     onPressed: detecting
@@ -342,7 +343,7 @@ class _ForwardServerEditDialogState extends State<ForwardServerEditDialog> {
                             );
                             Navigator.of(context).pop();
                           },
-                    child: const Text("确定"),
+                    child: Text(TranslationKey.dialogConfirmText.tr),
                   ),
                 ],
               ),

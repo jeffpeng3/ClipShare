@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/global.dart';
@@ -12,8 +13,8 @@ abstract class AbstractPermissionHandler {
     required bool Function(BuildContext) onConfirm,
     void Function(BuildContext)? onClose,
     bool allowCloseInBlank = false,
-    String closeText = "取消",
-    String confirmText = "去授权",
+    String? closeText,
+    String? confirmText,
   }) {
     showDialog(
       context: Get.context!,
@@ -29,7 +30,7 @@ abstract class AbstractPermissionHandler {
                 Navigator.pop(context);
                 onClose?.call(context);
               },
-              child: Text(closeText),
+              child: Text(closeText ?? TranslationKey.dialogCancelText.tr),
             ),
             TextButton(
               onPressed: () {
@@ -38,7 +39,8 @@ abstract class AbstractPermissionHandler {
                   Navigator.pop(context);
                 }
               },
-              child: Text(confirmText),
+              child: Text(confirmText ??
+                  TranslationKey.dialogAuthorizationButtonText.tr),
             ),
           ],
         );
@@ -56,16 +58,15 @@ class FloatPermHandler extends AbstractPermissionHandler {
   @override
   void request() {
     AbstractPermissionHandler.showRequestDialog(
-      title: "请求悬浮窗权限",
-      content: const Text(
-        '由于 Android 10 及以上版本的系统不允许后台读取剪贴板，当剪贴板发生变化时应用需要通过读取系统日志以及悬浮窗权限间接进行剪贴板读取。'
-        '\n\n点击确定跳转页面授权悬浮窗权限',
+      title: TranslationKey.floatPermRequestDialogTitle.tr,
+      content: Text(
+        TranslationKey.floatPermRequestDialogContent.tr,
       ),
       onClose: (ctx) {
         Global.showTipsDialog(
           context: ctx,
-          title: "必要权限缺失",
-          text: '请授予悬浮窗权限，否则无法后台读取剪贴板',
+          title: TranslationKey.requiredPermDialogTitle.tr,
+          text: TranslationKey.floatPermMissingDialogContent.tr,
         );
       },
       onConfirm: (ctx) {
@@ -76,8 +77,8 @@ class FloatPermHandler extends AbstractPermissionHandler {
           if (await hasPermission()) return;
           Global.showTipsDialog(
             context: ctx,
-            title: "必要权限缺失",
-            text: '请授予悬浮窗权限，否则无法后台读取剪贴板',
+            title: TranslationKey.requiredPermDialogTitle.tr,
+            text: TranslationKey.floatPermMissingDialogContent.tr,
           );
         });
         return true;
@@ -102,22 +103,23 @@ class ShizukuPermHandler extends AbstractPermissionHandler {
     final appConfig = Get.find<ConfigService>();
     final androidChannelService = Get.find<AndroidChannelService>();
     AbstractPermissionHandler.showRequestDialog(
-      title: "Shizuku权限请求",
-      content: const Text(
-        '由于 Android 10 及以上版本的系统不允许后台读取剪贴板，需要依赖 Shizuku，否则只能被动接收剪贴板数据而不能自动同步',
+      title: TranslationKey.shizukuPermRequestDialogTitle.tr,
+      content: Text(
+        TranslationKey.shizukuPermRequestDialogContent.tr,
       ),
-      closeText: appConfig.ignoreShizuku ? "取消" : "不再提示",
+      closeText: appConfig.ignoreShizuku
+          ? TranslationKey.dialogCancelText.tr
+          : TranslationKey.dontShowAgain.tr,
       onClose: (ctx) {
         if (appConfig.ignoreShizuku) {
           return;
         }
         Global.showTipsDialog(
           context: ctx,
-          text: "确认不再提示？",
+          text: TranslationKey.dontShowAgainConfirm.tr,
           showCancel: true,
           onOk: () async {
             appConfig.setIgnoreShizuku();
-            print("App.settings.ignoreShizuku ${appConfig.ignoreShizuku}");
           },
         );
       },
@@ -142,9 +144,9 @@ class NotifyPermHandler extends AbstractPermissionHandler {
   @override
   void request() {
     AbstractPermissionHandler.showRequestDialog(
-      title: "请求通知权限",
-      content: const Text(
-        '用于发送系统通知',
+      title: TranslationKey.notificationPermRequestDialogTitle.tr,
+      content: Text(
+        TranslationKey.notificationPermRequestDialogContent.tr,
       ),
       onConfirm: (ctx) {
         final androidChannelService = Get.find<AndroidChannelService>();
@@ -174,10 +176,9 @@ class IgnoreBatteryHandler extends AbstractPermissionHandler {
   @override
   void request() {
     AbstractPermissionHandler.showRequestDialog(
-      title: "电池优化",
-      content: const Text(
-        '取消电池优化以提高后台留存率\n'
-        '若点击[去授权]后无反应，请自行在手机设置中查找相关设置项',
+      title: TranslationKey.batteryOptimization.tr,
+      content: Text(
+        TranslationKey.batteryOptimizationPermRequestDialogContent.tr,
       ),
       onConfirm: (ctx) {
         Permission.ignoreBatteryOptimizations.request();

@@ -1,5 +1,6 @@
-import 'dart:convert';
-
+import 'package:clipshare/app/data/enums/module.dart';
+import 'package:clipshare/app/data/enums/msg_type.dart';
+import 'package:clipshare/app/data/enums/op_method.dart';
 import 'package:clipshare/app/data/models/message_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
@@ -8,7 +9,6 @@ import 'package:clipshare/app/modules/history_module/history_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
-import 'package:clipshare/app/utils/constants.dart';
 import 'package:get/get.dart';
 
 /// 记录置顶操作同步处理器
@@ -43,8 +43,8 @@ class HistoryTopSyncHandler implements SyncListener {
   Future onSync(MessageData msg) async {
     var send = msg.send;
     final map = msg.data;
-    final historyMap = map["data"] as Map<dynamic,dynamic>;
-    map["data"]="";
+    final historyMap = map["data"] as Map<dynamic, dynamic>;
+    map["data"] = "";
     var opRecord = OperationRecord.fromJson(map);
     History history = History.fromJson(historyMap.cast());
     bool success = false;

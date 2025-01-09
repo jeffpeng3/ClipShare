@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,21 +9,25 @@ class AuthPasswordInput extends StatefulWidget {
   final bool Function(String first, String? second) onFinished;
   final void Function()? onError;
   final bool Function(String input) onOk;
-  final String tipText;
-  final String againText;
-  final String errorText;
+  String? tipText;
+  String? againText;
+  String? errorText;
   final bool again;
 
-  const AuthPasswordInput({
+  AuthPasswordInput({
     super.key,
     required this.onFinished,
-    this.tipText = "输入密码",
-    this.againText = "再次输入",
-    this.errorText = "输入错误，请重新输入",
+    this.tipText,
+    this.againText,
+    this.errorText,
     this.again = false,
     this.onError,
     required this.onOk,
-  });
+  }) {
+    tipText = tipText ?? TranslationKey.inputPassword.tr;
+    againText = againText ?? TranslationKey.inputAgain.tr;
+    errorText = errorText ?? TranslationKey.inputErrorAndAgain.tr;
+  }
 
   @override
   State<StatefulWidget> createState() {
@@ -40,7 +45,7 @@ class _AuthPasswordInputState extends State<AuthPasswordInput> {
   String get _currentInput => _secondInput && widget.again ? _second : _first;
 
   String get _currentShowText =>
-      _secondInput ? widget.againText : widget.tipText;
+      _secondInput ? widget.againText! : widget.tipText!;
 
   void _setCurrentInput(String input) {
     if (_secondInput && widget.again) {
@@ -106,7 +111,8 @@ class _AuthPasswordInputState extends State<AuthPasswordInput> {
   @override
   Widget build(BuildContext context) {
     final currentTheme = Theme.of(context);
-    final numberContainerBg= currentTheme.cardTheme.color ?? currentTheme.colorScheme.surface;
+    final numberContainerBg =
+        currentTheme.cardTheme.color ?? currentTheme.colorScheme.surface;
     return Material(
       color: currentTheme.scaffoldBackgroundColor,
       child: Column(
@@ -125,7 +131,7 @@ class _AuthPasswordInputState extends State<AuthPasswordInput> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  _error ? widget.errorText : _currentShowText,
+                  _error ? widget.errorText! : _currentShowText,
                   style: TextStyle(
                     fontSize: 18,
                     color: _error ? Colors.red : Colors.blue,
@@ -217,7 +223,8 @@ class _AuthPasswordInputState extends State<AuthPasswordInput> {
                             children: [
                               Padding(
                                 padding: const EdgeInsets.only(
-                                    bottom: paddingBottom,),
+                                  bottom: paddingBottom,
+                                ),
                                 child: SizedBox(
                                   width: edgeLen,
                                   height: edgeLen,
@@ -225,7 +232,8 @@ class _AuthPasswordInputState extends State<AuthPasswordInput> {
                               ),
                               Padding(
                                 padding: const EdgeInsets.only(
-                                    bottom: paddingBottom,),
+                                  bottom: paddingBottom,
+                                ),
                                 child: Ink(
                                   decoration: BoxDecoration(
                                     //颜色放外面的Ink，否则水波纹被遮挡

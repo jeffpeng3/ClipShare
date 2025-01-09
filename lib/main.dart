@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:clipshare/app/modules/views/windows/history/history_window.dart';
@@ -14,6 +15,8 @@ import 'package:clipshare/app/services/syncing_file_progress_service.dart';
 import 'package:clipshare/app/services/tag_service.dart';
 import 'package:clipshare/app/services/tray_service.dart';
 import 'package:clipshare/app/services/window_service.dart';
+import 'package:clipshare/app/translations/app_translations.dart';
+import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
@@ -87,6 +90,7 @@ void runMain(Widget home, String title) {
       initTheme: Get.isPlatformDarkMode ? darkThemeData : lightThemeData,
       builder: (context, theme) {
         return GetMaterialApp(
+          translations: AppTranslation(),
           defaultTransition: Transition.native,
           title: title,
           initialRoute: Routes.SPLASH,
@@ -96,12 +100,24 @@ void runMain(Widget home, String title) {
           themeMode: theme.brightness == Brightness.dark
               ? ThemeMode.dark
               : ThemeMode.light,
-          locale: locale,
-          supportedLocales: supportedLocales,
-          localizationsDelegates: localizationsDelegates,
+          locale: Constants.defaultLocale,
+          fallbackLocale: const Locale('en','US'),
+          supportedLocales: Constants.supportedLocales,
+          localizationsDelegates: Constants.localizationsDelegates,
           scrollBehavior: MyCustomScrollBehavior(),
         );
       },
     ),
   );
+}
+
+//解决 Windows 端 SingleChildScrollView 无法水平滚动的问题
+//https://stackoverflow.com/questions/72528980/horizontal-singlechildscrollview-not-working-inside-a-column-on-windows
+class MyCustomScrollBehavior extends MaterialScrollBehavior {
+  // Override behavior methods like buildOverscrollIndicator and buildScrollbar
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+      };
 }

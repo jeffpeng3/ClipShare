@@ -1,11 +1,14 @@
 import 'dart:convert';
 
+import 'package:clipshare/app/data/enums/module.dart';
+import 'package:clipshare/app/data/enums/op_method.dart';
+import 'package:clipshare/app/data/enums/rule_type.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/rule.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
 import 'package:clipshare/app/modules/views/settings/rules_setting_page.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
-import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/widgets/rule_setting_add_dialog.dart';
@@ -21,7 +24,7 @@ class TagRuleSettingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RuleSettingPage(
-      title: "标签规则配置",
+      title: TranslationKey.tagRuleSettingPageAppBarTitle.tr,
       initData: Rule.fromJson(
         (jsonDecode(
           appConfig.tagRules,
@@ -34,7 +37,7 @@ class TagRuleSettingPage extends StatelessWidget {
         if (tag.isNullOrEmpty || rule.isNullOrEmpty) {
           Global.showTipsDialog(
             context: context,
-            text: "请输入完整！",
+            text: TranslationKey.inputCompletedErrorText.tr,
           );
           return false;
         }
@@ -42,8 +45,8 @@ class TagRuleSettingPage extends StatelessWidget {
       },
       editDialogLayout: (initData, onChange) {
         return RuleSettingAddDialog(
-          labelText: "标签名",
-          hintText: "请输入标签名",
+          labelText: TranslationKey.ruleSettingAddDialogLabel.tr,
+          hintText: TranslationKey.ruleSettingAddDialogHint.tr,
           onChange: onChange,
           initData: initData,
         );

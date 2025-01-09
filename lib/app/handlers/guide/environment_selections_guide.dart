@@ -1,4 +1,5 @@
 import 'package:clipboard_listener/enums.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/handlers/guide/base_guide.dart';
 import 'package:clipshare/app/modules/user_guide_module/user_guide_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -15,9 +16,9 @@ class EnvironmentSelectionsGuide extends BaseGuide {
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text(
-          "选择工作模式",
-          style: TextStyle(
+        Text(
+          TranslationKey.selectWorkMode.tr,
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 22,
             color: Colors.blueGrey,

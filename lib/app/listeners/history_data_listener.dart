@@ -1,4 +1,4 @@
-import 'package:clipshare/app/utils/constants.dart';
+import 'package:clipshare/app/data/enums/history_content_type.dart';
 import 'package:clipshare/app/utils/log.dart';
 
 abstract class HistoryDataObserver {

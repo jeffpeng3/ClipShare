@@ -1,5 +1,5 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
-import 'package:clipshare/app/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -16,13 +16,14 @@ class WelcomePage extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                const Text(
-                  "欢迎使用 ${Constants.appName}",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                Text(
+                  TranslationKey.welcome.tr,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 25),
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(left: 32, right: 32),
-                  child: Text("在使用前我们还需要进行一些必要权限请求以及设置"),
+                Padding(
+                  padding: const EdgeInsets.only(left: 32, right: 32),
+                  child: Text(TranslationKey.welcomeContent.tr),
                 ),
                 TextButton(
                   onPressed: () {
@@ -33,12 +34,12 @@ class WelcomePage extends StatelessWidget {
                       },
                     );
                   },
-                  child: const IntrinsicWidth(
+                  child: IntrinsicWidth(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text("现在开始"),
-                        Padding(
+                        Text(TranslationKey.startNow.tr),
+                        const Padding(
                           padding: EdgeInsets.only(top: 2),
                           child: Icon(
                             Icons.keyboard_arrow_right,

@@ -3,6 +3,9 @@ import 'dart:math';
 
 import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
+import 'package:clipshare/app/data/enums/module.dart';
+import 'package:clipshare/app/data/enums/op_method.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/clip_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
@@ -63,7 +66,6 @@ class ClipListViewState extends State<ClipListView>
     implements MultiSelectionPopScopeDisableListener {
   final ScrollController _scrollController = ScrollController();
   final _scrollPhysics = const AlwaysScrollableScrollPhysics();
-  String? language;
   int? _minId;
   final appConfig = Get.find<ConfigService>();
   final sktService = Get.find<SocketService>();
@@ -256,7 +258,7 @@ class ClipListViewState extends State<ClipListView>
       onLongPress: () {
         appConfig.enableMultiSelectionMode(
           controller: widget.parentController,
-          selectionTips: "多选删除",
+          selectionTips: TranslationKey.multiDelete.tr,
         );
         _selectMode = true;
         _selectedItems.add(item);
@@ -272,20 +274,20 @@ class ClipListViewState extends State<ClipListView>
         var type = ClipboardContentType.parse(history.type);
         final res = await clipboardManager.copy(type, history.content);
         if (res) {
-          Global.showSnackBarSuc(context: context, text: "复制成功");
+          Global.showSnackBarSuc(context: context, text: TranslationKey.copySuccess.tr);
         } else {
-          Global.showSnackBarErr(context: context, text: "复制失败");
+          Global.showSnackBarErr(context: context, text: TranslationKey.copyFailed.tr);
         }
       },
       onUpdate: widget.onUpdate,
       onRemoveClicked: (ClipData item) {
         Global.showTipsDialog(
           context: context,
-          text: "确定删除该记录？",
-          title: "删除提示",
+          text: TranslationKey.deleteRecordAck.tr,
+          title: TranslationKey.deleteTips.tr,
           showCancel: true,
           showNeutral: item.isFile || item.isImage,
-          neutralText: "连带文件删除",
+          neutralText: TranslationKey.deleteWithFiles.tr,
           onOk: () => deleteItem(item),
           onNeutral: () => deleteItem(item, true),
         );
@@ -316,7 +318,7 @@ class ClipListViewState extends State<ClipListView>
                         ? Stack(
                             children: [
                               ListView(),
-                              const EmptyContent(),
+                              EmptyContent(),
                             ],
                           )
                         : widget.imageMasonryGridViewLayout
@@ -395,7 +397,7 @@ class ClipListViewState extends State<ClipListView>
                         Visibility(
                           visible: _selectMode,
                           child: Tooltip(
-                            message: "取消选择",
+                            message: TranslationKey.deselect.tr,
                             child: Container(
                               margin: const EdgeInsets.only(right: 10),
                               child: FloatingActionButton(
@@ -413,7 +415,7 @@ class ClipListViewState extends State<ClipListView>
                         Visibility(
                           visible: _selectMode && _selectedItems.isNotEmpty,
                           child: Tooltip(
-                            message: "删除",
+                            message: TranslationKey.delete.tr,
                             child: Container(
                               margin: _showBackToTopButton
                                   ? const EdgeInsets.only(right: 10)
@@ -424,7 +426,7 @@ class ClipListViewState extends State<ClipListView>
                                     Get.back();
                                     Global.showLoadingDialog(
                                       context: context,
-                                      loadingText: "删除中...",
+                                      loadingText: TranslationKey.deleting.tr,
                                     );
                                     for (var item in _selectedItems) {
                                       await deleteItem(item, deleteFile);
@@ -432,7 +434,7 @@ class ClipListViewState extends State<ClipListView>
                                     Get.back();
                                     Global.showSnackBarSuc(
                                       context: context,
-                                      text: "删除完成",
+                                      text:TranslationKey.deleteCompleted.tr,
                                     );
                                     _selectedItems.clear();
                                     _selectMode = false;
@@ -442,12 +444,12 @@ class ClipListViewState extends State<ClipListView>
 
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: "是否删除选中的 ${_selectedItems.length} 项？",
+                                    text:TranslationKey.clipListViewDeleteAsk.trParams({"length":_selectedItems.length.toString()}) ,
                                     showCancel: true,
                                     autoDismiss: false,
                                     showNeutral: _selectedItems
                                         .any((item) => item.isFile),
-                                    neutralText: "连带文件删除",
+                                    neutralText: TranslationKey.deleteWithFiles.tr,
                                     onCancel: () {
                                       Navigator.pop(context);
                                     },
@@ -464,7 +466,7 @@ class ClipListViewState extends State<ClipListView>
                         Visibility(
                           visible: _showBackToTopButton,
                           child: Tooltip(
-                            message: "返回顶部",
+                            message: TranslationKey.backToTop.tr,
                             child: FloatingActionButton(
                               onPressed: () {
                                 Future.delayed(
@@ -510,7 +512,7 @@ class ClipListViewState extends State<ClipListView>
                             Row(
                               children: [
                                 Tooltip(
-                                  message: "收起",
+                                  message: TranslationKey.fold.tr,
                                   child: IconButton(
                                     onPressed: () {
                                       setState(() {
@@ -523,107 +525,20 @@ class ClipListViewState extends State<ClipListView>
                                     ),
                                   ),
                                 ),
-                                const Padding(
-                                  padding: EdgeInsets.only(left: 5),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 5),
                                   child: Text(
-                                    "剪贴板详情",
-                                    style: TextStyle(
+                                    TranslationKey.clipboardContent.tr,
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 15,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(
-                                  width: 5,
-                                ),
-                                _showHistoryData!.isText
-                                    ? MenuAnchor(
-                                        controller: codeMenuController,
-                                        menuChildren: [
-                                          for (var language
-                                              in allLanguages.keys)
-                                            SizedBox(
-                                              width: 200,
-                                              child: InkWell(
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(7),
-                                                  child: Text(
-                                                    language,
-                                                    style: TextStyle(
-                                                      color: this.language ==
-                                                              language
-                                                          ? Colors.blue
-                                                          : null,
-                                                    ),
-                                                  ),
-                                                ),
-                                                onTap: () {
-                                                  setState(() {
-                                                    codeMenuController.close();
-                                                    this.language =
-                                                        this.language ==
-                                                                language
-                                                            ? null
-                                                            : language;
-                                                  });
-                                                },
-                                              ),
-                                            ),
-                                        ],
-                                        style: MenuStyle(
-                                          maximumSize: MaterialStateProperty
-                                              .resolveWith<Size?>(
-                                            (Set<MaterialState> states) {
-                                              return const Size(150, 200);
-                                            },
-                                          ),
-                                        ),
-                                        crossAxisUnconstrained: false,
-                                        consumeOutsideTap: true,
-                                        builder: (context, controller, child) {
-                                          onPressed() {
-                                            if (controller.isOpen) {
-                                              controller.close();
-                                            } else {
-                                              controller.open();
-                                            }
-                                          }
-
-                                          return language != null
-                                              ? RoundedChip(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    left: 2,
-                                                    right: 2,
-                                                  ),
-                                                  label: Text(
-                                                    language!,
-                                                    style: const TextStyle(
-                                                      color: Colors.blue,
-                                                    ),
-                                                  ),
-                                                  onPressed: onPressed,
-                                                )
-                                              : Tooltip(
-                                                  message: "源代码模式",
-                                                  child: IconButton(
-                                                    visualDensity:
-                                                        VisualDensity.compact,
-                                                    onPressed: onPressed,
-                                                    icon: const Icon(
-                                                      Icons.code,
-                                                      size: 20,
-                                                    ),
-                                                  ),
-                                                );
-                                        },
-                                      )
-                                    : const SizedBox.shrink(),
                               ],
                             ),
                             Tooltip(
-                              message: "关闭",
+                              message: TranslationKey.close.tr,
                               child: IconButton(
                                 visualDensity: VisualDensity.compact,
                                 onPressed: () {
@@ -680,7 +595,6 @@ class ClipListViewState extends State<ClipListView>
                             child: ClipContentView(
                               key: _clipTagRowKey,
                               clipData: _showHistoryData!,
-                              language: language,
                             ),
                           ),
                         ),
@@ -693,7 +607,7 @@ class ClipListViewState extends State<ClipListView>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Tooltip(
-                                message: _rightShowFullPage ? "收起" : "展开",
+                                message: _rightShowFullPage ? TranslationKey.fold.tr : TranslationKey.unfold.tr,
                                 child: IconButton(
                                   onPressed: () {
                                     setState(() {

@@ -1,12 +1,14 @@
 import 'dart:convert';
 
+import 'package:clipshare/app/data/enums/module.dart';
+import 'package:clipshare/app/data/enums/msg_type.dart';
+import 'package:clipshare/app/data/enums/rule_type.dart';
 import 'package:clipshare/app/data/models/message_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_record.dart';
 import 'package:clipshare/app/data/repository/entity/tables/operation_sync.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
-import 'package:clipshare/app/utils/constants.dart';
 import 'package:get/get.dart';
 
 ///规则同步器

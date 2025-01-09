@@ -5,6 +5,9 @@ import 'dart:math';
 
 import 'package:clipshare/app/data/enums/connection_mode.dart';
 import 'package:clipshare/app/data/enums/forward_msg_type.dart';
+import 'package:clipshare/app/data/enums/module.dart';
+import 'package:clipshare/app/data/enums/msg_type.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/dev_info.dart';
 import 'package:clipshare/app/data/models/message_data.dart';
 import 'package:clipshare/app/data/models/version.dart';
@@ -427,8 +430,8 @@ class SocketService extends GetxService with ScreenOpenedObserver {
       case ForwardMsgType.fileSyncNotAllowed:
         Global.showTipsDialog(
           context: Get.context!,
-          text: "连接的中转服务器不允许文件同步",
-          title: "发送失败",
+          text: TranslationKey.forwardServerNotAllowedSendFile.tr,
+          title: TranslationKey.sendFailed.tr,
         );
         break;
       case ForwardMsgType.check:
@@ -441,8 +444,9 @@ class SocketService extends GetxService with ScreenOpenedObserver {
         if (!data.containsKey("result")) {
           Global.showTipsDialog(
             context: Get.context!,
-            text: "未知的返回结果:\n ${data.toString()}",
-            title: "中转服务器连接失败",
+            text:
+                "${TranslationKey.forwardServerUnknownResult.tr}:\n ${data.toString()}",
+            title: TranslationKey.forwardServerConnectFailed.tr,
           );
           disableForwardServerAfterDelay();
           return;
@@ -455,7 +459,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
         Global.showTipsDialog(
           context: Get.context!,
           text: result,
-          title: "中转服务器连接失败",
+          title: TranslationKey.forwardServerConnectFailed.tr,
         );
         break;
       case ForwardMsgType.requestConnect:
@@ -619,7 +623,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
         int code = 100000 + random.nextInt(900000);
         DevPairingHandler.addCode(dev.guid, CryptoUtil.toMD5(code));
         //发送通知
-        Global.notify("新配对请求");
+        Global.notify(TranslationKey.newParingRequest.tr);
         if (pairing) {
           Get.back();
         }
@@ -628,12 +632,13 @@ class SocketService extends GetxService with ScreenOpenedObserver {
           context: Get.context!,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: const Text("配对请求"),
+              title: Text(TranslationKey.paringRequest.tr),
               content: IntrinsicHeight(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text("来自 ${dev.name} 的配对请求\n配对码:"),
+                    Text(TranslationKey.pairingCodeDialogContent
+                        .trParams({"devName": dev.name})),
                     const SizedBox(
                       height: 10,
                     ),
@@ -649,7 +654,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
                   onPressed: () {
                     cancelPairing(dev);
                   },
-                  child: const Text('取消该次配对'),
+                  child: Text(TranslationKey.cancelCurrentPairing.tr),
                 ),
               ],
             );
@@ -774,12 +779,14 @@ class SocketService extends GetxService with ScreenOpenedObserver {
       //广播发现
       tasks.addAll(_multicastDiscover());
     }
-    appConfig.deviceDiscoveryStatus.value = "广播发现";
+    appConfig.deviceDiscoveryStatus.value =
+        TranslationKey.deviceDiscoveryStatusViaBroadcast.tr;
     //并行处理
     _taskRunner = TaskRunner<void>(
       initialTasks: tasks,
       onFinish: () async {
-        appConfig.deviceDiscoveryStatus.value = "扫描网络";
+        appConfig.deviceDiscoveryStatus.value =
+            TranslationKey.deviceDiscoveryStatusViaScan.tr;
         if (appConfig.onlyForwardMode) {
           tasks = []; //测试屏蔽发现用
         } else {
@@ -789,7 +796,8 @@ class SocketService extends GetxService with ScreenOpenedObserver {
         _taskRunner = TaskRunner<void>(
           initialTasks: tasks,
           onFinish: () async {
-            appConfig.deviceDiscoveryStatus.value = "中转发现";
+            appConfig.deviceDiscoveryStatus.value =
+                TranslationKey.deviceDiscoveryStatusViaForward.tr;
             //发现中转设备
             tasks = await _forwardDiscover();
             _taskRunner = TaskRunner<void>(

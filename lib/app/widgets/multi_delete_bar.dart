@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:flutter/material.dart';
 
 class MultiDeleteBar extends StatefulWidget implements PreferredSizeWidget {
@@ -75,7 +76,10 @@ class MultiDeleteBarState extends State<MultiDeleteBar> {
         ? AppBar(
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
             automaticallyImplyLeading: widget.automaticallyImplyLeading,
-            title: Text("已选择 ${_selected.length}/$_total 项"),
+            title: Text(
+              TranslationKey.multiChoiceModeSelectedText
+                  .trParams({"text": '${_selected.length}/$_total'}),
+            ),
             actions: [
               IconButton(
                 onPressed: () {

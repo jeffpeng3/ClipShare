@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/widgets/device_card_simple.dart';
@@ -38,23 +39,23 @@ class _OnlineDevicesPageState extends State<OnlineDevicesPage> {
       appBar: widget.showAppBar
           ? AppBar(
               backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-              title: const Text("文件发送"),
+              title: Text(TranslationKey.sendFile.tr),
             )
           : null,
       backgroundColor: const Color.fromARGB(255, 238, 238, 238),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.all(6),
+          Padding(
+            padding: const EdgeInsets.all(6),
             child: Text(
-              "请选择要发送的设备",
-              style: TextStyle(fontSize: 15),
+               TranslationKey.onlineDevicesPageSelectDeviceToSend.tr,
+              style: const TextStyle(fontSize: 15),
             ),
           ),
           Expanded(
             child: widget.devices.isEmpty
-                ? const EmptyContent()
+                ? EmptyContent()
                 : ListView.builder(
                     itemCount: widget.devices.length,
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -84,7 +85,7 @@ class _OnlineDevicesPageState extends State<OnlineDevicesPage> {
           Visibility(
             visible: _selectedDevIds.length < widget.devices.length,
             child: Tooltip(
-              message: '全选',
+              message: TranslationKey.selectAll.tr,
               child: FloatingActionButton(
                 shape: const CircleBorder(),
                 onPressed: () {
@@ -102,7 +103,7 @@ class _OnlineDevicesPageState extends State<OnlineDevicesPage> {
             child: Container(
               margin: const EdgeInsets.only(left: 10),
               child: Tooltip(
-                message: '发送',
+                message: TranslationKey.send.tr,
                 child: FloatingActionButton(
                   shape: const CircleBorder(),
                   onPressed: () {

@@ -40,23 +40,3 @@ final darkThemeData = ThemeData.dark().copyWith(
   ),
   dialogBackgroundColor: const Color(0xff2e3b42),
 );
-const locale = Locale("zh", "CH");
-const supportedLocales = [
-  Locale("zh", "CH"),
-  Locale('en', 'US'),
-];
-const localizationsDelegates = [
-  GlobalMaterialLocalizations.delegate,
-  GlobalWidgetsLocalizations.delegate,
-];
-
-//解决 Windows 端 SingleChildScrollView 无法水平滚动的问题
-//https://stackoverflow.com/questions/72528980/horizontal-singlechildscrollview-not-working-inside-a-column-on-windows
-class MyCustomScrollBehavior extends MaterialScrollBehavior {
-  // Override behavior methods like buildOverscrollIndicator and buildScrollbar
-  @override
-  Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-      };
-}

@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/modules/about_module/about_controller.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -29,7 +30,7 @@ class AboutPage extends GetView<AboutController> {
   Widget build(BuildContext context) {
     final appConfig = Get.find<ConfigService>();
     return Scaffold(
-      appBar: AppBar(title: const Text('关于')),
+      appBar: AppBar(title: Text(TranslationKey.about.tr)),
       body: Padding(
         padding: const EdgeInsets.all(8),
         child: SingleChildScrollView(
@@ -38,18 +39,18 @@ class AboutPage extends GetView<AboutController> {
               SettingCard(
                 borderRadius: topBorderRadius,
                 padding: padding,
-                title: const Row(
+                title: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.help_outline_outlined,
                       color: Colors.blueGrey,
                       size: 28,
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 16,
                     ),
                     Text(
-                      "使用说明",
+                      TranslationKey.aboutPageInstructionsItemName.tr,
                       style: fontSize,
                     ),
                   ],
@@ -125,8 +126,8 @@ class AboutPage extends GetView<AboutController> {
                     const SizedBox(
                       width: 16,
                     ),
-                    const Text(
-                      "加入QQ群",
+                    Text(
+                      TranslationKey.aboutPageJoinQQGroupItemName.tr,
                       style: fontSize,
                     ),
                   ],
@@ -148,8 +149,8 @@ class AboutPage extends GetView<AboutController> {
                     const SizedBox(
                       width: 16,
                     ),
-                    const Text(
-                      "查看官网",
+                    Text(
+                      TranslationKey.aboutPageWebsiteItemName.tr,
                       style: fontSize,
                     ),
                   ],
@@ -175,8 +176,8 @@ class AboutPage extends GetView<AboutController> {
                     const SizedBox(
                       width: 16,
                     ),
-                    const Text(
-                      "更新日志",
+                    Text(
+                      TranslationKey.aboutPageLogsItemName.tr,
                       style: fontSize,
                     ),
                   ],
@@ -203,8 +204,8 @@ class AboutPage extends GetView<AboutController> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "软件版本",
+                        Text(
+                          TranslationKey.aboutPageVersionItemName.tr,
                           style: fontSize,
                         ),
                         Text(

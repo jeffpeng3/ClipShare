@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history_tag.dart';
 import 'package:clipshare/app/data/repository/entity/views/v_history_tag_hold.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -68,7 +69,7 @@ class _TagEditPageState extends State<TagEditPage> {
   Widget build(BuildContext context) {
     var appBarTitle = Row(
       children: [
-        const Expanded(child: Text("编辑标签")),
+        Expanded(child: Text(TranslationKey.tagEditPageAppBarTitle.tr)),
         TextButton(
           onPressed: () {
             setState(() {
@@ -131,7 +132,7 @@ class _TagEditPageState extends State<TagEditPage> {
                     strokeWidth: 2.0,
                   ),
                 )
-              : const Text("保存"),
+              : Text(TranslationKey.save.tr),
         ),
       ],
     );
@@ -153,7 +154,7 @@ class _TagEditPageState extends State<TagEditPage> {
                       },
                     )
                   : null,
-              hintText: "搜索或创建标签",
+              hintText: TranslationKey.tagEditPageSearchOrCreateTag.tr,
               hintStyle: const TextStyle(color: Colors.grey),
               border: InputBorder.none,
             ),
@@ -182,7 +183,10 @@ class _TagEditPageState extends State<TagEditPage> {
                       exists = true;
                     });
                   },
-                  child: Text("创建 \"${_textController.text}\" 标签"),
+                  child: Text(
+                    TranslationKey.tagEditPageCrateTagItem
+                        .trParams({"tag": _textController.text}),
+                  ),
                 )
               : const SizedBox.shrink(),
           Column(

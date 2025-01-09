@@ -1,5 +1,9 @@
 import 'dart:convert';
 
+import 'package:clipshare/app/data/enums/module.dart';
+import 'package:clipshare/app/data/enums/msg_type.dart';
+import 'package:clipshare/app/data/enums/op_method.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/dev_info.dart';
 import 'package:clipshare/app/data/models/message_data.dart';
 import 'package:clipshare/app/data/models/version.dart';
@@ -317,14 +321,18 @@ class DeviceController extends GetxController
           sktService.reqMissingData();
           return;
         }
-        Global.showSnackBarErr(context: Get.context!, text: "设备添加失败");
+        Global.showSnackBarErr(
+            context: Get.context!,
+            text: TranslationKey.deviceAdditionFailedDialogText.tr);
       });
     } else {
       //新设备
       devService.addOrUpdate(newDev).then((res) {
         if (!res) {
           Log.debug(tag, "Device information addition failed");
-          Global.showSnackBarErr(context: Get.context!, text: "设备添加失败");
+          Global.showSnackBarErr(
+              context: Get.context!,
+              text: TranslationKey.deviceAdditionFailedDialogText.tr);
           return;
         }
         _addPairedDevInPage(newDev);
@@ -402,12 +410,12 @@ class DeviceController extends GetxController
                         splashColor: Colors.black12,
                         onTap: showReNameDlg,
                         borderRadius: BorderRadius.circular(12),
-                        child: const Padding(
-                          padding: EdgeInsets.only(top: 5, bottom: 5),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 5, bottom: 5),
                           child: Column(
                             children: [
-                              Icon(Icons.edit_note_rounded),
-                              Text("重命名"),
+                              const Icon(Icons.edit_note_rounded),
+                              Text(TranslationKey.rename.tr),
                             ],
                           ),
                         ),
@@ -445,7 +453,11 @@ class DeviceController extends GetxController
                                     ? Icons.link_off_outlined
                                     : Icons.link,
                               ),
-                              Text(isConnected ? "断开连接" : "重新连接"),
+                              Text(
+                                isConnected
+                                    ? TranslationKey.devicePageDisconnect.tr
+                                    : TranslationKey.devicePageReconnect.tr,
+                              ),
                             ],
                           ),
                         ),
@@ -456,7 +468,7 @@ class DeviceController extends GetxController
                         onTap: () {
                           Global.showTipsDialog(
                             context: context,
-                            text: "是否要取消配对？",
+                            text: TranslationKey.devicePageUnpairedDialogAck.tr,
                             onOk: () {
                               if (isConnected) {
                                 var devInfo = DevInfo.fromDevice(device);
@@ -488,12 +500,13 @@ class DeviceController extends GetxController
                         },
                         splashColor: Colors.black12,
                         borderRadius: BorderRadius.circular(12),
-                        child: const Padding(
-                          padding: EdgeInsets.only(top: 5, bottom: 5),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 5, bottom: 5),
                           child: Column(
                             children: [
-                              Icon(Icons.block_flipped),
-                              Text("取消配对"),
+                              const Icon(Icons.block_flipped),
+                              Text(TranslationKey
+                                  .devicePageUnpairedButtonText.tr),
                             ],
                           ),
                         ),
@@ -548,7 +561,7 @@ class DeviceController extends GetxController
           builder: (context, state) {
             pairingState = state;
             return AlertDialog(
-              title: const Text("请输入配对码"),
+              title: Text(TranslationKey.devicePagePairingDialogTitle.tr),
               contentPadding: const EdgeInsets.all(8),
               content: Container(
                 height: 90,
@@ -590,7 +603,9 @@ class DeviceController extends GetxController
                     ),
                     (showTimeoutText || pairingFailed.value)
                         ? Text(
-                            showTimeoutText ? "配对超时！" : "配对码错误",
+                            showTimeoutText
+                                ? TranslationKey.devicePagePairingTimeoutText.tr
+                                : TranslationKey.devicePagePairingErrorText.tr,
                             textAlign: TextAlign.left,
                             style: const TextStyle(color: Colors.redAccent),
                           )
@@ -601,7 +616,7 @@ class DeviceController extends GetxController
               actions: [
                 TextButton(
                   onPressed: pairing.value ? null : () => cancelPairing(dev),
-                  child: const Text("取消"),
+                  child: Text(TranslationKey.dialogCancelText.tr),
                 ),
                 pairing.value
                     ? const SizedBox(
@@ -633,7 +648,9 @@ class DeviceController extends GetxController
                                 state(() {});
                               }
                             : null,
-                        child: const Text("配对!"),
+                        child: Text(
+                          TranslationKey.devicePagePairingDialogConfirmText.tr,
+                        ),
                       ),
               ],
             );

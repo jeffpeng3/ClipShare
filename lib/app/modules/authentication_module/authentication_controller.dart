@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -51,16 +52,16 @@ class AuthenticationController extends GetxController {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                const Text(
-                  "身份验证",
+                Text(
+                  TranslationKey.authenticationPageTitle.tr,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: TextButton(
-                    child: const Text(
-                      "使用密码",
-                      style: TextStyle(
+                    child: Text(
+                      TranslationKey.authenticationPageUsePassword.tr,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.blue,
                       ),
@@ -82,7 +83,7 @@ class AuthenticationController extends GetxController {
                     ),
                     TextButton(
                       onPressed: authenticate,
-                      child: const Text("开始验证"),
+                      child: Text(TranslationKey.authenticationPageStartVerification.tr),
                     ),
                   ],
                 ),
@@ -99,9 +100,9 @@ class AuthenticationController extends GetxController {
       authenticating = true;
       var authenticated = await auth.authenticate(
         authMessages: [
-          const AndroidAuthMessages(
+           AndroidAuthMessages(
             biometricHint: "",
-            signInTitle: "需要身份验证",
+            signInTitle: TranslationKey.authenticationPageRequireAuthentication.tr,
           ),
         ],
         localizedReason: localizedReason,

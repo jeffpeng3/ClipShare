@@ -1,5 +1,7 @@
 import 'package:clipshare/app/data/chart/bar_chart_item.dart';
 import 'package:clipshare/app/data/chart/pie_data_item.dart';
+import 'package:clipshare/app/data/enums/history_content_type.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
@@ -142,8 +144,8 @@ class StatisticsController extends GetxController {
     }
     if (res.isNotEmpty) {
       syncRatePieItems.value = [
-        PieDataItem("本地", self),
-        PieDataItem("同步", sync),
+        PieDataItem(TranslationKey.pieDataStatisticsLocalItemLabel.tr, self),
+        PieDataItem(TranslationKey.pieDataStatisticsSyncItemLabel.tr, sync),
       ];
     } else {
       syncRatePieItems.value = [];
