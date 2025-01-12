@@ -228,14 +228,14 @@ class ConfigService extends GetxService {
   String get language => _language.value;
 
   //标签规则
-  late final RxString _tagRules;
+  RxString? _tagRules;
 
-  String get tagRules => _tagRules.value;
+  String get tagRules => _tagRules?.value ?? Constants.defaultTagRules;
 
   //短信规则
-  late final RxString _smsRules;
+  RxString? _smsRules;
 
-  String get smsRules => _smsRules.value;
+  String get smsRules => _smsRules?.value ?? Constants.defaultSmsRules;
 
   //启用日志记录
   late final RxBool _enableLogsRecord;
@@ -481,8 +481,12 @@ class ConfigService extends GetxService {
     _rememberWindowSize = rememberWindowSize?.toBool().obs ?? false.obs;
     _lockHistoryFloatLoc = lockHistoryFloatLoc?.toBool().obs ?? true.obs;
     _enableLogsRecord = enableLogsRecord?.toBool().obs ?? false.obs;
-    _tagRules = tagRules?.obs ?? Constants.defaultTagRules.obs;
-    _smsRules = smsRules?.obs ?? Constants.defaultSmsRules.obs;
+    if (tagRules != null) {
+      _tagRules = tagRules.obs;
+    }
+    if (smsRules != null) {
+      _smsRules = smsRules.obs;
+    }
     _historyWindowHotKeys =
         historyWindowHotKeys?.obs ?? Constants.defaultHistoryWindowKeys.obs;
     _syncFileHotKeys =
@@ -668,12 +672,20 @@ class ConfigService extends GetxService {
 
   Future<void> setTagRules(String tagRules) async {
     await _addOrUpdateDbConfig("tagRules", tagRules);
-    _tagRules.value = tagRules;
+    if (_tagRules == null) {
+      _tagRules = tagRules.obs;
+    } else {
+      _tagRules!.value = tagRules;
+    }
   }
 
   Future<void> setSmsRules(String smsRules) async {
     await _addOrUpdateDbConfig("smsRules", smsRules);
-    _smsRules.value = smsRules;
+    if (_smsRules == null) {
+      _smsRules = smsRules.obs;
+    } else {
+      _smsRules!.value = smsRules;
+    }
   }
 
   Future<void> setHistoryWindowHotKeys(String historyWindowHotKeys) async {
@@ -796,7 +808,7 @@ class ConfigService extends GetxService {
 
   void updateLanguage() {
     if (language == "auto") {
-      Get.updateLocale(Constants.defaultLocale);
+      Get.updateLocale(Get.deviceLocale ?? Constants.defaultLocale);
     } else {
       final codes = language.split('_');
       Get.updateLocale(Locale(codes[0], codes.length == 1 ? null : codes[1]));

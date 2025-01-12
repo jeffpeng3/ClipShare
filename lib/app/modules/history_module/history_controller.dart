@@ -29,9 +29,9 @@ import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/file_util.dart';
 import 'package:clipshare/app/utils/log.dart';
+import 'package:clipshare/app/utils/permission_helper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
 /**
  * GetX Template Generator - fb.com/htngu.99
  * */
@@ -367,8 +367,10 @@ class HistoryController extends GetxController
             Log.debug(tag, "newPath $path");
           }
           history.content = path;
-          await Permission.manageExternalStorage.request();
-          await Permission.storage.request();
+          //如果没有权限则请求
+          if (!(await PermissionHelper.testAndroidStoragePerm())) {
+            await PermissionHelper.reqAndroidStoragePerm();
+          }
           var file = File(path);
           if (!file.existsSync()) {
             file.writeAsBytesSync(data);

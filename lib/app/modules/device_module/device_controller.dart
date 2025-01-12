@@ -560,6 +560,26 @@ class DeviceController extends GetxController
         return StatefulBuilder(
           builder: (context, state) {
             pairingState = state;
+            onSubmitted() {
+              String pin = pinCtr.text;
+              sktService.sendData(
+                dev,
+                MsgType.pairing,
+                {"code": CryptoUtil.toMD5(pin)},
+              );
+              pairing.value = true;
+              showTimeoutText = false;
+              pairingFailed.value = false;
+              Future.delayed(const Duration(seconds: 5), () {
+                if (pairing.value) {
+                  pairing.value = false;
+                  showTimeoutText = true;
+                  state(() {});
+                }
+              });
+              state(() {});
+            }
+
             return AlertDialog(
               title: Text(TranslationKey.devicePagePairingDialogTitle.tr),
               contentPadding: const EdgeInsets.all(8),
@@ -577,6 +597,7 @@ class DeviceController extends GetxController
                       controller: pinCtr,
                       autofocus: true,
                       defaultPinTheme: defaultPinTheme,
+                      closeKeyboardWhenCompleted: false,
                       focusedPinTheme: defaultPinTheme.copyWith(
                         decoration: defaultPinTheme.decoration!.copyWith(
                           border: Border.all(color: focusedBorderColor),
@@ -599,6 +620,9 @@ class DeviceController extends GetxController
                       onChanged: (pin) {
                         completedInputPin = pin.length == 6;
                         state(() {});
+                      },
+                      onSubmitted: (code) {
+                        onSubmitted();
                       },
                     ),
                     (showTimeoutText || pairingFailed.value)
@@ -627,27 +651,7 @@ class DeviceController extends GetxController
                         ),
                       )
                     : TextButton(
-                        onPressed: completedInputPin
-                            ? () {
-                                String pin = pinCtr.text;
-                                sktService.sendData(
-                                  dev,
-                                  MsgType.pairing,
-                                  {"code": CryptoUtil.toMD5(pin)},
-                                );
-                                pairing.value = true;
-                                showTimeoutText = false;
-                                pairingFailed.value = false;
-                                Future.delayed(const Duration(seconds: 5), () {
-                                  if (pairing.value) {
-                                    pairing.value = false;
-                                    showTimeoutText = true;
-                                    state(() {});
-                                  }
-                                });
-                                state(() {});
-                              }
-                            : null,
+                        onPressed: completedInputPin ? onSubmitted : null,
                         child: Text(
                           TranslationKey.devicePagePairingDialogConfirmText.tr,
                         ),

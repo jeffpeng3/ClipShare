@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:clipshare/app/data/enums/syncing_file_state.dart';
 import 'package:clipshare/app/data/enums/translation_key.dart';
-import 'package:clipshare/app/data/models/syncing_file.dart';
 import 'package:clipshare/app/listeners/multi_selection_pop_scope_disable_listener.dart';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -45,29 +44,29 @@ class SyncFileController extends GetxController
     super.onClose();
   }
 
-  final tabs = <_SyncingFilePageTab>[
-    _SyncingFilePageTab(
-      name: TranslationKey.syncingFilePageHistoryTabText.tr,
-      icon: const Icon(
-        Icons.history,
-        size: 18,
-      ),
-    ),
-    _SyncingFilePageTab(
-      name: TranslationKey.syncingFilePageReceiveTabText.tr,
-      icon: const Icon(
-        Icons.file_download,
-        size: 18,
-      ),
-    ),
-    _SyncingFilePageTab(
-      name: TranslationKey.syncingFilePageSendTabText.tr,
-      icon: const Icon(
-        Icons.upload,
-        size: 18,
-      ),
-    ),
-  ];
+  List<_SyncingFilePageTab> get tabs => [
+        _SyncingFilePageTab(
+          name: TranslationKey.syncingFilePageHistoryTabText.tr,
+          icon: const Icon(
+            Icons.history,
+            size: 18,
+          ),
+        ),
+        _SyncingFilePageTab(
+          name: TranslationKey.syncingFilePageReceiveTabText.tr,
+          icon: const Icon(
+            Icons.file_download,
+            size: 18,
+          ),
+        ),
+        _SyncingFilePageTab(
+          name: TranslationKey.syncingFilePageSendTabText.tr,
+          icon: const Icon(
+            Icons.upload,
+            size: 18,
+          ),
+        ),
+      ];
 
   bool selectMode = false;
   final selected = <int, SyncFileStatus>{}.obs;

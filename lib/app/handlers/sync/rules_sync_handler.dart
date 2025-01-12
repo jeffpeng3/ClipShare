@@ -42,7 +42,8 @@ class RulesSyncHandler implements SyncListener {
   Future onSync(MessageData msg) async {
     var send = msg.send;
     final map = msg.data;
-    final ruleMap = map["data"] as Map<dynamic, dynamic>;
+    final ruleMap = jsonDecode(map["data"]) as Map<dynamic, dynamic>;
+    print(ruleMap);
     map["data"] = "";
     var opRecord = OperationRecord.fromJson(map);
     RuleType rule = RuleType.getValue(ruleMap["rule"]);

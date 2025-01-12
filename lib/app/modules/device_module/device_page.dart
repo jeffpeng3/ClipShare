@@ -42,7 +42,7 @@ class DevicePage extends GetView<DeviceController> {
                               Text(
                                 TranslationKey.devicePageMyDevicesText.name
                                     .trParams({
-                                  'pairedLength':
+                                  'length':
                                       controller.pairedList.length.toString(),
                                 }),
                                 style: const TextStyle(

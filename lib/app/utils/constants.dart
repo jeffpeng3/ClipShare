@@ -53,12 +53,12 @@ class Constants {
       );
 
   //默认短信规则
-  static final defaultSmsRules = jsonEncode(
-    {
-      "version": 0,
-      "data": [],
-    },
-  );
+  static String get defaultSmsRules => jsonEncode(
+        {
+          "version": 0,
+          "data": [],
+        },
+      );
 
   //使用说明网页
   static const usageWeb = "https://clipshare.coclyun.top/usages/android.html";

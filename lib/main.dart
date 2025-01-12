@@ -100,8 +100,7 @@ void runMain(Widget home, String title) {
           themeMode: theme.brightness == Brightness.dark
               ? ThemeMode.dark
               : ThemeMode.light,
-          locale: Constants.defaultLocale,
-          fallbackLocale: const Locale('en','US'),
+          fallbackLocale: const Locale('en', 'US'),
           supportedLocales: Constants.supportedLocales,
           localizationsDelegates: Constants.localizationsDelegates,
           scrollBehavior: MyCustomScrollBehavior(),
