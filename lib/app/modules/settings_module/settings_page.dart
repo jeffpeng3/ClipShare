@@ -986,8 +986,10 @@ class SettingsPage extends GetView<SettingsController> {
                                 } else {
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: TranslationKey.syncSettingsSmsPermissionRequired.tr,
-                                    okText: TranslationKey.dialogAuthorizationButtonText.tr,
+                                    text: TranslationKey
+                                        .syncSettingsSmsPermissionRequired.tr,
+                                    okText: TranslationKey
+                                        .dialogAuthorizationButtonText.tr,
                                     showCancel: true,
                                     onOk: () async {
                                       await PermissionHelper
@@ -1035,7 +1037,9 @@ class SettingsPage extends GetView<SettingsController> {
                                 }
                                 Global.showTipsDialog(
                                   context: context,
-                                  text: TranslationKey.syncSettingsStoreImg2PicturesNoPermText.tr,
+                                  text: TranslationKey
+                                      .syncSettingsStoreImg2PicturesNoPermText
+                                      .tr,
                                   showCancel: true,
                                   onOk: () async {
                                     Navigator.pop(context);
@@ -1046,14 +1050,17 @@ class SettingsPage extends GetView<SettingsController> {
                                       appConfig.setSaveToPictures(false);
                                       Global.showTipsDialog(
                                         context: context,
-                                        text:TranslationKey.syncSettingsStoreImg2PicturesCancelPerm.tr,
+                                        text: TranslationKey
+                                            .syncSettingsStoreImg2PicturesCancelPerm
+                                            .tr,
                                       );
                                     } else {
                                       //授权成功
                                       appConfig.setSaveToPictures(true);
                                     }
                                   },
-                                  okText: TranslationKey.dialogAuthorizationButtonText.tr,
+                                  okText: TranslationKey
+                                      .dialogAuthorizationButtonText.tr,
                                 );
                               } else {
                                 appConfig.setSaveToPictures(false);
@@ -1231,7 +1238,11 @@ class SettingsPage extends GetView<SettingsController> {
                           ],
                         ),
                         description: Text(
-                          TranslationKey.logSettingsEnableDesc.trParams({"size":FileUtil.getDirectorySize(appConfig.logsDirPath).sizeStr}),
+                          TranslationKey.logSettingsEnableDesc.trParams({
+                            "size":
+                                FileUtil.getDirectorySize(appConfig.logsDirPath)
+                                    .sizeStr
+                          }),
                           maxLines: 1,
                         ),
                         value: appConfig.enableLogsRecord,
@@ -1259,13 +1270,15 @@ class SettingsPage extends GetView<SettingsController> {
                                   builder: (context) {
                                     return AlertDialog(
                                       title: Text(TranslationKey.tips.tr),
-                                      content: Text(TranslationKey.logSettingsAckDelLogFiles.tr),
+                                      content: Text(TranslationKey
+                                          .logSettingsAckDelLogFiles.tr),
                                       actions: [
                                         TextButton(
                                           onPressed: () {
                                             Navigator.pop(context);
                                           },
-                                          child: Text(TranslationKey.dialogCancelText.tr),
+                                          child: Text(TranslationKey
+                                              .dialogCancelText.tr),
                                         ),
                                         TextButton(
                                           onPressed: () {
@@ -1274,7 +1287,8 @@ class SettingsPage extends GetView<SettingsController> {
                                             );
                                             Navigator.pop(context);
                                           },
-                                          child: Text(TranslationKey.dialogConfirmText.tr),
+                                          child: Text(TranslationKey
+                                              .dialogConfirmText.tr),
                                         ),
                                       ],
                                     );

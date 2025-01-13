@@ -10,6 +10,7 @@ import 'package:clipshare/app/data/models/version.dart';
 import 'package:clipshare/app/data/repository/entity/tables/config.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
+import 'package:clipshare/app/modules/settings_module/settings_controller.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/theme/app_theme.dart';
@@ -800,6 +801,8 @@ class ConfigService extends GetxService {
     updateLanguage();
     final homeController = Get.find<HomeController>();
     homeController.initNavBarItems();
+    final settingController = Get.find<SettingsController>();
+    settingController.checkPermissions();
   }
 
 //endregion

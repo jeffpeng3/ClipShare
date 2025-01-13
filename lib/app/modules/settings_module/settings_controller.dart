@@ -60,18 +60,19 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   );
 
   //region Shizuku
-  final shizukuEnvNormalTipContent = Text(
-    TranslationKey.shizukuModeStatusTitle.tr,
-    style: const TextStyle(
-      fontSize: 20,
-      fontWeight: FontWeight.bold,
-      color: Colors.blueGrey,
-    ),
-  );
-  final shizukuEnvErrorTipContent = Text(
-    TranslationKey.shizukuModeStatusTitle.tr,
-    style: const TextStyle(fontSize: 16),
-  );
+  Widget get shizukuEnvNormalTipContent => Text(
+        TranslationKey.shizukuModeStatusTitle.tr,
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.blueGrey,
+        ),
+      );
+
+  Widget get shizukuEnvErrorTipContent => Text(
+        TranslationKey.shizukuModeStatusTitle.tr,
+        style: const TextStyle(fontSize: 16),
+      );
   final Rx<int?> shizukuVersion = Rx<int?>(null);
 
   Widget get shizukuEnvNormalTipDesc => Obx(
@@ -82,38 +83,42 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
           style: const TextStyle(fontSize: 14, color: Color(0xff6d6d70)),
         ),
       );
-  final shizukuEnvErrorTipDesc = Text(
-    TranslationKey.serverNotRunningDescription.tr,
-    style: const TextStyle(fontSize: 14),
-  );
+
+  Widget get shizukuEnvErrorTipDesc => Text(
+        TranslationKey.serverNotRunningDescription.tr,
+        style: const TextStyle(fontSize: 14),
+      );
 
   //endregion
 
   //region Root
-  final rootEnvNormalTipContent = Text(
-    TranslationKey.rootModeStatusTitle.tr,
-    style: const TextStyle(fontSize: 16),
-  );
-  final rootEnvErrorTipContent = Text(
-    TranslationKey.rootModeStatusTitle.tr,
-    style: const TextStyle(fontSize: 16),
-  );
-  final rootEnvNormalTipDesc = Text(
-    TranslationKey.rootModeRunningDescription.tr,
-    style: const TextStyle(fontSize: 14),
-  );
-  final rootEnvErrorTipDesc = Text(
-    TranslationKey.serverNotRunningDescription.tr,
-    style: const TextStyle(fontSize: 14),
-  );
+  Widget get rootEnvNormalTipContent => Text(
+        TranslationKey.rootModeStatusTitle.tr,
+        style: const TextStyle(fontSize: 16),
+      );
+
+  Widget get rootEnvErrorTipContent => Text(
+        TranslationKey.rootModeStatusTitle.tr,
+        style: const TextStyle(fontSize: 16),
+      );
+
+  Widget get rootEnvNormalTipDesc => Text(
+        TranslationKey.rootModeRunningDescription.tr,
+        style: const TextStyle(fontSize: 14),
+      );
+
+  Widget get rootEnvErrorTipDesc => Text(
+        TranslationKey.serverNotRunningDescription.tr,
+        style: const TextStyle(fontSize: 14),
+      );
 
   //endregion
 
   //region Android Pre 10
-  final androidPre10TipContent = Text(
-    TranslationKey.noSpecialPermissionRequired.tr,
-    style: const TextStyle(fontSize: 16),
-  );
+  Widget get androidPre10TipContent => Text(
+        TranslationKey.noSpecialPermissionRequired.tr,
+        style: const TextStyle(fontSize: 16),
+      );
 
   Widget get androidPre10EnvNormalTipDesc => Text(
         "Android ${appConfig.osVersion}",
