@@ -796,6 +796,10 @@ class EnUSTranslation extends AbstractTranslations {
         return "Remember last position";
       case TranslationKey.showOnRecentTasks:
         return "Show on recent tasks";
+      case TranslationKey.showLocalIpAddress:
+        return "Show Local IP Address";
+      case TranslationKey.localIpAddress:
+        return "Local IP Address";
     }
   }
 }

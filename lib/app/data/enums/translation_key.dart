@@ -388,7 +388,9 @@ enum TranslationKey {
   current,
   followMousePos,
   rememberLastPos,
-  showOnRecentTasks;
+  showOnRecentTasks,
+  showLocalIpAddress,
+  localIpAddress;
 
   String get tr => name.tr;
 

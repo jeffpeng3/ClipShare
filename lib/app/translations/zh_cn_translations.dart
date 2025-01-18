@@ -797,6 +797,10 @@ class ZhCNTranslation extends AbstractTranslations {
         return "记住上次位置";
       case TranslationKey.showOnRecentTasks:
         return "在最近任务中显示";
+      case TranslationKey.showLocalIpAddress:
+        return "查看本机IP";
+      case TranslationKey.localIpAddress:
+        return "本机IP";
     }
   }
 }

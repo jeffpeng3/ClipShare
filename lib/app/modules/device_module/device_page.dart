@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/modules/device_module/device_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -7,8 +9,10 @@ import 'package:clipshare/app/widgets/condition_widget.dart';
 import 'package:clipshare/app/widgets/device_card.dart';
 import 'package:clipshare/app/widgets/dot.dart';
 import 'package:clipshare/app/widgets/loading_dots.dart';
+import 'package:clipshare/app/widgets/network_address_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 /**
  * GetX Template Generator - fb.com/htngu.99
  * */
@@ -68,7 +72,8 @@ class DevicePage extends GetView<DeviceController> {
                                           : Colors.grey,
                                     ),
                                   ),
-                                  Text(TranslationKey.devicePageForwardServerText.tr),
+                                  Text(TranslationKey
+                                      .devicePageForwardServerText.tr),
                                   const SizedBox(width: 10),
                                 ],
                               ),
@@ -97,8 +102,7 @@ class DevicePage extends GetView<DeviceController> {
                   Obx(
                     () => Text(
                       TranslationKey.devicePageDiscoverDevicesText.trParams({
-                        'length':
-                        controller.discoverList.length.toString(),
+                        'length': controller.discoverList.length.toString(),
                       }),
                       style: const TextStyle(
                         fontSize: 16,
@@ -146,7 +150,8 @@ class DevicePage extends GetView<DeviceController> {
                     () => Visibility(
                       visible: controller.discovering.value,
                       child: Tooltip(
-                        message: TranslationKey.devicePageStopDiscoveringTooltip.tr,
+                        message:
+                            TranslationKey.devicePageStopDiscoveringTooltip.tr,
                         child: IconButton(
                           onPressed: () {
                             sktService.stopDiscoveringDevices();
@@ -195,6 +200,40 @@ class DevicePage extends GetView<DeviceController> {
                 ),
               ),
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () async {
+                    var interfaces = await NetworkInterface.list();
+                    for (var itf in interfaces) {
+                      // itf.addresses[0].type
+                      print("${itf.name} ${itf.addresses.join(',')}");
+                    }
+                    showDialog(
+                        context: context,
+                        builder: (ctx) {
+                          return NetworkAddressDialog(
+                            interfaces: interfaces,
+                          );
+                        });
+                  },
+                  child: Row(
+                    children: [
+                      Icon(
+                        MdiIcons.web,
+                        size: 20,
+                      ),
+                      const SizedBox(
+                        width: 5,
+                      ),
+                      Text(TranslationKey.showLocalIpAddress.tr),
+                    ],
+                  ),
+                ),
+              ],
+            )
           ],
         ),
       ],
