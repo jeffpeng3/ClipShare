@@ -232,6 +232,11 @@ class ConfigService extends GetxService {
 
   bool get showOnRecentTasks => _showOnRecentTasks.value;
 
+  //息屏一段时间后自动断连
+  final RxBool _autoCloseConnAfterScreenOff = true.obs;
+
+  bool get autoCloseConnAfterScreenOff => _autoCloseConnAfterScreenOff.value;
+
   //主题
   late final RxString _appTheme;
 
@@ -497,6 +502,10 @@ class ConfigService extends GetxService {
       "showOnRecentTasks",
       userId,
     );
+    var autoCloseConnAfterScreenOff = await cfg.getConfig(
+      "autoCloseConnAfterScreenOff",
+      userId,
+    );
     var fileStoreDir = Directory(fileStorePath ?? defaultFileStorePath);
     _port = port?.toInt().obs ?? Constants.port.obs;
     _localName =
@@ -514,6 +523,8 @@ class ConfigService extends GetxService {
     _enableLogsRecord = enableLogsRecord?.toBool().obs ?? false.obs;
     _recordsDialogPosition.value = recordsDialogPosition;
     _showOnRecentTasks.value = showOnRecentTasks?.toBool() ?? true;
+    _autoCloseConnAfterScreenOff.value =
+        autoCloseConnAfterScreenOff?.toBool() ?? true;
     if (tagRules != null) {
       _tagRules = tagRules.obs;
     }
@@ -709,6 +720,15 @@ class ConfigService extends GetxService {
     await _addOrUpdateDbConfig(
         "showOnRecentTasks", showOnRecentTasks.toString());
     _showOnRecentTasks.value = showOnRecentTasks;
+  }
+
+  Future<void> setAutoCloseConnAfterScreenOff(
+      bool autoCloseConnAfterScreenOff) async {
+    await _addOrUpdateDbConfig(
+      "autoCloseConnAfterScreenOff",
+      autoCloseConnAfterScreenOff.toString(),
+    );
+    _autoCloseConnAfterScreenOff.value = autoCloseConnAfterScreenOff;
   }
 
   Future<void> setEnableLogsRecord(bool enableLogsRecord) async {

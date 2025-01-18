@@ -390,7 +390,9 @@ enum TranslationKey {
   rememberLastPos,
   showOnRecentTasks,
   showLocalIpAddress,
-  localIpAddress;
+  localIpAddress,
+  syncAutoCloseSettingTitle,
+  syncAutoCloseSettingDesc;
 
   String get tr => name.tr;
 

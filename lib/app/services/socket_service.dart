@@ -133,6 +133,8 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   Map<String, Future> broadcastProcessChain = {};
   bool pairing = false;
   static bool _isInit = false;
+  bool screenOpened = true;
+  Timer? autoCloseConnTimer;
 
   String? get forwardServerHost {
     if (!appConfig.enableForward) return null;
@@ -154,8 +156,15 @@ class SocketService extends GetxService with ScreenOpenedObserver {
     await connectForwardServer();
     startDiscoveringDevices();
     startHeartbeatTest();
+    ScreenOpenedListener.inst.register(this);
     _isInit = true;
     return this;
+  }
+
+  @override
+  void onClose() {
+    super.onClose();
+    ScreenOpenedListener.inst.remove(this);
   }
 
   ///监听广播
@@ -337,6 +346,12 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   ///连接中转服务器
   Future<void> connectForwardServer([bool startDiscovering = false]) async {
     disConnectForwardServer();
+    //屏幕关闭且 设置了自动断连 且 定时器已到期 则不连接
+    if (!screenOpened &&
+        appConfig.autoCloseConnAfterScreenOff &&
+        autoCloseConnTimer == null) {
+      return;
+    }
     if (!appConfig.enableForward) return;
     if (forwardServerHost == null || forwardServerPort == null) return;
     try {
@@ -1132,10 +1147,24 @@ class SocketService extends GetxService with ScreenOpenedObserver {
       if (onlyNotPaired && devSkt.isPaired) {
         continue;
       }
-      _onDevDisconnected(devSkt.dev.guid, false);
-      devSkt.socket.destroy();
+      disconnectDevice(devSkt.dev, true);
+      // _onDevDisconnected(devSkt.dev.guid, false);
+      // devSkt.socket.destroy();
     }
-    _devSockets.clear();
+  }
+
+  ///主动断开设备连接
+  bool disconnectDevice(DevInfo dev, bool backSend) {
+    var id = dev.guid;
+    if (!_devSockets.containsKey(id)) {
+      return false;
+    }
+    if (backSend) {
+      sendData(dev, MsgType.disConnect, {});
+    }
+    _onDevDisconnected(id, false);
+    _devSockets[id]?.socket.destroy();
+    return true;
   }
 
   ///设备配对成功
@@ -1252,7 +1281,24 @@ class SocketService extends GetxService with ScreenOpenedObserver {
 
   @override
   void onScreenOpened() {
+    screenOpened = true;
     startDiscoveringDevices();
+    autoCloseConnTimer?.cancel();
+  }
+
+  @override
+  void onScreenClosed() {
+    super.onScreenClosed();
+    screenOpened = false;
+    print("11111111");
+    if (!appConfig.autoCloseConnAfterScreenOff) {
+      return;
+    }
+    //开启定时器，到时间自动断开连接
+    autoCloseConnTimer = Timer(const Duration(minutes: 5), () {
+      disConnectAllConnections();
+      autoCloseConnTimer = null;
+    });
   }
 
   //endregion
@@ -1461,20 +1507,6 @@ class SocketService extends GetxService with ScreenOpenedObserver {
       sockets.add(socket);
     }
     return sockets;
-  }
-
-  ///主动断开设备连接
-  bool disconnectDevice(DevInfo dev, bool backSend) {
-    var id = dev.guid;
-    if (!_devSockets.containsKey(id)) {
-      return false;
-    }
-    if (backSend) {
-      sendData(dev, MsgType.disConnect, {});
-    }
-    _onDevDisconnected(id, false);
-    _devSockets[id]?.socket.destroy();
-    return true;
   }
 
   ///添加中转文件发送记录

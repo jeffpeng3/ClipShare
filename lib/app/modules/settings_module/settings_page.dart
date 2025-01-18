@@ -443,7 +443,7 @@ class SettingsPage extends GetView<SettingsController> {
                                       .discoveringSettingsDeviceNameCopyTip.tr,
                                 );
                               },
-                            )
+                            ),
                           ],
                         ),
                         value: appConfig.localName,
@@ -620,6 +620,31 @@ class SettingsPage extends GetView<SettingsController> {
                                 }
                               },
                             ),
+                          );
+                        },
+                      ),
+                      SettingCard(
+                        title: Text(
+                          TranslationKey.syncAutoCloseSettingTitle.tr,
+                          maxLines: 1,
+                        ),
+                        description: Row(
+                          children: [
+                            Text(
+                              TranslationKey.syncAutoCloseSettingDesc.tr,
+                              maxLines: 1,
+                            ),
+                          ],
+                        ),
+                        value: appConfig.autoCloseConnAfterScreenOff,
+                        show: (v) => Platform.isAndroid,
+                        action: (v) {
+                          return Switch(
+                            value: v,
+                            onChanged: (checked) async {
+                              HapticFeedback.mediumImpact();
+                              appConfig.setAutoCloseConnAfterScreenOff(checked);
+                            },
                           );
                         },
                       ),

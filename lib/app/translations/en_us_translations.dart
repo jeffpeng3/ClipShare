@@ -800,6 +800,10 @@ class EnUSTranslation extends AbstractTranslations {
         return "Show Local IP Address";
       case TranslationKey.localIpAddress:
         return "Local IP Address";
+      case TranslationKey.syncAutoCloseSettingTitle:
+        return "Screen-off Auto Disconnect";
+      case TranslationKey.syncAutoCloseSettingDesc:
+        return "For power-saving optimization, the sync connection will be disconnected after 5 minutes of screen inactivity. To maintain background connection, please do not enable this feature.";
     }
   }
 }

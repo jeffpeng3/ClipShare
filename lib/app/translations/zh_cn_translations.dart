@@ -801,6 +801,10 @@ class ZhCNTranslation extends AbstractTranslations {
         return "查看本机IP";
       case TranslationKey.localIpAddress:
         return "本机IP";
+      case TranslationKey.syncAutoCloseSettingTitle:
+        return "息屏自动断连";
+      case TranslationKey.syncAutoCloseSettingDesc:
+        return "用于省电优化，息屏5分钟后断开同步连接。如需后台保持连接，请勿启用此功能。";
     }
   }
 }
