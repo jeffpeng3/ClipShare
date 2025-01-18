@@ -186,11 +186,11 @@ class ZhCNTranslation extends AbstractTranslations {
         return "显示历史记录悬浮窗";
       case TranslationKey.commonSettingsLockHistoriesFloatWindowPosition:
         return "锁定悬浮窗位置";
-      case TranslationKey.commonSettingsRememberWindowSize:
+      case TranslationKey.preferenceSettingsRememberWindowSize:
         return "记住上次窗口大小";
-      case TranslationKey.commonSettingsWindowSizeRecordValue:
+      case TranslationKey.preferenceSettingsWindowSizeRecordValue:
         return "记录值";
-      case TranslationKey.commonSettingsWindowSizeDefaultValue:
+      case TranslationKey.preferenceSettingsWindowSizeDefaultValue:
         return "默认值";
       case TranslationKey.commonSettingsTheme:
         return "主题";
@@ -785,6 +785,18 @@ class ZhCNTranslation extends AbstractTranslations {
         return '应用设置';
       case TranslationKey.syncFile:
         return '文件同步';
+      case TranslationKey.preference:
+        return "偏好";
+      case TranslationKey.preferenceSettingsRecordsDialogLocation:
+        return "历史记录弹窗显示位置";
+      case TranslationKey.current:
+        return "当前";
+      case TranslationKey.followMousePos:
+        return "跟随鼠标位置";
+      case TranslationKey.rememberLastPos:
+        return "记住上次位置";
+      case TranslationKey.showOnRecentTasks:
+        return "在最近任务中显示";
     }
   }
 }

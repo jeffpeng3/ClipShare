@@ -210,6 +210,28 @@ class ConfigService extends GetxService {
 
   bool get rememberWindowSize => _rememberWindowSize.value;
 
+  //历史记录弹窗偏好设置，若有值则表示为坐标，如：123x123，否则代表根据鼠标位置显示
+  late final Rx<String?> _recordsDialogPosition = Rx<String?>(null);
+
+  String? get recordsDialogPosition {
+    final str = _recordsDialogPosition.value;
+    if (str == null) return null;
+    final posXY = str.split('x');
+    if (posXY.length != 2) return null;
+    try {
+      double.parse(posXY[0]);
+      double.parse(posXY[1]);
+    } catch (_) {
+      return null;
+    }
+    return str;
+  }
+
+  //显示在最近任务中（Android）
+  final RxBool _showOnRecentTasks = true.obs;
+
+  bool get showOnRecentTasks => _showOnRecentTasks.value;
+
   //主题
   late final RxString _appTheme;
 
@@ -467,6 +489,14 @@ class ConfigService extends GetxService {
       "appLanguage",
       userId,
     );
+    var recordsDialogPosition = await cfg.getConfig(
+      "recordsDialogPosition",
+      userId,
+    );
+    var showOnRecentTasks = await cfg.getConfig(
+      "showOnRecentTasks",
+      userId,
+    );
     var fileStoreDir = Directory(fileStorePath ?? defaultFileStorePath);
     _port = port?.toInt().obs ?? Constants.port.obs;
     _localName =
@@ -482,6 +512,8 @@ class ConfigService extends GetxService {
     _rememberWindowSize = rememberWindowSize?.toBool().obs ?? false.obs;
     _lockHistoryFloatLoc = lockHistoryFloatLoc?.toBool().obs ?? true.obs;
     _enableLogsRecord = enableLogsRecord?.toBool().obs ?? false.obs;
+    _recordsDialogPosition.value = recordsDialogPosition;
+    _showOnRecentTasks.value = showOnRecentTasks?.toBool() ?? true;
     if (tagRules != null) {
       _tagRules = tagRules.obs;
     }
@@ -654,7 +686,9 @@ class ConfigService extends GetxService {
 
   Future<void> setRememberWindowSize(bool rememberWindowSize) async {
     await _addOrUpdateDbConfig(
-        "rememberWindowSize", rememberWindowSize.toString());
+      "rememberWindowSize",
+      rememberWindowSize.toString(),
+    );
     Size size = await windowManager.getSize();
     _rememberWindowSize.value = rememberWindowSize;
     _windowSize.value = "${size.width}x${size.height}";
@@ -664,6 +698,17 @@ class ConfigService extends GetxService {
     var size = "${windowSize.width}x${windowSize.height}";
     await _addOrUpdateDbConfig("windowSize", size);
     _windowSize.value = size;
+  }
+
+  Future<void> setRecordsDialogPosition(String recordsDialogPosition) async {
+    await _addOrUpdateDbConfig("recordsDialogPosition", recordsDialogPosition);
+    _recordsDialogPosition.value = recordsDialogPosition;
+  }
+
+  Future<void> setShowOnRecentTasks(bool showOnRecentTasks) async {
+    await _addOrUpdateDbConfig(
+        "showOnRecentTasks", showOnRecentTasks.toString());
+    _showOnRecentTasks.value = showOnRecentTasks;
   }
 
   Future<void> setEnableLogsRecord(bool enableLogsRecord) async {

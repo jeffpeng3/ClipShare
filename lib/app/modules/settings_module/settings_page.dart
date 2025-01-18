@@ -139,8 +139,11 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => Platform.isAndroid,
                       ),
                       SettingCard(
-                        title: Text(TranslationKey
-                            .commonSettingsLockHistoriesFloatWindowPosition.tr),
+                        title: Text(
+                          TranslationKey
+                              .commonSettingsLockHistoriesFloatWindowPosition
+                              .tr,
+                        ),
                         value: appConfig.lockHistoryFloatLoc,
                         action: (v) => Switch(
                           value: appConfig.lockHistoryFloatLoc,
@@ -154,22 +157,6 @@ class SettingsPage extends GetView<SettingsController> {
                         ),
                         show: (v) =>
                             Platform.isAndroid && appConfig.showHistoryFloat,
-                      ),
-                      SettingCard(
-                        title: Text(
-                            TranslationKey.commonSettingsRememberWindowSize.tr),
-                        description: Text(
-                          "${appConfig.rememberWindowSize ? "${TranslationKey.commonSettingsWindowSizeRecordValue.tr}: ${appConfig.windowSize}，" : ""}${TranslationKey.commonSettingsWindowSizeDefaultValue.tr}: ${Constants.defaultWindowSize}",
-                        ),
-                        value: appConfig.rememberWindowSize,
-                        action: (v) => Switch(
-                          value: v,
-                          onChanged: (checked) {
-                            HapticFeedback.mediumImpact();
-                            appConfig.setRememberWindowSize(checked);
-                          },
-                        ),
-                        show: (v) => PlatformExt.isDesktop,
                       ),
                       SettingCard<ThemeMode>(
                         title: Text(TranslationKey.commonSettingsTheme.tr),
@@ -342,6 +329,77 @@ class SettingsPage extends GetView<SettingsController> {
 
                 ///endregion
 
+                //region 偏好
+                Obx(
+                  () => SettingCardGroup(
+                    groupName: TranslationKey.preference.tr,
+                    icon: const Icon(Icons.tune),
+                    cardList: [
+                      SettingCard(
+                        title: Text(
+                          TranslationKey
+                              .preferenceSettingsRememberWindowSize.tr,
+                        ),
+                        description: Text(
+                          "${appConfig.rememberWindowSize ? "${TranslationKey.preferenceSettingsWindowSizeRecordValue.tr}: ${appConfig.windowSize}，" : ""}${TranslationKey.preferenceSettingsWindowSizeDefaultValue.tr}: ${Constants.defaultWindowSize}",
+                        ),
+                        value: appConfig.rememberWindowSize,
+                        action: (v) => Switch(
+                          value: v,
+                          onChanged: (checked) {
+                            HapticFeedback.mediumImpact();
+                            appConfig.setRememberWindowSize(checked);
+                          },
+                        ),
+                        show: (v) => PlatformExt.isDesktop,
+                      ),
+                      //【暂不实现】历史记录弹窗记住上次位置
+                      SettingCard(
+                        title: Text(
+                          TranslationKey
+                              .preferenceSettingsRecordsDialogLocation.tr,
+                        ),
+                        description: Text(
+                            "${TranslationKey.current.tr}: ${appConfig.recordsDialogPosition == null ? TranslationKey.followMousePos.tr : TranslationKey.rememberLastPos.tr}"),
+                        value: appConfig.recordsDialogPosition,
+                        action: (v) => Switch(
+                          value: v == null,
+                          onChanged: (checked) {
+                            HapticFeedback.mediumImpact();
+                            if (checked) {
+                              appConfig.setRecordsDialogPosition("");
+                            } else {
+                              //当切换为记住上次位置时，初始值设为0，此时弹窗出现时仍然先以鼠标位置出现
+                              appConfig.setRecordsDialogPosition("0x0");
+                            }
+                          },
+                        ),
+                        show: (v) => false,
+                      ),
+                      SettingCard(
+                        title: Text(TranslationKey.showOnRecentTasks.tr),
+                        value: appConfig.showOnRecentTasks,
+                        action: (v) {
+                          return Switch(
+                            value: v,
+                            onChanged: (checked) {
+                              HapticFeedback.mediumImpact();
+                              androidChannelService
+                                  .showOnRecentTasks(checked)
+                                  .then((v) {
+                                if (v) {
+                                  appConfig.setShowOnRecentTasks(checked);
+                                }
+                              });
+                            },
+                          );
+                        },
+                        show: (v) => Platform.isAndroid,
+                      )
+                    ],
+                  ),
+                ),
+                //endregion
                 ///region 发现
 
                 Obx(

@@ -86,9 +86,9 @@ enum TranslationKey {
   commonSettingsRunMinimize,
   commonSettingsShowHistoriesFloatWindow,
   commonSettingsLockHistoriesFloatWindowPosition,
-  commonSettingsRememberWindowSize,
-  commonSettingsWindowSizeRecordValue,
-  commonSettingsWindowSizeDefaultValue,
+  preferenceSettingsRememberWindowSize,
+  preferenceSettingsWindowSizeRecordValue,
+  preferenceSettingsWindowSizeDefaultValue,
   commonSettingsTheme,
   language,
   selectLanguage,
@@ -382,7 +382,13 @@ enum TranslationKey {
   myDevice,
   fileTransfer,
   appSettings,
-  syncFile;
+  syncFile,
+  preference,
+  preferenceSettingsRecordsDialogLocation,
+  current,
+  followMousePos,
+  rememberLastPos,
+  showOnRecentTasks;
 
   String get tr => name.tr;
 

@@ -296,6 +296,18 @@ class MainActivity : FlutterFragmentActivity() {
                 "stopSmsListen" -> {
                     unRegisterSmsObserver()
                 }
+                //是否显示在后台任务卡片
+                "showOnRecentTasks" -> {
+                    val show = args["show"] as Boolean
+                    val systemService =
+                        getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                    val appTasks = systemService.appTasks
+                    val size = appTasks.size
+                    if (size > 0) {
+                        appTasks[0].setExcludeFromRecents(!show)
+                    }
+                    result.success(size > 0);
+                }
             }
         }
     }

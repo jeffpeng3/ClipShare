@@ -248,6 +248,7 @@ class HomeController extends GetxController
         await PermissionHelper.testAndroidReadSms()) {
       androidChannelService.startSmsListen();
     }
+    androidChannelService.showOnRecentTasks(appConfig.showOnRecentTasks);
   }
 
   ///初始化导航栏

@@ -11,12 +11,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class CompactPage extends StatefulWidget {
-  const CompactPage({super.key});
+class HistoryPage extends StatefulWidget {
+  const HistoryPage({super.key});
 
   @override
   State<StatefulWidget> createState() {
-    return _CompactPageState();
+    return _HistoryPageState();
   }
 }
 
@@ -27,7 +27,7 @@ class CompactClipData {
   const CompactClipData({required this.devName, required this.data});
 }
 
-class _CompactPageState extends State<CompactPage> {
+class _HistoryPageState extends State<HistoryPage> {
   final ScrollController _scrollController = ScrollController();
   List<CompactClipData> _list = [];
   bool _loadNewData = false;

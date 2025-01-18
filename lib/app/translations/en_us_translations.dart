@@ -185,11 +185,11 @@ class EnUSTranslation extends AbstractTranslations {
         return "Show History Floating Window";
       case TranslationKey.commonSettingsLockHistoriesFloatWindowPosition:
         return "Lock Floating Window Position";
-      case TranslationKey.commonSettingsRememberWindowSize:
+      case TranslationKey.preferenceSettingsRememberWindowSize:
         return "Remember Last Window Size";
-      case TranslationKey.commonSettingsWindowSizeRecordValue:
+      case TranslationKey.preferenceSettingsWindowSizeRecordValue:
         return "Recorded Value";
-      case TranslationKey.commonSettingsWindowSizeDefaultValue:
+      case TranslationKey.preferenceSettingsWindowSizeDefaultValue:
         return "Default Value";
       case TranslationKey.commonSettingsTheme:
         return "Theme";
@@ -784,6 +784,18 @@ class EnUSTranslation extends AbstractTranslations {
         return 'Settings';
       case TranslationKey.syncFile:
         return 'Sync Files';
+      case TranslationKey.preference:
+        return "Preference";
+      case TranslationKey.preferenceSettingsRecordsDialogLocation:
+        return "Records Dialog Position Follows Mouse";
+      case TranslationKey.current:
+        return "Current";
+      case TranslationKey.followMousePos:
+        return "Follow the mouse position";
+      case TranslationKey.rememberLastPos:
+        return "Remember last position";
+      case TranslationKey.showOnRecentTasks:
+        return "Show on recent tasks";
     }
   }
 }

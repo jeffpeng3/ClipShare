@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/services/config_service.dart';
-import 'package:clipshare/app/utils/global.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -24,6 +23,7 @@ class AndroidChannelMethod {
   static const startSmsListen = "startSmsListen";
   static const stopSmsListen = "stopSmsListen";
   static const onSmsChanged = "onSmsChanged";
+  static const showOnRecentTasks = "showOnRecentTasks";
 }
 
 class AndroidChannelService extends GetxService {
@@ -140,5 +140,15 @@ class AndroidChannelService extends GetxService {
     return androidChannel.invokeMethod<String?>(
       AndroidChannelMethod.stopSmsListen,
     );
+  }
+
+  Future<bool> showOnRecentTasks(bool show) {
+    if (!Platform.isAndroid) return Future.value(false);
+    return androidChannel.invokeMethod<bool?>(
+      AndroidChannelMethod.showOnRecentTasks,
+      {
+        "show": show,
+      },
+    ).then((v) => v ?? false);
   }
 }

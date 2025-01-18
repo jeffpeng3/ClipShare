@@ -3,6 +3,7 @@ import 'package:clipshare/app/modules/views/windows/history/history_page.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 
 class HistoryWindow extends StatelessWidget {
   final WindowController windowController;
@@ -16,6 +17,7 @@ class HistoryWindow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    windowManager.getPosition();
     return MaterialApp(
       title: '历史记录',
       theme: lightThemeData,
@@ -27,7 +29,7 @@ class HistoryWindow extends StatelessWidget {
       supportedLocales: Constants.supportedLocales,
       //Material 风格代理配置
       localizationsDelegates: Constants.localizationsDelegates,
-      home: const CompactPage(),
+      home: const HistoryPage(),
     );
   }
 }
