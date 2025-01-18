@@ -39,6 +39,8 @@ class ClipSimpleDataContent extends StatelessWidget {
               MaterialPageRoute(
                 builder: (context) => PreviewPage(
                   clip: clip,
+                  onlyView: true,
+                  single: true,
                 ),
               ),
             );

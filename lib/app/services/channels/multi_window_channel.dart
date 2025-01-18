@@ -15,13 +15,6 @@ class MultiWindowMethod {
   static const syncFiles = "syncFiles";
 }
 
-class MultiWindowTag {
-  MultiWindowTag._private();
-
-  static const history = "history";
-  static const devices = "devices";
-}
-
 class MultiWindowChannelService extends GetxService {
   static const tag = "MultiWindowChannelService";
 

@@ -391,7 +391,7 @@ class EnUSTranslation extends AbstractTranslations {
       case TranslationKey.errorDialogTitle:
         return "Error";
       case TranslationKey.selfDeviceName:
-        return "This Device";
+        return "Self";
       case TranslationKey.saveFileToPathForSettingDialogText:
         return "This file cannot be read directly\n\nSave to [File Storage Path] first?";
       case TranslationKey.save:
@@ -531,7 +531,7 @@ class EnUSTranslation extends AbstractTranslations {
       case TranslationKey.tagRuleSettingPageAppBarTitle:
         return "Tag Rule Configuration";
       case TranslationKey.onlineDevicesPageSelectDeviceToSend:
-        return "Please select the device to send to";
+        return "Select devices";
       case TranslationKey.send:
         return "Send";
       case TranslationKey.multipleChoiceOperationAppBarTitle:
@@ -782,6 +782,8 @@ class EnUSTranslation extends AbstractTranslations {
         return 'Transfer';
       case TranslationKey.appSettings:
         return 'Settings';
+      case TranslationKey.syncFile:
+        return 'Sync Files';
     }
   }
 }

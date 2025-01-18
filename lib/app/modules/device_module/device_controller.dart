@@ -72,7 +72,7 @@ class DeviceController extends GetxController
       vsync: this,
       duration: const Duration(seconds: 4),
     )..repeat();
-    setRotationAnimation();
+    setRotationAnimation(true);
     dbService.deviceDao.getAllDevices(appConfig.userId).then((list) {
       pairedList.clear();
       for (var dev in list) {
@@ -668,11 +668,16 @@ class DeviceController extends GetxController
   }
 
   ///设置旋转动画
-  void setRotationAnimation() {
-    animation = Tween<double>(
+  void setRotationAnimation([bool init = false]) {
+    final anim = Tween<double>(
       begin: 0.0,
       end: 1 * (rotationReverse.value ? -1 : 1),
-    ).animate(_rotationController).obs;
+    ).animate(_rotationController);
+    if (init) {
+      animation = anim.obs;
+    } else {
+      animation.value = anim;
+    }
   }
 
   ///获取兼容版本的在线设备列表

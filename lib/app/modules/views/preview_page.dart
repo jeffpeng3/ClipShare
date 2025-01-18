@@ -16,8 +16,15 @@ import 'package:share_plus/share_plus.dart';
 
 class PreviewPage extends StatefulWidget {
   final ClipData clip;
+  final bool onlyView;
+  final bool single;
 
-  const PreviewPage({super.key, required this.clip});
+  const PreviewPage({
+    super.key,
+    required this.clip,
+    this.onlyView = false,
+    this.single = false,
+  });
 
   @override
   State<StatefulWidget> createState() {
@@ -47,22 +54,32 @@ class _PreviewPageState extends State<PreviewPage> {
   bool get _canNext => _current < _total;
   final List<History> _images = List.empty(growable: true);
 
-  final appConfig = Get.find<ConfigService>();
-  final dbService = Get.find<DbService>();
+  ConfigService? appConfig;
+  DbService? dbService;
   int _pointerCnt = 0;
 
   @override
   void initState() {
     super.initState();
-    dbService.historyDao.getAllImages(appConfig.userId).then((images) {
-      _images.addAll(images);
-      _total = _images.length;
-      var i = images.indexWhere((item) => item.id == widget.clip.data.id);
-      _current = i + 1;
-      _pageController = PageController(initialPage: i);
+    if (widget.single) {
+      _images.add(widget.clip.data);
+      _current = 1;
+      _total = 1;
       _initFinished = true;
-      setState(() {});
-    });
+      _pageController = PageController(initialPage: 0);
+    } else {
+      appConfig = Get.find<ConfigService>();
+      dbService == Get.find<DbService>();
+      dbService!.historyDao.getAllImages(appConfig!.userId).then((images) {
+        _images.addAll(images);
+        _total = _images.length;
+        var i = images.indexWhere((item) => item.id == widget.clip.data.id);
+        _current = i + 1;
+        _pageController = PageController(initialPage: i);
+        _initFinished = true;
+        setState(() {});
+      });
+    }
   }
 
   Future<void> _loadPreImage() async {
@@ -204,7 +221,8 @@ class _PreviewPageState extends State<PreviewPage> {
               child: IconButton(
                 onPressed: () {
                   final path = _currentImage.content;
-                  Share.shareXFiles([XFile(path)], text: TranslationKey.shareFile.tr);
+                  Share.shareXFiles([XFile(path)],
+                      text: TranslationKey.shareFile.tr);
                 },
                 hoverColor: Colors.white12,
                 icon: const Icon(
@@ -343,7 +361,10 @@ class _PreviewPageState extends State<PreviewPage> {
                             bottom: 0,
                             left: 0,
                             right: 0,
-                            child: footer,
+                            child: Visibility(
+                              visible: !widget.onlyView,
+                              child: footer,
+                            ),
                           ),
                         ],
                       )

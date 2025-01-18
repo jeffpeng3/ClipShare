@@ -1,9 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:clipboard_listener/clipboard_manager.dart';
-import 'package:clipshare/app/services/channels/multi_window_channel.dart';
+import 'package:clipshare/app/data/enums/multi_window_tag.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
+import 'package:clipshare/app/data/models/desktop_multi_window_args.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/extensions/keyboard_key_extension.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
@@ -52,8 +53,12 @@ class AppHotKeyHandler {
           await appConfig.compactWindow?.close();
         }
         //createWindow里面的参数必须传
+        final title = TranslationKey.historyRecord.tr;
         final window = await DesktopMultiWindow.createWindow(
-          jsonEncode({'tag': MultiWindowTag.history}),
+          DesktopMultiWindowArgs.init(
+            title: title,
+            tag: MultiWindowTag.history,
+          ).toString(),
         );
         appConfig.compactWindow = window;
         var offset = await screenRetriever.getCursorScreenPoint();
@@ -66,7 +71,7 @@ class AppHotKeyHandler {
         final [x, y] = [min(maxX, offset.dx), min(maxY, offset.dy)];
         window
           ..setFrame(Offset(x, y) & Size(width, height))
-          ..setTitle('历史记录')
+          ..setTitle(title)
           ..show();
       },
     );
@@ -110,9 +115,16 @@ class AppHotKeyHandler {
         if (ids.contains(appConfig.onlineDevicesWindow?.windowId)) {
           await appConfig.compactWindow?.close();
         }
+        final title = TranslationKey.syncFile.tr;
         //createWindow里面的参数必须传
         final window = await DesktopMultiWindow.createWindow(
-          jsonEncode({'tag': MultiWindowTag.devices, "files": filePaths}),
+          DesktopMultiWindowArgs.init(
+            title: title,
+            tag: MultiWindowTag.devices,
+            otherArgs: {
+              "files": filePaths,
+            },
+          ).toString(),
         );
         appConfig.onlineDevicesWindow = window;
         var offset = await screenRetriever.getCursorScreenPoint();
@@ -125,7 +137,7 @@ class AppHotKeyHandler {
         final [x, y] = [min(maxX, offset.dx), min(maxY, offset.dy)];
         window
           ..setFrame(Offset(x, y) & Size(width, height))
-          ..setTitle('文件同步')
+          ..setTitle(title)
           ..show();
       },
     );

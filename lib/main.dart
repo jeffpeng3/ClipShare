@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
+import 'package:clipshare/app/data/enums/multi_window_tag.dart';
+import 'package:clipshare/app/data/models/desktop_multi_window_args.dart';
 import 'package:clipshare/app/modules/views/windows/history/history_window.dart';
 import 'package:clipshare/app/modules/views/windows/online_devices/online_devices_window.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
@@ -32,36 +34,34 @@ Future<void> main(List<String> args) async {
   Widget home = SplashPage();
   String title = 'ClipShare';
   var isMultiWindow = args.firstOrNull == 'multi_window';
+  DesktopMultiWindowArgs? multiWindowArgs;
   if (isMultiWindow) {
     //子窗口
     final windowId = int.parse(args[1]);
-    final argument = args[2].isEmpty
-        ? const {}
-        : jsonDecode(args[2]) as Map<String, dynamic>;
-    String tag = argument["tag"];
-    switch (tag) {
+    multiWindowArgs = DesktopMultiWindowArgs.fromJson(jsonDecode(args[2]));
+    switch (multiWindowArgs.tag) {
       case MultiWindowTag.history:
         home = HistoryWindow(
           windowController: WindowController.fromWindowId(windowId),
-          args: argument,
+          args: multiWindowArgs.otherArgs,
         );
-        title = '历史记录';
+        title = multiWindowArgs.title;
         break;
       case MultiWindowTag.devices:
         home = OnlineDevicesWindow(
           windowController: WindowController.fromWindowId(windowId),
-          args: argument,
+          args: multiWindowArgs.otherArgs,
         );
-        title = '设备列表';
+        title = multiWindowArgs.title;
         break;
     }
   }
   if (isMultiWindow) {
     Get.put(MultiWindowChannelService());
-    runApp(home);
+    runMain(home, title, multiWindowArgs);
   } else {
     await initServices();
-    runMain(home, title);
+    runMain(home, title, null);
   }
 }
 
@@ -84,22 +84,29 @@ Future<void> initServices() async {
   }
 }
 
-void runMain(Widget home, String title) {
+void runMain(Widget home, String title, DesktopMultiWindowArgs? args) {
+  final isDarkMode =
+      args?.themeMode == ThemeMode.dark || Get.isPlatformDarkMode;
+  Locale? locale;
+  final isMultiWindow = args != null;
+  if (isMultiWindow) {
+    locale = Locale(args.languageCode, args.countryCode);
+  }
   runApp(
     ThemeProvider(
-      initTheme: Get.isPlatformDarkMode ? darkThemeData : lightThemeData,
+      initTheme: isDarkMode ? darkThemeData : lightThemeData,
       builder: (context, theme) {
         return GetMaterialApp(
           translations: AppTranslation(),
           defaultTransition: Transition.native,
           title: title,
-          initialRoute: Routes.SPLASH,
-          getPages: AppPages.pages,
+          initialRoute: isMultiWindow ? null : Routes.SPLASH,
+          getPages: isMultiWindow ? null : AppPages.pages,
           theme: theme,
+          home: isMultiWindow ? home : null,
           darkTheme: darkThemeData,
-          themeMode: theme.brightness == Brightness.dark
-              ? ThemeMode.dark
-              : ThemeMode.light,
+          themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          locale: locale,
           fallbackLocale: const Locale('en', 'US'),
           supportedLocales: Constants.supportedLocales,
           localizationsDelegates: Constants.localizationsDelegates,

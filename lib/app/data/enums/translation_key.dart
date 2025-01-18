@@ -381,7 +381,8 @@ enum TranslationKey {
   historyRecord,
   myDevice,
   fileTransfer,
-  appSettings;
+  appSettings,
+  syncFile;
 
   String get tr => name.tr;
 

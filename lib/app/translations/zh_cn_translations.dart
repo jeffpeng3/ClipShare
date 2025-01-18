@@ -783,6 +783,8 @@ class ZhCNTranslation extends AbstractTranslations {
         return '文件传输';
       case TranslationKey.appSettings:
         return '应用设置';
+      case TranslationKey.syncFile:
+        return '文件同步';
     }
   }
 }
