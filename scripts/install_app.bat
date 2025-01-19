@@ -1,2 +1,3 @@
 @echo off
+rem 指定设备：adb -s R5CWA0FFS3D install ....
 adb install -r -d ..\build\app\outputs\apk\release\app-arm64-v8a-release.apk

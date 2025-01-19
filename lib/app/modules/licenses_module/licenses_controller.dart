@@ -225,5 +225,10 @@ class LicensesController extends GetxController {
       "license": "MIT",
       "url": "https://pub.dev/packages/pointycastle",
     },
-  ];
+    {
+      "name": "wakelock_plus",
+      "license": "BSD-3-Clause",
+      "url": "https://pub.dev/packages/wakelock_plus",
+    },
+  ]..sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
 }

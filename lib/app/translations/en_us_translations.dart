@@ -805,7 +805,7 @@ class EnUSTranslation extends AbstractTranslations {
       case TranslationKey.syncAutoCloseSettingTitle:
         return "Screen-off Auto Disconnect";
       case TranslationKey.syncAutoCloseSettingDesc:
-        return "For power-saving optimization, the sync connection will be disconnected after 5 minutes of screen inactivity. To maintain background connection, please do not enable this feature.";
+        return "For power-saving optimization, the sync connection will be disconnected after about 2~10 minutes of screen-off. To maintain background connection, please do not enable this feature.";
     }
   }
 }

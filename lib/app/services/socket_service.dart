@@ -29,6 +29,7 @@ import 'package:clipshare/app/utils/log.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 abstract class DevAliveListener {
   //连接成功
@@ -134,7 +135,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   bool pairing = false;
   static bool _isInit = false;
   bool screenOpened = true;
-  Timer? autoCloseConnTimer;
+  Future? autoCloseConnTimer;
 
   String? get forwardServerHost {
     if (!appConfig.enableForward) return null;
@@ -1283,11 +1284,13 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   @override
   void onScreenOpened() {
     screenOpened = true;
-    connectForwardServer();
+    if (_forwardClient == null) {
+      connectForwardServer();
+    }
     startDiscoveringDevices();
     startHeartbeatTest();
     Log.debug(tag, "屏幕打开");
-    autoCloseConnTimer?.cancel();
+    // autoCloseConnTimer
     autoCloseConnTimer = null;
   }
 
@@ -1299,15 +1302,23 @@ class SocketService extends GetxService with ScreenOpenedObserver {
     if (!appConfig.autoCloseConnAfterScreenOff) {
       return;
     }
-    Log.debug(tag, "屏幕关闭，开启定时器，五分钟后关闭连接");
+    const minutes = 2;
+    Log.debug(tag, "屏幕关闭，开启定时器，$minutes分钟后关闭连接");
+    WakelockPlus.toggle(enable: true);
     //开启定时器，到时间自动断开连接
-    autoCloseConnTimer = Timer(const Duration(minutes: 5), () {
-      autoCloseConnTimer = null;
+    autoCloseConnTimer = Future.delayed(const Duration(minutes: minutes), () {
+      WakelockPlus.toggle(enable: false);
+      if (autoCloseConnTimer == null) {
+        Log.debug(tag, "延迟执行已取消");
+        return;
+      }
       Log.debug(tag, "屏幕关闭时间已到，断开所有连接和心跳测试");
+      autoCloseConnTimer = null;
       disConnectAllConnections();
       stopHeartbeatTest();
       _stopJudgeForwardClientAlive();
     });
+    // Log.debug(tag, "定时器激活状态: ${autoCloseConnTimer?.isActive}");
   }
 
   //endregion

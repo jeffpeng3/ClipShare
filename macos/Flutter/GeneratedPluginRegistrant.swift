@@ -18,6 +18,7 @@ import smart_auth
 import sqflite
 import tray_manager
 import url_launcher_macos
+import wakelock_plus
 import window_manager
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
@@ -34,5 +35,6 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   SqflitePlugin.register(with: registry.registrar(forPlugin: "SqflitePlugin"))
   TrayManagerPlugin.register(with: registry.registrar(forPlugin: "TrayManagerPlugin"))
   UrlLauncherPlugin.register(with: registry.registrar(forPlugin: "UrlLauncherPlugin"))
+  WakelockPlusMacosPlugin.register(with: registry.registrar(forPlugin: "WakelockPlusMacosPlugin"))
   WindowManagerPlugin.register(with: registry.registrar(forPlugin: "WindowManagerPlugin"))
 }

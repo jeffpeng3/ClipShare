@@ -20,9 +20,12 @@ import 'package:clipshare/app/services/window_service.dart';
 import 'package:clipshare/app/translations/app_translations.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/platform_extension.dart';
+import 'package:clipshare/app/utils/log.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+// import 'package:workmanager/workmanager.dart';
 
 import 'app/modules/splash_module/splash_page.dart';
 import 'app/services/config_service.dart';
@@ -82,7 +85,25 @@ Future<void> initServices() async {
     await Get.putAsync(() => WindowService().init());
     await Get.putAsync(() => TrayService().init());
   }
+  // 在 main 函数中初始化 WorkManager
+  // Workmanager().initialize(callbackDispatcher);
 }
+
+// @pragma('vm:entry-point')
+// void callbackDispatcher() {
+//   Workmanager().executeTask((task, inputData) {
+//     print("任务开始执行：$task");
+//
+//     // 这里是任务执行的内容
+//     if (task == "autoCloseConn") {
+//       final ss = Get.find<SocketService>();
+//       ss.autoCloseConnTimer = null;
+//       Log.debug("callbackDispatcher", "autoCloseConn exec");
+//     }
+//
+//     return Future.value(true); // 返回 true 表示任务成功完成
+//   });
+// }
 
 void runMain(Widget home, String title, DesktopMultiWindowArgs? args) {
   final isDarkMode =

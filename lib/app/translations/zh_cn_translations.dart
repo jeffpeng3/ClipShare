@@ -804,9 +804,9 @@ class ZhCNTranslation extends AbstractTranslations {
       case TranslationKey.localIpAddress:
         return "本机IP";
       case TranslationKey.syncAutoCloseSettingTitle:
-        return "息屏自动断连";
+        return "熄屏自动断连";
       case TranslationKey.syncAutoCloseSettingDesc:
-        return "用于省电优化，息屏5分钟后断开同步连接。如需后台保持连接，请勿启用此功能。";
+        return "息屏一段时间后断开同步连接（大约2~10分钟）。如需后台保持连接，请勿启用此功能。";
     }
   }
 }

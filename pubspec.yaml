@@ -117,6 +117,8 @@ dependencies:
       ref: master
   # 类 json 的二进制序列化
   msgpack_dart: ^1.0.1
+  # 唤醒
+  wakelock_plus: ^1.2.10
 dev_dependencies:
   flutter_test:
     sdk: flutter
