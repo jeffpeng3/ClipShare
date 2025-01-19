@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:clipshare/app/data/enums/history_content_type.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/clip_data.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -46,11 +47,12 @@ class SearchController extends GetxController with WidgetsBindingObserver {
   String get searchEndDate => _searchEndDate.value;
 
   set searchEndDate(value) => _searchEndDate.value = value;
-  final _searchType = "全部".obs;
 
-  String get searchType => _searchType.value;
+  final _searchType = HistoryContentType.all.obs;
 
-  set searchType(value) => _searchType.value = value;
+  HistoryContentType get searchType => _searchType.value;
+
+  set searchType(HistoryContentType value) => _searchType.value = value;
   final _searchOnlyNoSync = false.obs;
 
   bool get searchOnlyNoSync => _searchOnlyNoSync.value;
@@ -59,8 +61,8 @@ class SearchController extends GetxController with WidgetsBindingObserver {
 
   //endregion
 
-  String get typeValue => HistoryContentType.typeMap.keys.contains(searchType)
-      ? HistoryContentType.typeMap[searchType]!
+  String get typeValue => HistoryContentType.typeMap.keys.contains(searchType.label)
+      ? HistoryContentType.typeMap[searchType.label]!
       : "";
 
   final _screenWidth = Get.width.obs;

@@ -1,4 +1,5 @@
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
+import 'package:clipshare/app/data/enums/history_content_type.dart';
 import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/modules/search_module/search_controller.dart'
     as search_module;
@@ -104,18 +105,18 @@ class SearchPage extends GetView<search_module.SearchController> {
                 child: Row(
                   children: [
                     for (var type in [
-                      TranslationKey.all.tr,
-                      TranslationKey.text.tr,
-                      TranslationKey.image.tr,
-                      TranslationKey.file.tr,
-                      TranslationKey.sms.tr
+                      HistoryContentType.all,
+                      HistoryContentType.text,
+                      HistoryContentType.image,
+                      HistoryContentType.file,
+                      HistoryContentType.sms,
                     ])
                       Row(
                         children: [
                           RoundedChip(
-                            selected: controller.searchType == type,
+                            selected: controller.searchType.label == type.label,
                             onPressed: () {
-                              if (controller.searchType == type) {
+                              if (controller.searchType.label == type.label) {
                                 return;
                               }
                               controller.loading.value = true;
@@ -128,7 +129,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                             selectedColor: controller.searchType == type
                                 ? Theme.of(context).chipTheme.selectedColor
                                 : null,
-                            label: Text(type),
+                            label: Text(type.label),
                           ),
                           const SizedBox(
                             width: 5,
@@ -163,7 +164,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                       topRight: Radius.circular(4),
                     ),
                     imageMasonryGridViewLayout:
-                        controller.searchType == TranslationKey.image.tr,
+                        controller.searchType == HistoryContentType.image,
                   ),
                 ),
               ),
@@ -241,8 +242,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                                       : Icons.check_box_outline_blank_sharp,
                                 ),
                                 label: Text(
-                                  TranslationKey
-                                      .onlyNotSync.tr,
+                                  TranslationKey.onlyNotSync.tr,
                                 ),
                                 onPressed: () {
                                   setInnerState(() {
@@ -257,12 +257,14 @@ class SearchPage extends GetView<search_module.SearchController> {
                               Navigator.pop(context);
                               var hasCondition = false;
                               //判断是否加入了筛选条件
-                              if (!start.contains(TranslationKey
-                                      .searchPageMoreFilterByDateJudgeText
-                                      .tr) ||
-                                  !end.contains(TranslationKey
-                                      .searchPageMoreFilterByDateJudgeText
-                                      .tr) ||
+                              if (!start.contains(
+                                    TranslationKey
+                                        .searchPageMoreFilterByDateJudgeText.tr,
+                                  ) ||
+                                  !end.contains(
+                                    TranslationKey
+                                        .searchPageMoreFilterByDateJudgeText.tr,
+                                  ) ||
                                   tags.isNotEmpty ||
                                   devs.isNotEmpty ||
                                   searchOnlyNoSync) {
@@ -311,16 +313,17 @@ class SearchPage extends GetView<search_module.SearchController> {
                           ),
                           avatar: const Icon(Icons.date_range_outlined),
                           deleteIcon: Icon(
-                            start != nowDayStr || start ==TranslationKey.startDate.tr
+                            start != nowDayStr ||
+                                    start == TranslationKey.startDate.tr
                                 ? Icons.location_on
                                 : Icons.close,
                             size: 17,
                             color: Colors.blue,
                           ),
-                          deleteButtonTooltipMessage:
-                              start != nowDayStr || start == TranslationKey.startDate.tr
-                                  ? TranslationKey.toToday.tr
-                                  : TranslationKey.clear.tr,
+                          deleteButtonTooltipMessage: start != nowDayStr ||
+                                  start == TranslationKey.startDate.tr
+                              ? TranslationKey.toToday.tr
+                              : TranslationKey.clear.tr,
                           onDeleted: start != nowDayStr
                               ? () {
                                   start = DateTime.now()
