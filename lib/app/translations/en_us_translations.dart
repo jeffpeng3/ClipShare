@@ -227,6 +227,8 @@ class EnUSTranslation extends AbstractTranslations {
         return "Device Name";
       case TranslationKey.discoveringSettingsDeviceNameCopyTip:
         return "Device ID copied";
+      case TranslationKey.copyDeviceId:
+        return "Copy Device ID";
       case TranslationKey.modifyDeviceName:
         return "Modify Device Name";
       case TranslationKey.deviceName:

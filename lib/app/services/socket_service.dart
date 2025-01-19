@@ -344,7 +344,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   }
 
   ///连接中转服务器
-  Future<void> connectForwardServer([bool startDiscovering = false]) async {
+  Future<void> connectForwardServer([bool startDiscovery = false]) async {
     disConnectForwardServer();
     //屏幕关闭且 设置了自动断连 且 定时器已到期 则不连接
     if (!screenOpened &&
@@ -354,6 +354,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
     }
     if (!appConfig.enableForward) return;
     if (forwardServerHost == null || forwardServerPort == null) return;
+    if (_forwardClient != null) return;
     try {
       _forwardClient = await ForwardSocketClient.connect(
         ip: forwardServerHost!,
@@ -393,7 +394,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
             connData["key"] = key;
           }
           self.send(connData);
-          if (startDiscovering) {
+          if (startDiscovery) {
             Future.delayed(const Duration(seconds: 1), () async {
               final list = await _forwardDiscover();
               //发现中转设备
@@ -1282,22 +1283,30 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   @override
   void onScreenOpened() {
     screenOpened = true;
+    connectForwardServer();
     startDiscoveringDevices();
+    startHeartbeatTest();
+    Log.debug(tag, "屏幕打开");
     autoCloseConnTimer?.cancel();
+    autoCloseConnTimer = null;
   }
 
   @override
   void onScreenClosed() {
     super.onScreenClosed();
+    Log.debug(tag, "屏幕关闭");
     screenOpened = false;
-    print("11111111");
     if (!appConfig.autoCloseConnAfterScreenOff) {
       return;
     }
+    Log.debug(tag, "屏幕关闭，开启定时器，五分钟后关闭连接");
     //开启定时器，到时间自动断开连接
     autoCloseConnTimer = Timer(const Duration(minutes: 5), () {
-      disConnectAllConnections();
       autoCloseConnTimer = null;
+      Log.debug(tag, "屏幕关闭时间已到，断开所有连接和心跳测试");
+      disConnectAllConnections();
+      stopHeartbeatTest();
+      _stopJudgeForwardClientAlive();
     });
   }
 

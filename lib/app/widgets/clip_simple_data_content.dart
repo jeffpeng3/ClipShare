@@ -9,8 +9,10 @@ import 'package:flutter/material.dart';
 ///历史记录中的卡片显示的内容
 class ClipSimpleDataContent extends StatelessWidget {
   final ClipData clip;
+  final bool imgOnlyView;
+  final bool imgSingleView;
 
-  const ClipSimpleDataContent({super.key, required this.clip});
+  const ClipSimpleDataContent({super.key, required this.clip, this.imgOnlyView=false, this.imgSingleView=false});
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +41,8 @@ class ClipSimpleDataContent extends StatelessWidget {
               MaterialPageRoute(
                 builder: (context) => PreviewPage(
                   clip: clip,
-                  onlyView: true,
-                  single: true,
+                  onlyView: imgOnlyView,
+                  single: imgSingleView,
                 ),
               ),
             );

@@ -69,7 +69,7 @@ class _PreviewPageState extends State<PreviewPage> {
       _pageController = PageController(initialPage: 0);
     } else {
       appConfig = Get.find<ConfigService>();
-      dbService == Get.find<DbService>();
+      dbService = Get.find<DbService>();
       dbService!.historyDao.getAllImages(appConfig!.userId).then((images) {
         _images.addAll(images);
         _total = _images.length;

@@ -400,34 +400,32 @@ class SettingsPage extends GetView<SettingsController> {
                   ),
                 ),
                 //endregion
-                ///region 发现
 
+                ///region 发现
                 Obx(
                   () => SettingCardGroup(
                     groupName: TranslationKey.discoveringSettingsGroupName.tr,
                     icon: const Icon(Icons.wifi),
                     cardList: [
                       SettingCard(
-                        title: Text(
-                          TranslationKey.discoveringSettingsLocalDeviceName.tr,
-                          maxLines: 1,
-                        ),
-                        description: Row(
+                        title: Row(
                           children: [
                             Text(
-                              "id: ${appConfig.devInfo.guid}",
+                              TranslationKey
+                                  .discoveringSettingsLocalDeviceName.tr,
                               maxLines: 1,
                             ),
-                            const SizedBox(
-                              width: 5,
-                            ),
+                            const SizedBox(width: 5),
                             GestureDetector(
-                              child: const MouseRegion(
+                              child: MouseRegion(
                                 cursor: SystemMouseCursors.click,
-                                child: Icon(
-                                  Icons.copy,
-                                  color: Colors.blueGrey,
-                                  size: 15,
+                                child: Tooltip(
+                                  message: TranslationKey.copyDeviceId.tr,
+                                  child: const Icon(
+                                    Icons.copy,
+                                    color: Colors.blueGrey,
+                                    size: 15,
+                                  ),
                                 ),
                               ),
                               onTap: () async {
@@ -445,6 +443,10 @@ class SettingsPage extends GetView<SettingsController> {
                               },
                             ),
                           ],
+                        ),
+                        description: Text(
+                          "id: ${appConfig.devInfo.guid}",
+                          maxLines: 1,
                         ),
                         value: appConfig.localName,
                         action: (v) => Text(v),

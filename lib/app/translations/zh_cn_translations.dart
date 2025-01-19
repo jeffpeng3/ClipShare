@@ -228,6 +228,8 @@ class ZhCNTranslation extends AbstractTranslations {
         return "设备名称";
       case TranslationKey.discoveringSettingsDeviceNameCopyTip:
         return "已复制设备id";
+      case TranslationKey.copyDeviceId:
+        return "复制设备id";
       case TranslationKey.modifyDeviceName:
         return "修改设备名称";
       case TranslationKey.deviceName:

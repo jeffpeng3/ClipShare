@@ -107,6 +107,7 @@ enum TranslationKey {
   discoveringSettingsGroupName,
   discoveringSettingsLocalDeviceName,
   discoveringSettingsDeviceNameCopyTip,
+  copyDeviceId,
   modifyDeviceName,
   deviceName,
   modifyDeviceNameCompletedTooltip,
