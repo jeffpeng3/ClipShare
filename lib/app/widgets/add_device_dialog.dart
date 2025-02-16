@@ -1,10 +1,15 @@
 import 'package:clipshare/app/data/enums/translation_key.dart';
+import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
+import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
+import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
+import 'package:clipshare/app/utils/permission_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class AddDeviceDialog extends StatefulWidget {
   const AddDeviceDialog({super.key});
@@ -31,7 +36,47 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(TranslationKey.addDeviceAppBarTittle.tr),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(TranslationKey.addDeviceAppBarTittle.tr),
+          Visibility(
+            visible: PlatformExt.isMobile,
+            child: TextButton(
+              onPressed: () async {
+                var hasPerm = await PermissionHelper.testAndroidCameraPerm();
+                if (!hasPerm) {
+                  await PermissionHelper.reqAndroidCameraPerm();
+                  hasPerm = await PermissionHelper.testAndroidCameraPerm();
+                  if (!hasPerm) {
+                    Global.showTipsDialog(
+                      context: context,
+                      text: TranslationKey.noCameraPermission.tr,
+                    );
+                    return;
+                  }
+                }
+                Get.offNamed(Routes.QR_CODE_SCANNER);
+              },
+              child: Row(
+                children: [
+                  Icon(
+                    MdiIcons.qrcodeScan,
+                    size: 14,
+                  ),
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  Text(
+                    TranslationKey.scan.tr,
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
       content: SizedBox(
         width: 250,
         child: IntrinsicHeight(
@@ -95,7 +140,7 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
       actionsAlignment: MainAxisAlignment.spaceBetween,
       actions: [
         Text(
-          _connectErr ?  TranslationKey.connectFailed.tr: "",
+          _connectErr ? TranslationKey.connectFailed.tr : "",
           style: const TextStyle(color: Colors.red),
         ),
         IntrinsicWidth(

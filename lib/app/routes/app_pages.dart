@@ -1,3 +1,5 @@
+import '../../app/modules/qr_code_scanner_module/qr_code_scanner_page.dart';
+import '../../app/modules/qr_code_scanner_module/qr_code_scanner_bindings.dart';
 import '../../app/modules/licenses_module/licenses_page.dart';
 import '../../app/modules/licenses_module/licenses_bindings.dart';
 import '../../app/modules/update_log_module/update_log_page.dart';
@@ -122,6 +124,11 @@ abstract class AppPages {
       name: Routes.LICENSES,
       page: () => LicensesPage(),
       binding: LicensesBinding(),
+    ),
+    GetPage(
+      name: Routes.QR_CODE_SCANNER,
+      page: () => QRCodeScannerPage(),
+      binding: QRCodeScannerBinding(),
     ),
   ];
 }

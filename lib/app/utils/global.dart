@@ -86,58 +86,61 @@ class Global {
       context: context,
       barrierDismissible: autoDismiss,
       builder: (context) {
-        return AlertDialog(
-          title: Text(title!),
-          content: Text(text),
-          actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Visibility(
-                  visible: showNeutral,
-                  child: TextButton(
-                    onPressed: () {
-                      if (autoDismiss) {
-                        Get.back();
-                      }
-                      onNeutral?.call();
-                    },
-                    child: Text(neutralText!),
+        return PopScope(
+          canPop: autoDismiss,
+          child: AlertDialog(
+            title: Text(title!),
+            content: Text(text),
+            actions: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Visibility(
+                    visible: showNeutral,
+                    child: TextButton(
+                      onPressed: () {
+                        if (autoDismiss) {
+                          Get.back();
+                        }
+                        onNeutral?.call();
+                      },
+                      child: Text(neutralText!),
+                    ),
                   ),
-                ),
-                IntrinsicWidth(
-                  child: Row(
-                    children: [
-                      Visibility(
-                        visible: showCancel,
-                        child: TextButton(
-                          onPressed: () {
-                            if (autoDismiss) {
-                              Get.back();
-                            }
-                            onCancel?.call();
-                          },
-                          child: Text(cancelText!),
+                  IntrinsicWidth(
+                    child: Row(
+                      children: [
+                        Visibility(
+                          visible: showCancel,
+                          child: TextButton(
+                            onPressed: () {
+                              if (autoDismiss) {
+                                Get.back();
+                              }
+                              onCancel?.call();
+                            },
+                            child: Text(cancelText!),
+                          ),
                         ),
-                      ),
-                      Visibility(
-                        visible: showOk,
-                        child: TextButton(
-                          onPressed: () {
-                            if (autoDismiss) {
-                              Get.back();
-                            }
-                            onOk?.call();
-                          },
-                          child: Text(okText!),
+                        Visibility(
+                          visible: showOk,
+                          child: TextButton(
+                            onPressed: () {
+                              if (autoDismiss) {
+                                Get.back();
+                              }
+                              onOk?.call();
+                            },
+                            child: Text(okText!),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            )
-          ],
+                ],
+              )
+            ],
+          ),
         );
       },
     );

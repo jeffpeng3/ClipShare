@@ -136,6 +136,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   static bool _isInit = false;
   bool screenOpened = true;
   Future? autoCloseConnTimer;
+  bool _autoConnForwardServer = true;
 
   String? get forwardServerHost {
     if (!appConfig.enableForward) return null;
@@ -155,7 +156,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
     _runSocketServer();
     //连接中转服务器
     await connectForwardServer();
-    startDiscoveringDevices();
+    startDiscoveryDevices();
     startHeartbeatTest();
     ScreenOpenedListener.inst.register(this);
     _isInit = true;
@@ -371,15 +372,18 @@ class SocketService extends GetxService with ScreenOpenedObserver {
           }
           _stopJudgeForwardClientAlive();
           Log.debug(tag, "forwardClient done");
-          Future.delayed(
-            const Duration(milliseconds: 500),
-            () => connectForwardServer(true),
-          );
+          if (_autoConnForwardServer) {
+            Future.delayed(
+              const Duration(milliseconds: 1000),
+              () => connectForwardServer(true),
+            );
+          }
         },
         onError: (ex, self) {
           Log.debug(tag, "forwardClient onError $ex");
         },
         onConnected: (self) {
+          _autoConnForwardServer = true;
           Log.debug(tag, "forwardClient onConnected");
           for (var listener in _forwardStatusListener) {
             listener.onForwardServerConnected();
@@ -410,15 +414,19 @@ class SocketService extends GetxService with ScreenOpenedObserver {
       );
     } catch (e) {
       Log.debug(tag, "connect forward server failed $e");
-      Future.delayed(
-        const Duration(milliseconds: 500),
-        () => connectForwardServer(true),
-      );
+      if (_autoConnForwardServer) {
+        Future.delayed(
+          const Duration(milliseconds: 1000),
+          () => connectForwardServer(true),
+        );
+      }
     }
   }
 
   ///断开中转服务器
   void disConnectForwardServer() {
+    Log.debug(tag, "disConnectForwardServer");
+    _autoConnForwardServer = false;
     _forwardClient?.close();
     _forwardClient = null;
     for (var listener in _forwardStatusListener) {
@@ -775,7 +783,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   TaskRunner? _taskRunner;
 
   ///发现设备
-  void startDiscoveringDevices([bool restart = false]) async {
+  void startDiscoveryDevices([bool restart = false]) async {
     if (_discovering) {
       Log.debug(tag, "正在发现设备");
       return;
@@ -838,7 +846,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   }
 
   ///停止发现设备
-  Future<void> stopDiscoveringDevices([bool restart = false]) async {
+  Future<void> stopDiscoveryDevices([bool restart = false]) async {
     appConfig.deviceDiscoveryStatus.value = null;
     Log.debug(tag, "停止发现设备");
     _taskRunner?.stop();
@@ -852,10 +860,10 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   }
 
   ///重新发现设备
-  void restartDiscoveringDevices() async {
+  void restartDiscoveryDevices() async {
     Log.debug(tag, "重新开始发现设备");
-    await stopDiscoveringDevices(true);
-    startDiscoveringDevices(true);
+    await stopDiscoveryDevices(true);
+    startDiscoveryDevices(true);
   }
 
   ///组播发现设备
@@ -900,13 +908,37 @@ class SocketService extends GetxService with ScreenOpenedObserver {
     return tasks;
   }
 
-  ///发现自添加设备
+  ///发现已配对设备
   Future<List<Future<void> Function()>> _customDiscover() async {
     List<Future<void> Function()> tasks = List.empty(growable: true);
     var lst = await dbService.deviceDao.getAllDevices(appConfig.userId);
     var devices = lst.where((dev) => dev.address != null).toList();
+    //region 查找中转服务的ip
+    String? forwardIp;
+    //存在且不为ipv4时才查询
+    if (forwardServerHost != null) {
+      //如果是域名就进行查询对应ip
+      if (!forwardServerHost!.isIPv4) {
+        try {
+          final addresses = await InternetAddress.lookup(forwardServerHost!);
+          for (var address in addresses) {
+            if (address.type != InternetAddressType.IPv4) {
+              continue;
+            }
+            forwardIp = address.address;
+          }
+        } catch (_) {}
+      } else {
+        forwardIp = forwardServerHost;
+      }
+    }
+    //endregion
     for (var dev in devices) {
       var [ip, port] = dev.address!.split(":");
+      //如果ip与中转相同则跳过
+      if (forwardIp == ip) {
+        continue;
+      }
       tasks.add(() => manualConnect(ip, port: int.parse(port)));
     }
     return tasks;
@@ -1143,7 +1175,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
 
   ///断开所有连接
   void disConnectAllConnections([bool onlyNotPaired = false]) {
-    _forwardClient?.destroy();
+    disConnectForwardServer();
     var skts = _devSockets.values.toList();
     for (var devSkt in skts) {
       if (onlyNotPaired && devSkt.isPaired) {
@@ -1287,7 +1319,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
     if (_forwardClient == null) {
       connectForwardServer();
     }
-    startDiscoveringDevices();
+    startDiscoveryDevices();
     startHeartbeatTest();
     Log.debug(tag, "屏幕打开");
     // autoCloseConnTimer

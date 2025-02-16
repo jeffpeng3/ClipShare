@@ -806,6 +806,16 @@ class EnUSTranslation extends AbstractTranslations {
         return "Screen-off Auto Disconnect";
       case TranslationKey.syncAutoCloseSettingDesc:
         return "For power-saving optimization, the sync connection will be disconnected after about 2~10 minutes of screen-off. To maintain background connection, please do not enable this feature.";
+      case TranslationKey.scan:
+        return "Scan QRCode";
+      case TranslationKey.noCameraPermission:
+        return "Please grant camera permission";
+      case TranslationKey.qrCodeScannerPageTitle:
+        return "Scan QR code";
+      case TranslationKey.qrCodeScanError:
+        return "It doesn't seem to be the connection QR code for ClipShare, please check";
+      case TranslationKey.attemptingToConnect:
+        return "Attempting to connect";
     }
   }
 }

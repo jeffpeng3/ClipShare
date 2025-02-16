@@ -804,9 +804,19 @@ class ZhCNTranslation extends AbstractTranslations {
       case TranslationKey.localIpAddress:
         return "本机IP";
       case TranslationKey.syncAutoCloseSettingTitle:
-        return "熄屏自动断连";
+        return "息屏自动断连";
       case TranslationKey.syncAutoCloseSettingDesc:
-        return "息屏一段时间后断开同步连接（大约2~10分钟）。如需后台保持连接，请勿启用此功能。";
+        return "息屏一段时间后断开同步连接（约2~10分钟）。如需后台保持连接，请勿启用此功能。";
+      case TranslationKey.scan:
+        return "扫描二维码";
+      case TranslationKey.noCameraPermission:
+        return "请授予相机权限";
+      case TranslationKey.qrCodeScannerPageTitle:
+        return "扫描二维码连接设备";
+      case TranslationKey.qrCodeScanError:
+        return "似乎不是ClipShare的连接二维码，请检查";
+      case TranslationKey.attemptingToConnect:
+        return "尝试连接中";
     }
   }
 }

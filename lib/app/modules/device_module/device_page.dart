@@ -121,9 +121,9 @@ class DevicePage extends GetView<DeviceController> {
                               controller.rotationReverse.value =
                                   !controller.rotationReverse.value;
                               controller.setRotationAnimation();
-                              sktService.restartDiscoveringDevices();
+                              sktService.restartDiscoveryDevices();
                             } else {
-                              sktService.startDiscoveringDevices();
+                              sktService.startDiscoveryDevices();
                             }
                           },
                           icon: const Icon(
@@ -154,7 +154,7 @@ class DevicePage extends GetView<DeviceController> {
                             TranslationKey.devicePageStopDiscoveringTooltip.tr,
                         child: IconButton(
                           onPressed: () {
-                            sktService.stopDiscoveringDevices();
+                            sktService.stopDiscoveryDevices();
                           },
                           icon: const Icon(
                             Icons.stop,

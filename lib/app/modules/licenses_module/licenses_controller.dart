@@ -230,5 +230,15 @@ class LicensesController extends GetxController {
       "license": "BSD-3-Clause",
       "url": "https://pub.dev/packages/wakelock_plus",
     },
+    {
+      "name": "qr_flutter",
+      "license": "BSD-3-Clause",
+      "url": "https://pub.dev/packages/qr_flutter",
+    },
+    {
+      "name": "qr_code_scanner_plus",
+      "license": "BSD-2-Clause",
+      "url": "https://pub.dev/packages/qr_code_scanner_plus",
+    },
   ]..sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
 }

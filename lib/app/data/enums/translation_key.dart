@@ -293,6 +293,7 @@ enum TranslationKey {
   connectSuccess,
   connect,
   addDeviceAppBarTittle,
+  scan,
   errorFormatIpv4,
   inputPassword,
   inputAgain,
@@ -393,7 +394,11 @@ enum TranslationKey {
   showLocalIpAddress,
   localIpAddress,
   syncAutoCloseSettingTitle,
-  syncAutoCloseSettingDesc;
+  syncAutoCloseSettingDesc,
+  noCameraPermission,
+  qrCodeScannerPageTitle,
+  qrCodeScanError,
+  attemptingToConnect;
 
   String get tr => name.tr;
 

@@ -89,4 +89,16 @@ class PermissionHelper {
     var status = await Permission.sms.request();
     Log.info(tag, "request AndroidReadSms: $status");
   }
+
+  ///测试Android相机权限
+  static Future<bool> testAndroidCameraPerm() async {
+    if (!Platform.isAndroid) return false;
+    return await Permission.camera.isGranted;
+  }
+  ///请求Android相机权限
+  static Future<void> reqAndroidCameraPerm() async {
+    if (!Platform.isAndroid) return;
+    var status = await Permission.camera.request();
+    Log.info(tag, "request Android camera: $status");
+  }
 }

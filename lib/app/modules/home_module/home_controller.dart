@@ -214,7 +214,7 @@ class HomeController extends GetxController
       Log.debug(tag, "网络变化 -> ${result.name}");
       sktService.disConnectAllConnections();
       if (result != ConnectivityResult.none) {
-        sktService.restartDiscoveringDevices();
+        sktService.restartDiscoveryDevices();
       }
     });
     _tagSyncer = TagSyncHandler();
