@@ -29,7 +29,7 @@ class HistoryPage extends GetView<HistoryController> {
           onUpdate: () {
             controller.sortList();
             //通知子窗体
-            controller.notifyCompactWindow();
+            controller.notifyHistoryWindow();
           },
           onRemove: (id) {
             controller.removeById(id);

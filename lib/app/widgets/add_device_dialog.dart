@@ -24,14 +24,19 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
   final tag = "AddDeviceDialog";
   final _ipEditor = TextEditingController();
   final _portEditor = TextEditingController()..text = Constants.port.toString();
+  final _forwardIdEditor = TextEditingController();
   final _ipErrTxt = TranslationKey.errorFormatIpv4.tr;
   final _portErrTxt = "0-65535";
+  final _forwardIdErrTxt = TranslationKey.pleaseInput.tr;
   var _showIpErr = false;
   var _showPortErr = false;
+  var _showForwardIdErr = false;
   var _connecting = false;
   var _connectErr = false;
   final sktService = Get.find<SocketService>();
+  bool forwardMode = false;
   Map<String, dynamic> _connectData = {};
+  bool forwardConnected = false;
 
   @override
   Widget build(BuildContext context) {
@@ -84,54 +89,92 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
+              Visibility(
+                replacement: Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 80,
+                        child: TextField(
+                          autofocus: true,
+                          enabled: !_connecting,
+                          controller: _ipEditor,
+                          decoration: InputDecoration(
+                            labelText: "IP",
+                            border: const OutlineInputBorder(),
+                            errorText: _showIpErr ? _ipErrTxt : null,
+                          ),
+                          onChanged: (text) {
+                            if (_showIpErr) {
+                              setState(() {
+                                _showIpErr = false;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    SizedBox(
+                      width: 80,
                       height: 80,
                       child: TextField(
-                        autofocus: true,
                         enabled: !_connecting,
-                        controller: _ipEditor,
+                        controller: _portEditor,
                         decoration: InputDecoration(
-                          labelText: "IP",
+                          labelText: TranslationKey.port.tr,
+                          errorText: _showPortErr ? _portErrTxt : null,
                           border: const OutlineInputBorder(),
-                          errorText: _showIpErr ? _ipErrTxt : null,
                         ),
                         onChanged: (text) {
-                          if (_showIpErr) {
+                          if (_showPortErr) {
                             setState(() {
-                              _showIpErr = false;
+                              _showPortErr = false;
                             });
                           }
                         },
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: TextField(
-                      enabled: !_connecting,
-                      controller: _portEditor,
-                      decoration: InputDecoration(
-                        labelText: TranslationKey.port.tr,
-                        errorText: _showPortErr ? _portErrTxt : null,
-                        border: const OutlineInputBorder(),
-                      ),
-                      onChanged: (text) {
-                        if (_showPortErr) {
-                          setState(() {
-                            _showPortErr = false;
-                          });
-                        }
-                      },
+                  ],
+                ),
+                visible: forwardMode,
+                child: SizedBox(
+                  height: 80,
+                  child: TextField(
+                    autofocus: true,
+                    enabled: !_connecting,
+                    controller: _forwardIdEditor,
+                    decoration: InputDecoration(
+                      labelText: TranslationKey.deviceId.tr,
+                      border: const OutlineInputBorder(),
+                      errorText: _showForwardIdErr ? _forwardIdErrTxt : null,
                     ),
+                    onChanged: (text) {
+                      if (_showForwardIdErr) {
+                        setState(() {
+                          _showForwardIdErr = false;
+                        });
+                      }
+                    },
                   ),
-                ],
+                ),
+              ),
+              CheckboxListTile(
+                value: forwardMode,
+                title: Text(TranslationKey.forwardMode.tr),
+                onChanged: (checked) {
+                  if (!sktService.forwardServerConnected) {
+                    Global.showTipsDialog(
+                        context: context,
+                        text: TranslationKey.forwardServerNotConnected.tr);
+                    return;
+                  }
+                  setState(() {
+                    forwardMode = checked ?? false;
+                  });
+                },
               ),
             ],
           ),
@@ -164,20 +207,11 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
               TextButton(
                 onPressed: _connecting
                     ? null
-                    : () {
+                    : () async {
+                        // 194512ad29c18d3bdb4f86f30b257
                         setState(() {
                           _connectErr = false;
                         });
-                        if (!_ipEditor.text.isIPv4) {
-                          _showIpErr = true;
-                        }
-                        if (!_portEditor.text.isPort) {
-                          _showPortErr = true;
-                        }
-                        if (_showIpErr || _showPortErr) {
-                          setState(() {});
-                          return;
-                        }
                         setState(() {
                           _connecting = true;
                           _connectData = {
@@ -185,25 +219,62 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
                             "custom": true,
                           };
                         });
-                        sktService.manualConnect(
-                          _ipEditor.text,
-                          port: int.parse(_portEditor.text),
-                          onErr: (err) {
-                            Log.debug(tag, err);
-                            if (_connecting) {
-                              setState(() {
-                                _connectErr = true;
-                                _connecting = false;
-                              });
-                            }
-                          },
-                          data: _connectData,
-                        ).then((val) {
-                          if (_connectErr || _connectData['stop']) {
+                        if (forwardMode) {
+                          if (_forwardIdEditor.text == "") {
+                            _showForwardIdErr = true;
+                            setState(() {});
+                          }
+                          if (!sktService.forwardServerConnected) {
+                            Global.showTipsDialog(
+                                context: context,
+                                text: TranslationKey
+                                    .forwardServerNotConnected.tr);
                             return;
                           }
-                          Navigator.pop(context);
-                        });
+                        } else {
+                          if (!_ipEditor.text.isIPv4) {
+                            _showIpErr = true;
+                          }
+                          if (!_portEditor.text.isPort) {
+                            _showPortErr = true;
+                          }
+                          if (_showIpErr || _showPortErr) {
+                            setState(() {});
+                            return;
+                          }
+                        }
+                        if (forwardMode) {
+                          print(_forwardIdEditor.text);
+                          //尝试中转连接
+                          bool success = await sktService
+                              .manualConnectByForward(_forwardIdEditor.text);
+                          if (success) {
+                            Get.back();
+                            return;
+                          }else{
+                            print("failed");
+                          }
+                        } else {
+                          sktService.manualConnect(
+                            _ipEditor.text,
+                            port: int.parse(_portEditor.text),
+                            onErr: (err) {
+                              Log.debug(tag, err);
+                              if (_connecting) {
+                                setState(() {
+                                  _connectErr = true;
+                                  _connecting = false;
+                                });
+                              }
+                            },
+                            data: _connectData,
+                          ).then((val) {
+                            if (_connectErr || _connectData['stop']) {
+                              return;
+                            }
+                            Get.back();
+                          });
+                        }
                       },
                 child: _connecting
                     ? const SizedBox(

@@ -234,6 +234,8 @@ class ZhCNTranslation extends AbstractTranslations {
         return "修改设备名称";
       case TranslationKey.deviceName:
         return "设备名称";
+      case TranslationKey.deviceId:
+        return "设备 ID";
       case TranslationKey.modifyDeviceNameCompletedTooltip:
         return "修改后重启软件生效";
       case TranslationKey.port:
@@ -817,6 +819,16 @@ class ZhCNTranslation extends AbstractTranslations {
         return "似乎不是ClipShare的连接二维码，请检查";
       case TranslationKey.attemptingToConnect:
         return "尝试连接中";
+      case TranslationKey.forwardServerStatus:
+        return "中转服务状态";
+      case TranslationKey.connected:
+        return "已连接";
+      case TranslationKey.disconnected:
+        return "已断开";
+      case TranslationKey.forwardMode:
+        return "中转模式";
+      case TranslationKey.forwardServerNotConnected:
+        return "未连接中转服务器";
     }
   }
 }

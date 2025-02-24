@@ -7,6 +7,7 @@ import 'package:clipshare/app/handlers/permission_handler.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/clipboard_service.dart';
 import 'package:clipshare/app/services/config_service.dart';
+import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/permission_helper.dart';
 import 'package:clipshare/app/widgets/auth_password_input.dart';
 import 'package:clipshare/app/widgets/loading.dart';
@@ -16,8 +17,11 @@ import 'package:get/get.dart';
  * GetX Template Generator - fb.com/htngu.99
  * */
 
-class SettingsController extends GetxController with WidgetsBindingObserver {
+class SettingsController extends GetxController
+    with WidgetsBindingObserver
+    implements ForwardStatusListener {
   final appConfig = Get.find<ConfigService>();
+  final sktService = Get.find<SocketService>();
 
   //region 属性
   final tag = "ProfilePage";
@@ -35,6 +39,7 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   final hasFloatPerm = false.obs;
   final hasIgnoreBattery = false.obs;
   final hasSmsReadPerm = true.obs;
+  final forwardServerConnected = false.obs;
 
   //region environment status widgets
   final Rx<Widget> envStatusIcon = Rx<Widget>(const Loading(width: 32));
@@ -150,6 +155,7 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
     super.onInit();
     //监听生命周期
     WidgetsBinding.instance.addObserver(this);
+    sktService.addForwardStatusListener(this);
     envStatusAction.value = IconButton(
       icon: const Icon(Icons.more_horiz_outlined),
       tooltip: TranslationKey.switchWorkingMode.tr,
@@ -162,7 +168,9 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
-      checkPermissions();
+      if (envStatusIcon.value == warningIcon) {
+        checkPermissions();
+      }
     }
   }
 
@@ -273,6 +281,16 @@ class SettingsController extends GetxController with WidgetsBindingObserver {
         ),
       ),
     );
+  }
+
+  @override
+  void onForwardServerConnected() {
+    forwardServerConnected.value = true;
+  }
+
+  @override
+  void onForwardServerDisconnected() {
+    forwardServerConnected.value = false;
   }
 //endregion
 }

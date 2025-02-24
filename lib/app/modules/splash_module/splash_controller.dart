@@ -113,12 +113,10 @@ class SplashController extends GetxController {
   }
 
   Future<void> initWindowsManager() async {
-    WidgetsFlutterBinding.ensureInitialized();
-    // 必须加上这一行。
-    await windowManager.ensureInitialized();
     final [width, height] =
         appConfig.windowSize.split("x").map((e) => e.toDouble()).toList();
     bool useMinimumSize = true;
+    // windowManager.setBackgroundColor(Colors.transparent);
     assert(() {
       useMinimumSize = false;
       return true;
@@ -130,7 +128,7 @@ class SplashController extends GetxController {
           : null,
       center: true,
       skipTaskbar: false,
-      titleBarStyle: TitleBarStyle.normal,
+      titleBarStyle: TitleBarStyle.hidden,
     );
     windowManager.waitUntilReadyToShow(windowOptions, () {
       if (!appConfig.startMini) {
@@ -205,6 +203,12 @@ class SplashController extends GetxController {
             context: Get.context!,
           );
           break;
+        case MultiWindowMethod.storeWindowPos:
+          var pos = args["pos"].toString();
+          if(appConfig.recordHistoryDialogPosition) {
+            print("object");
+            appConfig.setHistoryDialogPosition(pos);
+          }
       }
       //都不符合，返回空
       return Future.value();

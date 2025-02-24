@@ -127,6 +127,8 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   late SecureSocketServer _server;
   ForwardSocketClient? _forwardClient;
 
+  bool get forwardServerConnected => _forwardClient != null;
+
   //临时记录连接配对自定义ip设备记录
   final Set<String> ipSetTemp = {};
   final Set<String> _connectingAddress = {};

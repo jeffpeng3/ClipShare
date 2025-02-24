@@ -240,5 +240,10 @@ class LicensesController extends GetxController {
       "license": "BSD-2-Clause",
       "url": "https://pub.dev/packages/qr_code_scanner_plus",
     },
+    {
+      "name": "modern_titlebar_buttons",
+      "license": "MPL-2.0",
+      "url": "https://pub.dev/packages/modern_titlebar_buttons",
+    },
   ]..sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
 }

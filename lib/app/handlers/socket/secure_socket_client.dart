@@ -269,8 +269,7 @@ class SecureSocketClient {
       var key = data["key"];
       var g = BigInt.parse(data["g"]);
       var prime = BigInt.parse(data["prime"]);
-      //使用素数，底数，自己的私钥创
-      //建一个DH对象
+      //使用素数，底数，自己的私钥创建一个DH对象
       _dh = DiffieHellman(prime, g, _prime2);
       //根据接收的公钥使用dh算法生成共享秘钥
       var otherPublicKey = BigInt.parse(key);

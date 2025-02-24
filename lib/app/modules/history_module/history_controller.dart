@@ -168,14 +168,14 @@ class HistoryController extends GetxController
   }
 
   ///通知子窗体更新
-  void notifyCompactWindow() {
+  void notifyHistoryWindow() {
     if (PlatformExt.isMobile) return;
-    if (appConfig.compactWindow == null) return;
+    if (appConfig.historyWindow == null) return;
     multiWindowChannelService
-        .notify(appConfig.compactWindow!.windowId)
+        .notify(appConfig.historyWindow!.windowId)
         .catchError((err) {
       if (err.toString().contains("target window not found")) {
-        appConfig.compactWindow = null;
+        appConfig.historyWindow = null;
       } else {
         Log.error(tag, err);
       }
@@ -187,7 +187,7 @@ class HistoryController extends GetxController
     var clip = ClipData(history);
     return dbService.historyDao.add(clip.data).then((cnt) {
       if (cnt <= 0) return cnt;
-      notifyCompactWindow();
+      notifyHistoryWindow();
       _last = history;
       _tempList.add(clip);
       sortList();
@@ -436,7 +436,7 @@ class HistoryController extends GetxController
       //将同步过来的数据添加到本地操作记录
       dbService.opRecordDao.add(opRecord.copyWith(history.id.toString()));
     });
-    notifyCompactWindow();
+    notifyHistoryWindow();
     return f.whenComplete(() {
       //发送同步确认
       sktService.sendData(send, MsgType.ackSync, {

@@ -22,6 +22,7 @@ import 'package:clipshare/app/utils/file_util.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/utils/permission_helper.dart';
+import 'package:clipshare/app/widgets/dot.dart';
 import 'package:clipshare/app/widgets/dynamic_size_widget.dart';
 import 'package:clipshare/app/widgets/environment_status_card.dart';
 import 'package:clipshare/app/widgets/hot_key_editor.dart';
@@ -360,21 +361,19 @@ class SettingsPage extends GetView<SettingsController> {
                               .preferenceSettingsRecordsDialogLocation.tr,
                         ),
                         description: Text(
-                            "${TranslationKey.current.tr}: ${appConfig.recordsDialogPosition == null ? TranslationKey.followMousePos.tr : TranslationKey.rememberLastPos.tr}"),
-                        value: appConfig.recordsDialogPosition,
+                            "${TranslationKey.current.tr}: ${appConfig.recordHistoryDialogPosition ? TranslationKey.rememberLastPos.tr : TranslationKey.followMousePos.tr}"),
+                        value: appConfig.recordHistoryDialogPosition,
                         action: (v) => Switch(
-                          value: v == null,
+                          value: v,
                           onChanged: (checked) {
                             HapticFeedback.mediumImpact();
+                            appConfig.setRecordHistoryDialogPosition(checked);
                             if (checked) {
-                              appConfig.setRecordsDialogPosition("");
-                            } else {
-                              //当切换为记住上次位置时，初始值设为0，此时弹窗出现时仍然先以鼠标位置出现
-                              appConfig.setRecordsDialogPosition("0x0");
+                              appConfig.setHistoryDialogPosition("");
                             }
                           },
                         ),
-                        show: (v) => false,
+                        show: (v) => PlatformExt.isDesktop,
                       ),
                       SettingCard(
                         title: Text(TranslationKey.showOnRecentTasks.tr),
@@ -663,6 +662,31 @@ class SettingsPage extends GetView<SettingsController> {
                     groupName: TranslationKey.forwardSettingsGroupName.tr,
                     icon: const Icon(Icons.cloud_sync_outlined),
                     cardList: [
+                      SettingCard(
+                        title: Text(
+                          TranslationKey.forwardServerStatus.tr,
+                          maxLines: 1,
+                        ),
+                        description: Row(
+                          children: [
+                            Dot(
+                              radius: 6.0,
+                              color: controller.forwardServerConnected.value
+                                  ? Colors.green
+                                  : Colors.grey,
+                            ),
+                            const SizedBox(
+                              width: 5,
+                            ),
+                            Text(
+                              controller.forwardServerConnected.value
+                                  ? TranslationKey.connected.tr
+                                  : TranslationKey.disconnected.tr,
+                            ),
+                          ],
+                        ),
+                        value: appConfig.enableForward,
+                      ),
                       SettingCard(
                         title: Row(
                           children: [

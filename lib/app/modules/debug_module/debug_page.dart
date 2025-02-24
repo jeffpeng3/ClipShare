@@ -1,9 +1,7 @@
-import 'dart:io';
-
 import 'package:clipshare/app/modules/debug_module/debug_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
-import 'package:clipshare/app/utils/app_update_info_util.dart';
+import 'package:clipshare/app/widgets/base/custom_title_bar_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 /**
@@ -16,17 +14,9 @@ class DebugPage extends GetView<DebugController> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      // mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ElevatedButton(
-          onPressed: () async {
-            AppUpdateInfoUtil.showUpdateInfo();
-          },
-          child: const Text("获取更新信息"),
-        )
-      ],
+    return CustomTitleBarLayout(
+      child: Text("data"),
+      children: [],
     );
   }
 }

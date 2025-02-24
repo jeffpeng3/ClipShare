@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -10,6 +11,7 @@ import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:window_manager/window_manager.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -27,16 +29,18 @@ class CompactClipData {
   const CompactClipData({required this.devName, required this.data});
 }
 
-class _HistoryPageState extends State<HistoryPage> {
+class _HistoryPageState extends State<HistoryPage> with WindowListener {
   final ScrollController _scrollController = ScrollController();
   List<CompactClipData> _list = [];
   bool _loadNewData = false;
   bool _showBackToTopButton = false;
   final multiWindowChannelService = Get.find<MultiWindowChannelService>();
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
+    windowManager.addListener(this);
     // 监听滚动事件
     _scrollController.addListener(_scrollListener);
     //处理弹窗事件
@@ -55,6 +59,17 @@ class _HistoryPageState extends State<HistoryPage> {
       return Future.value();
     });
     refresh();
+  }
+
+  @override
+  void onWindowMove() {
+    _timer?.cancel();
+    _timer = Timer(const Duration(milliseconds: 500), () {
+      _timer = null;
+      windowManager.getPosition().then((pos) {
+        multiWindowChannelService.storeWindowPos(0, "history", pos);
+      });
+    });
   }
 
   void _scrollListener() {
@@ -122,6 +137,7 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   void dispose() {
     super.dispose();
+    windowManager.removeListener(this);
     _scrollController.removeListener(_scrollListener);
   }
 

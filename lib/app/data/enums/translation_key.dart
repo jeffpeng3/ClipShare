@@ -110,6 +110,7 @@ enum TranslationKey {
   copyDeviceId,
   modifyDeviceName,
   deviceName,
+  deviceId,
   modifyDeviceNameCompletedTooltip,
   discoveringSettingsPortDesc,
   modifyPort,
@@ -130,6 +131,7 @@ enum TranslationKey {
   discoveringSettingsModifyHeartbeatDialogInputLabel,
   discoveringSettingsModifyHeartbeatDialogInputErrorText,
   forwardSettingsGroupName,
+  forwardServerStatus,
   forwardSettingsForwardTitle,
   forwardSettingsForwardDownloadTooltip,
   forwardSettingsForwardDesc,
@@ -329,6 +331,7 @@ enum TranslationKey {
   rename,
   renameDevice,
   forward,
+  forwardMode,
   notCompatible,
   notCompatibleDialogText,
   emptyData,
@@ -398,7 +401,9 @@ enum TranslationKey {
   noCameraPermission,
   qrCodeScannerPageTitle,
   qrCodeScanError,
-  attemptingToConnect;
+  attemptingToConnect,
+  connected,
+  disconnected, forwardServerNotConnected;
 
   String get tr => name.tr;
 

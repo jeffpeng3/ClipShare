@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/utils/extensions/platform_extension.dart';
@@ -13,6 +14,7 @@ class MultiWindowMethod {
   static const notify = "notify";
   static const getCompatibleOnlineDevices = "getCompatibleOnlineDevices";
   static const syncFiles = "syncFiles";
+  static const storeWindowPos = "storeWindowPos";
 }
 
 class MultiWindowChannelService extends GetxService {
@@ -71,6 +73,18 @@ class MultiWindowChannelService extends GetxService {
       jsonEncode({
         "devices": devices,
         "files": files,
+      }),
+    );
+  }
+
+  ///发送当前窗体的位置给主程序
+  Future storeWindowPos(int targetWindowId, String type, Offset pos) {
+    return DesktopMultiWindow.invokeMethod(
+      targetWindowId,
+      MultiWindowMethod.storeWindowPos,
+      jsonEncode({
+        "type": type,
+        "pos": "${pos.dx}x${pos.dy}",
       }),
     );
   }

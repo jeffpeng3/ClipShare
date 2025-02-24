@@ -28,7 +28,6 @@ import 'package:clipshare/app/widgets/rounded_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import 'package:highlighting/languages/all.dart';
 import 'package:open_file_plus/open_file_plus.dart';
 
 import 'empty_content.dart';
@@ -202,7 +201,7 @@ class ClipListViewState extends State<ClipListView>
     widget.onRemove(item.data.id);
     final historyController = Get.find<HistoryController>();
     //通知子窗体
-    historyController.notifyCompactWindow();
+    historyController.notifyHistoryWindow();
     //添加删除记录
     var opRecord = OperationRecord.fromSimple(
       Module.history,
@@ -274,9 +273,11 @@ class ClipListViewState extends State<ClipListView>
         var type = ClipboardContentType.parse(history.type);
         final res = await clipboardManager.copy(type, history.content);
         if (res) {
-          Global.showSnackBarSuc(context: context, text: TranslationKey.copySuccess.tr);
+          Global.showSnackBarSuc(
+              context: context, text: TranslationKey.copySuccess.tr);
         } else {
-          Global.showSnackBarErr(context: context, text: TranslationKey.copyFailed.tr);
+          Global.showSnackBarErr(
+              context: context, text: TranslationKey.copyFailed.tr);
         }
       },
       onUpdate: widget.onUpdate,
@@ -434,7 +435,7 @@ class ClipListViewState extends State<ClipListView>
                                     Get.back();
                                     Global.showSnackBarSuc(
                                       context: context,
-                                      text:TranslationKey.deleteCompleted.tr,
+                                      text: TranslationKey.deleteCompleted.tr,
                                     );
                                     _selectedItems.clear();
                                     _selectMode = false;
@@ -444,12 +445,16 @@ class ClipListViewState extends State<ClipListView>
 
                                   Global.showTipsDialog(
                                     context: context,
-                                    text:TranslationKey.clipListViewDeleteAsk.trParams({"length":_selectedItems.length.toString()}) ,
+                                    text: TranslationKey.clipListViewDeleteAsk
+                                        .trParams({
+                                      "length": _selectedItems.length.toString()
+                                    }),
                                     showCancel: true,
                                     autoDismiss: false,
                                     showNeutral: _selectedItems
                                         .any((item) => item.isFile),
-                                    neutralText: TranslationKey.deleteWithFiles.tr,
+                                    neutralText:
+                                        TranslationKey.deleteWithFiles.tr,
                                     onCancel: () {
                                       Navigator.pop(context);
                                     },
@@ -607,7 +612,9 @@ class ClipListViewState extends State<ClipListView>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Tooltip(
-                                message: _rightShowFullPage ? TranslationKey.fold.tr : TranslationKey.unfold.tr,
+                                message: _rightShowFullPage
+                                    ? TranslationKey.fold.tr
+                                    : TranslationKey.unfold.tr,
                                 child: IconButton(
                                   onPressed: () {
                                     setState(() {

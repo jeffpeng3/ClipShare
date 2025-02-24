@@ -21,9 +21,11 @@ import 'package:clipshare/app/translations/app_translations.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:clipshare/app/utils/log.dart';
+import 'package:clipshare/app/widgets/base/custom_title_bar_layout.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'app/modules/splash_module/splash_page.dart';
 import 'app/services/config_service.dart';
@@ -32,8 +34,12 @@ import 'app/theme/app_theme.dart';
 
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (PlatformExt.isDesktop) {
+    // Must add this line.
+    await windowManager.ensureInitialized();
+  }
   Widget home = SplashPage();
-  String title = 'ClipShare';
+  String title = Constants.appName;
   var isMultiWindow = args.firstOrNull == 'multi_window';
   DesktopMultiWindowArgs? multiWindowArgs;
   if (isMultiWindow) {
@@ -42,6 +48,10 @@ Future<void> main(List<String> args) async {
     multiWindowArgs = DesktopMultiWindowArgs.fromJson(jsonDecode(args[2]));
     switch (multiWindowArgs.tag) {
       case MultiWindowTag.history:
+        windowManager.setAlwaysOnTop(true);
+        windowManager.setResizable(false);
+        windowManager.setMinimizable(false);
+        windowManager.setMaximizable(false);
         home = HistoryWindow(
           windowController: WindowController.fromWindowId(windowId),
           args: multiWindowArgs.otherArgs,
@@ -92,12 +102,19 @@ Future<void> initServices() async {
   }
 }
 
+final logoImg = Image.asset(
+  'assets/images/logo/logo.png',
+  width: 20,
+  height: 20,
+);
+
 void runMain(Widget home, String title, DesktopMultiWindowArgs? args) {
   final isDarkMode =
       args?.themeMode == ThemeMode.dark || Get.isPlatformDarkMode;
   Locale? locale;
   final isMultiWindow = args != null;
   if (isMultiWindow) {
+    windowManager.setTitleBarStyle(TitleBarStyle.hidden);
     locale = Locale(args.languageCode, args.countryCode);
   }
   runApp(
@@ -107,6 +124,24 @@ void runMain(Widget home, String title, DesktopMultiWindowArgs? args) {
         return GetMaterialApp(
           translations: AppTranslation(),
           defaultTransition: Transition.native,
+          builder: (ctx, child) {
+            return Scaffold(
+              appBar: null,
+              // backgroundColor: Colors.transparent,
+              body: CustomTitleBarLayout(
+                children: [
+                  const SizedBox(width: 5),
+                  logoImg,
+                  const SizedBox(width: 5),
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
+                child: child ?? const SizedBox.shrink(),
+              ),
+            );
+          },
           title: title,
           initialRoute: isMultiWindow ? null : Routes.SPLASH,
           getPages: isMultiWindow ? null : AppPages.pages,

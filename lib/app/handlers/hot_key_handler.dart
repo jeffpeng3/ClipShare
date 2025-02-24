@@ -49,8 +49,8 @@ class AppHotKeyHandler {
           ids = List.empty();
         }
         //只允许弹窗一次
-        if (ids.contains(appConfig.compactWindow?.windowId)) {
-          await appConfig.compactWindow?.close();
+        if (ids.contains(appConfig.historyWindow?.windowId)) {
+          await appConfig.historyWindow?.close();
         }
         //createWindow里面的参数必须传
         final title = TranslationKey.historyRecord.tr;
@@ -60,8 +60,13 @@ class AppHotKeyHandler {
             tag: MultiWindowTag.history,
           ).toString(),
         );
-        appConfig.compactWindow = window;
+        appConfig.historyWindow = window;
+        var posCfg = appConfig.historyDialogPosition;
         var offset = await screenRetriever.getCursorScreenPoint();
+        //存储的位置配置不为空则按配置显示
+        if (posCfg != Offset.zero && appConfig.recordHistoryDialogPosition) {
+          offset = posCfg;
+        }
         //多显示器不知道怎么判断鼠标在哪个显示器中，所以默认主显示器
         Size screenSize = (await screenRetriever.getPrimaryDisplay()).size;
         final [width, height] = [355.0, 630.0];
@@ -113,7 +118,7 @@ class AppHotKeyHandler {
         }
         //只允许弹窗一次
         if (ids.contains(appConfig.onlineDevicesWindow?.windowId)) {
-          await appConfig.compactWindow?.close();
+          await appConfig.historyWindow?.close();
         }
         final title = TranslationKey.syncFile.tr;
         //createWindow里面的参数必须传

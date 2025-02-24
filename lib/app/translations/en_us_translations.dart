@@ -816,6 +816,18 @@ class EnUSTranslation extends AbstractTranslations {
         return "It doesn't seem to be the connection QR code for ClipShare, please check";
       case TranslationKey.attemptingToConnect:
         return "Attempting to connect";
+      case TranslationKey.forwardServerStatus:
+        return "Forward Service Status";
+      case TranslationKey.connected:
+        return "Connected";
+      case TranslationKey.disconnected:
+        return "Disconnected";
+      case TranslationKey.forwardMode:
+        return "Forward Mode";
+      case TranslationKey.deviceId:
+        return "Device ID";
+      case TranslationKey.forwardServerNotConnected:
+        return "Not connected to the forward server";
     }
   }
 }

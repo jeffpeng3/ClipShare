@@ -48,7 +48,7 @@ class ConfigService extends GetxService {
   final prime2 = CryptoUtil.getPrime();
 
   // final bgColor = const Color.fromARGB(255, 238, 238, 238);
-  WindowController? compactWindow;
+  WindowController? historyWindow;
   WindowController? onlineDevicesWindow;
   final mainWindowId = 0;
 
@@ -210,21 +210,24 @@ class ConfigService extends GetxService {
 
   bool get rememberWindowSize => _rememberWindowSize.value;
 
-  //历史记录弹窗偏好设置，若有值则表示为坐标，如：123x123，否则代表根据鼠标位置显示
-  late final Rx<String?> _recordsDialogPosition = Rx<String?>(null);
+  //是否记录历史记录弹窗位置
+  late final _recordHistoryDialogPosition = false.obs;
 
-  String? get recordsDialogPosition {
-    final str = _recordsDialogPosition.value;
-    if (str == null) return null;
-    final posXY = str.split('x');
-    if (posXY.length != 2) return null;
-    try {
-      double.parse(posXY[0]);
-      double.parse(posXY[1]);
-    } catch (_) {
-      return null;
+  bool get recordHistoryDialogPosition => _recordHistoryDialogPosition.value;
+
+  //历史记录弹窗位置
+  final _historyDialogPosition = "".obs;
+
+  Offset get historyDialogPosition {
+    if (_historyDialogPosition.value == "") {
+      return Offset.zero;
     }
-    return str;
+    try {
+      final [dx, dy] = _historyDialogPosition.split("x");
+      return Offset(dx.toDouble(), dy.toDouble());
+    } catch (_) {
+      return Offset.zero;
+    }
   }
 
   //显示在最近任务中（Android）
@@ -494,8 +497,12 @@ class ConfigService extends GetxService {
       "appLanguage",
       userId,
     );
-    var recordsDialogPosition = await cfg.getConfig(
-      "recordsDialogPosition",
+    var recordHistoryDialogPosition = await cfg.getConfig(
+      "recordHistoryDialogPosition",
+      userId,
+    );
+    var historyDialogPosition = await cfg.getConfig(
+      "historyDialogPosition",
       userId,
     );
     var showOnRecentTasks = await cfg.getConfig(
@@ -521,7 +528,9 @@ class ConfigService extends GetxService {
     _rememberWindowSize = rememberWindowSize?.toBool().obs ?? false.obs;
     _lockHistoryFloatLoc = lockHistoryFloatLoc?.toBool().obs ?? true.obs;
     _enableLogsRecord = enableLogsRecord?.toBool().obs ?? false.obs;
-    _recordsDialogPosition.value = recordsDialogPosition;
+    _recordHistoryDialogPosition.value =
+        recordHistoryDialogPosition?.toBool() ?? false;
+    _historyDialogPosition.value = historyDialogPosition ?? "";
     _showOnRecentTasks.value = showOnRecentTasks?.toBool() ?? true;
     _autoCloseConnAfterScreenOff.value =
         autoCloseConnAfterScreenOff?.toBool() ?? true;
@@ -711,9 +720,17 @@ class ConfigService extends GetxService {
     _windowSize.value = size;
   }
 
-  Future<void> setRecordsDialogPosition(String recordsDialogPosition) async {
-    await _addOrUpdateDbConfig("recordsDialogPosition", recordsDialogPosition);
-    _recordsDialogPosition.value = recordsDialogPosition;
+  Future<void> setRecordHistoryDialogPosition(
+    bool recordHistoryDialogPosition,
+  ) async {
+    await _addOrUpdateDbConfig(
+        "recordHistoryDialogPosition", recordHistoryDialogPosition.toString());
+    _recordHistoryDialogPosition.value = recordHistoryDialogPosition;
+  }
+
+  Future<void> setHistoryDialogPosition(String historyDialogPosition) async {
+    await _addOrUpdateDbConfig("historyDialogPosition", historyDialogPosition);
+    _historyDialogPosition.value = historyDialogPosition;
   }
 
   Future<void> setShowOnRecentTasks(bool showOnRecentTasks) async {

@@ -22,7 +22,7 @@ class WindowService extends GetxService with WindowListener {
 
   void exitApp() {
     windowManager.setPreventClose(false).then((value) {
-      appConfig.compactWindow?.close();
+      appConfig.historyWindow?.close();
       windowManager.hide();
       WindowManager.instance.destroy();
     });
@@ -36,7 +36,6 @@ class WindowService extends GetxService with WindowListener {
 
   @override
   void onWindowClose() {
-    // do something
     windowManager.hide();
     Log.debug(tag, "onClose");
   }
