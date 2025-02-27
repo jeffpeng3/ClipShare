@@ -24,6 +24,8 @@ class AndroidChannelMethod {
   static const stopSmsListen = "stopSmsListen";
   static const onSmsChanged = "onSmsChanged";
   static const showOnRecentTasks = "showOnRecentTasks";
+  static const getImageUriRealPath = "getImageUriRealPath";
+  static const getLatestImagePath = "getLatestImagePath";
 }
 
 class AndroidChannelService extends GetxService {
@@ -142,6 +144,7 @@ class AndroidChannelService extends GetxService {
     );
   }
 
+  ///设置是否在最近任务中隐藏
   Future<bool> showOnRecentTasks(bool show) {
     if (!Platform.isAndroid) return Future.value(false);
     return androidChannel.invokeMethod<bool?>(
@@ -150,5 +153,25 @@ class AndroidChannelService extends GetxService {
         "show": show,
       },
     ).then((v) => v ?? false);
+  }
+
+  ///返回指定Uri的真实路径
+  Future<String?> getImageUriRealPath(String uri) {
+    if (!Platform.isAndroid) return Future.value(null);
+    return androidChannel.invokeMethod<String?>(
+      AndroidChannelMethod.getImageUriRealPath,
+      {
+        "uri": uri,
+      },
+    );
+  }
+
+  ///返回媒体库中的最新一张图片路径
+  Future<String?> getLatestImagePath() {
+    if (!Platform.isAndroid) return Future.value(null);
+    return androidChannel.invokeMethod<String?>(
+      AndroidChannelMethod.getLatestImagePath,
+      {},
+    );
   }
 }

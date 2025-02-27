@@ -13,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.PowerManager
+import android.provider.MediaStore
 import android.provider.Settings
 import android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION
 import android.util.Log
@@ -308,7 +309,73 @@ class MainActivity : FlutterFragmentActivity() {
                     }
                     result.success(size > 0);
                 }
+                //获取指定Uri的真实路径
+                "getImageUriRealPath" -> {
+                    val uriStr = args["uri"].toString()
+                    val uri = Uri.parse(uriStr);
+                    val path = getImagePathFromUri(this, uri)
+                    result.success(path)
+                }
+                //获取媒体库中的最新一张图片
+                "getLatestImagePath" -> {
+                    val path = getLatestImagePath(this)
+                    result.success(path)
+                }
             }
+        }
+    }
+
+    /**
+     * 根据uri获取图片真实路径
+     */
+    private fun getImagePathFromUri(context: Context, uri: Uri?): String? {
+        try {
+            val projection = arrayOf(MediaStore.Images.Media.DATA) // 根据类型调整字段
+            val cursor =
+                context.contentResolver.query(uri!!, projection, null, null, null) ?: return null
+            val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+            if (columnIndex == -1) return null
+            cursor.moveToFirst()
+            val path = cursor.getString(columnIndex)
+            cursor.close()
+            return path
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+    }
+
+    /**
+     * 获取 MediaStore 中 1s内的最新一张图片并返回其路径
+     */
+    private fun getLatestImagePath(context: Context): String? {
+        try {
+            val projection =
+                arrayOf(MediaStore.Images.Media.DATA, MediaStore.Images.Media.DATE_ADDED)
+            val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
+
+            val cursor = context.contentResolver.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                null,
+                null,
+                sortOrder
+            ) ?: return null
+
+            if (cursor.moveToFirst()) {
+                val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+                if (columnIndex == -1) return null
+                cursor.moveToFirst()
+                val path = cursor.getString(columnIndex)
+                cursor.close()
+                return path
+            } else {
+                cursor.close()
+                return null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
         }
     }
 

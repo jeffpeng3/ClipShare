@@ -11,6 +11,7 @@ import 'package:clipshare/app/modules/views/settings/sms_rules_setting_page.dart
 import 'package:clipshare/app/modules/views/settings/tag_rules_setting_page.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
+import 'package:clipshare/app/services/clipboard_service.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
@@ -255,78 +256,80 @@ class SettingsPage extends GetView<SettingsController> {
 
                 ///region 权限
 
-                Obx(() => SettingCardGroup(
-                      groupName: TranslationKey.permissionSettingsGroupName.tr,
-                      icon: const Icon(Icons.admin_panel_settings),
-                      cardList: [
-                        SettingCard(
-                          title: Text(TranslationKey
-                              .permissionSettingsNotificationTitle.tr),
-                          description: Text(TranslationKey
-                              .permissionSettingsNotificationDesc.tr),
-                          value: controller.hasNotifyPerm.value,
-                          action: (val) => Icon(
-                            val ? Icons.check_circle : Icons.help,
-                            color: val ? Colors.green : Colors.orange,
-                          ),
-                          show: (v) => Platform.isAndroid && !v,
-                          onTap: () {
-                            if (!controller.hasNotifyPerm.value) {
-                              controller.notifyHandler.request();
-                            }
-                          },
+                Obx(
+                  () => SettingCardGroup(
+                    groupName: TranslationKey.permissionSettingsGroupName.tr,
+                    icon: const Icon(Icons.admin_panel_settings),
+                    cardList: [
+                      SettingCard(
+                        title: Text(TranslationKey
+                            .permissionSettingsNotificationTitle.tr),
+                        description: Text(TranslationKey
+                            .permissionSettingsNotificationDesc.tr),
+                        value: controller.hasNotifyPerm.value,
+                        action: (val) => Icon(
+                          val ? Icons.check_circle : Icons.help,
+                          color: val ? Colors.green : Colors.orange,
                         ),
-                        SettingCard(
-                          title: Text(
-                              TranslationKey.permissionSettingsFloatTitle.tr),
-                          description: Text(
-                              TranslationKey.permissionSettingsFloatDesc.tr),
-                          value: controller.hasFloatPerm.value,
-                          action: (val) => Icon(
-                            val ? Icons.check_circle : Icons.help,
-                            color: val ? Colors.green : Colors.orange,
-                          ),
-                          show: (v) => Platform.isAndroid && !v,
-                          onTap: () {
-                            if (!controller.hasFloatPerm.value) {
-                              controller.floatHandler.request();
-                            }
-                          },
+                        show: (v) => Platform.isAndroid && !v,
+                        onTap: () {
+                          if (!controller.hasNotifyPerm.value) {
+                            controller.notifyHandler.request();
+                          }
+                        },
+                      ),
+                      SettingCard(
+                        title: Text(
+                            TranslationKey.permissionSettingsFloatTitle.tr),
+                        description:
+                            Text(TranslationKey.permissionSettingsFloatDesc.tr),
+                        value: controller.hasFloatPerm.value,
+                        action: (val) => Icon(
+                          val ? Icons.check_circle : Icons.help,
+                          color: val ? Colors.green : Colors.orange,
                         ),
-                        SettingCard(
-                          title: Text(TranslationKey
-                              .permissionSettingsBatteryOptimiseTitle.tr),
-                          description: Text(TranslationKey
-                              .permissionSettingsBatteryOptimiseDesc.tr),
-                          value: controller.hasIgnoreBattery.value,
-                          action: (val) => Icon(
-                            val ? Icons.check_circle : Icons.help,
-                            color: val ? Colors.green : Colors.orange,
-                          ),
-                          show: (v) => Platform.isAndroid && !v,
-                          onTap: () {
-                            if (!controller.hasIgnoreBattery.value) {
-                              controller.ignoreBatteryHandler.request();
-                            }
-                          },
+                        show: (v) => Platform.isAndroid && !v,
+                        onTap: () {
+                          if (!controller.hasFloatPerm.value) {
+                            controller.floatHandler.request();
+                          }
+                        },
+                      ),
+                      SettingCard(
+                        title: Text(TranslationKey
+                            .permissionSettingsBatteryOptimiseTitle.tr),
+                        description: Text(TranslationKey
+                            .permissionSettingsBatteryOptimiseDesc.tr),
+                        value: controller.hasIgnoreBattery.value,
+                        action: (val) => Icon(
+                          val ? Icons.check_circle : Icons.help,
+                          color: val ? Colors.green : Colors.orange,
                         ),
-                        SettingCard(
-                          title: Text(
-                              TranslationKey.permissionSettingsSmsTitle.tr),
-                          description:
-                              Text(TranslationKey.permissionSettingsSmsDesc.tr),
-                          value: controller.hasSmsReadPerm.value,
-                          action: (val) => Icon(
-                            val ? Icons.check_circle : Icons.help,
-                            color: val ? Colors.green : Colors.orange,
-                          ),
-                          show: (v) => Platform.isAndroid && !v,
-                          onTap: () {
-                            PermissionHelper.reqAndroidReadSms();
-                          },
+                        show: (v) => Platform.isAndroid && !v,
+                        onTap: () {
+                          if (!controller.hasIgnoreBattery.value) {
+                            controller.ignoreBatteryHandler.request();
+                          }
+                        },
+                      ),
+                      SettingCard(
+                        title:
+                            Text(TranslationKey.permissionSettingsSmsTitle.tr),
+                        description:
+                            Text(TranslationKey.permissionSettingsSmsDesc.tr),
+                        value: controller.hasSmsReadPerm.value,
+                        action: (val) => Icon(
+                          val ? Icons.check_circle : Icons.help,
+                          color: val ? Colors.green : Colors.orange,
                         ),
-                      ],
-                    )),
+                        show: (v) => Platform.isAndroid && !v,
+                        onTap: () {
+                          PermissionHelper.reqAndroidReadSms();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
 
                 ///endregion
 
@@ -1228,6 +1231,57 @@ class SettingsPage extends GetView<SettingsController> {
                               appConfig.setAutoCopyImageAfterSync(checked);
                             },
                           );
+                        },
+                      ),
+                      SettingCard(
+                        title: Text(
+                          TranslationKey.syncSettingsAutoCopyScreenShotTitle.tr,
+                          maxLines: 1,
+                        ),
+                        description: Text(
+                          TranslationKey.syncSettingsAutoCopyScreenShotDesc.tr,
+                          maxLines: 1,
+                        ),
+                        show: (v) => Platform.isAndroid,
+                        value: appConfig.autoCopyImageAfterScreenShot,
+                        action: (v) {
+                          return Switch(
+                            value: v,
+                            onChanged: (checked) async {
+                              appConfig
+                                  .setAutoCopyImageAfterScreenShot(checked);
+                              final clipboardService =
+                                  Get.find<ClipboardService>();
+                              if (checked) {
+                                clipboardService.startListenScreenshot();
+                              } else {
+                                clipboardService.stopListenScreenshot();
+                              }
+                            },
+                          );
+                        },
+                      ),
+                      SettingCard(
+                        title: Row(
+                          children: [
+                            Text(
+                              TranslationKey.cleanData.tr,
+                              maxLines: 1,
+                            ),
+                          ],
+                        ),
+                        value: null,
+                        action: (v) => IconButton(
+                          onPressed: () {
+                            Get.toNamed(Routes.CLEAN_DATA);
+                          },
+                          icon: const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.blueGrey,
+                          ),
+                        ),
+                        onTap: () {
+                          Get.toNamed(Routes.CLEAN_DATA);
                         },
                       ),
                     ],

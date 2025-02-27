@@ -187,4 +187,21 @@ class Constants {
       "name": "-",
     },
   ];
+
+  //截屏路径关键字（Android）
+  static final List<String> screenshotKeywords = [
+    "screenshot",
+    "screen_shot",
+    "screen-shot",
+    "screen shot",
+    "screencapture",
+    "screen_capture",
+    "screen-capture",
+    "screen capture",
+    "screencap",
+    "screen_cap",
+    "screen-cap",
+    "screen cap",
+    "screenshots",
+  ];
 }

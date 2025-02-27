@@ -249,6 +249,7 @@ class HomeController extends GetxController
       androidChannelService.startSmsListen();
     }
     androidChannelService.showOnRecentTasks(appConfig.showOnRecentTasks);
+
   }
 
   ///初始化导航栏

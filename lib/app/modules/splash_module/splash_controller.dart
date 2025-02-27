@@ -18,6 +18,7 @@ import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
+import 'package:clipshare/app/services/clipboard_service.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/device_service.dart';
@@ -205,7 +206,7 @@ class SplashController extends GetxController {
           break;
         case MultiWindowMethod.storeWindowPos:
           var pos = args["pos"].toString();
-          if(appConfig.recordHistoryDialogPosition) {
+          if (appConfig.recordHistoryDialogPosition) {
             print("object");
             appConfig.setHistoryDialogPosition(pos);
           }

@@ -333,6 +333,11 @@ class ConfigService extends GetxService {
 
   bool get autoCopyImageAfterSync => _autoCopyImageAfterSync.value;
 
+  //截屏后自动复制（Android）
+  late final RxBool _autoCopyImageAfterScreenShot;
+
+  bool get autoCopyImageAfterScreenShot => _autoCopyImageAfterScreenShot.value;
+
   //中转服务器地址
   final Rx<ForwardServerConfig?> _forwardServer =
       Rx<ForwardServerConfig?>(null);
@@ -489,6 +494,10 @@ class ConfigService extends GetxService {
       "autoCopyImageAfterSync",
       userId,
     );
+    var autoCopyImageAfterScreenShot = await cfg.getConfig(
+      "autoCopyImageAfterScreenShot",
+      userId,
+    );
     var ignoreUpdateVersion = await cfg.getConfig(
       "ignoreUpdateVersion",
       userId,
@@ -570,7 +579,9 @@ class ConfigService extends GetxService {
     _workingMode = EnvironmentType.parse(workingMode).obs;
     _onlyForwardMode = onlyForwardMode?.toBool().obs ?? false.obs;
     _appTheme = appTheme?.toString().obs ?? ThemeMode.system.name.obs;
-    _autoCopyImageAfterSync = autoCopyImageAfterSync?.toBool().obs ?? true.obs;
+    _autoCopyImageAfterSync = autoCopyImageAfterSync?.toBool().obs ?? false.obs;
+    _autoCopyImageAfterScreenShot =
+        autoCopyImageAfterScreenShot?.toBool().obs ?? true.obs;
     _ignoreUpdateVersion.value = ignoreUpdateVersion;
     Get.changeThemeMode(this.appTheme);
   }
@@ -849,8 +860,20 @@ class ConfigService extends GetxService {
 
   Future<void> setAutoCopyImageAfterSync(bool autoCopyImageAfterSync) async {
     await _addOrUpdateDbConfig(
-        "autoCopyImageAfterSync", autoCopyImageAfterSync.toString());
+      "autoCopyImageAfterSync",
+      autoCopyImageAfterSync.toString(),
+    );
     _autoCopyImageAfterSync.value = autoCopyImageAfterSync;
+  }
+
+  Future<void> setAutoCopyImageAfterScreenShot(
+    bool autoCopyImageAfterScreenShot,
+  ) async {
+    await _addOrUpdateDbConfig(
+      "autoCopyImageAfterScreenShot",
+      autoCopyImageAfterScreenShot.toString(),
+    );
+    _autoCopyImageAfterScreenShot.value = autoCopyImageAfterScreenShot;
   }
 
   Future<void> setAppTheme(

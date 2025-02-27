@@ -245,5 +245,10 @@ class LicensesController extends GetxController {
       "license": "MPL-2.0",
       "url": "https://pub.dev/packages/modern_titlebar_buttons",
     },
+    {
+      "name": "flutter_screenshot_detect",
+      "license": "MIT",
+      "url": "https://pub.dev/packages/flutter_screenshot_detect",
+    },
   ]..sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
 }

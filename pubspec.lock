@@ -471,6 +471,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.22"
+  flutter_screenshot_detect:
+    dependency: "direct main"
+    description:
+      path: "../github/screenshot_detector"
+      relative: true
+    source: path
+    version: "0.1.6"
   flutter_staggered_grid_view:
     dependency: "direct main"
     description:

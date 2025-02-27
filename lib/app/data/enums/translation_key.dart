@@ -403,7 +403,7 @@ enum TranslationKey {
   qrCodeScanError,
   attemptingToConnect,
   connected,
-  disconnected, forwardServerNotConnected;
+  disconnected, forwardServerNotConnected, cleanData, syncSettingsAutoCopyScreenShotTitle, syncSettingsAutoCopyScreenShotDesc;
 
   String get tr => name.tr;
 

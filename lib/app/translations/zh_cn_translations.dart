@@ -829,6 +829,12 @@ class ZhCNTranslation extends AbstractTranslations {
         return "中转模式";
       case TranslationKey.forwardServerNotConnected:
         return "未连接中转服务器";
+      case TranslationKey.cleanData:
+        return "数据清理";
+      case TranslationKey.syncSettingsAutoCopyScreenShotTitle:
+        return "自动复制截图";
+      case TranslationKey.syncSettingsAutoCopyScreenShotDesc:
+        return "部分系统可能在后台会有延迟";
     }
   }
 }

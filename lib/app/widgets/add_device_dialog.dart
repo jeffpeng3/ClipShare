@@ -244,15 +244,12 @@ class _AddDeviceDialogState extends State<AddDeviceDialog> {
                           }
                         }
                         if (forwardMode) {
-                          print(_forwardIdEditor.text);
                           //尝试中转连接
                           bool success = await sktService
                               .manualConnectByForward(_forwardIdEditor.text);
                           if (success) {
                             Get.back();
                             return;
-                          }else{
-                            print("failed");
                           }
                         } else {
                           sktService.manualConnect(

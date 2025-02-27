@@ -828,6 +828,12 @@ class EnUSTranslation extends AbstractTranslations {
         return "Device ID";
       case TranslationKey.forwardServerNotConnected:
         return "Not connected to the forward server";
+      case TranslationKey.cleanData:
+        return "Clean Data";
+      case TranslationKey.syncSettingsAutoCopyScreenShotTitle:
+        return "Auto Copy ScreenShot";
+      case TranslationKey.syncSettingsAutoCopyScreenShotDesc:
+        return "Some systems may experience delays in the background";
     }
   }
 }
