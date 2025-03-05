@@ -100,15 +100,15 @@ class ClipboardService extends GetxService with ClipboardListener {
             if (!isScreenShot) {
               return;
             }
-            HistoryDataListener.inst
-                .onChanged(HistoryContentType.image, realPath);
-            // androidChannelService
-            //     .copyFileFromUri(event.path!, appConfig.cachePath)
-            //     .then((res) {
-            //   Log.debug(tag, "ScreenshotDetect: $res");
-            //   if (res != null) {
-            //   }
-            // });
+            androidChannelService
+                .copyFileFromUri(event.path!, appConfig.cachePath)
+                .then((res) {
+              Log.debug(tag, "ScreenshotDetect: $realPath");
+              if (res != null) {
+                HistoryDataListener.inst
+                    .onChanged(HistoryContentType.image, res);
+              }
+            });
           });
         });
       }
