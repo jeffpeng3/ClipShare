@@ -553,6 +553,102 @@ class _$HistoryDao extends HistoryDao {
   }
 
   @override
+  Future<int?> count(
+    int uid,
+    List<String> types,
+    List<String> tags,
+    List<String> devIds,
+    String startTime,
+    String endTime,
+    bool saveTop,
+  ) async {
+    int offset = 5;
+    final _sqliteVariablesForTypes =
+        Iterable<String>.generate(types.length, (i) => '?${i + offset}')
+            .join(',');
+    offset += types.length;
+    final _sqliteVariablesForTags =
+        Iterable<String>.generate(tags.length, (i) => '?${i + offset}')
+            .join(',');
+    offset += tags.length;
+    final _sqliteVariablesForDevIds =
+        Iterable<String>.generate(devIds.length, (i) => '?${i + offset}')
+            .join(',');
+    return _queryAdapter.query(
+        'select count(1) from history     WHERE uid = ?1     AND (?2 = \'\' OR ?3 = \'\' OR date(time) BETWEEN ?2 AND ?3)     AND (?4 <> 1 OR top = 0)     AND (length(null in (' +
+            _sqliteVariablesForTypes +
+            ')) = 1 OR type IN (' +
+            _sqliteVariablesForTypes +
+            '))     AND (length(null in (' +
+            _sqliteVariablesForDevIds +
+            ')) = 1 OR devId IN (' +
+            _sqliteVariablesForDevIds +
+            '))     AND (length(null in (' +
+            _sqliteVariablesForTags +
+            ')) = 1 OR id IN (       SELECT DISTINCT hisId       FROM HistoryTag       WHERE tagName IN (' +
+            _sqliteVariablesForTags +
+            ')     ))',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [
+          uid,
+          startTime,
+          endTime,
+          saveTop ? 1 : 0,
+          ...types,
+          ...tags,
+          ...devIds
+        ]);
+  }
+
+  @override
+  Future<List<History>> getHistoriesWithFileContent(
+    int uid,
+    List<String> types,
+    List<String> tags,
+    List<String> devIds,
+    String startTime,
+    String endTime,
+    bool saveTop,
+  ) async {
+    int offset = 5;
+    final _sqliteVariablesForTypes =
+        Iterable<String>.generate(types.length, (i) => '?${i + offset}')
+            .join(',');
+    offset += types.length;
+    final _sqliteVariablesForTags =
+        Iterable<String>.generate(tags.length, (i) => '?${i + offset}')
+            .join(',');
+    offset += tags.length;
+    final _sqliteVariablesForDevIds =
+        Iterable<String>.generate(devIds.length, (i) => '?${i + offset}')
+            .join(',');
+    return _queryAdapter.queryList(
+        'select * from history        WHERE uid = ?1     AND (?2 = \'\' OR ?3 = \'\' OR date(time) BETWEEN ?2 AND ?3)     AND (?4 <> 1 OR top = 0)     AND (length(null in (' +
+            _sqliteVariablesForTypes +
+            ')) = 1 OR type IN (' +
+            _sqliteVariablesForTypes +
+            '))     AND (length(null in (' +
+            _sqliteVariablesForDevIds +
+            ')) = 1 OR devId IN (' +
+            _sqliteVariablesForDevIds +
+            '))     AND (length(null in (' +
+            _sqliteVariablesForTags +
+            ')) = 1 OR id IN (       SELECT DISTINCT hisId       FROM HistoryTag       WHERE tagName IN (' +
+            _sqliteVariablesForTags +
+            ')     ))',
+        mapper: (Map<String, Object?> row) => History(id: row['id'] as int, uid: row['uid'] as int, time: row['time'] as String, content: row['content'] as String, type: row['type'] as String, devId: row['devId'] as String, top: (row['top'] as int) != 0, sync: (row['sync'] as int) != 0, size: row['size'] as int),
+        arguments: [
+          uid,
+          startTime,
+          endTime,
+          saveTop ? 1 : 0,
+          ...types,
+          ...tags,
+          ...devIds
+        ]);
+  }
+
+  @override
   Future<int> add(History history) {
     return _historyInsertionAdapter.insertAndReturnId(
         history, OnConflictStrategy.replace);
@@ -724,6 +820,40 @@ class _$OperationSyncDao extends OperationSyncDao {
   }
 
   @override
+  Future<int?> deleteByIds(
+    int uid,
+    List<int> ids,
+  ) async {
+    const offset = 2;
+    final _sqliteVariablesForIds =
+        Iterable<String>.generate(ids.length, (i) => '?${i + offset}')
+            .join(',');
+    return _queryAdapter.query(
+        'delete OperationSync where uid = ?1 and opId in (' +
+            _sqliteVariablesForIds +
+            ')',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [uid, ...ids]);
+  }
+
+  @override
+  Future<int?> deleteByDevIds(
+    int uid,
+    List<String> devIds,
+  ) async {
+    const offset = 2;
+    final _sqliteVariablesForDevIds =
+        Iterable<String>.generate(devIds.length, (i) => '?${i + offset}')
+            .join(',');
+    return _queryAdapter.query(
+        'delete from OperationSync where uid = ?1 and devId in (' +
+            _sqliteVariablesForDevIds +
+            ')',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [uid, ...devIds]);
+  }
+
+  @override
   Future<int?> resetSyncStatus(String devId) async {
     return _queryAdapter.query('update history set sync = 0 where devId = ?1',
         mapper: (Map<String, Object?> row) => row.values.first as int,
@@ -837,6 +967,20 @@ class _$HistoryTagDao extends HistoryTagDao {
   }
 
   @override
+  Future<int?> deleteByHisIds(List<int> hIds) async {
+    const offset = 1;
+    final _sqliteVariablesForHIds =
+        Iterable<String>.generate(hIds.length, (i) => '?${i + offset}')
+            .join(',');
+    return _queryAdapter.query(
+        'delete from HistoryTag where hisId in (' +
+            _sqliteVariablesForHIds +
+            ')',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [...hIds]);
+  }
+
+  @override
   Future<int?> removeAll() async {
     return _queryAdapter.query('delete from HistoryTag',
         mapper: (Map<String, Object?> row) => row.values.first as int);
@@ -941,6 +1085,20 @@ class _$OperationRecordDao extends OperationRecordDao {
   }
 
   @override
+  Future<int?> deleteByDataIds(List<String> ids) async {
+    const offset = 1;
+    final _sqliteVariablesForIds =
+        Iterable<String>.generate(ids.length, (i) => '?${i + offset}')
+            .join(',');
+    return _queryAdapter.query(
+        'delete from OperationRecord where id in (' +
+            _sqliteVariablesForIds +
+            ')',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [...ids]);
+  }
+
+  @override
   Future<OperationRecord?> getByDataId(
     int id,
     String module,
@@ -973,6 +1131,23 @@ class _$OperationRecordDao extends OperationRecordDao {
         'delete from OperationRecord where uid = ?2 and module = \'规则设置\' and substr(data,instr(data,\':\') + 2,instr(data,\',\') - 3 - instr(data,\':\')) = ?1',
         mapper: (Map<String, Object?> row) => row.values.first as int,
         arguments: [rule, uid]);
+  }
+
+  @override
+  Future<int?> removeByDevIds(
+    int uid,
+    List<String> devIds,
+  ) async {
+    const offset = 2;
+    final _sqliteVariablesForDevIds =
+        Iterable<String>.generate(devIds.length, (i) => '?${i + offset}')
+            .join(',');
+    return _queryAdapter.query(
+        'delete from OperationRecord where uid = ?1 and devId in (' +
+            _sqliteVariablesForDevIds +
+            ')',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [uid, ...devIds]);
   }
 
   @override

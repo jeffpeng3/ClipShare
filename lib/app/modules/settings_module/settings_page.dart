@@ -66,12 +66,10 @@ class SettingsPage extends GetView<SettingsController> {
                     return EnvironmentStatusCard(
                       icon: Obx(() => controller.envStatusIcon.value),
                       backgroundColor: controller.envStatusBgColor.value,
-                      tipContent:
-                          Obx(() => controller.envStatusTipContent.value),
+                      tipContent: Obx(() => controller.envStatusTipContent.value),
                       tipDesc: Obx(() => controller.envStatusTipDesc.value),
                       action: Obx(() {
-                        return controller.envStatusAction.value ??
-                            const SizedBox.shrink();
+                        return controller.envStatusAction.value ?? const SizedBox.shrink();
                       }),
                       onTap: controller.onEnvironmentStatusCardClick,
                     );
@@ -85,14 +83,12 @@ class SettingsPage extends GetView<SettingsController> {
                     icon: const Icon(Icons.discount_outlined),
                     cardList: [
                       SettingCard(
-                        title:
-                            Text(TranslationKey.commonSettingsRunAtStartup.tr),
+                        title: Text(TranslationKey.commonSettingsRunAtStartup.tr),
                         value: appConfig.launchAtStartup,
                         action: (v) => Switch(
                           value: v,
                           onChanged: (checked) async {
-                            PackageInfo packageInfo =
-                                await PackageInfo.fromPlatform();
+                            PackageInfo packageInfo = await PackageInfo.fromPlatform();
                             final appName = packageInfo.appName;
                             final appPath = Platform.resolvedExecutable;
                             launchAtStartup.setup(
@@ -111,8 +107,7 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => Platform.isWindows,
                       ),
                       SettingCard(
-                        title:
-                            Text(TranslationKey.commonSettingsRunMinimize.tr),
+                        title: Text(TranslationKey.commonSettingsRunMinimize.tr),
                         value: appConfig.startMini,
                         action: (v) => Switch(
                           value: v,
@@ -123,8 +118,7 @@ class SettingsPage extends GetView<SettingsController> {
                         show: (v) => PlatformExt.isDesktop,
                       ),
                       SettingCard(
-                        title: Text(TranslationKey
-                            .commonSettingsShowHistoriesFloatWindow.tr),
+                        title: Text(TranslationKey.commonSettingsShowHistoriesFloatWindow.tr),
                         value: appConfig.showHistoryFloat,
                         action: (v) => Switch(
                           value: appConfig.showHistoryFloat,
@@ -142,9 +136,7 @@ class SettingsPage extends GetView<SettingsController> {
                       ),
                       SettingCard(
                         title: Text(
-                          TranslationKey
-                              .commonSettingsLockHistoriesFloatWindowPosition
-                              .tr,
+                          TranslationKey.commonSettingsLockHistoriesFloatWindowPosition.tr,
                         ),
                         value: appConfig.lockHistoryFloatLoc,
                         action: (v) => Switch(
@@ -157,8 +149,7 @@ class SettingsPage extends GetView<SettingsController> {
                             appConfig.setLockHistoryFloatLoc(checked);
                           },
                         ),
-                        show: (v) =>
-                            Platform.isAndroid && appConfig.showHistoryFloat,
+                        show: (v) => Platform.isAndroid && appConfig.showHistoryFloat,
                       ),
                       SettingCard<ThemeMode>(
                         title: Text(TranslationKey.commonSettingsTheme.tr),
@@ -191,8 +182,7 @@ class SettingsPage extends GetView<SettingsController> {
                                       child: Row(
                                         children: <Widget>[
                                           Padding(
-                                            padding:
-                                                const EdgeInsets.only(right: 8),
+                                            padding: const EdgeInsets.only(right: 8),
                                             child: Icon(icon),
                                           ),
                                           Text(mode.tk.name.tr),
@@ -203,13 +193,10 @@ class SettingsPage extends GetView<SettingsController> {
                                 ).toList();
                               },
                               onSelected: (mode) async {
-                                await appConfig
-                                    .setAppTheme(mode, switcherContext, () {
-                                  final currentBg =
-                                      controller.envStatusBgColor.value;
+                                await appConfig.setAppTheme(mode, switcherContext, () {
+                                  final currentBg = controller.envStatusBgColor.value;
                                   if (currentBg != null) {
-                                    controller.envStatusBgColor.value =
-                                        controller.warningBgColor;
+                                    controller.envStatusBgColor.value = controller.warningBgColor;
                                   }
                                 });
                               },
@@ -262,10 +249,8 @@ class SettingsPage extends GetView<SettingsController> {
                     icon: const Icon(Icons.admin_panel_settings),
                     cardList: [
                       SettingCard(
-                        title: Text(TranslationKey
-                            .permissionSettingsNotificationTitle.tr),
-                        description: Text(TranslationKey
-                            .permissionSettingsNotificationDesc.tr),
+                        title: Text(TranslationKey.permissionSettingsNotificationTitle.tr),
+                        description: Text(TranslationKey.permissionSettingsNotificationDesc.tr),
                         value: controller.hasNotifyPerm.value,
                         action: (val) => Icon(
                           val ? Icons.check_circle : Icons.help,
@@ -279,10 +264,8 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        title: Text(
-                            TranslationKey.permissionSettingsFloatTitle.tr),
-                        description:
-                            Text(TranslationKey.permissionSettingsFloatDesc.tr),
+                        title: Text(TranslationKey.permissionSettingsFloatTitle.tr),
+                        description: Text(TranslationKey.permissionSettingsFloatDesc.tr),
                         value: controller.hasFloatPerm.value,
                         action: (val) => Icon(
                           val ? Icons.check_circle : Icons.help,
@@ -296,10 +279,8 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        title: Text(TranslationKey
-                            .permissionSettingsBatteryOptimiseTitle.tr),
-                        description: Text(TranslationKey
-                            .permissionSettingsBatteryOptimiseDesc.tr),
+                        title: Text(TranslationKey.permissionSettingsBatteryOptimiseTitle.tr),
+                        description: Text(TranslationKey.permissionSettingsBatteryOptimiseDesc.tr),
                         value: controller.hasIgnoreBattery.value,
                         action: (val) => Icon(
                           val ? Icons.check_circle : Icons.help,
@@ -313,10 +294,8 @@ class SettingsPage extends GetView<SettingsController> {
                         },
                       ),
                       SettingCard(
-                        title:
-                            Text(TranslationKey.permissionSettingsSmsTitle.tr),
-                        description:
-                            Text(TranslationKey.permissionSettingsSmsDesc.tr),
+                        title: Text(TranslationKey.permissionSettingsSmsTitle.tr),
+                        description: Text(TranslationKey.permissionSettingsSmsDesc.tr),
                         value: controller.hasSmsReadPerm.value,
                         action: (val) => Icon(
                           val ? Icons.check_circle : Icons.help,
@@ -341,8 +320,7 @@ class SettingsPage extends GetView<SettingsController> {
                     cardList: [
                       SettingCard(
                         title: Text(
-                          TranslationKey
-                              .preferenceSettingsRememberWindowSize.tr,
+                          TranslationKey.preferenceSettingsRememberWindowSize.tr,
                         ),
                         description: Text(
                           "${appConfig.rememberWindowSize ? "${TranslationKey.preferenceSettingsWindowSizeRecordValue.tr}: ${appConfig.windowSize}，" : ""}${TranslationKey.preferenceSettingsWindowSizeDefaultValue.tr}: ${Constants.defaultWindowSize}",
@@ -360,11 +338,9 @@ class SettingsPage extends GetView<SettingsController> {
                       //【暂不实现】历史记录弹窗记住上次位置
                       SettingCard(
                         title: Text(
-                          TranslationKey
-                              .preferenceSettingsRecordsDialogLocation.tr,
+                          TranslationKey.preferenceSettingsRecordsDialogLocation.tr,
                         ),
-                        description: Text(
-                            "${TranslationKey.current.tr}: ${appConfig.recordHistoryDialogPosition ? TranslationKey.rememberLastPos.tr : TranslationKey.followMousePos.tr}"),
+                        description: Text("${TranslationKey.current.tr}: ${appConfig.recordHistoryDialogPosition ? TranslationKey.rememberLastPos.tr : TranslationKey.followMousePos.tr}"),
                         value: appConfig.recordHistoryDialogPosition,
                         action: (v) => Switch(
                           value: v,
@@ -386,9 +362,7 @@ class SettingsPage extends GetView<SettingsController> {
                             value: v,
                             onChanged: (checked) {
                               HapticFeedback.mediumImpact();
-                              androidChannelService
-                                  .showOnRecentTasks(checked)
-                                  .then((v) {
+                              androidChannelService.showOnRecentTasks(checked).then((v) {
                                 if (v) {
                                   appConfig.setShowOnRecentTasks(checked);
                                 }
@@ -413,8 +387,7 @@ class SettingsPage extends GetView<SettingsController> {
                         title: Row(
                           children: [
                             Text(
-                              TranslationKey
-                                  .discoveringSettingsLocalDeviceName.tr,
+                              TranslationKey.discoveringSettingsLocalDeviceName.tr,
                               maxLines: 1,
                             ),
                             const SizedBox(width: 5),
@@ -439,8 +412,7 @@ class SettingsPage extends GetView<SettingsController> {
                                 );
                                 Global.showSnackBarSuc(
                                   context: context,
-                                  text: TranslationKey
-                                      .discoveringSettingsDeviceNameCopyTip.tr,
+                                  text: TranslationKey.discoveringSettingsDeviceNameCopyTip.tr,
                                 );
                               },
                             ),
@@ -463,8 +435,7 @@ class SettingsPage extends GetView<SettingsController> {
                                 appConfig.setLocalName(str);
                                 Global.showSnackBarSuc(
                                   context: context,
-                                  text: TranslationKey
-                                      .modifyDeviceNameCompletedTooltip.tr,
+                                  text: TranslationKey.modifyDeviceNameCompletedTooltip.tr,
                                 );
                               },
                             ),
@@ -499,9 +470,7 @@ class SettingsPage extends GetView<SettingsController> {
                                 appConfig.setPort(str.toInt());
                                 Global.showSnackBarSuc(
                                   context: context,
-                                  text: TranslationKey
-                                      .discoveringSettingsModifyPortCompletedTooltip
-                                      .tr,
+                                  text: TranslationKey.discoveringSettingsModifyPortCompletedTooltip.tr,
                                 );
                               },
                             ),
@@ -514,8 +483,7 @@ class SettingsPage extends GetView<SettingsController> {
                           maxLines: 1,
                         ),
                         description: Text(
-                          TranslationKey
-                              .discoveringSettingsAllowDiscoveringDesc.tr,
+                          TranslationKey.discoveringSettingsAllowDiscoveringDesc.tr,
                           maxLines: 1,
                         ),
                         value: appConfig.allowDiscover,
@@ -530,14 +498,11 @@ class SettingsPage extends GetView<SettingsController> {
                       ),
                       SettingCard(
                         title: Text(
-                          TranslationKey
-                              .discoveringSettingsOnlyForwardDiscoveringTitle
-                              .tr,
+                          TranslationKey.discoveringSettingsOnlyForwardDiscoveringTitle.tr,
                           maxLines: 1,
                         ),
                         description: Text(
-                          TranslationKey
-                              .discoveringSettingsOnlyForwardDiscoveringDesc.tr,
+                          TranslationKey.discoveringSettingsOnlyForwardDiscoveringDesc.tr,
                           maxLines: 1,
                         ),
                         value: appConfig.onlyForwardMode,
@@ -554,17 +519,14 @@ class SettingsPage extends GetView<SettingsController> {
                         title: Row(
                           children: [
                             Text(
-                              TranslationKey
-                                  .discoveringSettingsHeartbeatIntervalTitle.tr,
+                              TranslationKey.discoveringSettingsHeartbeatIntervalTitle.tr,
                               maxLines: 1,
                             ),
                             const SizedBox(
                               width: 5,
                             ),
                             Tooltip(
-                              message: TranslationKey
-                                  .discoveringSettingsHeartbeatIntervalTooltip
-                                  .tr,
+                              message: TranslationKey.discoveringSettingsHeartbeatIntervalTooltip.tr,
                               child: GestureDetector(
                                 child: const MouseRegion(
                                   cursor: SystemMouseCursors.click,
@@ -577,9 +539,7 @@ class SettingsPage extends GetView<SettingsController> {
                                 onTap: () async {
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: TranslationKey
-                                        .discoveringSettingsHeartbeatIntervalTooltipDialogContent
-                                        .tr,
+                                    text: TranslationKey.discoveringSettingsHeartbeatIntervalTooltipDialogContent.tr,
                                   );
                                 },
                               ),
@@ -587,33 +547,24 @@ class SettingsPage extends GetView<SettingsController> {
                           ],
                         ),
                         description: Text(
-                          TranslationKey
-                              .discoveringSettingsHeartbeatIntervalDesc.tr,
+                          TranslationKey.discoveringSettingsHeartbeatIntervalDesc.tr,
                           maxLines: 1,
                         ),
                         value: appConfig.heartbeatInterval,
-                        action: (v) => Text(
-                            v <= 0 ? TranslationKey.dontDetect.tr : '${v}s'),
+                        action: (v) => Text(v <= 0 ? TranslationKey.dontDetect.tr : '${v}s'),
                         onTap: () {
                           showDialog(
                             context: context,
                             builder: (ctx) => TextEditDialog(
-                              title: TranslationKey
-                                  .discoveringSettingsModifyHeartbeatDialogTitle
-                                  .tr,
-                              labelText: TranslationKey
-                                  .discoveringSettingsModifyHeartbeatDialogInputLabel
-                                  .tr,
-                              initStr:
-                                  "${appConfig.heartbeatInterval <= 0 ? '' : appConfig.heartbeatInterval}",
+                              title: TranslationKey.discoveringSettingsModifyHeartbeatDialogTitle.tr,
+                              labelText: TranslationKey.discoveringSettingsModifyHeartbeatDialogInputLabel.tr,
+                              initStr: "${appConfig.heartbeatInterval <= 0 ? '' : appConfig.heartbeatInterval}",
                               verify: (str) {
                                 var port = int.tryParse(str);
                                 if (port == null) return false;
                                 return true;
                               },
-                              errorText: TranslationKey
-                                  .discoveringSettingsModifyHeartbeatDialogInputErrorText
-                                  .tr,
+                              errorText: TranslationKey.discoveringSettingsModifyHeartbeatDialogInputErrorText.tr,
                               onOk: (str) async {
                                 await appConfig.setHeartbeatInterval(str);
                                 var enable = str.toInt() > 0;
@@ -674,17 +625,13 @@ class SettingsPage extends GetView<SettingsController> {
                           children: [
                             Dot(
                               radius: 6.0,
-                              color: controller.forwardServerConnected.value
-                                  ? Colors.green
-                                  : Colors.grey,
+                              color: controller.forwardServerConnected.value ? Colors.green : Colors.grey,
                             ),
                             const SizedBox(
                               width: 5,
                             ),
                             Text(
-                              controller.forwardServerConnected.value
-                                  ? TranslationKey.connected.tr
-                                  : TranslationKey.disconnected.tr,
+                              controller.forwardServerConnected.value ? TranslationKey.connected.tr : TranslationKey.disconnected.tr,
                             ),
                           ],
                         ),
@@ -701,8 +648,7 @@ class SettingsPage extends GetView<SettingsController> {
                               width: 5,
                             ),
                             Tooltip(
-                              message: TranslationKey
-                                  .forwardSettingsForwardDownloadTooltip.tr,
+                              message: TranslationKey.forwardSettingsForwardDownloadTooltip.tr,
                               child: GestureDetector(
                                 child: const MouseRegion(
                                   cursor: SystemMouseCursors.click,
@@ -733,9 +679,7 @@ class SettingsPage extends GetView<SettingsController> {
                               if (appConfig.forwardServer == null) {
                                 Global.showSnackBarErr(
                                   context: context,
-                                  text: TranslationKey
-                                      .forwardSettingsForwardEnableRequiredText
-                                      .tr,
+                                  text: TranslationKey.forwardSettingsForwardEnableRequiredText.tr,
                                 );
                                 return;
                               }
@@ -813,13 +757,9 @@ class SettingsPage extends GetView<SettingsController> {
                               if (appConfig.appPassword == null && checked) {
                                 Global.showTipsDialog(
                                   context: context,
-                                  text: TranslationKey
-                                      .securitySettingsEnableSecurityAppPwdRequiredDialogContent
-                                      .tr,
+                                  text: TranslationKey.securitySettingsEnableSecurityAppPwdRequiredDialogContent.tr,
                                   onOk: controller.gotoSetPwd,
-                                  okText: TranslationKey
-                                      .securitySettingsEnableSecurityAppPwdRequiredDialogOkText
-                                      .tr,
+                                  okText: TranslationKey.securitySettingsEnableSecurityAppPwdRequiredDialogOkText.tr,
                                   showCancel: true,
                                 );
                                 appConfig.setUseAuthentication(false);
@@ -833,15 +773,11 @@ class SettingsPage extends GetView<SettingsController> {
                       ),
                       SettingCard(
                         title: Text(
-                          TranslationKey
-                              .securitySettingsEnableSecurityAppPwdModifyTitle
-                              .tr,
+                          TranslationKey.securitySettingsEnableSecurityAppPwdModifyTitle.tr,
                           maxLines: 1,
                         ),
                         description: Text(
-                          appConfig.appPassword == null
-                              ? TranslationKey.createAppPwd.tr
-                              : TranslationKey.changeAppPwd.tr,
+                          appConfig.appPassword == null ? TranslationKey.createAppPwd.tr : TranslationKey.changeAppPwd.tr,
                           maxLines: 1,
                         ),
                         value: appConfig.appPassword,
@@ -853,14 +789,8 @@ class SettingsPage extends GetView<SettingsController> {
                               } else {
                                 //第一步验证
                                 appConfig.authenticating.value = true;
-                                final homeController =
-                                    Get.find<HomeController>();
-                                homeController
-                                    .gotoAuthenticationPage(
-                                        TranslationKey
-                                            .authenticationPageTitle.tr,
-                                        false)
-                                    ?.then((v) {
+                                final homeController = Get.find<HomeController>();
+                                homeController.gotoAuthenticationPage(TranslationKey.authenticationPageTitle.tr, false)?.then((v) {
                                   //null为正常验证，设置密码，否则主动退出
                                   if (v != null) {
                                     controller.gotoSetPwd();
@@ -869,9 +799,7 @@ class SettingsPage extends GetView<SettingsController> {
                               }
                             },
                             child: Text(
-                              appConfig.appPassword == null
-                                  ? TranslationKey.create.tr
-                                  : TranslationKey.change.tr,
+                              appConfig.appPassword == null ? TranslationKey.create.tr : TranslationKey.change.tr,
                             ),
                           );
                         },
@@ -902,18 +830,13 @@ class SettingsPage extends GetView<SettingsController> {
                               );
                             },
                             selections: Constants.authBackEndTimeSelections,
-                            title: Text(TranslationKey
-                                .securitySettingsReverificationTitle.tr),
+                            title: Text(TranslationKey.securitySettingsReverificationTitle.tr),
                           );
                         },
                         action: (v) {
                           var duration = appConfig.appRevalidateDuration;
                           return Text(
-                            duration <= 0
-                                ? TranslationKey.immediately.tr
-                                : TranslationKey
-                                    .securitySettingsReverificationValue
-                                    .trParams({"value": duration.toString()}),
+                            duration <= 0 ? TranslationKey.immediately.tr : TranslationKey.securitySettingsReverificationValue.trParams({"value": duration.toString()}),
                           );
                         },
                         show: (v) => Platform.isAndroid,
@@ -949,34 +872,26 @@ class SettingsPage extends GetView<SettingsController> {
                                 if (modifiers.isEmpty || key == null) {
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: TranslationKey
-                                        .hotKeySettingsCombinationInvalidText
-                                        .tr,
+                                    text: TranslationKey.hotKeySettingsCombinationInvalidText.tr,
                                   );
                                 } else {
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: TranslationKey
-                                        .hotKeySettingsSaveKeysDialogText
-                                        .trParams({"keys": showText}),
+                                    text: TranslationKey.hotKeySettingsSaveKeysDialogText.trParams({"keys": showText}),
                                     showCancel: true,
                                     onOk: () {
-                                      var hotkey =
-                                          AppHotKeyHandler.toSystemHotKey(
+                                      var hotkey = AppHotKeyHandler.toSystemHotKey(
                                         keyCodes,
                                       );
                                       AppHotKeyHandler.registerHistoryWindow(
                                         hotkey,
                                       ).then((v) {
                                         //设置为新值
-                                        appConfig
-                                            .setHistoryWindowHotKeys(keyCodes);
+                                        appConfig.setHistoryWindowHotKeys(keyCodes);
                                       }).catchError((err) {
                                         Global.showTipsDialog(
                                           context: context,
-                                          text: TranslationKey
-                                              .hotKeySettingsSaveKeysFailedText
-                                              .trParams({"err": err}),
+                                          text: TranslationKey.hotKeySettingsSaveKeysFailedText.trParams({"err": err}),
                                         );
                                         //设置为原始值
                                         appConfig.setHistoryWindowHotKeys(
@@ -1016,20 +931,15 @@ class SettingsPage extends GetView<SettingsController> {
                                 if (modifiers.isEmpty || key == null) {
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: TranslationKey
-                                        .hotKeySettingsCombinationInvalidText
-                                        .tr,
+                                    text: TranslationKey.hotKeySettingsCombinationInvalidText.tr,
                                   );
                                 } else {
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: TranslationKey
-                                        .hotKeySettingsSaveKeysDialogText
-                                        .trParams({"keys": showText}),
+                                    text: TranslationKey.hotKeySettingsSaveKeysDialogText.trParams({"keys": showText}),
                                     showCancel: true,
                                     onOk: () {
-                                      var hotkey =
-                                          AppHotKeyHandler.toSystemHotKey(
+                                      var hotkey = AppHotKeyHandler.toSystemHotKey(
                                         keyCodes,
                                       );
                                       AppHotKeyHandler.registerFileSync(
@@ -1040,9 +950,7 @@ class SettingsPage extends GetView<SettingsController> {
                                       }).catchError((err) {
                                         Global.showTipsDialog(
                                           context: context,
-                                          text: TranslationKey
-                                              .hotKeySettingsSaveKeysFailedText
-                                              .trParams({"err": err}),
+                                          text: TranslationKey.hotKeySettingsSaveKeysFailedText.trParams({"err": err}),
                                         );
                                         //设置为原始值
                                         appConfig.setSyncFileHotKeys(
@@ -1091,23 +999,18 @@ class SettingsPage extends GetView<SettingsController> {
                             value: v,
                             onChanged: (checked) async {
                               if (checked) {
-                                var isGranted =
-                                    await PermissionHelper.testAndroidReadSms();
+                                var isGranted = await PermissionHelper.testAndroidReadSms();
                                 if (isGranted) {
                                   androidChannelService.startSmsListen();
                                 } else {
                                   Global.showTipsDialog(
                                     context: context,
-                                    text: TranslationKey
-                                        .syncSettingsSmsPermissionRequired.tr,
-                                    okText: TranslationKey
-                                        .dialogAuthorizationButtonText.tr,
+                                    text: TranslationKey.syncSettingsSmsPermissionRequired.tr,
+                                    okText: TranslationKey.dialogAuthorizationButtonText.tr,
                                     showCancel: true,
                                     onOk: () async {
-                                      await PermissionHelper
-                                          .reqAndroidReadSms();
-                                      if (await PermissionHelper
-                                          .testAndroidReadSms()) {
+                                      await PermissionHelper.reqAndroidReadSms();
+                                      if (await PermissionHelper.testAndroidReadSms()) {
                                         appConfig.setEnableSmsSync(true);
                                         androidChannelService.startSmsListen();
                                       }
@@ -1139,40 +1042,31 @@ class SettingsPage extends GetView<SettingsController> {
                             onChanged: (checked) async {
                               HapticFeedback.mediumImpact();
                               if (checked) {
-                                var path =
-                                    "${Constants.androidPicturesPath}/${Constants.appName}";
-                                var res = await PermissionHelper
-                                    .testAndroidStoragePerm(path);
+                                var path = "${Constants.androidPicturesPath}/${Constants.appName}";
+                                var res = await PermissionHelper.testAndroidStoragePerm(path);
                                 if (res) {
                                   appConfig.setSaveToPictures(true);
                                   return;
                                 }
                                 Global.showTipsDialog(
                                   context: context,
-                                  text: TranslationKey
-                                      .syncSettingsStoreImg2PicturesNoPermText
-                                      .tr,
+                                  text: TranslationKey.syncSettingsStoreImg2PicturesNoPermText.tr,
                                   showCancel: true,
                                   onOk: () async {
                                     Navigator.pop(context);
-                                    await PermissionHelper
-                                        .reqAndroidStoragePerm(path);
-                                    if (!await PermissionHelper
-                                        .testAndroidStoragePerm(path)) {
+                                    await PermissionHelper.reqAndroidStoragePerm(path);
+                                    if (!await PermissionHelper.testAndroidStoragePerm(path)) {
                                       appConfig.setSaveToPictures(false);
                                       Global.showTipsDialog(
                                         context: context,
-                                        text: TranslationKey
-                                            .syncSettingsStoreImg2PicturesCancelPerm
-                                            .tr,
+                                        text: TranslationKey.syncSettingsStoreImg2PicturesCancelPerm.tr,
                                       );
                                     } else {
                                       //授权成功
                                       appConfig.setSaveToPictures(true);
                                     }
                                   },
-                                  okText: TranslationKey
-                                      .dialogAuthorizationButtonText.tr,
+                                  okText: TranslationKey.dialogAuthorizationButtonText.tr,
                                 );
                               } else {
                                 appConfig.setSaveToPictures(false);
@@ -1195,8 +1089,7 @@ class SettingsPage extends GetView<SettingsController> {
                         action: (v) {
                           return TextButton(
                             onPressed: () async {
-                              String? directory = await FilePicker.platform
-                                  .getDirectoryPath(lockParentWindow: true);
+                              String? directory = await FilePicker.platform.getDirectoryPath(lockParentWindow: true);
                               if (directory != null) {
                                 appConfig.setFileStorePath(directory);
                               }
@@ -1248,10 +1141,8 @@ class SettingsPage extends GetView<SettingsController> {
                           return Switch(
                             value: v,
                             onChanged: (checked) async {
-                              appConfig
-                                  .setAutoCopyImageAfterScreenShot(checked);
-                              final clipboardService =
-                                  Get.find<ClipboardService>();
+                              appConfig.setAutoCopyImageAfterScreenShot(checked);
+                              final clipboardService = Get.find<ClipboardService>();
                               if (checked) {
                                 clipboardService.startListenScreenshot();
                               } else {
@@ -1272,17 +1163,13 @@ class SettingsPage extends GetView<SettingsController> {
                         ),
                         value: null,
                         action: (v) => IconButton(
-                          onPressed: () {
-                            Get.toNamed(Routes.CLEAN_DATA);
-                          },
+                          onPressed: controller.gotoCleanDataPage,
                           icon: const Icon(
                             Icons.arrow_forward_rounded,
                             color: Colors.blueGrey,
                           ),
                         ),
-                        onTap: () {
-                          Get.toNamed(Routes.CLEAN_DATA);
-                        },
+                        onTap: controller.gotoCleanDataPage,
                       ),
                     ],
                   ),
@@ -1401,11 +1288,7 @@ class SettingsPage extends GetView<SettingsController> {
                           ],
                         ),
                         description: Text(
-                          TranslationKey.logSettingsEnableDesc.trParams({
-                            "size":
-                                FileUtil.getDirectorySize(appConfig.logsDirPath)
-                                    .sizeStr
-                          }),
+                          TranslationKey.logSettingsEnableDesc.trParams({"size": FileUtil.getDirectorySize(appConfig.logsDirPath).sizeStr}),
                           maxLines: 1,
                         ),
                         value: appConfig.enableLogsRecord,
@@ -1433,15 +1316,13 @@ class SettingsPage extends GetView<SettingsController> {
                                   builder: (context) {
                                     return AlertDialog(
                                       title: Text(TranslationKey.tips.tr),
-                                      content: Text(TranslationKey
-                                          .logSettingsAckDelLogFiles.tr),
+                                      content: Text(TranslationKey.logSettingsAckDelLogFiles.tr),
                                       actions: [
                                         TextButton(
                                           onPressed: () {
                                             Navigator.pop(context);
                                           },
-                                          child: Text(TranslationKey
-                                              .dialogCancelText.tr),
+                                          child: Text(TranslationKey.dialogCancelText.tr),
                                         ),
                                         TextButton(
                                           onPressed: () {
@@ -1450,8 +1331,7 @@ class SettingsPage extends GetView<SettingsController> {
                                             );
                                             Navigator.pop(context);
                                           },
-                                          child: Text(TranslationKey
-                                              .dialogConfirmText.tr),
+                                          child: Text(TranslationKey.dialogConfirmText.tr),
                                         ),
                                       ],
                                     );

@@ -1,5 +1,5 @@
-import '../../app/modules/data_clean_module/clean_data_page.dart';
-import '../../app/modules/data_clean_module/clean_data_bindings.dart';
+import '../../app/modules/clean_data_module/clean_data_page.dart';
+import '../../app/modules/clean_data_module/clean_data_bindings.dart';
 import '../../app/modules/qr_code_scanner_module/qr_code_scanner_page.dart';
 import '../../app/modules/qr_code_scanner_module/qr_code_scanner_bindings.dart';
 import '../../app/modules/licenses_module/licenses_page.dart';

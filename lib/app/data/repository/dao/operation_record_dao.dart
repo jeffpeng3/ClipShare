@@ -51,6 +51,10 @@ abstract class OperationRecordDao {
   @Query("delete from OperationRecord where id in (:ids)")
   Future<int?> deleteByIds(List<int> ids);
 
+  ///尝试根据 data id 删除记录，存储的data可能不一定是id
+  @Query("delete from OperationRecord where id in (:ids)")
+  Future<int?> deleteByDataIds(List<String> ids);
+
   @Query(
     "select * from OperationRecord where uid = :uid and module = :module and method = :opMethod and data = :id",
   )
@@ -72,6 +76,12 @@ abstract class OperationRecordDao {
     r"delete from OperationRecord where uid = :uid and module = '规则设置' and substr(data,instr(data,':') + 2,instr(data,',') - 3 - instr(data,':')) = :rule",
   )
   Future<int?> removeRuleRecord(String rule, int uid);
+
+  /// 删除指定设备的操作记录
+  @Query(
+    "delete from OperationRecord where uid = :uid and devId in (:devIds)",
+  )
+  Future<int?> removeByDevIds(int uid, List<String> devIds);
 
   /// 根据 data（主键）删除同步记录
   @Query(

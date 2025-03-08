@@ -3,8 +3,15 @@ import 'package:flutter/material.dart';
 
 class EmptyContent extends StatelessWidget {
   String? description;
+  double size;
+  bool showText;
 
-  EmptyContent({super.key, this.description}) {
+  EmptyContent({
+    super.key,
+    this.description,
+    this.size = 100,
+    this.showText = true,
+  }) {
     description = description ?? TranslationKey.emptyData.tr;
   }
 
@@ -16,14 +23,15 @@ class EmptyContent extends StatelessWidget {
         Center(
           child: Image.asset(
             'assets/images/empty.png',
-            width: 100,
-            height: 100,
+            width: size,
+            height: size,
           ),
         ),
-        Text(
-          description!,
-          style: const TextStyle(color: Colors.grey),
-        ),
+        if (showText)
+          Text(
+            description!,
+            style: const TextStyle(color: Colors.grey),
+          ),
       ],
     );
   }

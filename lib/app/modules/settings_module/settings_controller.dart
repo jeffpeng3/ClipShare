@@ -4,6 +4,9 @@ import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/handlers/permission_handler.dart';
+import 'package:clipshare/app/modules/clean_data_module/clean_data_controller.dart';
+import 'package:clipshare/app/modules/clean_data_module/clean_data_page.dart';
+import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/clipboard_service.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -17,9 +20,7 @@ import 'package:get/get.dart';
  * GetX Template Generator - fb.com/htngu.99
  * */
 
-class SettingsController extends GetxController
-    with WidgetsBindingObserver
-    implements ForwardStatusListener {
+class SettingsController extends GetxController with WidgetsBindingObserver implements ForwardStatusListener {
   final appConfig = Get.find<ConfigService>();
   final sktService = Get.find<SocketService>();
 
@@ -177,6 +178,21 @@ class SettingsController extends GetxController
   //endregion
 
   //region 页面方法
+  void gotoCleanDataPage() {
+    if (appConfig.isSmallScreen) {
+      Get.toNamed(Routes.CLEAN_DATA);
+    } else {
+      final homeController = Get.find<HomeController>();
+      Get.lazyPut(() => CleanDataController());
+      homeController.openEndDrawer(
+        drawer: CleanDataPage(),
+        width: 400,
+        onDrawerClosed: () {
+          Get.delete<CleanDataController>();
+        },
+      );
+    }
+  }
 
   ///EnvironmentStatusCard click
   Future<void> onEnvironmentStatusCardClick() async {
@@ -225,24 +241,16 @@ class SettingsController extends GetxController
     switch (mode) {
       case EnvironmentType.shizuku:
         hasPermission = await clipboardManager.checkPermission(mode!);
-        envStatusTipContent.value = hasPermission
-            ? shizukuEnvNormalTipContent
-            : shizukuEnvErrorTipContent;
-        envStatusTipDesc.value = hasPermission && listening
-            ? shizukuEnvNormalTipDesc
-            : shizukuEnvErrorTipDesc;
+        envStatusTipContent.value = hasPermission ? shizukuEnvNormalTipContent : shizukuEnvErrorTipContent;
+        envStatusTipDesc.value = hasPermission && listening ? shizukuEnvNormalTipDesc : shizukuEnvErrorTipDesc;
         if (hasPermission && shizukuVersion.value == null) {
           shizukuVersion.value = await clipboardManager.getShizukuVersion();
         }
         break;
       case EnvironmentType.root:
         hasPermission = await clipboardManager.checkPermission(mode!);
-        envStatusTipContent.value = hasPermission && listening
-            ? rootEnvNormalTipContent
-            : rootEnvErrorTipContent;
-        envStatusTipDesc.value = hasPermission && listening
-            ? rootEnvNormalTipDesc
-            : rootEnvErrorTipDesc;
+        envStatusTipContent.value = hasPermission && listening ? rootEnvNormalTipContent : rootEnvErrorTipContent;
+        envStatusTipDesc.value = hasPermission && listening ? rootEnvNormalTipDesc : rootEnvErrorTipDesc;
         break;
       case EnvironmentType.androidPre10:
         hasPermission = true;

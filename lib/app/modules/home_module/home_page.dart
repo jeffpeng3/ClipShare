@@ -40,6 +40,7 @@ class HomePage extends GetView<HomeController> {
       },
       child: ThemeSwitchingArea(
         child: Scaffold(
+          key: controller.homeScaffoldKey,
           // backgroundColor: appConfig.bgColor,
           appBar: !controller.showLeftBar
               ? AppBar(
@@ -53,11 +54,9 @@ class HomePage extends GetView<HomeController> {
                             Obx(
                               () => ConditionWidget(
                                 //todo 是否会有问题？
-                                condition: appConfig.isMultiSelectionMode(
-                                    currentPageController),
+                                condition: appConfig.isMultiSelectionMode(currentPageController),
                                 visible: const Icon(Icons.checklist),
-                                invisible: controller
-                                    .navBarItems[controller.index].icon,
+                                invisible: controller.navBarItems[controller.index].icon,
                               ),
                             ),
                             const SizedBox(
@@ -65,24 +64,14 @@ class HomePage extends GetView<HomeController> {
                             ),
                             Obx(
                               () {
-                                final selectionMode =
-                                    appConfig.isMultiSelectionMode(
-                                        currentPageController);
-                                final pageTitle = controller
-                                    .navBarItems[controller.index].label!;
-                                final selectionText =
-                                    appConfig.multiSelectionText;
-                                bool isSyncing =
-                                    appConfig.isHistorySyncing.value;
-                                final icon = controller
-                                    .navBarItems[controller.index].icon;
-                                bool isHistoryPage =
-                                    icon is Icon && icon.icon == Icons.history;
-                                if (!selectionMode &&
-                                    isSyncing &&
-                                    isHistoryPage) {
-                                  final progresses =
-                                      sktService.missingDataSyncProgress.values;
+                                final selectionMode = appConfig.isMultiSelectionMode(currentPageController);
+                                final pageTitle = controller.navBarItems[controller.index].label!;
+                                final selectionText = appConfig.multiSelectionText;
+                                bool isSyncing = appConfig.isHistorySyncing.value;
+                                final icon = controller.navBarItems[controller.index].icon;
+                                bool isHistoryPage = icon is Icon && icon.icon == Icons.history;
+                                if (!selectionMode && isSyncing && isHistoryPage) {
+                                  final progresses = sktService.missingDataSyncProgress.values;
                                   int total = 0;
                                   int syncedCnt = 0;
                                   for (var progress in progresses) {
@@ -105,8 +94,7 @@ class HomePage extends GetView<HomeController> {
                       ),
                       Obx(
                         () => Visibility(
-                          visible: !appConfig
-                              .isMultiSelectionMode(currentPageController),
+                          visible: !appConfig.isMultiSelectionMode(currentPageController),
                           child: IconButton(
                             onPressed: () {
                               //导航至搜索页面
@@ -154,16 +142,11 @@ class HomePage extends GetView<HomeController> {
                               padding: const EdgeInsets.only(bottom: 10),
                               child: IconButton(
                                 icon: Icon(
-                                  controller.leftMenuExtend.value
-                                      ? Icons
-                                          .keyboard_double_arrow_left_outlined
-                                      : Icons
-                                          .keyboard_double_arrow_right_outlined,
+                                  controller.leftMenuExtend.value ? Icons.keyboard_double_arrow_left_outlined : Icons.keyboard_double_arrow_right_outlined,
                                   color: Colors.blueGrey,
                                 ),
                                 onPressed: () {
-                                  controller.leftMenuExtend.value =
-                                      !controller.leftMenuExtend.value;
+                                  controller.leftMenuExtend.value = !controller.leftMenuExtend.value;
                                 },
                               ),
                             ),
@@ -193,6 +176,18 @@ class HomePage extends GetView<HomeController> {
                   ),
                 )
               : null,
+          endDrawer: Obx(
+            () => SizedBox(
+              width: controller.drawerWidth,
+              child: controller.drawer,
+            ),
+          ),
+          onEndDrawerChanged: (isOpened) {
+            if (isOpened) {
+              return;
+            }
+            controller.onEndDrawerClosed?.call();
+          },
         ),
       ),
     );

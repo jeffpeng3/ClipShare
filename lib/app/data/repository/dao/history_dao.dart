@@ -53,8 +53,7 @@ abstract class HistoryDao {
   Future<List<History>> getMissingHistory(String devId);
 
   ///获取前20条历史记录
-  @Query(
-      "select * from history where uid = :uid order by top desc,id desc limit 20")
+  @Query("select * from history where uid = :uid order by top desc,id desc limit 20")
   Future<List<History>> getHistoriesTop20(int uid);
 
   ///获取前20条历史记录
@@ -92,8 +91,7 @@ abstract class HistoryDao {
   Future<History?> getById(int id);
 
   ///获取所有图片
-  @Query(
-      "select * from history where uid = :uid and type = 'Image' order by id desc")
+  @Query("select * from history where uid = :uid and type = 'Image' order by id desc")
   Future<List<History>> getAllImages(int uid);
 
   @update
@@ -188,4 +186,44 @@ abstract class HistoryDao {
       );
     }).toList();
   }
+
+  //region 数据清理过滤条件和查询方法
+  static const dataCleanFilter = """
+    WHERE uid = :uid
+    AND (:startTime = '' OR :endTime = '' OR date(time) BETWEEN :startTime AND :endTime)
+    AND (:saveTop <> 1 OR top = 0)
+    AND (length(null in (:types)) = 1 OR type IN (:types))
+    AND (length(null in (:devIds)) = 1 OR devId IN (:devIds))
+    AND (length(null in (:tags)) = 1 OR id IN (
+      SELECT DISTINCT hisId
+      FROM HistoryTag
+      WHERE tagName IN (:tags)
+    ))
+  """;
+
+  ///根据过滤器统计数量
+  @Query("select count(1) from history $dataCleanFilter")
+  Future<int?> count(
+    int uid,
+    List<String> types,
+    List<String> tags,
+    List<String> devIds,
+    String startTime,
+    String endTime,
+    bool saveTop,
+  );
+
+  ///根据过滤器获取历史数据
+  @Query("select * from history $dataCleanFilter")
+  Future<List<History>> getHistoriesWithFileContent(
+    int uid,
+    List<String> types,
+    List<String> tags,
+    List<String> devIds,
+    String startTime,
+    String endTime,
+    bool saveTop,
+  );
+
+//endregion
 }

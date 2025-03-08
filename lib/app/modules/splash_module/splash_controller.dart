@@ -18,7 +18,6 @@ import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
-import 'package:clipshare/app/services/clipboard_service.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/device_service.dart';
@@ -114,8 +113,7 @@ class SplashController extends GetxController {
   }
 
   Future<void> initWindowsManager() async {
-    final [width, height] =
-        appConfig.windowSize.split("x").map((e) => e.toDouble()).toList();
+    final [width, height] = appConfig.windowSize.split("x").map((e) => e.toDouble()).toList();
     bool useMinimumSize = true;
     // windowManager.setBackgroundColor(Colors.transparent);
     assert(() {
@@ -124,9 +122,7 @@ class SplashController extends GetxController {
     }());
     WindowOptions windowOptions = WindowOptions(
       size: Size(width, height),
-      minimumSize: kReleaseMode
-          ? const Size(Constants.showHistoryRightWidth * 1.0, 200)
-          : null,
+      minimumSize: kReleaseMode ? const Size(Constants.showHistoryRightWidth * 1.0, 200) : null,
       center: true,
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.hidden,
@@ -143,8 +139,7 @@ class SplashController extends GetxController {
   ///初始化快捷键
   initHotKey() async {
     await AppHotKeyHandler.unRegisterAll();
-    var hotKey =
-        AppHotKeyHandler.toSystemHotKey(appConfig.historyWindowHotKeys);
+    var hotKey = AppHotKeyHandler.toSystemHotKey(appConfig.historyWindowHotKeys);
     AppHotKeyHandler.registerHistoryWindow(hotKey);
     hotKey = AppHotKeyHandler.toSystemHotKey(appConfig.syncFileHotKeys);
     AppHotKeyHandler.registerFileSync(hotKey);
@@ -288,14 +283,10 @@ class SplashController extends GetxController {
     }
     final handler = ShareHandlerPlatform.instance;
     appConfig.shareHandlerStream?.cancel();
-    appConfig.shareHandlerStream =
-        handler.sharedMediaStream.listen((SharedMedia media) {
+    appConfig.shareHandlerStream = handler.sharedMediaStream.listen((SharedMedia media) {
       Log.info(tag, media);
       if (media.attachments != null) {
-        var files = media.attachments!
-            .where((attachment) => attachment != null)
-            .map((attachment) => attachment!.path)
-            .toList();
+        var files = media.attachments!.where((attachment) => attachment != null).map((attachment) => attachment!.path).toList();
         Log.debug(tag, files);
         if (files.isEmpty) {
           return;
@@ -326,9 +317,7 @@ class SplashController extends GetxController {
           },
         );
       } else {
-        Global.showTipsDialog(
-            context: Get.context!,
-            text: TranslationKey.saveFileNotSupportDialogText.tr);
+        Global.showTipsDialog(context: Get.context!, text: TranslationKey.saveFileNotSupportDialogText.tr);
         return;
       }
     });

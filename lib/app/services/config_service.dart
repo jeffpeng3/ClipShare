@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/data/enums/translation_key.dart';
+import 'package:clipshare/app/data/models/clean_data_config.dart';
 import 'package:clipshare/app/data/models/dev_info.dart';
 import 'package:clipshare/app/data/models/forward_server_config.dart';
 import 'package:clipshare/app/data/models/version.dart';
@@ -116,8 +117,7 @@ class ConfigService extends GetxService {
 
   final _isMultiSelectionMode = false.obs;
   GetxController? _selectionModeController;
-  final _multiSelectionText =
-      TranslationKey.multipleChoiceOperationAppBarTitle.tr.obs;
+  final _multiSelectionText = TranslationKey.multipleChoiceOperationAppBarTitle.tr.obs;
 
   bool isMultiSelectionMode(GetxController controller) {
     if (controller == _selectionModeController && _isMultiSelectionMode.value) {
@@ -243,6 +243,10 @@ class ConfigService extends GetxService {
   //主题
   late final RxString _appTheme;
 
+  final _cleanDataConfig = Rx<CleanDataConfig?>(null);
+
+  CleanDataConfig? get cleanDataConfig => _cleanDataConfig.value;
+
   ThemeMode get appTheme {
     final value = _appTheme.value;
     for (var mode in ThemeMode.values) {
@@ -339,8 +343,7 @@ class ConfigService extends GetxService {
   bool get autoCopyImageAfterScreenShot => _autoCopyImageAfterScreenShot.value;
 
   //中转服务器地址
-  final Rx<ForwardServerConfig?> _forwardServer =
-      Rx<ForwardServerConfig?>(null);
+  final Rx<ForwardServerConfig?> _forwardServer = Rx<ForwardServerConfig?>(null);
 
   ForwardServerConfig? get forwardServer => _forwardServer.value;
 
@@ -522,39 +525,34 @@ class ConfigService extends GetxService {
       "autoCloseConnAfterScreenOff",
       userId,
     );
+    var cleanDataConfig = await cfg.getConfig(
+      "cleanDataConfig",
+      userId,
+    );
     var fileStoreDir = Directory(fileStorePath ?? defaultFileStorePath);
     _port = port?.toInt().obs ?? Constants.port.obs;
-    _localName =
-        localName.isNotNullAndEmpty ? localName!.obs : devInfo.name.obs;
+    _localName = localName.isNotNullAndEmpty ? localName!.obs : devInfo.name.obs;
     _startMini = startMini?.toBool().obs ?? false.obs;
     _allowDiscover = allowDiscover?.toBool().obs ?? true.obs;
     _showHistoryFloat = showHistoryFloat?.toBool().obs ?? false.obs;
     _firstStartup = firstStartup?.toBool().obs ?? true.obs;
-    _windowSize =
-        windowSize.isNullOrEmpty || rememberWindowSize?.toBool() != true
-            ? Constants.defaultWindowSize.obs
-            : windowSize!.obs;
+    _windowSize = windowSize.isNullOrEmpty || rememberWindowSize?.toBool() != true ? Constants.defaultWindowSize.obs : windowSize!.obs;
     _rememberWindowSize = rememberWindowSize?.toBool().obs ?? false.obs;
     _lockHistoryFloatLoc = lockHistoryFloatLoc?.toBool().obs ?? true.obs;
     _enableLogsRecord = enableLogsRecord?.toBool().obs ?? false.obs;
-    _recordHistoryDialogPosition.value =
-        recordHistoryDialogPosition?.toBool() ?? false;
+    _recordHistoryDialogPosition.value = recordHistoryDialogPosition?.toBool() ?? false;
     _historyDialogPosition.value = historyDialogPosition ?? "";
     _showOnRecentTasks.value = showOnRecentTasks?.toBool() ?? true;
-    _autoCloseConnAfterScreenOff.value =
-        autoCloseConnAfterScreenOff?.toBool() ?? true;
+    _autoCloseConnAfterScreenOff.value = autoCloseConnAfterScreenOff?.toBool() ?? true;
     if (tagRules != null) {
       _tagRules = tagRules.obs;
     }
     if (smsRules != null) {
       _smsRules = smsRules.obs;
     }
-    _historyWindowHotKeys =
-        historyWindowHotKeys?.obs ?? Constants.defaultHistoryWindowKeys.obs;
-    _syncFileHotKeys =
-        syncFileHotKeys?.obs ?? Constants.defaultSyncFileHotKeys.obs;
-    _heartbeatInterval =
-        heartbeatInterval?.toInt().obs ?? Constants.heartbeatInterval.obs;
+    _historyWindowHotKeys = historyWindowHotKeys?.obs ?? Constants.defaultHistoryWindowKeys.obs;
+    _syncFileHotKeys = syncFileHotKeys?.obs ?? Constants.defaultSyncFileHotKeys.obs;
+    _heartbeatInterval = heartbeatInterval?.toInt().obs ?? Constants.heartbeatInterval.obs;
     _fileStorePath = fileStoreDir.absolute.normalizePath.obs;
     _saveToPictures = saveToPictures?.toBool().obs ?? false.obs;
     _ignoreShizuku = ignoreShizuku?.toBool().obs ?? false.obs;
@@ -571,8 +569,7 @@ class ConfigService extends GetxService {
         _forwardServer.value = ForwardServerConfig.fromJson(forwardServer);
       } else {
         final [host, port] = forwardServer.split(":");
-        _forwardServer.value =
-            ForwardServerConfig(host: host, port: port.toInt());
+        _forwardServer.value = ForwardServerConfig(host: host, port: port.toInt());
       }
     }
     devInfo.name = _localName.value;
@@ -580,9 +577,14 @@ class ConfigService extends GetxService {
     _onlyForwardMode = onlyForwardMode?.toBool().obs ?? false.obs;
     _appTheme = appTheme?.toString().obs ?? ThemeMode.system.name.obs;
     _autoCopyImageAfterSync = autoCopyImageAfterSync?.toBool().obs ?? false.obs;
-    _autoCopyImageAfterScreenShot =
-        autoCopyImageAfterScreenShot?.toBool().obs ?? true.obs;
+    _autoCopyImageAfterScreenShot = autoCopyImageAfterScreenShot?.toBool().obs ?? true.obs;
     _ignoreUpdateVersion.value = ignoreUpdateVersion;
+    try {
+      var cleanCfg = CleanDataConfig.fromJson(cleanDataConfig.toString());
+      _cleanDataConfig.value = cleanCfg;
+    } catch (err) {
+      print(err);
+    }
     Get.changeThemeMode(this.appTheme);
   }
 
@@ -705,8 +707,7 @@ class ConfigService extends GetxService {
   }
 
   Future<void> setLockHistoryFloatLoc(bool lockHistoryFloatLoc) async {
-    await _addOrUpdateDbConfig(
-        "lockHistoryFloatLoc", lockHistoryFloatLoc.toString());
+    await _addOrUpdateDbConfig("lockHistoryFloatLoc", lockHistoryFloatLoc.toString());
     _lockHistoryFloatLoc.value = lockHistoryFloatLoc;
   }
 
@@ -734,8 +735,7 @@ class ConfigService extends GetxService {
   Future<void> setRecordHistoryDialogPosition(
     bool recordHistoryDialogPosition,
   ) async {
-    await _addOrUpdateDbConfig(
-        "recordHistoryDialogPosition", recordHistoryDialogPosition.toString());
+    await _addOrUpdateDbConfig("recordHistoryDialogPosition", recordHistoryDialogPosition.toString());
     _recordHistoryDialogPosition.value = recordHistoryDialogPosition;
   }
 
@@ -745,13 +745,11 @@ class ConfigService extends GetxService {
   }
 
   Future<void> setShowOnRecentTasks(bool showOnRecentTasks) async {
-    await _addOrUpdateDbConfig(
-        "showOnRecentTasks", showOnRecentTasks.toString());
+    await _addOrUpdateDbConfig("showOnRecentTasks", showOnRecentTasks.toString());
     _showOnRecentTasks.value = showOnRecentTasks;
   }
 
-  Future<void> setAutoCloseConnAfterScreenOff(
-      bool autoCloseConnAfterScreenOff) async {
+  Future<void> setAutoCloseConnAfterScreenOff(bool autoCloseConnAfterScreenOff) async {
     await _addOrUpdateDbConfig(
       "autoCloseConnAfterScreenOff",
       autoCloseConnAfterScreenOff.toString(),
@@ -813,14 +811,12 @@ class ConfigService extends GetxService {
   }
 
   Future<void> setUseAuthentication(bool useAuthentication) async {
-    await _addOrUpdateDbConfig(
-        "useAuthentication", useAuthentication.toString());
+    await _addOrUpdateDbConfig("useAuthentication", useAuthentication.toString());
     _useAuthentication.value = useAuthentication;
   }
 
   Future<void> setAppRevalidateDuration(int appRevalidateDuration) async {
-    await _addOrUpdateDbConfig(
-        "appRevalidateDuration", appRevalidateDuration.toString());
+    await _addOrUpdateDbConfig("appRevalidateDuration", appRevalidateDuration.toString());
     _appRevalidateDuration.value = appRevalidateDuration;
   }
 
@@ -908,6 +904,11 @@ class ConfigService extends GetxService {
     homeController.initNavBarItems();
     final settingController = Get.find<SettingsController>();
     settingController.checkPermissions();
+  }
+
+  Future<void> setCleanDataConfig(CleanDataConfig cleanDataConfig) async {
+    await _addOrUpdateDbConfig("cleanDataConfig", cleanDataConfig.toString());
+    _cleanDataConfig.value = cleanDataConfig;
   }
 
 //endregion

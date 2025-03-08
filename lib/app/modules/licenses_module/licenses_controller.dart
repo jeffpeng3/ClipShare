@@ -250,5 +250,10 @@ class LicensesController extends GetxController {
       "license": "MIT",
       "url": "https://pub.dev/packages/flutter_screenshot_detect",
     },
+    {
+      "name": "easy_cron",
+      "license": "MIT",
+      "url": "https://pub.dev/packages/easy_cron",
+    },
   ]..sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
 }
