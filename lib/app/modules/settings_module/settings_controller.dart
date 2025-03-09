@@ -200,7 +200,7 @@ class SettingsController extends GetxController with WidgetsBindingObserver impl
     clipboardManager.stopListening();
     clipboardManager.startListening(
       startEnv: appConfig.workingMode,
-      notificationContentConfig: ClipboardService.notificationContentConfig,
+      notificationContentConfig: ClipboardService.defaultNotificationContentConfig,
     );
   }
 
@@ -267,7 +267,7 @@ class SettingsController extends GetxController with WidgetsBindingObserver impl
       clipboardManager.stopListening();
       clipboardManager.startListening(
         startEnv: mode,
-        notificationContentConfig: ClipboardService.notificationContentConfig,
+        notificationContentConfig: ClipboardService.defaultNotificationContentConfig,
       );
       checkPermissions();
     }

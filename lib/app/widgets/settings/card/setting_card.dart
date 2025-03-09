@@ -95,13 +95,13 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
                               // flex: widget.titleFlex,
                               child: SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
-                                child: DefaultTextStyle(
+                                child: Center(child: DefaultTextStyle(
                                   style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 17,
-                                      ),
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 17,
+                                  ),
                                   child: widget.title,
-                                ),
+                                ),),
                               ),
                             ),
                             if (sub != null)

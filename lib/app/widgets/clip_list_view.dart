@@ -305,7 +305,7 @@ class ClipListViewState extends State<ClipListView> with WidgetsBindingObserver 
                       return Obx(() {
                         final isImageMode = widget.imageMasonryGridViewLayout;
                         final maxWidth = isImageMode ? 200.0 : 395;
-                        final showMore = appConfig.showMoreItemsInRow || isImageMode;
+                        final showMore = (appConfig.showMoreItemsInRow && !appConfig.isSmallScreen) || isImageMode;
                         final count = showMore ? max(2, constraints.maxWidth ~/ maxWidth) : 1;
                         return MasonryGridView.count(
                           crossAxisCount: count,

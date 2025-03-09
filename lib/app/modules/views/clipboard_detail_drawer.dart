@@ -41,10 +41,6 @@ class ClipboardDetailDrawer extends StatelessWidget {
                       child: IconButton(
                         onPressed: () {
                           homeCtl.closeEndDrawer();
-                          // setState(() {
-                          //   _showHistoryData = null;
-                          //   _rightShowFullPage = false;
-                          // });
                         },
                         icon: const Icon(
                           Icons.keyboard_double_arrow_right,
@@ -69,12 +65,6 @@ class ClipboardDetailDrawer extends StatelessWidget {
                     visualDensity: VisualDensity.compact,
                     onPressed: () {
                       homeCtl.closeEndDrawer();
-                      // setState(() {
-                      //   setState(() {
-                      //     _rightShowFullPage = false;
-                      //     _showHistoryData = null;
-                      //   });
-                      // });
                     },
                     icon: const Icon(Icons.close),
                   ),

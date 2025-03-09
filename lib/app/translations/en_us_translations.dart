@@ -141,8 +141,59 @@ class EnUSTranslation extends AbstractTranslations {
         return "End Date";
       case TranslationKey.filterByDate:
         return "Filter by Date";
+      case TranslationKey.filterByContentType:
+        return "Filter by Type";
+      case TranslationKey.saveTopData:
+        return "Save top data";
+      case TranslationKey.removeLocalFiles:
+        return "Remove local files";
+      case TranslationKey.saveFilterConfig:
+        return "Save filter config";
+      case TranslationKey.saveAutoCleanConfig:
+        return "Save auto clean config";
+      case TranslationKey.noDataFromFilter:
+        return "Filter did not find any data";
+      case TranslationKey.filterCleaningConfirmation:
+        return "Found @cnt items, this operation cannot be recovered. \nDo you want to continue?";
+      case TranslationKey.syncRecordsCleaningConfirmation:
+        return "Cleaning up device synchronization records will result in data being resynchronized after the next connection";
       case TranslationKey.onlyNotSync:
         return "Only Unsynced";
+      case TranslationKey.syncRecordsCleanBtn:
+        return "Clean sync records for devices";
+      case TranslationKey.optionRecordsCleaningConfirmation:
+        return "Cleaning up device operation records will result in unsynchronized data not being automatically synchronized again";
+      case TranslationKey.optionRecordsCleanBtn:
+        return "Clean operation records for devices";
+      case TranslationKey.autoCleanFrequency:
+        return "Frequency";
+      case TranslationKey.execTime:
+        return "Exec time";
+      case TranslationKey.nextExecTime:
+        return "Next cleaning time: ";
+      case TranslationKey.errorCronTips:
+        return "Please enter the correct UnixCron expression";
+      case TranslationKey.filterTips:
+        return "If the corresponding filter is not selected, it means all are selected.\nThe date range will not be saved as a filtering configuration";
+      case TranslationKey.autoCleanConfigTitle:
+        return "Auto clean";
+      case TranslationKey.daily:
+        return "Daily";
+      case TranslationKey.weekly:
+        return "Weekly";
+      case TranslationKey.selectWeekDay:
+        return "Select WeekDay";
+      case TranslationKey.deleteItemsUnit:
+        return "items";
+      case TranslationKey.pleaseSelectDevices:
+        return "Please Select Devices!";
+      case TranslationKey.saveSuccess:
+        return "Successfully saved!";
+      case TranslationKey.pleaseSaveFilterConfig:
+        return "Please save filter config";
+      case TranslationKey.saveFailed:
+        return "Save failed";
+
       case TranslationKey.searchPageMoreFilterByDateJudgeText:
         return "Date";
       case TranslationKey.confirm:
@@ -265,16 +316,14 @@ class EnUSTranslation extends AbstractTranslations {
         return "Disable";
       case TranslationKey.dontDetect:
         return "Don't Detect";
-      case TranslationKey
-            .discoveringSettingsHeartbeatIntervalTooltipDialogContent:
+      case TranslationKey.discoveringSettingsHeartbeatIntervalTooltipDialogContent:
         return "When a device switches networks, it cannot automatically detect if the device is offline.\n"
             "Enabling heartbeat detection will periodically check the device's liveliness.";
       case TranslationKey.discoveringSettingsModifyHeartbeatDialogTitle:
         return "Heartbeat Interval";
       case TranslationKey.discoveringSettingsModifyHeartbeatDialogInputLabel:
         return "Heartbeat Interval";
-      case TranslationKey
-            .discoveringSettingsModifyHeartbeatDialogInputErrorText:
+      case TranslationKey.discoveringSettingsModifyHeartbeatDialogInputErrorText:
         return "Unit in seconds, 0 to disable detection";
       case TranslationKey.forwardSettingsGroupName:
         return "Forward";
@@ -300,11 +349,9 @@ class EnUSTranslation extends AbstractTranslations {
         return "Enable Security Authentication";
       case TranslationKey.securitySettingsEnableSecurityDesc:
         return "Enable password or biometric authentication";
-      case TranslationKey
-            .securitySettingsEnableSecurityAppPwdRequiredDialogContent:
+      case TranslationKey.securitySettingsEnableSecurityAppPwdRequiredDialogContent:
         return "Please create an app password first";
-      case TranslationKey
-            .securitySettingsEnableSecurityAppPwdRequiredDialogOkText:
+      case TranslationKey.securitySettingsEnableSecurityAppPwdRequiredDialogOkText:
         return "Go to Create";
       case TranslationKey.securitySettingsEnableSecurityAppPwdModifyTitle:
         return "Change Password";
@@ -430,6 +477,8 @@ class EnUSTranslation extends AbstractTranslations {
         return "Deleted Successfully";
       case TranslationKey.partialDeletionFailed:
         return "Partial Deletion Failed";
+      case TranslationKey.deletionFailed:
+        return "Delete Failed";
       case TranslationKey.multiDelete:
         return "Multi-Delete";
       case TranslationKey.deselect:
@@ -840,6 +889,44 @@ class EnUSTranslation extends AbstractTranslations {
         return "Display more items in row";
       case TranslationKey.showMoreItemsInRowDesc:
         return "When the width is sufficient, multiple items such as history records and device lists will be displayed on one line";
+      case TranslationKey.filter:
+        return "Filter";
+      case TranslationKey.monday:
+        return "Monday";
+      case TranslationKey.tuesday:
+        return "Tuesday";
+      case TranslationKey.wednesday:
+        return "Wednesday";
+      case TranslationKey.thursday:
+        return "Thursday";
+      case TranslationKey.friday:
+        return "Friday";
+      case TranslationKey.saturday:
+        return "Saturday";
+      case TranslationKey.sunday:
+        return "Sunday";
+      case TranslationKey.defaultClipboardServerNotificationCfgErrorTitle:
+        return "Error";
+      case TranslationKey.defaultClipboardServerNotificationCfgErrorTextPrefix:
+        return "";
+      case TranslationKey.defaultClipboardServerNotificationCfgStopListeningTitle:
+        return "Warning";
+      case TranslationKey.defaultClipboardServerNotificationCfgStopListeningText:
+        return "Clipboard listening stopped";
+      case TranslationKey.defaultClipboardServerNotificationCfgRunningTitle:
+        return "Service is running";
+      case TranslationKey.defaultClipboardServerNotificationCfgShizukuRunningText:
+        return "Shizuku mode is active";
+      case TranslationKey.defaultClipboardServerNotificationCfgRootRunningText:
+        return "Root mode is active";
+      case TranslationKey.defaultClipboardServerNotificationCfgShizukuDisconnectedTitle:
+        return "Error";
+      case TranslationKey.defaultClipboardServerNotificationCfgShizukuDisconnectedText:
+        return "Shizuku service has been disconnected";
+      case TranslationKey.defaultClipboardServerNotificationCfgWaitingRunningTitle:
+        return "Waiting to Running";
+      case TranslationKey.defaultClipboardServerNotificationCfgWaitingRunningText:
+        return "Waiting to Running Service";
     }
   }
 }

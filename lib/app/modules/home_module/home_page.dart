@@ -176,12 +176,12 @@ class HomePage extends GetView<HomeController> {
                   ),
                 )
               : null,
-          endDrawer: Obx(
-            () => SizedBox(
-              width: controller.drawerWidth,
-              child: controller.drawer,
-            ),
-          ),
+          endDrawer: controller.drawer != null
+              ? SizedBox(
+                  width: controller.drawerWidth,
+                  child: controller.drawer,
+                )
+              : null,
           onEndDrawerChanged: (isOpened) {
             if (isOpened) {
               return;

@@ -10,6 +10,7 @@ import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/widgets/rounded_chip.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 /**
  * GetX Template Generator - fb.com/htngu.99
@@ -53,9 +54,9 @@ class CleanDataPage extends GetView<CleanDataController> {
                         const SizedBox(
                           width: 5,
                         ),
-                        const Text(
-                          "过滤器",
-                          style: TextStyle(
+                        Text(
+                          TranslationKey.filter.tr,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.blueGrey,
@@ -64,7 +65,7 @@ class CleanDataPage extends GetView<CleanDataController> {
                         IconButton(
                           visualDensity: VisualDensity.compact,
                           onPressed: () {
-                            Global.showTipsDialog(context: Get.context!, text: "若对应过滤器不选择则表示全选");
+                            Global.showTipsDialog(context: Get.context!, text: TranslationKey.filterTips.tr);
                           },
                           icon: const Icon(
                             Icons.info_outline,
@@ -290,19 +291,19 @@ class CleanDataPage extends GetView<CleanDataController> {
                     ///endregion
 
                     ///region 内容类型过滤
-                    const Row(
+                    Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.category,
                           color: Colors.blueGrey,
                           size: 16,
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 2,
                         ),
                         Text(
-                          "筛选类型",
-                          style: TextStyle(color: Colors.blueGrey),
+                          TranslationKey.filterByContentType.tr,
+                          style: const TextStyle(color: Colors.blueGrey),
                         ),
                       ],
                     ),
@@ -351,14 +352,15 @@ class CleanDataPage extends GetView<CleanDataController> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          "保留置顶数据",
-                          style: TextStyle(fontSize: 16),
+                        Text(
+                          TranslationKey.saveTopData.tr,
+                          style: const TextStyle(fontSize: 16),
                         ),
                         Obx(
                           () => Switch(
                             value: controller.saveTopData.value,
                             onChanged: (checked) {
+                              HapticFeedback.mediumImpact();
                               controller.saveTopData.value = checked;
                             },
                           ),
@@ -368,14 +370,15 @@ class CleanDataPage extends GetView<CleanDataController> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          "同时移除本地文件",
-                          style: TextStyle(fontSize: 16),
+                        Text(
+                          TranslationKey.removeLocalFiles.tr,
+                          style: const TextStyle(fontSize: 16),
                         ),
                         Obx(
                           () => Switch(
                             value: controller.removeFiles.value,
                             onChanged: (checked) {
+                              HapticFeedback.mediumImpact();
                               controller.removeFiles.value = checked;
                             },
                           ),
@@ -403,7 +406,7 @@ class CleanDataPage extends GetView<CleanDataController> {
                                 const SizedBox(
                                   width: 5,
                                 ),
-                                Text("保存配置"),
+                                Text(TranslationKey.saveFilterConfig.tr),
                               ],
                             ),
                           ),
@@ -422,12 +425,12 @@ class CleanDataPage extends GetView<CleanDataController> {
                                   ) ??
                                   0;
                               if (cnt == 0) {
-                                Global.showSnackBarSuc(context: Get.context!, text: "过滤器未查询到数据");
+                                Global.showSnackBarSuc(context: Get.context!, text: TranslationKey.noDataFromFilter.tr);
                                 return;
                               }
                               Global.showTipsDialog(
                                 context: context,
-                                text: "查询到有 $cnt 条数据，此操作不可恢复，是否继续？",
+                                text: TranslationKey.filterCleaningConfirmation.trParams({'cnt': cnt.toString()}),
                                 showCancel: true,
                                 onOk: () {
                                   controller.cleanData();
@@ -454,7 +457,7 @@ class CleanDataPage extends GetView<CleanDataController> {
                       onPressed: () {
                         Global.showTipsDialog(
                           context: context,
-                          text: "清理设备同步记录将会导致数据在下次连接后重新同步",
+                          text: TranslationKey.syncRecordsCleaningConfirmation.tr,
                           showCancel: true,
                           onOk: () {
                             controller.cleanDeviceSyncRecords();
@@ -473,8 +476,8 @@ class CleanDataPage extends GetView<CleanDataController> {
                             width: 5,
                           ),
                           Text(
-                            "清理所选设备同步记录",
-                            style: TextStyle(color: Colors.deepOrange),
+                            TranslationKey.syncRecordsCleanBtn.tr,
+                            style: const TextStyle(color: Colors.deepOrange),
                           ),
                         ],
                       ),
@@ -483,7 +486,7 @@ class CleanDataPage extends GetView<CleanDataController> {
                       onPressed: () {
                         Global.showTipsDialog(
                           context: context,
-                          text: "清理设备操作记录将会导致未同步的数据不会再次自动同步",
+                          text: TranslationKey.optionRecordsCleaningConfirmation.tr,
                           showCancel: true,
                           onOk: () {
                             controller.cleanDeviceOperationRecords();
@@ -502,8 +505,8 @@ class CleanDataPage extends GetView<CleanDataController> {
                             width: 5,
                           ),
                           Text(
-                            "清理所选设备操作记录",
-                            style: TextStyle(color: Colors.deepOrange),
+                            TranslationKey.optionRecordsCleanBtn.tr,
+                            style: const TextStyle(color: Colors.deepOrange),
                           ),
                         ],
                       ),
@@ -530,17 +533,17 @@ class CleanDataPage extends GetView<CleanDataController> {
                       children: [
                         Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.timer,
                               color: Colors.blueGrey,
                               size: 20,
                             ),
-                            SizedBox(
+                            const SizedBox(
                               width: 5,
                             ),
                             Text(
-                              "自动清理",
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                              TranslationKey.autoCleanConfigTitle.tr,
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
                             ),
                           ],
                         ),
@@ -550,6 +553,7 @@ class CleanDataPage extends GetView<CleanDataController> {
                               () => Switch(
                                 value: controller.autoClean.value,
                                 onChanged: (checked) {
+                                  HapticFeedback.mediumImpact();
                                   controller.autoClean.value = checked;
                                 },
                               ),
@@ -562,19 +566,19 @@ class CleanDataPage extends GetView<CleanDataController> {
                     ///endregion
 
                     ///region 清理频率
-                    const Row(
+                    Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.equalizer_outlined,
                           color: Colors.blueGrey,
                           size: 16,
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 2,
                         ),
                         Text(
-                          "清理频率",
-                          style: TextStyle(color: Colors.blueGrey),
+                          TranslationKey.autoCleanFrequency.tr,
+                          style: const TextStyle(color: Colors.blueGrey),
                         ),
                       ],
                     ),
@@ -599,17 +603,17 @@ class CleanDataPage extends GetView<CleanDataController> {
                     ///region 执行时间
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.timer,
                           color: Colors.blueGrey,
                           size: 16,
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 2,
                         ),
                         Text(
-                          "执行时间",
-                          style: TextStyle(color: Colors.blueGrey),
+                          TranslationKey.execTime.tr,
+                          style: const TextStyle(color: Colors.blueGrey),
                         ),
                       ],
                     ),
@@ -656,7 +660,7 @@ class CleanDataPage extends GetView<CleanDataController> {
                           child: TextField(
                             controller: controller.cronInputCtl,
                             decoration: InputDecoration(
-                              label: Text("${TranslationKey.pleaseInput.tr} Cron"),
+                              label: Text("${TranslationKey.pleaseInput.tr} UnixCron"),
                               border: const OutlineInputBorder(),
                               suffixIcon: const Icon(
                                 Icons.timer,
@@ -673,13 +677,22 @@ class CleanDataPage extends GetView<CleanDataController> {
                     Obx(
                       () => Visibility(
                         visible: controller.nextExecTime.value != null,
+                        replacement: Container(
+                          color: const Color(0xD4FBE7DC),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [Expanded(child: Text(TranslationKey.errorCronTips.tr))],
+                            ),
+                          ),
+                        ),
                         child: Container(
                           color: const Color(0xD4E9F3FF),
                           child: Padding(
                             padding: const EdgeInsets.all(12),
                             child: Row(
                               children: [
-                                Text("预计下次清理时间："),
+                                Text(TranslationKey.nextExecTime.tr),
                                 Text(
                                   controller.nextExecTime.value ?? "",
                                   style: const TextStyle(
@@ -688,15 +701,6 @@ class CleanDataPage extends GetView<CleanDataController> {
                                   ),
                                 ),
                               ],
-                            ),
-                          ),
-                        ),
-                        replacement: Container(
-                          color: const Color(0xD4FBE7DC),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              children: [Expanded(child: Text("请输入正确的 Cron 表达式"))],
                             ),
                           ),
                         ),
@@ -721,7 +725,7 @@ class CleanDataPage extends GetView<CleanDataController> {
                           const SizedBox(
                             width: 5,
                           ),
-                          Text("保存定时器配置"),
+                          Text(TranslationKey.saveAutoCleanConfig.tr),
                         ],
                       ),
                     ),

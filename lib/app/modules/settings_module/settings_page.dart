@@ -586,11 +586,7 @@ class SettingsPage extends GetView<SettingsController> {
                           TranslationKey.syncAutoCloseSettingTitle.tr,
                           maxLines: 1,
                         ),
-                        description: Row(
-                          children: [
-                            Text(TranslationKey.syncAutoCloseSettingDesc.tr),
-                          ],
-                        ),
+                        description: Text(TranslationKey.syncAutoCloseSettingDesc.tr),
                         value: appConfig.autoCloseConnAfterScreenOff,
                         show: (v) => Platform.isAndroid,
                         action: (v) {

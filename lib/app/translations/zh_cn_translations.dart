@@ -268,16 +268,14 @@ class ZhCNTranslation extends AbstractTranslations {
         return "禁用";
       case TranslationKey.dontDetect:
         return "不检测";
-      case TranslationKey
-            .discoveringSettingsHeartbeatIntervalTooltipDialogContent:
+      case TranslationKey.discoveringSettingsHeartbeatIntervalTooltipDialogContent:
         return "当设备切换网络时无法自动检测到设备是否掉线\n"
             "启用心跳检测将会定时检查设备存活情况。";
       case TranslationKey.discoveringSettingsModifyHeartbeatDialogTitle:
         return "心跳间隔";
       case TranslationKey.discoveringSettingsModifyHeartbeatDialogInputLabel:
         return "心跳间隔";
-      case TranslationKey
-            .discoveringSettingsModifyHeartbeatDialogInputErrorText:
+      case TranslationKey.discoveringSettingsModifyHeartbeatDialogInputErrorText:
         return "单位秒，0为禁用检测";
       case TranslationKey.forwardSettingsGroupName:
         return "中转";
@@ -303,11 +301,9 @@ class ZhCNTranslation extends AbstractTranslations {
         return "启用安全认证";
       case TranslationKey.securitySettingsEnableSecurityDesc:
         return "启用密码或生物识别认证";
-      case TranslationKey
-            .securitySettingsEnableSecurityAppPwdRequiredDialogContent:
+      case TranslationKey.securitySettingsEnableSecurityAppPwdRequiredDialogContent:
         return "请先创建应用密码";
-      case TranslationKey
-            .securitySettingsEnableSecurityAppPwdRequiredDialogOkText:
+      case TranslationKey.securitySettingsEnableSecurityAppPwdRequiredDialogOkText:
         return "去创建";
       case TranslationKey.securitySettingsEnableSecurityAppPwdModifyTitle:
         return "更改密码";
@@ -433,6 +429,8 @@ class ZhCNTranslation extends AbstractTranslations {
         return "删除成功";
       case TranslationKey.partialDeletionFailed:
         return "部分删除失败";
+      case TranslationKey.deletionFailed:
+        return "删除失败";
       case TranslationKey.multiDelete:
         return "多选删除";
       case TranslationKey.deselect:
@@ -841,7 +839,94 @@ class ZhCNTranslation extends AbstractTranslations {
         return "在一行中显示更多项";
       case TranslationKey.showMoreItemsInRowDesc:
         return "当宽度足够时，历史记录和设备列表等将会在一行显示多项";
-
+      case TranslationKey.filter:
+        return "过滤器";
+      case TranslationKey.filterByContentType:
+        return "筛选类型";
+      case TranslationKey.saveTopData:
+        return "保留置顶数据";
+      case TranslationKey.removeLocalFiles:
+        return "同时移除本地文件";
+      case TranslationKey.saveFilterConfig:
+        return "保存过滤器配置";
+      case TranslationKey.saveAutoCleanConfig:
+        return "保存自动清理配置";
+      case TranslationKey.noDataFromFilter:
+        return "过滤器未查询到数据";
+      case TranslationKey.filterCleaningConfirmation:
+        return "查询到有 @cnt 条数据，此操作不可恢复，是否继续？";
+      case TranslationKey.syncRecordsCleaningConfirmation:
+        return "清理设备同步记录将会导致数据在下次连接后重新同步";
+      case TranslationKey.syncRecordsCleanBtn:
+        return "清理所选设备同步记录";
+      case TranslationKey.optionRecordsCleaningConfirmation:
+        return "清理设备操作记录将会导致未同步的数据不会再次自动同步";
+      case TranslationKey.optionRecordsCleanBtn:
+        return "清理所选设备操作记录";
+      case TranslationKey.autoCleanConfigTitle:
+        return "自动清理";
+      case TranslationKey.autoCleanFrequency:
+        return "清理频率";
+      case TranslationKey.execTime:
+        return "执行时间";
+      case TranslationKey.nextExecTime:
+        return "预计下次清理时间：";
+      case TranslationKey.errorCronTips:
+        return "请输入正确的 UnixCron 表达式";
+      case TranslationKey.filterTips:
+        return "若对应过滤器不选择则表示全选\n日期范围不会作为过滤配置保存";
+      case TranslationKey.daily:
+        return "每天";
+      case TranslationKey.weekly:
+        return "每周";
+      case TranslationKey.selectWeekDay:
+        return "选择周";
+      case TranslationKey.deleteItemsUnit:
+        return "条";
+      case TranslationKey.pleaseSelectDevices:
+        return "请先选择设备";
+      case TranslationKey.saveSuccess:
+        return "保存成功！";
+      case TranslationKey.saveFailed:
+        return "保存失败！";
+      case TranslationKey.pleaseSaveFilterConfig:
+        return "请先保存过滤器配置";
+      case TranslationKey.monday:
+        return "周一";
+      case TranslationKey.tuesday:
+        return "周二";
+      case TranslationKey.wednesday:
+        return "周三";
+      case TranslationKey.thursday:
+        return "周四";
+      case TranslationKey.friday:
+        return "周五";
+      case TranslationKey.saturday:
+        return "周六";
+      case TranslationKey.sunday:
+        return "周日";
+      case TranslationKey.defaultClipboardServerNotificationCfgErrorTitle:
+        return "错误";
+      case TranslationKey.defaultClipboardServerNotificationCfgErrorTextPrefix:
+        return "";
+      case TranslationKey.defaultClipboardServerNotificationCfgStopListeningTitle:
+        return "警告";
+      case TranslationKey.defaultClipboardServerNotificationCfgStopListeningText:
+        return "剪贴板监听已停止";
+      case TranslationKey.defaultClipboardServerNotificationCfgRunningTitle:
+        return "服务运行中";
+      case TranslationKey.defaultClipboardServerNotificationCfgShizukuRunningText:
+        return "Shizuku 模式";
+      case TranslationKey.defaultClipboardServerNotificationCfgRootRunningText:
+        return "Root 模式";
+      case TranslationKey.defaultClipboardServerNotificationCfgShizukuDisconnectedTitle:
+        return "错误";
+      case TranslationKey.defaultClipboardServerNotificationCfgShizukuDisconnectedText:
+        return "Shizuku服务已断开，请检查Shizuku运行状态";
+      case TranslationKey.defaultClipboardServerNotificationCfgWaitingRunningTitle:
+        return "等待服务运行";
+      case TranslationKey.defaultClipboardServerNotificationCfgWaitingRunningText:
+        return "等待服务运行";
     }
   }
 }

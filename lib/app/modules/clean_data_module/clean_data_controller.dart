@@ -60,8 +60,8 @@ class CleanDataController extends GetxController {
 
   Map<CleanDataFreq, Widget> get freqSegmented {
     final labels = {
-      CleanDataFreq.day: "每天",
-      CleanDataFreq.week: "每周",
+      CleanDataFreq.day: TranslationKey.daily.tr,
+      CleanDataFreq.week: TranslationKey.weekly.tr,
       CleanDataFreq.cron: "Cron",
     };
     final res = <CleanDataFreq, Widget>{};
@@ -140,7 +140,7 @@ class CleanDataController extends GetxController {
   void showWeekDaySelectDialog() {
     SingleSelectDialog.show(
       selections: WeekDay.values.map((w) => RadioData(value: w.value, label: w.label)).toList(),
-      title: Text("选择周"),
+      title: Text(TranslationKey.selectWeekDay.tr),
       context: Get.context!,
       defaultValue: selectedWeekDay.value?.value ?? WeekDay.monday.value,
       onSelected: (selected) {
@@ -193,7 +193,7 @@ class CleanDataController extends GetxController {
       if (!mute) {
         //关闭加载弹窗
         Get.back();
-        Global.showSnackBarSuc(context: Get.context!, text: "${TranslationKey.deleteSuccess.tr}: $cnt 条");
+        Global.showSnackBarSuc(context: Get.context!, text: "${TranslationKey.deleteSuccess.tr}: $cnt ${TranslationKey.deleteItemsUnit.tr}");
       }
       refreshHistoryPage();
     }).catchError((err, stack) {
@@ -201,7 +201,7 @@ class CleanDataController extends GetxController {
       if (!mute) {
         //关闭加载弹窗
         Get.back();
-        Global.showSnackBarWarn(context: Get.context!, text: "删除失败");
+        Global.showSnackBarWarn(context: Get.context!, text: TranslationKey.deletionFailed.tr);
       }
     });
   }
@@ -209,7 +209,7 @@ class CleanDataController extends GetxController {
   ///清理设备同步记录
   void cleanDeviceSyncRecords() {
     if (selectedDevs.isEmpty) {
-      Global.showTipsDialog(context: Get.context!, text: "请先选择设备");
+      Global.showTipsDialog(context: Get.context!, text: TranslationKey.pleaseSelectDevices.tr);
       return;
     }
     Global.showLoadingDialog(context: Get.context!);
@@ -217,23 +217,23 @@ class CleanDataController extends GetxController {
       //关闭加载弹窗
       Get.back();
       if (cnt == null) {
-        Global.showSnackBarWarn(context: Get.context!, text: "删除失败");
+        Global.showSnackBarWarn(context: Get.context!, text: TranslationKey.deletionFailed.tr);
       } else {
-        Global.showSnackBarSuc(context: Get.context!, text: "${TranslationKey.deleteSuccess.tr}: $cnt 条");
+        Global.showSnackBarSuc(context: Get.context!, text: "${TranslationKey.deleteSuccess.tr}: $cnt ${TranslationKey.deleteItemsUnit.tr}");
         refreshHistoryPage();
       }
     }).catchError((err, stack) {
       Log.error(logTag, "$err: $stack");
       //关闭加载弹窗
       Get.back();
-      Global.showSnackBarWarn(context: Get.context!, text: "删除失败");
+      Global.showSnackBarWarn(context: Get.context!, text: TranslationKey.deletionFailed.tr);
     });
   }
 
   ///清理设备操作记录
   void cleanDeviceOperationRecords() {
     if (selectedDevs.isEmpty) {
-      Global.showTipsDialog(context: Get.context!, text: "请先选择设备");
+      Global.showTipsDialog(context: Get.context!, text: TranslationKey.pleaseSelectDevices.tr);
       return;
     }
     Global.showLoadingDialog(context: Get.context!);
@@ -241,7 +241,7 @@ class CleanDataController extends GetxController {
       //关闭加载弹窗
       Get.back();
       if (cnt == null) {
-        Global.showSnackBarWarn(context: Get.context!, text: "删除失败");
+        Global.showSnackBarWarn(context: Get.context!, text: TranslationKey.deletionFailed.tr);
       } else {
         Global.showSnackBarSuc(context: Get.context!, text: "${TranslationKey.deleteSuccess.tr}: $cnt 条");
         refreshHistoryPage();
@@ -250,7 +250,7 @@ class CleanDataController extends GetxController {
       Log.error(logTag, "$err: $stack");
       //关闭加载弹窗
       Get.back();
-      Global.showSnackBarWarn(context: Get.context!, text: "删除失败");
+      Global.showSnackBarWarn(context: Get.context!, text: TranslationKey.deletionFailed.tr);
     });
   }
 
@@ -269,9 +269,9 @@ class CleanDataController extends GetxController {
         ),
       )
           .then((_) {
-        Global.showTipsDialog(context: Get.context!, text: "保存成功！");
+        Global.showTipsDialog(context: Get.context!, text: TranslationKey.saveSuccess.tr);
       }).catchError((err, stack) {
-        Global.showTipsDialog(context: Get.context!, text: "保存失败！\n$err\n$stack");
+        Global.showTipsDialog(context: Get.context!, text: "${TranslationKey.saveSuccess.tr}\n$err\n$stack");
       });
     } else {
       appConfig
@@ -285,9 +285,9 @@ class CleanDataController extends GetxController {
         ),
       )
           .then((_) {
-        Global.showTipsDialog(context: Get.context!, text: "保存成功！");
+        Global.showTipsDialog(context: Get.context!, text: TranslationKey.saveSuccess.tr);
       }).catchError((err, stack) {
-        Global.showTipsDialog(context: Get.context!, text: "保存失败！\n$err\n$stack");
+        Global.showTipsDialog(context: Get.context!, text: "${TranslationKey.saveSuccess.tr}\n$err\n$stack");
       });
     }
   }
@@ -296,12 +296,12 @@ class CleanDataController extends GetxController {
   void saveAutoCleanConfig() {
     final nextTime = updateNextExecTime();
     if (nextTime == null) {
-      Global.showTipsDialog(context: Get.context!, text: "请输入正确cron表达式");
+      Global.showTipsDialog(context: Get.context!, text: TranslationKey.errorCronTips.tr);
       return;
     }
     final cfg = appConfig.cleanDataConfig;
     if (cfg == null) {
-      Global.showTipsDialog(context: Get.context!, text: "请先保存过滤器配置");
+      Global.showTipsDialog(context: Get.context!, text: TranslationKey.pleaseSaveFilterConfig.tr);
       return;
     }
     appConfig
@@ -314,10 +314,10 @@ class CleanDataController extends GetxController {
       ),
     )
         .then((_) {
-      Global.showTipsDialog(context: Get.context!, text: "保存成功！");
+      Global.showTipsDialog(context: Get.context!, text: TranslationKey.saveSuccess.tr);
       initAutoClean();
     }).catchError((err, stack) {
-      Global.showTipsDialog(context: Get.context!, text: "保存失败！\n$err\n$stack");
+      Global.showTipsDialog(context: Get.context!, text: "${TranslationKey.saveFailed.tr}\n$err\n$stack");
     });
   }
 

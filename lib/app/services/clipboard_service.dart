@@ -4,6 +4,7 @@ import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
 import 'package:clipboard_listener/notification_content_config.dart';
 import 'package:clipshare/app/data/enums/history_content_type.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/listeners/history_data_listener.dart';
 import 'package:clipshare/app/modules/settings_module/settings_controller.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
@@ -18,19 +19,20 @@ class ClipboardService extends GetxService with ClipboardListener {
   final appConfig = Get.find<ConfigService>();
   final settingsController = Get.find<SettingsController>();
   var _detector = FlutterScreenshotDetect();
-  static const notificationContentConfig = NotificationContentConfig(
-    errorTitle: '错误',
-    errorTextPrefix: '',
-    stopListeningTitle: '警告',
-    stopListeningText: '剪贴板监听已停止',
-    serviceRunningTitle: '服务运行中',
-    shizukuRunningText: 'Shizuku 模式',
-    rootRunningText: 'Root 模式',
-    shizukuDisconnectedTitle: '错误',
-    shizukuDisconnectedText: 'Shizuku服务已断开，请检查Shizuku运行状态',
-    waitingRunningTitle: '等待服务运行',
-    waitingRunningText: '等待服务运行',
-  );
+
+  static NotificationContentConfig get defaultNotificationContentConfig => NotificationContentConfig(
+        errorTitle: TranslationKey.defaultClipboardServerNotificationCfgErrorTitle.tr,
+        errorTextPrefix: TranslationKey.defaultClipboardServerNotificationCfgErrorTextPrefix.tr,
+        stopListeningTitle: TranslationKey.defaultClipboardServerNotificationCfgStopListeningTitle.tr,
+        stopListeningText: TranslationKey.defaultClipboardServerNotificationCfgStopListeningText.tr,
+        serviceRunningTitle: TranslationKey.defaultClipboardServerNotificationCfgRunningTitle.tr,
+        shizukuRunningText: TranslationKey.defaultClipboardServerNotificationCfgShizukuRunningText.tr,
+        rootRunningText: TranslationKey.defaultClipboardServerNotificationCfgRootRunningText.tr,
+        shizukuDisconnectedTitle: TranslationKey.defaultClipboardServerNotificationCfgShizukuDisconnectedTitle.tr,
+        shizukuDisconnectedText: TranslationKey.defaultClipboardServerNotificationCfgShizukuDisconnectedText.tr,
+        waitingRunningTitle: TranslationKey.defaultClipboardServerNotificationCfgWaitingRunningTitle.tr,
+        waitingRunningText: TranslationKey.defaultClipboardServerNotificationCfgWaitingRunningText.tr,
+      );
   String? _lastScreenshotContent;
 
   Future<ClipboardService> init() async {
@@ -50,9 +52,7 @@ class ClipboardService extends GetxService with ClipboardListener {
         _lastScreenshotContent = event.path;
         final androidChannelService = Get.find<AndroidChannelService>();
         Future.delayed(const Duration(milliseconds: 500), () {
-          androidChannelService
-              .getImageUriRealPath(event.path!)
-              .then((realPath) async {
+          androidChannelService.getImageUriRealPath(event.path!).then((realPath) async {
             Log.debug(tag, "content uri: ${event.path!}");
             Log.debug(tag, "realPath: $realPath");
             realPath = realPath?.toLowerCase();
@@ -64,8 +64,7 @@ class ClipboardService extends GetxService with ClipboardListener {
               );
               try {
                 checkLatestImage = true;
-                final latestImagePath =
-                    await androidChannelService.getLatestImagePath();
+                final latestImagePath = await androidChannelService.getLatestImagePath();
                 if (latestImagePath == null) {
                   Log.warn(tag, "latest image path is null");
                   return;
@@ -100,13 +99,10 @@ class ClipboardService extends GetxService with ClipboardListener {
             if (!isScreenShot) {
               return;
             }
-            androidChannelService
-                .copyFileFromUri(event.path!, appConfig.cachePath)
-                .then((res) {
+            androidChannelService.copyFileFromUri(event.path!, appConfig.cachePath).then((res) {
               Log.debug(tag, "ScreenshotDetect: $realPath");
               if (res != null) {
-                HistoryDataListener.inst
-                    .onChanged(HistoryContentType.image, res);
+                HistoryDataListener.inst.onChanged(HistoryContentType.image, res);
               }
             });
           });
@@ -126,15 +122,12 @@ class ClipboardService extends GetxService with ClipboardListener {
   }
 
   @override
-  Future<void> onPermissionStatusChanged(
-      EnvironmentType environment, bool isGranted) async {
+  Future<void> onPermissionStatusChanged(EnvironmentType environment, bool isGranted) async {
     final settingsController = Get.find<SettingsController>();
-    if (isGranted &&
-        environment != EnvironmentType.none &&
-        environment != EnvironmentType.androidPre10) {
+    if (isGranted && environment != EnvironmentType.none && environment != EnvironmentType.androidPre10) {
       await clipboardManager.startListening(
         startEnv: environment,
-        notificationContentConfig: ClipboardService.notificationContentConfig,
+        notificationContentConfig: ClipboardService.defaultNotificationContentConfig,
       );
     }
     settingsController.checkPermissions();

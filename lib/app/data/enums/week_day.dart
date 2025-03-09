@@ -1,3 +1,10 @@
+import 'package:clipshare/app/data/enums/translation_key.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/utils/log.dart';
 
 enum WeekDay {
@@ -31,19 +38,19 @@ enum WeekDay {
   String get label {
     switch (this) {
       case WeekDay.monday:
-        return "周一";
+        return TranslationKey.monday.tr;
       case WeekDay.tuesday:
-        return "周二";
+        return TranslationKey.tuesday.tr;
       case WeekDay.wednesday:
-        return "周三";
+        return TranslationKey.wednesday.tr;
       case WeekDay.thursday:
-        return "周四";
+        return TranslationKey.thursday.tr;
       case WeekDay.friday:
-        return "周五";
+        return TranslationKey.friday.tr;
       case WeekDay.saturday:
-        return "周六";
+        return TranslationKey.saturday.tr;
       case WeekDay.sunday:
-        return "周日";
+        return TranslationKey.sunday.tr;
     }
   }
 

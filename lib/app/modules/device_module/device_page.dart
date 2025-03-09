@@ -249,7 +249,7 @@ class DevicePage extends GetView<DeviceController> {
       builder: (ctx, constraints) {
         return Obx(() {
           const maxWidth = 395;
-          final showMore = appConfig.showMoreItemsInRow;
+          final showMore = appConfig.showMoreItemsInRow && !appConfig.isSmallScreen;
           final listLength = list.length;
           final count = showMore && listLength >= 2 ? max(2, constraints.maxWidth ~/ maxWidth) : 1;
           return MasonryGridView.count(
