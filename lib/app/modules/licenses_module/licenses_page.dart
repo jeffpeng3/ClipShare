@@ -25,8 +25,6 @@ class LicensesPage extends GetView<LicensesController> {
             final item = controller.licenses[i - 1];
             return SettingCard(
               borderRadius: BorderRadius.circular(8),
-              titleFlex: 1,
-              descFlex: 1,
               title: Text(item['name'].toString()),
               description: Chip(
                 label: Text(

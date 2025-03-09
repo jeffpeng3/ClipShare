@@ -8,8 +8,6 @@ class SettingCard<T> extends StatefulWidget {
   final Widget Function(T val)? action;
   bool separate;
   final bool showValueInSub;
-  final int titleFlex;
-  final int descFlex;
   late BorderRadius borderRadius;
   final bool Function(T)? show;
   void Function()? onTap;
@@ -20,8 +18,6 @@ class SettingCard<T> extends StatefulWidget {
     super.key,
     required this.title,
     required this.value,
-    this.titleFlex=3,
-    this.descFlex=2,
     this.description,
     this.action,
     this.separate = false,
@@ -93,62 +89,37 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: sub == null
-                              ? [
-                                  SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: DefaultTextStyle(
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium!
-                                          .copyWith(
-                                            fontWeight: FontWeight.normal,
-                                            fontSize: 17,
-                                          ),
-                                      child: widget.title,
-                                    ),
-                                  ),
-                                ]
-                              : [
-                                  Expanded(
-                                    flex: widget.titleFlex,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: DefaultTextStyle(
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium!
-                                            .copyWith(
-                                              fontWeight: FontWeight.normal,
-                                              fontSize: 17,
-                                            ),
-                                        child: widget.title,
+                          mainAxisAlignment: sub == null ? MainAxisAlignment.center : MainAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              // flex: widget.titleFlex,
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: DefaultTextStyle(
+                                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                        fontWeight: FontWeight.normal,
+                                        fontSize: 17,
                                       ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: widget.descFlex,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: DefaultTextStyle(
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium!
-                                            .copyWith(
-                                              color: Colors.grey,
-                                            ),
-                                        child: sub,
-                                      ),
-                                    ),
+                                  child: widget.title,
+                                ),
+                              ),
+                            ),
+                            if (sub != null)
+                              Wrap(
+                                children: [
+                                  DefaultTextStyle(
+                                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                          color: Colors.grey,
+                                        ),
+                                    child: sub,
                                   ),
                                 ],
+                              ),
+                          ],
                         ),
                       ),
                       IntrinsicWidth(
-                        child: widget.action == null
-                            ? const SizedBox.shrink()
-                            : widget.action!.call(widget.value),
+                        child: widget.action == null ? const SizedBox.shrink() : widget.action!.call(widget.value),
                       ),
                     ],
                   ),
@@ -158,9 +129,7 @@ class _SettingCardState<T> extends State<SettingCard<T>> {
                   ? Divider(
                       thickness: 1,
                       height: 1,
-                      color: Get.isDarkMode
-                          ? null
-                          : const Color.fromRGBO(232, 228, 228, 1.0),
+                      color: Get.isDarkMode ? null : const Color.fromRGBO(232, 228, 228, 1.0),
                     )
                   : const SizedBox.shrink(),
             ],

@@ -436,7 +436,6 @@ class SettingsPage extends GetView<SettingsController> {
                         ),
                         description: Text(
                           "id: ${appConfig.devInfo.guid}",
-                          maxLines: 1,
                         ),
                         value: appConfig.localName,
                         action: (v) => Text(v),
@@ -463,10 +462,7 @@ class SettingsPage extends GetView<SettingsController> {
                           TranslationKey.port.tr,
                           maxLines: 1,
                         ),
-                        description: Text(
-                          TranslationKey.discoveringSettingsPortDesc.tr,
-                          maxLines: 1,
-                        ),
+                        description: Text(TranslationKey.discoveringSettingsPortDesc.tr),
                         value: appConfig.port,
                         action: (v) => Text(v.toString()),
                         onTap: () {
@@ -498,10 +494,7 @@ class SettingsPage extends GetView<SettingsController> {
                           TranslationKey.allowDiscovering.tr,
                           maxLines: 1,
                         ),
-                        description: Text(
-                          TranslationKey.discoveringSettingsAllowDiscoveringDesc.tr,
-                          maxLines: 1,
-                        ),
+                        description: Text(TranslationKey.discoveringSettingsAllowDiscoveringDesc.tr),
                         value: appConfig.allowDiscover,
                         action: (v) => Switch(
                           value: v,
@@ -517,10 +510,7 @@ class SettingsPage extends GetView<SettingsController> {
                           TranslationKey.discoveringSettingsOnlyForwardDiscoveringTitle.tr,
                           maxLines: 1,
                         ),
-                        description: Text(
-                          TranslationKey.discoveringSettingsOnlyForwardDiscoveringDesc.tr,
-                          maxLines: 1,
-                        ),
+                        description: Text(TranslationKey.discoveringSettingsOnlyForwardDiscoveringDesc.tr),
                         value: appConfig.onlyForwardMode,
                         action: (v) => Switch(
                           value: v,
@@ -562,10 +552,7 @@ class SettingsPage extends GetView<SettingsController> {
                             ),
                           ],
                         ),
-                        description: Text(
-                          TranslationKey.discoveringSettingsHeartbeatIntervalDesc.tr,
-                          maxLines: 1,
-                        ),
+                        description: Text(TranslationKey.discoveringSettingsHeartbeatIntervalDesc.tr),
                         value: appConfig.heartbeatInterval,
                         action: (v) => Text(v <= 0 ? TranslationKey.dontDetect.tr : '${v}s'),
                         onTap: () {
@@ -601,10 +588,7 @@ class SettingsPage extends GetView<SettingsController> {
                         ),
                         description: Row(
                           children: [
-                            Text(
-                              TranslationKey.syncAutoCloseSettingDesc.tr,
-                              maxLines: 1,
-                            ),
+                            Text(TranslationKey.syncAutoCloseSettingDesc.tr),
                           ],
                         ),
                         value: appConfig.autoCloseConnAfterScreenOff,
@@ -646,9 +630,7 @@ class SettingsPage extends GetView<SettingsController> {
                             const SizedBox(
                               width: 5,
                             ),
-                            Text(
-                              controller.forwardServerConnected.value ? TranslationKey.connected.tr : TranslationKey.disconnected.tr,
-                            ),
+                            Text(controller.forwardServerConnected.value ? TranslationKey.connected.tr : TranslationKey.disconnected.tr),
                           ],
                         ),
                         value: appConfig.enableForward,
@@ -681,10 +663,7 @@ class SettingsPage extends GetView<SettingsController> {
                             ),
                           ],
                         ),
-                        description: Text(
-                          TranslationKey.forwardSettingsForwardDesc.tr,
-                          maxLines: 1,
-                        ),
+                        description: Text(TranslationKey.forwardSettingsForwardDesc.tr),
                         value: appConfig.enableForward,
                         action: (v) {
                           return Switch(
@@ -714,10 +693,7 @@ class SettingsPage extends GetView<SettingsController> {
                           TranslationKey.forwardSettingsForwardAddressTitle.tr,
                           maxLines: 1,
                         ),
-                        description: Text(
-                          TranslationKey.forwardSettingsForwardAddressDesc.tr,
-                          maxLines: 1,
-                        ),
+                        description: Text(TranslationKey.forwardSettingsForwardAddressDesc.tr),
                         value: appConfig.forwardServer,
                         action: (v) {
                           String text = TranslationKey.change.tr;
@@ -760,10 +736,7 @@ class SettingsPage extends GetView<SettingsController> {
                           TranslationKey.securitySettingsEnableSecurityTitle.tr,
                           maxLines: 1,
                         ),
-                        description: Text(
-                          TranslationKey.securitySettingsEnableSecurityDesc.tr,
-                          maxLines: 1,
-                        ),
+                        description: Text(TranslationKey.securitySettingsEnableSecurityDesc.tr),
                         value: appConfig.useAuthentication,
                         action: (v) {
                           return Switch(
@@ -792,10 +765,7 @@ class SettingsPage extends GetView<SettingsController> {
                           TranslationKey.securitySettingsEnableSecurityAppPwdModifyTitle.tr,
                           maxLines: 1,
                         ),
-                        description: Text(
-                          appConfig.appPassword == null ? TranslationKey.createAppPwd.tr : TranslationKey.changeAppPwd.tr,
-                          maxLines: 1,
-                        ),
+                        description: Text(appConfig.appPassword == null ? TranslationKey.createAppPwd.tr : TranslationKey.changeAppPwd.tr),
                         value: appConfig.appPassword,
                         action: (v) {
                           return TextButton(
@@ -826,10 +796,7 @@ class SettingsPage extends GetView<SettingsController> {
                           TranslationKey.securitySettingsReverificationTitle.tr,
                           maxLines: 1,
                         ),
-                        description: Text(
-                          TranslationKey.securitySettingsReverificationDesc.tr,
-                          maxLines: 1,
-                        ),
+                        description: Text(TranslationKey.securitySettingsReverificationDesc.tr),
                         value: appConfig.appRevalidateDuration,
                         onTap: () {
                           SingleSelectDialog.show(
@@ -874,10 +841,7 @@ class SettingsPage extends GetView<SettingsController> {
                             TranslationKey.hotKeySettingsHistoryTitle.tr,
                             maxLines: 1,
                           ),
-                          description: Text(
-                            TranslationKey.hotKeySettingsHistoryDesc.tr,
-                            maxLines: 1,
-                          ),
+                          description: Text(TranslationKey.hotKeySettingsHistoryDesc.tr),
                           value: appConfig.historyWindowHotKeys,
                           action: (v) {
                             var keyText = HotKeyEditor.toText(v);
@@ -933,10 +897,7 @@ class SettingsPage extends GetView<SettingsController> {
                             TranslationKey.sendFile.tr,
                             maxLines: 1,
                           ),
-                          description: Text(
-                            TranslationKey.hotKeySettingsFileDesc.tr,
-                            maxLines: 1,
-                          ),
+                          description: Text(TranslationKey.hotKeySettingsFileDesc.tr),
                           value: appConfig.syncFileHotKeys,
                           action: (v) {
                             var keyText = HotKeyEditor.toText(v);
@@ -1004,10 +965,7 @@ class SettingsPage extends GetView<SettingsController> {
                           TranslationKey.syncSettingsSmsTitle.tr,
                           maxLines: 1,
                         ),
-                        description: Text(
-                          TranslationKey.syncSettingsSmsDesc.tr,
-                          maxLines: 1,
-                        ),
+                        description: Text(TranslationKey.syncSettingsSmsDesc.tr),
                         value: appConfig.enableSmsSync,
                         show: (v) => Platform.isAndroid,
                         action: (v) {
@@ -1047,10 +1005,7 @@ class SettingsPage extends GetView<SettingsController> {
                           TranslationKey.syncSettingsStoreImg2PicturesTitle.tr,
                           maxLines: 1,
                         ),
-                        description: Text(
-                          TranslationKey.syncSettingsStoreImg2PicturesDesc.tr,
-                          maxLines: 1,
-                        ),
+                        description: Text(TranslationKey.syncSettingsStoreImg2PicturesDesc.tr),
                         value: appConfig.saveToPictures,
                         action: (v) {
                           return Switch(
@@ -1097,10 +1052,7 @@ class SettingsPage extends GetView<SettingsController> {
                           TranslationKey.syncSettingsStoreFilePathTitle.tr,
                           maxLines: 1,
                         ),
-                        description: Text(
-                          appConfig.fileStorePath,
-                          maxLines: 1,
-                        ),
+                        description: Text(appConfig.fileStorePath),
                         value: false,
                         action: (v) {
                           return TextButton(
@@ -1127,10 +1079,7 @@ class SettingsPage extends GetView<SettingsController> {
                           TranslationKey.syncSettingsAutoCopyImgTitle.tr,
                           maxLines: 1,
                         ),
-                        description: Text(
-                          TranslationKey.syncSettingsAutoCopyImgDesc.tr,
-                          maxLines: 1,
-                        ),
+                        description: Text(TranslationKey.syncSettingsAutoCopyImgDesc.tr),
                         show: (v) => true,
                         value: appConfig.autoCopyImageAfterSync,
                         action: (v) {
@@ -1147,10 +1096,7 @@ class SettingsPage extends GetView<SettingsController> {
                           TranslationKey.syncSettingsAutoCopyScreenShotTitle.tr,
                           maxLines: 1,
                         ),
-                        description: Text(
-                          TranslationKey.syncSettingsAutoCopyScreenShotDesc.tr,
-                          maxLines: 1,
-                        ),
+                        description: Text(TranslationKey.syncSettingsAutoCopyScreenShotDesc.tr),
                         show: (v) => Platform.isAndroid,
                         value: appConfig.autoCopyImageAfterScreenShot,
                         action: (v) {
@@ -1204,10 +1150,7 @@ class SettingsPage extends GetView<SettingsController> {
                         TranslationKey.ruleSettingsTagRuleTitle.tr,
                         maxLines: 1,
                       ),
-                      description: Text(
-                        TranslationKey.ruleSettingsTagRuleDesc.tr,
-                        maxLines: 1,
-                      ),
+                      description: Text(TranslationKey.ruleSettingsTagRuleDesc.tr),
                       value: false,
                       action: (v) {
                         return TextButton(
@@ -1233,10 +1176,7 @@ class SettingsPage extends GetView<SettingsController> {
                         TranslationKey.ruleSettingsSmsRuleTitle.tr,
                         maxLines: 1,
                       ),
-                      description: Text(
-                        TranslationKey.ruleSettingsSmsRuleDesc.tr,
-                        maxLines: 1,
-                      ),
+                      description: Text(TranslationKey.ruleSettingsSmsRuleDesc.tr),
                       value: false,
                       show: (v) => Platform.isAndroid || true,
                       action: (v) {
@@ -1303,10 +1243,7 @@ class SettingsPage extends GetView<SettingsController> {
                             ),
                           ],
                         ),
-                        description: Text(
-                          TranslationKey.logSettingsEnableDesc.trParams({"size": FileUtil.getDirectorySize(appConfig.logsDirPath).sizeStr}),
-                          maxLines: 1,
-                        ),
+                        description: Text(TranslationKey.logSettingsEnableDesc.trParams({"size": FileUtil.getDirectorySize(appConfig.logsDirPath).sizeStr})),
                         value: appConfig.enableLogsRecord,
                         onTap: () {
                           if (appConfig.isSmallScreen) {
@@ -1374,10 +1311,7 @@ class SettingsPage extends GetView<SettingsController> {
                         TranslationKey.statisticsSettingsTitle.tr,
                         maxLines: 1,
                       ),
-                      description: Text(
-                        TranslationKey.statisticsSettingsDesc.tr,
-                        maxLines: 1,
-                      ),
+                      description: Text(TranslationKey.statisticsSettingsDesc.tr),
                       value: null,
                       onTap: () {
                         Get.toNamed(Routes.STATISTICS);
