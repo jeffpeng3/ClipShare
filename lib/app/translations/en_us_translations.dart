@@ -798,6 +798,8 @@ class EnUSTranslation extends AbstractTranslations {
         return "Remember last position";
       case TranslationKey.showOnRecentTasks:
         return "Show on recent tasks";
+      case TranslationKey.showOnRecentTasksDesc:
+        return "Enabling this feature on some systems may result in the backend being killed after switching applications, and the current reason is unknown";
       case TranslationKey.showLocalIpAddress:
         return "Show Local IP Address";
       case TranslationKey.localIpAddress:
@@ -834,6 +836,10 @@ class EnUSTranslation extends AbstractTranslations {
         return "Auto Copy ScreenShot";
       case TranslationKey.syncSettingsAutoCopyScreenShotDesc:
         return "Some systems may experience delays in the background";
+      case TranslationKey.showMoreItemsInRow:
+        return "Display more items in row";
+      case TranslationKey.showMoreItemsInRowDesc:
+        return "When the width is sufficient, multiple items such as history records and device lists will be displayed on one line";
     }
   }
 }

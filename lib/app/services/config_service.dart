@@ -240,6 +240,11 @@ class ConfigService extends GetxService {
 
   bool get autoCloseConnAfterScreenOff => _autoCloseConnAfterScreenOff.value;
 
+  //在一行中显示多项
+  final RxBool _showMoreItemsInRow = false.obs;
+
+  bool get showMoreItemsInRow => _showMoreItemsInRow.value;
+
   //主题
   late final RxString _appTheme;
 
@@ -529,6 +534,10 @@ class ConfigService extends GetxService {
       "cleanDataConfig",
       userId,
     );
+    var showMoreItemsInRow = await cfg.getConfig(
+      "showMoreItemsInRow",
+      userId,
+    );
     var fileStoreDir = Directory(fileStorePath ?? defaultFileStorePath);
     _port = port?.toInt().obs ?? Constants.port.obs;
     _localName = localName.isNotNullAndEmpty ? localName!.obs : devInfo.name.obs;
@@ -544,6 +553,7 @@ class ConfigService extends GetxService {
     _historyDialogPosition.value = historyDialogPosition ?? "";
     _showOnRecentTasks.value = showOnRecentTasks?.toBool() ?? true;
     _autoCloseConnAfterScreenOff.value = autoCloseConnAfterScreenOff?.toBool() ?? true;
+    _showMoreItemsInRow.value = showMoreItemsInRow?.toBool() ?? true;
     if (tagRules != null) {
       _tagRules = tagRules.obs;
     }
@@ -909,6 +919,11 @@ class ConfigService extends GetxService {
   Future<void> setCleanDataConfig(CleanDataConfig cleanDataConfig) async {
     await _addOrUpdateDbConfig("cleanDataConfig", cleanDataConfig.toString());
     _cleanDataConfig.value = cleanDataConfig;
+  }
+
+  Future<void> setShowMoreItemsInRow(bool showMoreItemsInRow) async {
+    await _addOrUpdateDbConfig("showMoreItemsInRow", showMoreItemsInRow.toString());
+    _showMoreItemsInRow.value = showMoreItemsInRow;
   }
 
 //endregion

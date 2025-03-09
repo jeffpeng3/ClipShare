@@ -407,7 +407,10 @@ enum TranslationKey {
   forwardServerNotConnected,
   cleanData,
   syncSettingsAutoCopyScreenShotTitle,
-  syncSettingsAutoCopyScreenShotDesc;
+  syncSettingsAutoCopyScreenShotDesc,
+  showOnRecentTasksDesc,
+  showMoreItemsInRow,
+  showMoreItemsInRowDesc;
 
   String get tr => name.tr;
 

@@ -801,6 +801,8 @@ class ZhCNTranslation extends AbstractTranslations {
         return "记住上次位置";
       case TranslationKey.showOnRecentTasks:
         return "在最近任务中显示";
+      case TranslationKey.showOnRecentTasksDesc:
+        return "在部分系统上开启此功能后可能导致切换应用后会被杀掉后台，当前原因未知";
       case TranslationKey.showLocalIpAddress:
         return "查看本机IP";
       case TranslationKey.localIpAddress:
@@ -835,6 +837,11 @@ class ZhCNTranslation extends AbstractTranslations {
         return "自动复制截图";
       case TranslationKey.syncSettingsAutoCopyScreenShotDesc:
         return "部分系统可能在后台会有延迟";
+      case TranslationKey.showMoreItemsInRow:
+        return "在一行中显示更多项";
+      case TranslationKey.showMoreItemsInRowDesc:
+        return "当宽度足够时，历史记录和设备列表等将会在一行显示多项";
+
     }
   }
 }

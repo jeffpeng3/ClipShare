@@ -335,7 +335,7 @@ class SettingsPage extends GetView<SettingsController> {
                         ),
                         show: (v) => PlatformExt.isDesktop,
                       ),
-                      //【暂不实现】历史记录弹窗记住上次位置
+                      //历史记录弹窗记住上次位置
                       SettingCard(
                         title: Text(
                           TranslationKey.preferenceSettingsRecordsDialogLocation.tr,
@@ -356,6 +356,7 @@ class SettingsPage extends GetView<SettingsController> {
                       ),
                       SettingCard(
                         title: Text(TranslationKey.showOnRecentTasks.tr),
+                        description: Text(TranslationKey.showOnRecentTasksDesc.tr),
                         value: appConfig.showOnRecentTasks,
                         action: (v) {
                           return Switch(
@@ -371,7 +372,22 @@ class SettingsPage extends GetView<SettingsController> {
                           );
                         },
                         show: (v) => Platform.isAndroid,
-                      )
+                      ),
+                      SettingCard(
+                        title: Text(TranslationKey.showMoreItemsInRow.tr),
+                        description: Text(TranslationKey.showMoreItemsInRowDesc.tr),
+                        value: appConfig.showMoreItemsInRow,
+                        action: (v) {
+                          return Switch(
+                            value: v,
+                            onChanged: (checked) {
+                              HapticFeedback.mediumImpact();
+                              appConfig.setShowMoreItemsInRow(checked);
+                            },
+                          );
+                        },
+                        show: (v) => true,
+                      ),
                     ],
                   ),
                 ),

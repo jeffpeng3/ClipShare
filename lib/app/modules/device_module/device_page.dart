@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/modules/device_module/device_controller.dart';
@@ -11,6 +12,7 @@ import 'package:clipshare/app/widgets/dot.dart';
 import 'package:clipshare/app/widgets/loading_dots.dart';
 import 'package:clipshare/app/widgets/network_address_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 /**
@@ -27,6 +29,7 @@ class DevicePage extends GetView<DeviceController> {
       children: [
         Column(
           children: <Widget>[
+            //我的设备列表
             Obx(
               () => Column(
                 children: [
@@ -44,10 +47,8 @@ class DevicePage extends GetView<DeviceController> {
                                 width: 5,
                               ),
                               Text(
-                                TranslationKey.devicePageMyDevicesText.name
-                                    .trParams({
-                                  'length':
-                                      controller.pairedList.length.toString(),
+                                TranslationKey.devicePageMyDevicesText.name.trParams({
+                                  'length': controller.pairedList.length.toString(),
                                 }),
                                 style: const TextStyle(
                                   fontSize: 16,
@@ -67,13 +68,10 @@ class DevicePage extends GetView<DeviceController> {
                                     margin: const EdgeInsets.only(right: 5),
                                     child: Dot(
                                       radius: 6.0,
-                                      color: controller.forwardConnected.value
-                                          ? Colors.green
-                                          : Colors.grey,
+                                      color: controller.forwardConnected.value ? Colors.green : Colors.grey,
                                     ),
                                   ),
-                                  Text(TranslationKey
-                                      .devicePageForwardServerText.tr),
+                                  Text(TranslationKey.devicePageForwardServerText.tr),
                                   const SizedBox(width: 10),
                                 ],
                               ),
@@ -83,7 +81,7 @@ class DevicePage extends GetView<DeviceController> {
                       ),
                     ),
                   ),
-                  ...controller.pairedList,
+                  renderGridView(controller.pairedList),
                 ],
               ),
             ),
@@ -94,8 +92,7 @@ class DevicePage extends GetView<DeviceController> {
                   Obx(
                     () => Icon(
                       Icons.online_prediction_rounded,
-                      color:
-                          controller.discovering.value ? Colors.blueGrey : null,
+                      color: controller.discovering.value ? Colors.blueGrey : null,
                     ),
                   ),
                   const SizedBox(width: 5),
@@ -118,8 +115,7 @@ class DevicePage extends GetView<DeviceController> {
                         child: IconButton(
                           onPressed: () {
                             if (controller.discovering.value) {
-                              controller.rotationReverse.value =
-                                  !controller.rotationReverse.value;
+                              controller.rotationReverse.value = !controller.rotationReverse.value;
                               controller.setRotationAnimation();
                               sktService.restartDiscoveryDevices();
                             } else {
@@ -150,8 +146,7 @@ class DevicePage extends GetView<DeviceController> {
                     () => Visibility(
                       visible: controller.discovering.value,
                       child: Tooltip(
-                        message:
-                            TranslationKey.devicePageStopDiscoveringTooltip.tr,
+                        message: TranslationKey.devicePageStopDiscoveringTooltip.tr,
                         child: IconButton(
                           onPressed: () {
                             sktService.stopDiscoveryDevices();
@@ -173,9 +168,7 @@ class DevicePage extends GetView<DeviceController> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          LoadingDots(
-                              text:
-                                  Text(appConfig.deviceDiscoveryStatus.value!)),
+                          LoadingDots(text: Text(appConfig.deviceDiscoveryStatus.value!)),
                         ],
                       ),
                     );
@@ -183,7 +176,7 @@ class DevicePage extends GetView<DeviceController> {
                 ],
               ),
             ),
-            //此处不可以用Visibility组件控制渲染，会导致RoundedClip组件背景色失效
+            //设备发现列表，此处不可以用Visibility组件控制渲染，会导致RoundedClip组件背景色失效
             Obx(
               () => ConditionWidget(
                 condition: controller.discoverList.isEmpty,
@@ -195,11 +188,10 @@ class DevicePage extends GetView<DeviceController> {
                   minVersion: null,
                   version: null,
                 ),
-                invisible: Column(
-                  children: controller.discoverList,
-                ),
+                invisible: renderGridView(controller.discoverList),
               ),
             ),
+            //查看本机IP
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -233,7 +225,7 @@ class DevicePage extends GetView<DeviceController> {
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ],
@@ -251,5 +243,27 @@ class DevicePage extends GetView<DeviceController> {
     );
   }
 
+  ///创建设备列表 gridview
+  Widget renderGridView(List<DeviceCard> list) {
+    return LayoutBuilder(
+      builder: (ctx, constraints) {
+        return Obx(() {
+          const maxWidth = 395;
+          final showMore = appConfig.showMoreItemsInRow;
+          final listLength = list.length;
+          final count = showMore && listLength >= 2 ? max(2, constraints.maxWidth ~/ maxWidth) : 1;
+          return MasonryGridView.count(
+            crossAxisCount: count,
+            mainAxisSpacing: 4,
+            shrinkWrap: true,
+            itemCount: listLength,
+            itemBuilder: (context, index) {
+              return list[index];
+            },
+          );
+        });
+      },
+    );
+  }
 //endregion
 }

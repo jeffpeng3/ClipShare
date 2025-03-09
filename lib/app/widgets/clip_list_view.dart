@@ -300,49 +300,40 @@ class ClipListViewState extends State<ClipListView> with WidgetsBindingObserver 
                       EmptyContent(),
                     ],
                   )
-                : widget.imageMasonryGridViewLayout
-                    ? LayoutBuilder(
-                        builder: (ctx, constraints) {
-                          var maxWidth = 200.0;
-                          var count = max(
-                            2,
-                            constraints.maxWidth ~/ maxWidth,
-                          );
-                          return Obx(
-                            () => MasonryGridView.count(
-                              crossAxisCount: count,
-                              mainAxisSpacing: 4,
-                              shrinkWrap: true,
-                              crossAxisSpacing: 4,
-                              itemCount: widget.list.length,
-                              controller: _scrollController,
-                              physics: _scrollPhysics,
-                              itemBuilder: (context, index) {
-                                return renderItem(index);
-                              },
-                            ),
-                          );
-                        },
-                      )
-                    : Obx(
-                        () => ListView.builder(
+                : LayoutBuilder(
+                    builder: (ctx, constraints) {
+                      return Obx(() {
+                        final isImageMode = widget.imageMasonryGridViewLayout;
+                        final maxWidth = isImageMode ? 200.0 : 395;
+                        final showMore = appConfig.showMoreItemsInRow || isImageMode;
+                        final count = showMore ? max(2, constraints.maxWidth ~/ maxWidth) : 1;
+                        return MasonryGridView.count(
+                          crossAxisCount: count,
+                          mainAxisSpacing: 4,
+                          shrinkWrap: true,
                           itemCount: widget.list.length,
                           controller: _scrollController,
                           physics: _scrollPhysics,
-                          itemBuilder: (context, i) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 2,
-                              ),
-                              constraints: const BoxConstraints(
-                                maxHeight: 150,
-                                minHeight: 80,
-                              ),
-                              child: renderItem(i),
-                            );
+                          itemBuilder: (context, index) {
+                            if (isImageMode) {
+                              return renderItem(index);
+                            } else {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 2,
+                                ),
+                                constraints: const BoxConstraints(
+                                  maxHeight: 150,
+                                  minHeight: 80,
+                                ),
+                                child: renderItem(index),
+                              );
+                            }
                           },
-                        ),
-                      ),
+                        );
+                      });
+                    },
+                  ),
           ),
           Positioned(
             bottom: 16,
