@@ -120,8 +120,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   DateTime? _lastForwardServerPingTime;
   final List<DevAliveListener> _devAliveListeners = List.empty(growable: true);
   final List<DiscoverListener> _discoverListeners = List.empty(growable: true);
-  final List<ForwardStatusListener> _forwardStatusListener =
-      List.empty(growable: true);
+  final List<ForwardStatusListener> _forwardStatusListener = List.empty(growable: true);
   final missingDataSyncProgress = <String, MissingDataSyncProgress>{}.obs;
   final Map<String, DevSocket> _devSockets = {};
   late SecureSocketServer _server;
@@ -207,8 +206,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
             var connecting = _connectingAddress.contains(address);
             if (!inChain && !connecting) {
               _connectingAddress.add(address);
-              broadcastProcessChain[devId] =
-                  _onBroadcastInfoReceived(msg, datagram);
+              broadcastProcessChain[devId] = _onBroadcastInfoReceived(msg, datagram);
             }
             break;
           default:
@@ -253,8 +251,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
       onConnected: (client) async {
         Log.debug(tag, '已连接到服务器');
         //本地是否已配对
-        var localDevice =
-            await dbService.deviceDao.getById(dev.guid, appConfig.userId);
+        var localDevice = await dbService.deviceDao.getById(dev.guid, appConfig.userId);
         var localIsPaired = localDevice?.isPaired ?? false;
         var pairedStatusData = MessageData(
           userId: appConfig.userId,
@@ -351,9 +348,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   Future<void> connectForwardServer([bool startDiscovery = false]) async {
     disConnectForwardServer();
     //屏幕关闭且 设置了自动断连 且 定时器已到期 则不连接
-    if (!screenOpened &&
-        appConfig.autoCloseConnAfterScreenOff &&
-        autoCloseConnTimer == null) {
+    if (!screenOpened && appConfig.autoCloseConnAfterScreenOff && autoCloseConnTimer == null) {
       return;
     }
     if (!appConfig.enableForward) return;
@@ -426,10 +421,10 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   }
 
   ///断开中转服务器
-  void disConnectForwardServer() {
+  Future<void> disConnectForwardServer() async {
     Log.debug(tag, "disConnectForwardServer");
     _autoConnForwardServer = false;
-    _forwardClient?.close();
+    await _forwardClient?.close();
     _forwardClient = null;
     for (var listener in _forwardStatusListener) {
       listener.onForwardServerDisconnected();
@@ -471,8 +466,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
         if (!data.containsKey("result")) {
           Global.showTipsDialog(
             context: Get.context!,
-            text:
-                "${TranslationKey.forwardServerUnknownResult.tr}:\n ${data.toString()}",
+            text: "${TranslationKey.forwardServerUnknownResult.tr}:\n ${data.toString()}",
             title: TranslationKey.forwardServerConnectFailed.tr,
           );
           disableForwardServerAfterDelay();
@@ -541,8 +535,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   ) async {
     DevInfo dev = msg.send;
     Log.debug(tag, "${dev.name} ${msg.key}");
-    var address =
-        ipSetTemp.firstWhereOrNull((ip) => ip.split(":")[0] == client.ip);
+    var address = ipSetTemp.firstWhereOrNull((ip) => ip.split(":")[0] == client.ip);
     switch (msg.key) {
       case MsgType.ping:
         if (_devSockets.containsKey(dev.guid)) {
@@ -552,8 +545,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
 
       ///客户端连接
       case MsgType.connect:
-        var device =
-            await dbService.deviceDao.getById(dev.guid, appConfig.userId);
+        var device = await dbService.deviceDao.getById(dev.guid, appConfig.userId);
         var isPaired = device != null && device.isPaired;
         //未配对且不允许被发现，关闭链接
         if (!appConfig.allowDiscover && !isPaired) {
@@ -565,8 +557,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
           break;
         }
         //本地是否已配对
-        var localDevice =
-            await dbService.deviceDao.getById(dev.guid, appConfig.userId);
+        var localDevice = await dbService.deviceDao.getById(dev.guid, appConfig.userId);
         var localIsPaired = localDevice?.isPaired ?? false;
         var pairedStatusData = MessageData(
           userId: appConfig.userId,
@@ -664,8 +655,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(TranslationKey.pairingCodeDialogContent
-                        .trParams({"devName": dev.name})),
+                    Text(TranslationKey.pairingCodeDialogContent.trParams({"devName": dev.name})),
                     const SizedBox(
                       height: 10,
                     ),
@@ -806,14 +796,16 @@ class SocketService extends GetxService with ScreenOpenedObserver {
       //广播发现
       tasks.addAll(_multicastDiscover());
     }
-    appConfig.deviceDiscoveryStatus.value =
-        TranslationKey.deviceDiscoveryStatusViaBroadcast.tr;
+    appConfig.deviceDiscoveryStatus.value = TranslationKey.deviceDiscoveryStatusViaBroadcast.tr;
+    //尝试连接中转服务器
+    if (_forwardClient == null) {
+      await connectForwardServer();
+    }
     //并行处理
     _taskRunner = TaskRunner<void>(
       initialTasks: tasks,
       onFinish: () async {
-        appConfig.deviceDiscoveryStatus.value =
-            TranslationKey.deviceDiscoveryStatusViaScan.tr;
+        appConfig.deviceDiscoveryStatus.value = TranslationKey.deviceDiscoveryStatusViaScan.tr;
         if (appConfig.onlyForwardMode) {
           tasks = []; //测试屏蔽发现用
         } else {
@@ -823,8 +815,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
         _taskRunner = TaskRunner<void>(
           initialTasks: tasks,
           onFinish: () async {
-            appConfig.deviceDiscoveryStatus.value =
-                TranslationKey.deviceDiscoveryStatusViaForward.tr;
+            appConfig.deviceDiscoveryStatus.value = TranslationKey.deviceDiscoveryStatusViaForward.tr;
             //发现中转设备
             tasks = await _forwardDiscover();
             _taskRunner = TaskRunner<void>(
@@ -889,19 +880,11 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   Future<List<Future<void> Function()>> _subNetDiscover() async {
     List<Future<void> Function()> tasks = List.empty(growable: true);
     var interfaces = await NetworkInterface.list();
-    var expendAddress = interfaces
-        .map((networkInterface) => networkInterface.addresses)
-        .expand((ip) => ip);
-    var ips = expendAddress
-        .where((ip) => ip.type == InternetAddressType.IPv4)
-        .map((address) => address.address)
-        .toList();
+    var expendAddress = interfaces.map((networkInterface) => networkInterface.addresses).expand((ip) => ip);
+    var ips = expendAddress.where((ip) => ip.type == InternetAddressType.IPv4).map((address) => address.address).toList();
     for (var ip in ips) {
       //生成所有 ip
-      final ipList =
-          List.generate(255, (i) => '${ip.split('.').take(3).join('.')}.$i')
-              .where((genIp) => genIp != ip)
-              .toList();
+      final ipList = List.generate(255, (i) => '${ip.split('.').take(3).join('.')}.$i').where((genIp) => genIp != ip).toList();
       //对每个ip尝试连接
       for (var genIp in ipList) {
         tasks.add(() => manualConnect(genIp));
@@ -1064,8 +1047,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
       return;
     }
     //本地是否存在该设备
-    var localDevice =
-        await dbService.deviceDao.getById(dev.guid, appConfig.userId);
+    var localDevice = await dbService.deviceDao.getById(dev.guid, appConfig.userId);
     bool paired = false;
     if (localDevice != null) {
       var localIsPaired = localDevice.isPaired;
@@ -1157,8 +1139,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
 
     //更新连接地址
     final address = "$ip:$port";
-    await dbService.deviceDao
-        .updateDeviceAddress(dev.guid, appConfig.userId, address);
+    await dbService.deviceDao.updateDeviceAddress(dev.guid, appConfig.userId, address);
     _devSockets[dev.guid]!.updatePingTime();
     broadcastProcessChain.remove(dev.guid);
     for (var listener in _devAliveListeners) {
@@ -1184,8 +1165,6 @@ class SocketService extends GetxService with ScreenOpenedObserver {
         continue;
       }
       disconnectDevice(devSkt.dev, true);
-      // _onDevDisconnected(devSkt.dev.guid, false);
-      // devSkt.socket.destroy();
     }
   }
 
@@ -1274,8 +1253,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
       return;
     }
     //更新timer
-    _forwardClientHeartbeatTimer =
-        Timer.periodic(const Duration(seconds: 35), (timer) {
+    _forwardClientHeartbeatTimer = Timer.periodic(const Duration(seconds: 35), (timer) {
       var disconnected = false;
       if (_lastForwardServerPingTime == null) {
         disconnected = true;
@@ -1436,9 +1414,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
     Iterable<DevSocket> list = [];
     //向所有设备发送消息
     if (dev == null) {
-      list = onlyPaired
-          ? _devSockets.values.where((dev) => dev.isPaired)
-          : _devSockets.values;
+      list = onlyPaired ? _devSockets.values.where((dev) => dev.isPaired) : _devSockets.values;
       //筛选兼容版本的设备
       list = list.where(
         (dev) => dev.version != null && dev.version! >= appConfig.minVersion,
@@ -1555,8 +1531,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
     final interfaces = await NetworkInterface.list();
     final sockets = <RawDatagramSocket>[];
     for (final interface in interfaces) {
-      final socket =
-          await RawDatagramSocket.bind(InternetAddress.anyIPv4, port);
+      final socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, port);
       socket.joinMulticast(InternetAddress(multicastGroup), interface);
       sockets.add(socket);
     }
