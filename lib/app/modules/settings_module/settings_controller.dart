@@ -186,7 +186,6 @@ class SettingsController extends GetxController with WidgetsBindingObserver impl
       Get.lazyPut(() => CleanDataController());
       homeController.openEndDrawer(
         drawer: CleanDataPage(),
-        width: 400,
         onDrawerClosed: () {
           Get.delete<CleanDataController>();
         },

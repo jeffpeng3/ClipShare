@@ -392,7 +392,7 @@ class HomeController extends GetxController with WidgetsBindingObserver, ScreenO
   ///region drawer 打开和关闭
   void openEndDrawer({
     required Widget drawer,
-    double? width,
+    double? width = 400,
     Function? onDrawerClosed,
   }) {
     if (_drawer.value != null) {
