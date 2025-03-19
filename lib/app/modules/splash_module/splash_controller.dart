@@ -127,13 +127,13 @@ class SplashController extends GetxController {
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.hidden,
     );
-    windowManager.waitUntilReadyToShow(windowOptions, () {
+    return windowManager.waitUntilReadyToShow(windowOptions, () async {
       if (!appConfig.startMini) {
+        // await appConfig.initWindows();
         windowManager.show();
         windowManager.focus();
       }
     });
-    return Future<void>.value();
   }
 
   ///初始化快捷键

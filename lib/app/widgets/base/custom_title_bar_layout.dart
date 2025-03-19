@@ -1,9 +1,11 @@
+import 'package:clipshare/app/services/window_control_service.dart';
 import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:flutter/material.dart';
-import 'package:modern_titlebar_buttons/modern_titlebar_buttons.dart';
+import 'package:get/get.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
-class CustomTitleBarLayout extends StatelessWidget {
+class CustomTitleBarLayout extends StatefulWidget {
   final List<Widget> children;
   final Widget child;
 
@@ -14,44 +16,124 @@ class CustomTitleBarLayout extends StatelessWidget {
   });
 
   @override
+  State<StatefulWidget> createState() => _CustomTitleBarLayoutState();
+}
+
+class _CustomTitleBarLayoutState extends State<CustomTitleBarLayout> {
+  static const double titleBarHeight = 35;
+  final windowControlService = Get.find<WindowControlService>();
+  bool closeBtnHovered = false;
+
+  @override
   Widget build(BuildContext context) {
+    final titleLayout = Row(
+      children: widget.children,
+    );
     return Column(
       children: [
-        Visibility(
-          visible: PlatformExt.isDesktop,
-          child: Row(
-            children: [
-              Expanded(
-                child: DragToMoveArea(
-                  child: Row(
-                    children: children,
+        SizedBox(
+          height: titleBarHeight,
+          child: Visibility(
+            visible: PlatformExt.isDesktop,
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onPanStart: (details) {
+                      windowManager.startDragging();
+                    },
+                    child: titleLayout,
                   ),
                 ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DecoratedMinimizeButton(
-                    onPressed: () {
-                      windowManager.minimize();
-                    },
+                Obx(
+                  () => Visibility(
+                    visible: windowControlService.resizable.value,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Obx(
+                          () => Visibility(
+                            visible: windowControlService.minimizable.value,
+                            child: InkWell(
+                              mouseCursor: SystemMouseCursors.basic,
+                              child: SizedBox(
+                                width: titleBarHeight,
+                                height: titleBarHeight,
+                                child: Icon(
+                                  MdiIcons.minus,
+                                  size: 15,
+                                ),
+                              ),
+                              onTap: () {
+                                windowControlService.minimize();
+                              },
+                            ),
+                          ),
+                        ),
+                        Obx(
+                          () => Visibility(
+                            visible: windowControlService.maximizable.value || windowControlService.minimizable.value,
+                            child: InkWell(
+                              mouseCursor: SystemMouseCursors.basic,
+                              onTap: windowControlService.maximizable.value
+                                  ? () {
+                                      if (windowControlService.maxWindow.value) {
+                                        windowControlService.restore();
+                                      } else {
+                                        windowControlService.maximize();
+                                      }
+                                    }
+                                  : null,
+                              child: SizedBox(
+                                width: titleBarHeight,
+                                height: titleBarHeight,
+                                child: Icon(
+                                  windowControlService.maxWindow.value && windowControlService.maximizable.value ? MdiIcons.cardMultipleOutline : Icons.check_box_outline_blank,
+                                  size: 13,
+                                  color: windowControlService.maximizable.value ? null : Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  DecoratedMaximizeButton(
-                    onPressed: () {
-                      windowManager.maximize();
-                    },
+                ),
+                Obx(
+                  () => Visibility(
+                    visible: windowControlService.closeable.value,
+                    child: InkWell(
+                      mouseCursor: SystemMouseCursors.basic,
+                      hoverColor: Colors.red,
+                      splashColor: Colors.red,
+                      highlightColor: Colors.red,
+                      onHover: (hovered) {
+                        setState(() {
+                          closeBtnHovered = hovered;
+                        });
+                      },
+                      child: SizedBox(
+                        width: titleBarHeight,
+                        height: titleBarHeight,
+                        child: Icon(
+                          Icons.close,
+                          size: 13,
+                          color: closeBtnHovered ? Colors.white : null,
+                        ),
+                      ),
+                      onTap: () {
+                        windowManager.hide();
+                      },
+                    ),
                   ),
-                  DecoratedCloseButton(
-                    onPressed: () {
-                      windowManager.hide();
-                    },
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
-        Expanded(child: child),
+        Expanded(child: widget.child),
       ],
     );
   }

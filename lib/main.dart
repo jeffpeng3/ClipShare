@@ -16,6 +16,7 @@ import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/services/syncing_file_progress_service.dart';
 import 'package:clipshare/app/services/tag_service.dart';
 import 'package:clipshare/app/services/tray_service.dart';
+import 'package:clipshare/app/services/window_control_service.dart';
 import 'package:clipshare/app/services/window_service.dart';
 import 'package:clipshare/app/translations/app_translations.dart';
 import 'package:clipshare/app/utils/constants.dart';
@@ -38,6 +39,7 @@ Future<void> main(List<String> args) async {
     // Must add this line.
     await windowManager.ensureInitialized();
   }
+  await Get.putAsync(() => WindowControlService().initWindows());
   Widget home = SplashPage();
   String title = Constants.appName;
   var isMultiWindow = args.firstOrNull == 'multi_window';
@@ -48,10 +50,11 @@ Future<void> main(List<String> args) async {
     multiWindowArgs = DesktopMultiWindowArgs.fromJson(jsonDecode(args[2]));
     switch (multiWindowArgs.tag) {
       case MultiWindowTag.history:
-        windowManager.setAlwaysOnTop(true);
-        windowManager.setResizable(false);
-        windowManager.setMinimizable(false);
-        windowManager.setMaximizable(false);
+        final wcs = Get.find<WindowControlService>();
+        wcs.setAlwaysOnTop(true);
+        wcs.setResizable(false);
+        wcs.setMinimizable(false);
+        wcs.setMaximizable(false);
         home = HistoryWindow(
           windowController: WindowController.fromWindowId(windowId),
           args: multiWindowArgs.otherArgs,
@@ -109,8 +112,7 @@ final logoImg = Image.asset(
 );
 
 void runMain(Widget home, String title, DesktopMultiWindowArgs? args) {
-  final isDarkMode =
-      args?.themeMode == ThemeMode.dark || Get.isPlatformDarkMode;
+  final isDarkMode = args?.themeMode == ThemeMode.dark || Get.isPlatformDarkMode;
   Locale? locale;
   final isMultiWindow = args != null;
   if (isMultiWindow) {

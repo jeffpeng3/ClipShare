@@ -101,6 +101,7 @@ class ConfigService extends GetxService {
   //region 响应式
 
   //region 应用内配置
+
   bool get isSmallScreen => Get.width <= Constants.smallScreenWidth;
   final isHistorySyncing = false.obs;
 
