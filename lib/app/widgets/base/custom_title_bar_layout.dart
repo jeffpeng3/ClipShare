@@ -31,10 +31,10 @@ class _CustomTitleBarLayoutState extends State<CustomTitleBarLayout> {
     );
     return Column(
       children: [
-        SizedBox(
-          height: titleBarHeight,
-          child: Visibility(
-            visible: PlatformExt.isDesktop,
+        Visibility(
+          visible: PlatformExt.isDesktop,
+          child: SizedBox(
+            height: titleBarHeight,
             child: Row(
               children: [
                 Expanded(
