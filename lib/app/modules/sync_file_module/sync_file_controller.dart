@@ -2,14 +2,24 @@ import 'dart:io';
 
 import 'package:clipshare/app/data/enums/syncing_file_state.dart';
 import 'package:clipshare/app/data/enums/translation_key.dart';
+import 'package:clipshare/app/data/models/my_drop_item.dart';
+import 'package:clipshare/app/data/models/pending_file.dart';
+import 'package:clipshare/app/data/repository/entity/tables/device.dart';
+import 'package:clipshare/app/handlers/sync/file_sync_handler.dart';
 import 'package:clipshare/app/listeners/multi_selection_pop_scope_disable_listener.dart';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
+import 'package:clipshare/app/services/pending_file_service.dart';
+import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/services/syncing_file_progress_service.dart';
+import 'package:clipshare/app/utils/file_util.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
+import 'package:clipshare/app/widgets/empty_content.dart';
 import 'package:clipshare/app/widgets/sync_file_status.dart';
+import 'package:desktop_drop/desktop_drop.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 /**
@@ -23,27 +33,25 @@ class _SyncingFilePageTab {
   _SyncingFilePageTab({required this.name, required this.icon});
 }
 
-class SyncFileController extends GetxController
-    implements MultiSelectionPopScopeDisableListener {
+class SyncFileController extends GetxController with GetTickerProviderStateMixin, DevAliveListener implements MultiSelectionPopScopeDisableListener {
   final appConfig = Get.find<ConfigService>();
   final dbService = Get.find<DbService>();
+  final syncingFileService = Get.find<SyncingFileProgressService>();
+  final sktService = Get.find<SocketService>();
+  final pendingFileService = Get.find<PendingFileService>();
+
   static const logTag = "SyncingFilePage";
   final tag = "SyncFileController";
+  late TabController tabController;
+  final emptyContent = EmptyContent(
+    description: TranslationKey.dragFileToSend.tr,
+  );
 
-  @override
-  void onReady() {
-    final homeController = Get.find<HomeController>();
-    homeController.registerMultiSelectionPopScopeDisableListener(this);
-    refreshHistoryFiles();
-  }
+  bool selectMode = false;
+  final selected = <int, SyncFileStatus>{}.obs;
+  final _recHistories = <SyncFileStatus>[].obs;
 
-  @override
-  void onClose() {
-    final homeController = Get.find<HomeController>();
-    homeController.removeMultiSelectionPopScopeDisableListener(this);
-    super.onClose();
-  }
-
+  ///region tab明细数据
   List<_SyncingFilePageTab> get tabs => [
         _SyncingFilePageTab(
           name: TranslationKey.syncingFilePageHistoryTabText.tr,
@@ -67,27 +75,6 @@ class SyncFileController extends GetxController
           ),
         ),
       ];
-
-  bool selectMode = false;
-  final selected = <int, SyncFileStatus>{}.obs;
-  final syncingFileService = Get.find<SyncingFileProgressService>();
-  final _recHistories = <SyncFileStatus>[].obs;
-
-  Future refreshHistoryFiles() async {
-    var files = await dbService.historyDao.getFiles(appConfig.userId);
-    var historyList = List<SyncFileStatus>.empty(growable: true);
-    for (var history in files) {
-      historyList.add(
-        SyncFileStatus.fromHistory(
-          Get.context!,
-          history,
-          appConfig.device.guid,
-        ),
-      );
-    }
-    _recHistories.value = historyList;
-    return Future(() => null);
-  }
 
   List<SyncFileStatus> get recHistories => _recHistories;
 
@@ -133,6 +120,51 @@ class SyncFileController extends GetxController
           ),
         )
         .toList();
+  }
+
+  ///endregion
+
+  @override
+  void onInit() {
+    tabController = TabController(length: 3, vsync: this, initialIndex: 0);
+    sktService.addDevAliveListener(this);
+    super.onInit();
+  }
+
+  @override
+  void onReady() {
+    final homeController = Get.find<HomeController>();
+    homeController.registerMultiSelectionPopScopeDisableListener(this);
+    refreshHistoryFiles();
+  }
+
+  @override
+  void onClose() {
+    final homeController = Get.find<HomeController>();
+    homeController.removeMultiSelectionPopScopeDisableListener(this);
+    sktService.removeDevAliveListener(this);
+    super.onClose();
+  }
+
+  @override
+  void onDisconnected(String devId) {
+    pendingFileService.pendingDevs.removeWhere((dev) => dev.guid == devId);
+  }
+
+  Future refreshHistoryFiles() async {
+    var files = await dbService.historyDao.getFiles(appConfig.userId);
+    var historyList = List<SyncFileStatus>.empty(growable: true);
+    for (var history in files) {
+      historyList.add(
+        SyncFileStatus.fromHistory(
+          Get.context!,
+          history,
+          appConfig.device.guid,
+        ),
+      );
+    }
+    _recHistories.value = historyList;
+    return Future(() => null);
   }
 
   Future deleteRecord(bool withFile) {
@@ -199,4 +231,5 @@ class SyncFileController extends GetxController
   void onPopScopeDisableMultiSelection() {
     cancelSelectionMode();
   }
+
 }

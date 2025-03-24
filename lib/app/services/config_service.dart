@@ -117,6 +117,8 @@ class ConfigService extends GetxService {
   }
 
   final _isMultiSelectionMode = false.obs;
+
+  bool get isEnableMultiSelectionMode => _isMultiSelectionMode.value;
   GetxController? _selectionModeController;
   final _multiSelectionText = TranslationKey.multipleChoiceOperationAppBarTitle.tr.obs;
 

@@ -468,9 +468,11 @@ class EnUSTranslation extends AbstractTranslations {
       case TranslationKey.syncingFilePageHistoryTabText:
         return "History";
       case TranslationKey.syncingFilePageReceiveTabText:
-        return "Receive";
+        return "Receive Progress";
       case TranslationKey.syncingFilePageSendTabText:
-        return "Send";
+        return "Send Progress";
+      case TranslationKey.dragFileToSend:
+        return "Drag and drop the file here to send";
       case TranslationKey.deleting:
         return "Deleting...";
       case TranslationKey.deletingSuccess:
@@ -848,7 +850,7 @@ class EnUSTranslation extends AbstractTranslations {
       case TranslationKey.showOnRecentTasks:
         return "Show on recent tasks";
       case TranslationKey.showOnRecentTasksDesc:
-        return "Enabling this feature on some systems may result in the backend being killed after switching applications, and the current reason is unknown";
+        return "Hiding the backend on some systems may result in the backend being killed after switching applications, and the current reason is unknown";
       case TranslationKey.showLocalIpAddress:
         return "Show Local IP Address";
       case TranslationKey.localIpAddress:
@@ -927,6 +929,28 @@ class EnUSTranslation extends AbstractTranslations {
         return "Waiting to Running";
       case TranslationKey.defaultClipboardServerNotificationCfgWaitingRunningText:
         return "Waiting to Running Service";
+      case TranslationKey.startSendFileToast:
+        return "The file has started sending, please check the sending progress";
+      case TranslationKey.folder:
+        return "Folder";
+      case TranslationKey.removeFromPendingList:
+        return "Remove from the sending list";
+      case TranslationKey.onlineDevices:
+        return "Online devices";
+      case TranslationKey.noOnlineDevices:
+        return "No online devices";
+      case TranslationKey.pendingFiles:
+        return "Pending files";
+      case TranslationKey.clearPendingFiles:
+        return "Clear pending list";
+      case TranslationKey.pendingFileLen:
+        return "Total of @len files";
+      case TranslationKey.addFilesFromSystem:
+        return "Add files from the system";
+      case TranslationKey.viewPendingFiles:
+        return "View pending files";
+      case TranslationKey.sendFiles:
+        return "Send files";
     }
   }
 }

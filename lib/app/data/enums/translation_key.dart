@@ -455,7 +455,20 @@ enum TranslationKey {
   defaultClipboardServerNotificationCfgShizukuDisconnectedTitle,
   defaultClipboardServerNotificationCfgShizukuDisconnectedText,
   defaultClipboardServerNotificationCfgWaitingRunningTitle,
-  defaultClipboardServerNotificationCfgWaitingRunningText;
+  defaultClipboardServerNotificationCfgWaitingRunningText,
+  dragFileToSend,
+  startSendFileToast,
+  folder,
+  removeFromPendingList,
+  onlineDevices,
+  noOnlineDevices,
+  pendingFiles,
+  clearPendingFiles,
+  pendingFileLen,
+  addFilesFromSystem,
+  viewPendingFiles,
+  sendFiles,
+  ;
 
   String get tr => name.tr;
 

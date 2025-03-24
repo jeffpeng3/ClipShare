@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
-import 'package:clipshare/app/services/channels/multi_window_channel.dart';
-import 'package:clipshare/app/theme/app_theme.dart';
 import 'package:clipshare/app/modules/views/windows/online_devices/online_devices_page.dart';
+import 'package:clipshare/app/services/channels/multi_window_channel.dart';
+import 'package:clipshare/app/services/pending_file_service.dart';
+import 'package:clipshare/app/theme/app_theme.dart';
 import 'package:clipshare/app/utils/constants.dart';
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,16 +28,14 @@ class OnlineDevicesWindow extends StatefulWidget {
   }
 }
 
-class _OnlineDevicesWindowState extends State<OnlineDevicesWindow>
-    with WidgetsBindingObserver {
-  late final List<String> _syncFiles;
+class _OnlineDevicesWindowState extends State<OnlineDevicesWindow> with WidgetsBindingObserver {
   List<Device> _devices = [];
   final multiWindowChannelService = Get.find<MultiWindowChannelService>();
+  final pendingFileService = Get.find<PendingFileService>();
 
   @override
   void initState() {
     super.initState();
-    _syncFiles = (widget.args["files"] as List<dynamic>).cast<String>();
     //监听生命周期
     WidgetsBinding.instance.addObserver(this);
     //处理弹窗事件
@@ -61,7 +61,7 @@ class _OnlineDevicesWindowState extends State<OnlineDevicesWindow>
     super.didChangeAppLifecycleState(state);
     switch (state) {
       case AppLifecycleState.inactive:
-        widget.windowController.close();
+        // widget.windowController.close();
         break;
       default:
     }
@@ -80,28 +80,19 @@ class _OnlineDevicesWindowState extends State<OnlineDevicesWindow>
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '历史记录',
-      theme: lightThemeData,
-      darkTheme: darkThemeData,
-      themeMode: ThemeMode.system,
-      //当前运行环境配置
-      locale: Constants.defaultLocale,
-      //程序支持的语言环境配置
-      supportedLocales: Constants.supportedLocales,
-      //Material 风格代理配置
-      localizationsDelegates: Constants.localizationsDelegates,
-      home: OnlineDevicesPage(
-        devices: _devices,
-        onSendClicked: (context, selectedDevices) async {
-          await multiWindowChannelService.syncFiles(
-            0,
-            selectedDevices,
-            _syncFiles,
-          );
-          widget.windowController.close();
-        },
-      ),
+    return OnlineDevicesPage(
+      devices: _devices,
+      onSendClicked: (List<Device> devices, List<DropItem> items) async {
+        await multiWindowChannelService.syncFiles(
+          0,
+          devices,
+          items.map((item) => item.path).toList(growable: false),
+        );
+        widget.windowController.close();
+      },
+      onItemRemove: (DropItem item) {
+        pendingFileService.removeDropItem(item);
+      },
     );
   }
 }

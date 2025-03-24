@@ -110,6 +110,10 @@ class HomeController extends GetxController with WidgetsBindingObserver, ScreenO
   bool get showLeftBar => screenWidth >= Constants.smallScreenWidth;
 
   final sktService = Get.find<SocketService>();
+  final dragging = false.obs;
+  final showPendingItemsDetail = false.obs;
+
+  bool get isSyncFilePage => _pages[index] is SyncFilePage;
 
   //endregion
 

@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:clipshare/app/data/enums/multi_window_tag.dart';
 import 'package:clipshare/app/data/models/desktop_multi_window_args.dart';
+import 'package:clipshare/app/modules/sync_file_module/sync_file_controller.dart';
 import 'package:clipshare/app/modules/views/windows/history/history_window.dart';
 import 'package:clipshare/app/modules/views/windows/online_devices/online_devices_window.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
@@ -12,6 +13,7 @@ import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
 import 'package:clipshare/app/services/device_service.dart';
+import 'package:clipshare/app/services/pending_file_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/services/syncing_file_progress_service.dart';
 import 'package:clipshare/app/services/tag_service.dart';
@@ -62,6 +64,11 @@ Future<void> main(List<String> args) async {
         title = multiWindowArgs.title;
         break;
       case MultiWindowTag.devices:
+        final wcs = Get.find<WindowControlService>();
+        wcs.setAlwaysOnTop(true);
+        wcs.setResizable(false);
+        wcs.setMinimizable(false);
+        wcs.setMaximizable(false);
         home = OnlineDevicesWindow(
           windowController: WindowController.fromWindowId(windowId),
           args: multiWindowArgs.otherArgs,
@@ -71,10 +78,10 @@ Future<void> main(List<String> args) async {
     }
   }
   if (isMultiWindow) {
-    Get.put(MultiWindowChannelService());
+    await initMultiWindowServices();
     runMain(home, title, multiWindowArgs);
   } else {
-    await initServices();
+    await initMainServices();
     runZonedGuarded(
       () {
         runMain(home, title, null);
@@ -86,13 +93,14 @@ Future<void> main(List<String> args) async {
   }
 }
 
-Future<void> initServices() async {
+Future<void> initMainServices() async {
   await Get.putAsync(() => DbService().init());
   await Get.putAsync(() => ConfigService().init());
   Get.put<SocketService>(SocketService(), permanent: true);
   Get.put(AndroidChannelService().init());
   Get.put(ClipChannelService().init());
   Get.put(MultiWindowChannelService());
+  Get.put(PendingFileService());
   await Get.putAsync(() => DeviceService().init(), permanent: true);
   await Get.putAsync(() => TagService().init(), permanent: true);
   await Get.putAsync(
@@ -103,6 +111,11 @@ Future<void> initServices() async {
     await Get.putAsync(() => WindowService().init());
     await Get.putAsync(() => TrayService().init());
   }
+}
+
+Future<void> initMultiWindowServices() async {
+  Get.put(MultiWindowChannelService());
+  Get.put(PendingFileService());
 }
 
 final logoImg = Image.asset(

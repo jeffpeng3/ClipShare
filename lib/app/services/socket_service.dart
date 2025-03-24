@@ -31,26 +31,26 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-abstract class DevAliveListener {
+abstract mixin class DevAliveListener {
   //连接成功
   void onConnected(
     DevInfo info,
     AppVersion minVersion,
     AppVersion version,
     bool isForward,
-  );
+  ){}
 
   //断开连接
-  void onDisconnected(String devId);
+  void onDisconnected(String devId){}
 
   //配对成功
-  void onPaired(DevInfo dev, int uid, bool result, String? address);
+  void onPaired(DevInfo dev, int uid, bool result, String? address){}
 
   //取消配对
-  void onCancelPairing(DevInfo dev);
+  void onCancelPairing(DevInfo dev){}
 
   //忘记设备
-  void onForget(DevInfo dev, int uid);
+  void onForget(DevInfo dev, int uid){}
 }
 
 abstract class SyncListener {
@@ -495,7 +495,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
         final userId = data["userId"].toString().toInt();
         //连接中转接收文件
         try {
-          await FileSyncHandler.recFile(
+          await FileSyncHandler.receiveFile(
             isForward: true,
             ip: forwardServerHost!,
             port: forwardServerPort!,
@@ -720,7 +720,7 @@ class SocketService extends GetxService with ScreenOpenedObserver {
         String fileName = msg.data["fileName"];
         int fileId = msg.data["fileId"];
         try {
-          await FileSyncHandler.recFile(
+          await FileSyncHandler.receiveFile(
             ip: ip,
             port: port,
             size: size,

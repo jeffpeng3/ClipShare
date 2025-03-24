@@ -29,13 +29,7 @@ import 'package:pinput/pinput.dart';
  * GetX Template Generator - fb.com/htngu.99
  * */
 
-class DeviceController extends GetxController
-    with GetSingleTickerProviderStateMixin
-    implements
-        DevAliveListener,
-        SyncListener,
-        DiscoverListener,
-        ForwardStatusListener {
+class DeviceController extends GetxController with GetSingleTickerProviderStateMixin implements DevAliveListener, SyncListener, DiscoverListener, ForwardStatusListener {
   final appConfig = Get.find<ConfigService>();
   final sktService = Get.find<SocketService>();
   final dbService = Get.find<DbService>();
@@ -46,6 +40,12 @@ class DeviceController extends GetxController
   final String tag = "DevicesPage";
   final discoverList = List<DeviceCard>.empty(growable: true).obs;
   final pairedList = List<DeviceCard>.empty(growable: true).obs;
+
+  ///获取在线设备列表
+  List<Device> get onlineList => pairedList.where((item) => item.isConnected).map((item) => item.dev!).toList(growable: false);
+
+  ///获取兼容版本的在线设备列表
+  List<Device> get compatibleOnlineDevices => pairedList.where((item) => item.isVersionCompatible && item.isConnected).map((item) => item.dev!).toList(growable: false);
   late StateSetter pairingState;
   final pairingFailed = false.obs;
   final pairing = false.obs;
@@ -213,8 +213,7 @@ class DeviceController extends GetxController
           uid: 0,
           type: info.type,
         ),
-        onTap: (device, isConnected, showReNameDlg) =>
-            _requestPairing(info, Get.context!),
+        onTap: (device, isConnected, showReNameDlg) => _requestPairing(info, Get.context!),
         minVersion: minVersion,
         version: version,
         isPaired: false,
@@ -321,18 +320,14 @@ class DeviceController extends GetxController
           sktService.reqMissingData();
           return;
         }
-        Global.showSnackBarErr(
-            context: Get.context!,
-            text: TranslationKey.deviceAdditionFailedDialogText.tr);
+        Global.showSnackBarErr(context: Get.context!, text: TranslationKey.deviceAdditionFailedDialogText.tr);
       });
     } else {
       //新设备
       devService.addOrUpdate(newDev).then((res) {
         if (!res) {
           Log.debug(tag, "Device information addition failed");
-          Global.showSnackBarErr(
-              context: Get.context!,
-              text: TranslationKey.deviceAdditionFailedDialogText.tr);
+          Global.showSnackBarErr(context: Get.context!, text: TranslationKey.deviceAdditionFailedDialogText.tr);
           return;
         }
         _addPairedDevInPage(newDev);
@@ -449,14 +444,10 @@ class DeviceController extends GetxController
                           child: Column(
                             children: [
                               Icon(
-                                isConnected
-                                    ? Icons.link_off_outlined
-                                    : Icons.link,
+                                isConnected ? Icons.link_off_outlined : Icons.link,
                               ),
                               Text(
-                                isConnected
-                                    ? TranslationKey.devicePageDisconnect.tr
-                                    : TranslationKey.devicePageReconnect.tr,
+                                isConnected ? TranslationKey.devicePageDisconnect.tr : TranslationKey.devicePageReconnect.tr,
                               ),
                             ],
                           ),
@@ -484,9 +475,7 @@ class DeviceController extends GetxController
                               }
                               //更新配对状态为未配对
                               device.isPaired = false;
-                              dbService.deviceDao
-                                  .updateDevice(device)
-                                  .then((cnt) {
+                              dbService.deviceDao.updateDevice(device).then((cnt) {
                                 if (cnt <= 0) return;
                                 onForget(
                                   DevInfo.fromDevice(device),
@@ -505,8 +494,7 @@ class DeviceController extends GetxController
                           child: Column(
                             children: [
                               const Icon(Icons.block_flipped),
-                              Text(TranslationKey
-                                  .devicePageUnpairedButtonText.tr),
+                              Text(TranslationKey.devicePageUnpairedButtonText.tr),
                             ],
                           ),
                         ),
@@ -612,8 +600,7 @@ class DeviceController extends GetxController
                         decoration: defaultPinTheme.decoration!.copyWith(
                           border: Border.all(color: Colors.redAccent),
                         ),
-                        textStyle: defaultPinTheme.textStyle!
-                            .copyWith(color: Colors.redAccent),
+                        textStyle: defaultPinTheme.textStyle!.copyWith(color: Colors.redAccent),
                       ),
                       pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
                       showCursor: true,
@@ -627,9 +614,7 @@ class DeviceController extends GetxController
                     ),
                     (showTimeoutText || pairingFailed.value)
                         ? Text(
-                            showTimeoutText
-                                ? TranslationKey.devicePagePairingTimeoutText.tr
-                                : TranslationKey.devicePagePairingErrorText.tr,
+                            showTimeoutText ? TranslationKey.devicePagePairingTimeoutText.tr : TranslationKey.devicePagePairingErrorText.tr,
                             textAlign: TextAlign.left,
                             style: const TextStyle(color: Colors.redAccent),
                           )
@@ -680,17 +665,6 @@ class DeviceController extends GetxController
     }
   }
 
-  ///获取兼容版本的在线设备列表
-  List<Device> getCompatibleOnlineDevices() {
-    List<Device> res = List.empty(growable: true);
-    for (var dev in pairedList) {
-      if (dev.isConnected && dev.isVersionCompatible) {
-        res.add(dev.dev!);
-      }
-    }
-    return res;
-  }
-
   ///通知在线设备弹窗
   void _notifyOnlineDevicesWindow() {
     //通知弹窗更新设备列表
@@ -703,8 +677,7 @@ class DeviceController extends GetxController
   ///添加已配对设备，更新 ui
   void _addPairedDevInPage(Device dev) {
     //配对成功，从连接列表中移除
-    var discoverDev =
-        discoverList.firstWhere((ele) => ele.dev?.guid == dev.guid);
+    var discoverDev = discoverList.firstWhere((ele) => ele.dev?.guid == dev.guid);
     discoverList.removeWhere((ele) => ele.dev?.guid == dev.guid);
     //添加到已配对列表
     pairedList.add(

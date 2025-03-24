@@ -6,8 +6,10 @@ import FlutterMacOS
 import Foundation
 
 import connectivity_plus
+import desktop_drop
 import desktop_multi_window
 import device_info_plus
+import file_picker
 import hotkey_manager_macos
 import local_auth_darwin
 import package_info_plus
@@ -15,7 +17,7 @@ import path_provider_foundation
 import screen_retriever
 import share_plus
 import smart_auth
-import sqflite
+import sqflite_darwin
 import tray_manager
 import url_launcher_macos
 import wakelock_plus
@@ -23,8 +25,10 @@ import window_manager
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   ConnectivityPlugin.register(with: registry.registrar(forPlugin: "ConnectivityPlugin"))
+  DesktopDropPlugin.register(with: registry.registrar(forPlugin: "DesktopDropPlugin"))
   FlutterMultiWindowPlugin.register(with: registry.registrar(forPlugin: "FlutterMultiWindowPlugin"))
   DeviceInfoPlusMacosPlugin.register(with: registry.registrar(forPlugin: "DeviceInfoPlusMacosPlugin"))
+  FilePickerPlugin.register(with: registry.registrar(forPlugin: "FilePickerPlugin"))
   HotkeyManagerMacosPlugin.register(with: registry.registrar(forPlugin: "HotkeyManagerMacosPlugin"))
   FLALocalAuthPlugin.register(with: registry.registrar(forPlugin: "FLALocalAuthPlugin"))
   FPPPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FPPPackageInfoPlusPlugin"))

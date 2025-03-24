@@ -106,9 +106,9 @@ class AppHotKeyHandler {
           }
         }
         // no files
-        if (filePaths.isEmpty) {
-          return;
-        }
+        // if (filePaths.isEmpty) {
+        //   return;
+        // }
 
         var ids = List.empty();
         try {

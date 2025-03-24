@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 class DeviceCardSimple extends StatelessWidget {
   final Device dev;
   final bool showBorder;
+  final double? width;
   final void Function() onTap;
 
   const DeviceCardSimple({
@@ -13,6 +14,7 @@ class DeviceCardSimple extends StatelessWidget {
     required this.dev,
     required this.onTap,
     this.showBorder = false,
+    this.width,
   });
 
   static const borderWidth = 3.0;
@@ -45,49 +47,51 @@ class DeviceCardSimple extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: IntrinsicHeight(
-              child: Row(
-                children: [
-                  Constants.devTypeIcons[dev.type] ??
-                      const Icon(Icons.device_unknown),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 15),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Text(
-                                    dev.name,
-                                    maxLines: 1,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 22,
+              child: SizedBox(
+                width: width,
+                child: Row(
+                  children: [
+                    Constants.devTypeIcons[dev.type] ?? const Icon(Icons.device_unknown),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 15),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Text(
+                                      dev.name,
+                                      maxLines: 1,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 22,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          Row(
-                            children: [
-                              RoundedChip(
-                                label: Text(dev.type),
-                                backgroundColor: chipColor,
-                              ),
-                            ],
-                          ),
-                        ],
+                              ],
+                            ),
+                            const SizedBox(
+                              height: 8,
+                            ),
+                            Row(
+                              children: [
+                                RoundedChip(
+                                  label: Text(dev.type),
+                                  backgroundColor: chipColor,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

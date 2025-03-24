@@ -21,12 +21,14 @@ import 'package:clipshare/app/services/channels/multi_window_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/services/device_service.dart';
+import 'package:clipshare/app/services/pending_file_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/file_extension.dart';
 import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/utils/log.dart';
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +50,7 @@ class SplashController extends GetxController {
   final androidChannelService = Get.find<AndroidChannelService>();
   final devService = Get.find<DeviceService>();
   final devController = Get.find<DeviceController>();
+  final pendingFileService = Get.find<PendingFileService>();
 
   @override
   void onReady() {
@@ -182,27 +185,28 @@ class SplashController extends GetxController {
           );
           break;
         case MultiWindowMethod.getCompatibleOnlineDevices:
-          var devices = devController.getCompatibleOnlineDevices();
+          var devices = devController.compatibleOnlineDevices;
           Log.info(tag, "devices $devices");
           return jsonEncode(devices);
         case MultiWindowMethod.syncFiles:
-          var files = (args["files"] as List<dynamic>).cast<String>();
+          final paths = (args["files"] as List<dynamic>).cast<String>();
+          final items = paths.map((path) => DropItemFile(path)).toList(growable: false);
+          final files = await pendingFileService.resolvePendingItems(items);
           var devices = List<Device>.empty(growable: true);
           for (var devMap in (args["devices"] as List<dynamic>)) {
             devices.add(Device.fromJson(devMap));
           }
-          Log.info(tag, "files $files");
+          Log.info(tag, "files $paths");
           Log.info(tag, "devIds $devices");
           FileSyncHandler.sendFiles(
             devices: devices,
-            paths: files,
+            files: files,
             context: Get.context!,
           );
           break;
         case MultiWindowMethod.storeWindowPos:
           var pos = args["pos"].toString();
           if (appConfig.recordHistoryDialogPosition) {
-            print("object");
             appConfig.setHistoryDialogPosition(pos);
           }
       }
@@ -286,7 +290,13 @@ class SplashController extends GetxController {
     appConfig.shareHandlerStream = handler.sharedMediaStream.listen((SharedMedia media) {
       Log.info(tag, media);
       if (media.attachments != null) {
-        var files = media.attachments!.where((attachment) => attachment != null).map((attachment) => attachment!.path).toList();
+        var files = media.attachments!
+            .where((attachment) => attachment != null)
+            .map((attachment) => attachment!.path)
+            .map(
+              (f) => DropItemFile(f),
+            )
+            .toList();
         Log.debug(tag, files);
         if (files.isEmpty) {
           return;
@@ -309,7 +319,9 @@ class SplashController extends GetxController {
 
             Log.debug(tag, filePath);
             if (filePath != null) {
-              gotoOnlineDevicesPage([filePath]);
+              gotoOnlineDevicesPage(
+                [DropItemFile(filePath)],
+              );
             }
           },
           onCancel: () {
@@ -323,21 +335,27 @@ class SplashController extends GetxController {
     });
   }
 
-  void gotoOnlineDevicesPage(List<String> files) {
-    var devices = devController.getCompatibleOnlineDevices();
+  void gotoOnlineDevicesPage(List<DropItem> files) {
+    var devices = devController.compatibleOnlineDevices;
+    pendingFileService.addDropItems(files);
     Navigator.push(
       Get.context!,
       MaterialPageRoute(
         builder: (context) => OnlineDevicesPage(
-          showAppBar: true,
           devices: devices,
-          onSendClicked: (BuildContext context, List<Device> selectedDevices) {
+          onSendClicked: (List<Device> devices, List<DropItem> items) async {
+            final files = await pendingFileService.resolvePendingItems(items);
             FileSyncHandler.sendFiles(
-              devices: selectedDevices,
-              paths: files,
+              devices: devices,
+              files: files,
               context: context,
             );
+            pendingFileService.clearPendingInfo();
             Navigator.pop(context);
+            Global.showSnackBarSuc(text: TranslationKey.startSendFileToast.tr,context: Get.context!);
+          },
+          onItemRemove: (DropItem item) {
+            pendingFileService.removeDropItem(item);
           },
         ),
       ),

@@ -255,5 +255,10 @@ class LicensesController extends GetxController {
       "license": "MIT",
       "url": "https://pub.dev/packages/easy_cron",
     },
+    {
+      "name": "desktop_drop",
+      "license": "Apache-2.0",
+      "url": "https://pub.dev/packages/desktop_drop",
+    },
   ]..sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
 }

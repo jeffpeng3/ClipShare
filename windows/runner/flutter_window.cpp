@@ -16,6 +16,7 @@
 #include <atlbase.h> // CComPtr
 #include "utils.h"
 #include "window_manager/window_manager_plugin.h"
+#include "desktop_drop/desktop_drop_plugin.h"
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
 	: project_(project) {
@@ -46,23 +47,8 @@ bool FlutterWindow::OnCreate() {
 		auto* flutter_view_controller = reinterpret_cast<flutter::FlutterViewController*>(controller);
 		auto* registry = flutter_view_controller->engine();
 		WindowManagerPluginRegisterWithRegistrar(registry->GetRegistrarForPlugin("WindowManagerPlugin"));
-		//HWND hwnd = flutter_view_controller->view()->GetNativeWindow();
-		//hwnd = GetParent(hwnd);
-		//// 获取当前窗口样式
-		//LONG style = GetWindowLong(hwnd, GWL_STYLE);
-
-		//// 移除最大化和最小化按钮的样式标志
-		//style &= ~WS_MAXIMIZEBOX; // 移除最大化按钮
-		//style &= ~WS_MINIMIZEBOX; // 移除最小化按钮
-		//// 添加WS_POPUP样式，使窗口成为弹窗
-		//style |= WS_POPUP;
-
-		//// 设置新的窗口样式
-		//SetWindowLong(hwnd, GWL_STYLE, style);
-
-		////设置置顶
-		//::SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
-		});
+        DesktopDropPluginRegisterWithRegistrar(registry->GetRegistrarForPlugin("DesktopDropPlugin"));
+	});
 	flutter_controller_->ForceRedraw();
 	return true;
 }

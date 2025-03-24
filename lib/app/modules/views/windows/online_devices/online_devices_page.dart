@@ -1,126 +1,111 @@
+import 'dart:math';
+
 import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
-import 'package:clipshare/app/utils/log.dart';
-import 'package:clipshare/app/widgets/device_card_simple.dart';
-import 'package:clipshare/app/widgets/empty_content.dart';
+import 'package:clipshare/app/services/pending_file_service.dart';
+import 'package:clipshare/app/utils/extensions/platform_extension.dart';
+import 'package:clipshare/app/utils/file_util.dart';
+import 'package:clipshare/app/utils/global.dart';
+import 'package:clipshare/app/widgets/dragAndSendFiles/online_devices.dart';
+import 'package:clipshare/app/widgets/dragAndSendFiles/pending_file_list.dart';
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-class OnlineDevicesPage extends StatefulWidget {
+class OnlineDevicesPage extends StatelessWidget {
   final List<Device> devices;
-  final bool showAppBar;
-  final Function(BuildContext context, List<Device> selectedDevives)
-      onSendClicked;
+  final pendingFileService = Get.find<PendingFileService>();
+  final void Function(DropItem item) onItemRemove;
+  final Function(List<Device> devives, List<DropItem> items) onSendClicked;
 
-  const OnlineDevicesPage({
+  OnlineDevicesPage({
     super.key,
     required this.devices,
     required this.onSendClicked,
-    this.showAppBar = false,
+    required this.onItemRemove,
   });
-
-  @override
-  State<StatefulWidget> createState() {
-    return _OnlineDevicesPageState();
-  }
-}
-
-class _OnlineDevicesPageState extends State<OnlineDevicesPage> {
-  static const tag = "OnlineDevicesPage";
-  final Set<String> _selectedDevIds = {};
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: widget.showAppBar
+      appBar: PlatformExt.isMobile
           ? AppBar(
               backgroundColor: Theme.of(context).colorScheme.inversePrimary,
               title: Text(TranslationKey.sendFile.tr),
             )
           : null,
-      backgroundColor: const Color.fromARGB(255, 238, 238, 238),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(6),
-            child: Text(
-               TranslationKey.onlineDevicesPageSelectDeviceToSend.tr,
-              style: const TextStyle(fontSize: 15),
+          SizedBox(
+            height: 155,
+            child: Obx(
+              () => buildOnlineDevices(),
             ),
           ),
           Expanded(
-            child: widget.devices.isEmpty
-                ? EmptyContent()
-                : ListView.builder(
-                    itemCount: widget.devices.length,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    itemBuilder: (ctx, idx) {
-                      var dev = widget.devices[idx];
-                      final selected = _selectedDevIds.contains(dev.guid);
-                      return DeviceCardSimple(
-                        dev: dev,
-                        showBorder: selected,
-                        onTap: () {
-                          if (selected) {
-                            _selectedDevIds.remove(dev.guid);
-                          } else {
-                            _selectedDevIds.add(dev.guid);
-                          }
-                          setState(() {});
-                        },
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Visibility(
-            visible: _selectedDevIds.length < widget.devices.length,
-            child: Tooltip(
-              message: TranslationKey.selectAll.tr,
-              child: FloatingActionButton(
-                shape: const CircleBorder(),
-                onPressed: () {
-                  for (var dev in widget.devices) {
-                    _selectedDevIds.add(dev.guid);
-                  }
-                  setState(() {});
-                },
-                child: const Icon(Icons.checklist_rtl_outlined),
-              ),
-            ),
-          ),
-          Visibility(
-            visible: _selectedDevIds.isNotEmpty,
-            child: Container(
-              margin: const EdgeInsets.only(left: 10),
-              child: Tooltip(
-                message: TranslationKey.send.tr,
-                child: FloatingActionButton(
-                  shape: const CircleBorder(),
-                  onPressed: () {
-                    var selectedDevices = widget.devices
-                        .where(
-                          (dev) => _selectedDevIds.contains(dev.guid),
-                        )
-                        .toList();
-                    widget.onSendClicked(context, selectedDevices);
-                  },
-                  child: const Icon(Icons.send),
-                ),
-              ),
+            child: DropTarget(
+              child: Obx(() => buildPendingItems()),
+              onDragDone: (detail) {
+                pendingFileService.addDropItems(detail.files);
+              },
             ),
           ),
         ],
       ),
+      floatingActionButton: Obx(
+        () => Visibility(
+          visible: pendingFileService.pendingItems.isNotEmpty,
+          child: FloatingActionButton(
+            tooltip: TranslationKey.sendFiles.tr,
+            onPressed: () async {
+              final devices = pendingFileService.pendingDevs;
+              if (devices.isEmpty) {
+                Global.showTipsDialog(context: context, text: TranslationKey.pleaseSelectDevices.tr);
+                return;
+              }
+              onSendClicked(devices.toList(growable: false), pendingFileService.pendingItems);
+            },
+            child: Transform.rotate(
+              angle: -45 * (pi / 180),
+              child: const Icon(Icons.send),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildOnlineDevices() {
+    final selectedDevs = pendingFileService.pendingDevs.toList(growable: false);
+    return OnlineDevices(
+      direction: Axis.horizontal,
+      onlineList: devices,
+      selectedList: selectedDevs,
+      onTap: (dev) {
+        final selected = selectedDevs.contains(dev);
+        if (selected) {
+          pendingFileService.pendingDevs.remove(dev);
+        } else {
+          pendingFileService.pendingDevs.add(dev);
+        }
+      },
+    );
+  }
+
+  Widget buildPendingItems() {
+    //这里不能直接将 `pendingFileService.pendingItems` 传给参数，因为传进去的是RxList，然后组件内部引用了但是没有使用Obx包裹就会报错
+    final items = pendingFileService.pendingItems.toList(growable: false);
+    return PendingFileList(
+      pendingItems: items,
+      onItemRemove: onItemRemove,
+      onAddClicked: () async {
+        var result = await FileUtil.pickFiles();
+        final files = result.map((f) => DropItemFile(f.path!)).toList();
+        pendingFileService.addDropItems(files);
+      },
+      onClearAllClicked: () {
+        pendingFileService.clearPendingInfo();
+      },
     );
   }
 }

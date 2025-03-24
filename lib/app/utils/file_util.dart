@@ -44,7 +44,10 @@ class FileUtil {
 
   ///导出文件
   static Future<String?> exportFile(
-      String title, String fileName, String content) async {
+    String title,
+    String fileName,
+    String content,
+  ) async {
     String? outputPath = await FilePicker.platform.saveFile(
       dialogTitle: title,
       fileName: fileName,
@@ -57,5 +60,21 @@ class FileUtil {
     File file = File(outputPath);
     await file.writeAsString(content);
     return outputPath;
+  }
+
+  ///获取文件夹下的所有文件
+  static Future<List<File>> listFiles(String path) async {
+    final dir = Directory(path);
+    if (!await dir.exists()) {
+      return [];
+    }
+    return await dir.list(recursive: true).where((item) => item is File).map((item) => item as File).toList();
+  }
+
+  ///选择文件
+  static Future<List<PlatformFile>> pickFiles() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(allowMultiple: true);
+    if (result == null) return [];
+    return result.files;
   }
 }

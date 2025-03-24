@@ -1,10 +1,13 @@
 import 'package:clipshare/app/data/enums/translation_key.dart';
+import 'package:clipshare/app/modules/home_module/home_controller.dart';
 import 'package:clipshare/app/modules/sync_file_module/sync_file_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
+import 'package:clipshare/app/services/pending_file_service.dart';
 import 'package:clipshare/app/services/syncing_file_progress_service.dart';
+import 'package:clipshare/app/utils/file_util.dart';
 import 'package:clipshare/app/utils/global.dart';
-import 'package:clipshare/app/widgets/empty_content.dart';
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 /**
@@ -16,6 +19,7 @@ class SyncFilePage extends GetView<SyncFileController> {
   final appConfig = Get.find<ConfigService>();
   final dbService = Get.find<DbService>();
   final syncingFileService = Get.find<SyncingFileProgressService>();
+  final pendingFileService = Get.find<PendingFileService>();
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +30,7 @@ class SyncFilePage extends GetView<SyncFileController> {
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),
           child: TabBar(
+            controller: controller.tabController,
             tabs: [
               for (var tab in controller.tabs)
                 Tab(
@@ -46,6 +51,7 @@ class SyncFilePage extends GetView<SyncFileController> {
           ),
         ),
         body: TabBarView(
+          controller: controller.tabController,
           children: [
             RefreshIndicator(
               onRefresh: controller.refreshHistoryFiles,
@@ -72,8 +78,7 @@ class SyncFilePage extends GetView<SyncFileController> {
                                   controller.selectMode = true;
                                   appConfig.enableMultiSelectionMode(
                                     controller: controller,
-                                    selectionTips:
-                                        TranslationKey.multiDelete.tr,
+                                    selectionTips: TranslationKey.multiDelete.tr,
                                   );
                                 },
                                 onTap: () {
@@ -85,8 +90,7 @@ class SyncFilePage extends GetView<SyncFileController> {
                                 },
                               ),
                               Visibility(
-                                visible:
-                                    i != controller.recHistories.length - 1,
+                                visible: i != controller.recHistories.length - 1,
                                 child: const Divider(
                                   height: 0,
                                   indent: 10,
@@ -145,39 +149,30 @@ class SyncFilePage extends GetView<SyncFileController> {
                               ),
                             ),
                             Visibility(
-                              visible: controller.selectMode &&
-                                  controller.selected.isNotEmpty,
+                              visible: controller.selectMode && controller.selected.isNotEmpty,
                               child: Tooltip(
                                 message: TranslationKey.delete.tr,
                                 child: FloatingActionButton(
                                   onPressed: () {
                                     Global.showTipsDialog(
                                       context: context,
-                                      text: TranslationKey
-                                          .deleteWithFilesOnSyncFilePageAckDialogText
-                                          .trParams({
-                                        "length": controller.selected.length
-                                            .toString()
-                                      }),
+                                      text: TranslationKey.deleteWithFilesOnSyncFilePageAckDialogText.trParams({"length": controller.selected.length.toString()}),
                                       showCancel: true,
                                       showNeutral: true,
-                                      neutralText:
-                                          TranslationKey.deleteWithFiles.tr,
+                                      neutralText: TranslationKey.deleteWithFiles.tr,
                                       okText: TranslationKey.onlyDeleteRecordsText.tr,
                                       autoDismiss: false,
                                       onOk: () async {
                                         await controller.deleteRecord(false);
                                         controller.selected.clear();
                                         controller.selectMode = false;
-                                        appConfig
-                                            .disableMultiSelectionMode(true);
+                                        appConfig.disableMultiSelectionMode(true);
                                       },
                                       onNeutral: () async {
                                         await controller.deleteRecord(true);
                                         controller.selected.clear();
                                         controller.selectMode = false;
-                                        appConfig
-                                            .disableMultiSelectionMode(true);
+                                        appConfig.disableMultiSelectionMode(true);
                                       },
                                       onCancel: () {
                                         Get.back();
@@ -194,7 +189,7 @@ class SyncFilePage extends GetView<SyncFileController> {
                     ],
                   ),
                   child: Stack(
-                    children: [ EmptyContent(), ListView()],
+                    children: [controller.emptyContent, ListView()],
                   ),
                 ),
               ),
@@ -205,7 +200,7 @@ class SyncFilePage extends GetView<SyncFileController> {
                 replacement: ListView(
                   children: controller.recList,
                 ),
-                child: EmptyContent(),
+                child: controller.emptyContent,
               ),
             ),
             Obx(
@@ -214,10 +209,30 @@ class SyncFilePage extends GetView<SyncFileController> {
                 replacement: ListView(
                   children: controller.sendList,
                 ),
-                child: EmptyContent(),
+                child: controller.emptyContent,
               ),
             ),
           ],
+        ),
+        floatingActionButton: Obx(
+          () => Visibility(
+            visible: pendingFileService.pendingItems.isEmpty && !appConfig.isEnableMultiSelectionMode,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 20, right: 10),
+              child: FloatingActionButton(
+                onPressed: () async {
+                  final result = await FileUtil.pickFiles();
+                  print("result $result");
+                  final files = result.map((f) => DropItemFile(f.path!)).toList();
+                  pendingFileService.addDropItems(files);
+                  final homeController = Get.find<HomeController>();
+                  homeController.showPendingItemsDetail.value = true;
+                },
+                tooltip: TranslationKey.addFilesFromSystem.tr,
+                child: const Icon(Icons.add),
+              ),
+            ),
+          ),
         ),
       ),
     );

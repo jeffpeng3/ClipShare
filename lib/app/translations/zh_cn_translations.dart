@@ -420,9 +420,11 @@ class ZhCNTranslation extends AbstractTranslations {
       case TranslationKey.syncingFilePageHistoryTabText:
         return "历史";
       case TranslationKey.syncingFilePageReceiveTabText:
-        return "接收";
+        return "接收进度";
       case TranslationKey.syncingFilePageSendTabText:
-        return "发送";
+        return "发送进度";
+      case TranslationKey.dragFileToSend:
+        return "拖拽文件以发送";
       case TranslationKey.deleting:
         return "删除中...";
       case TranslationKey.deletingSuccess:
@@ -800,7 +802,7 @@ class ZhCNTranslation extends AbstractTranslations {
       case TranslationKey.showOnRecentTasks:
         return "在最近任务中显示";
       case TranslationKey.showOnRecentTasksDesc:
-        return "在部分系统上开启此功能后可能导致切换应用后会被杀掉后台，当前原因未知";
+        return "在部分系统上隐藏后台后可能导致切换应用后会被杀掉后台，当前原因未知";
       case TranslationKey.showLocalIpAddress:
         return "查看本机IP";
       case TranslationKey.localIpAddress:
@@ -927,6 +929,28 @@ class ZhCNTranslation extends AbstractTranslations {
         return "等待服务运行";
       case TranslationKey.defaultClipboardServerNotificationCfgWaitingRunningText:
         return "等待服务运行";
+      case TranslationKey.startSendFileToast:
+        return "文件已开始发送，请查看发送进度";
+      case TranslationKey.folder:
+        return "文件夹";
+      case TranslationKey.removeFromPendingList:
+        return "从发送列表中移除";
+      case TranslationKey.onlineDevices:
+        return "在线设备";
+      case TranslationKey.noOnlineDevices:
+        return "无在线设备";
+      case TranslationKey.pendingFiles:
+        return "待发送文件";
+      case TranslationKey.clearPendingFiles:
+        return "清除待发送列表";
+      case TranslationKey.pendingFileLen:
+        return "共 @len 个文件";
+      case TranslationKey.addFilesFromSystem:
+        return "从系统添加文件";
+      case TranslationKey.viewPendingFiles:
+        return "查看待发送文件";
+      case TranslationKey.sendFiles:
+        return "发送文件";
     }
   }
 }

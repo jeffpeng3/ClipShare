@@ -117,7 +117,7 @@ extension FileExt on File {
     }
 
     // 常见的图片、音频、视频文件扩展名
-    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
     const audioExtensions = ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a'];
     const videoExtensions = ['mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv'];
 

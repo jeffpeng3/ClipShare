@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   clipboard_listener
   connectivity_plus
+  desktop_drop
   desktop_multi_window
   hotkey_manager_windows
   local_auth_windows

@@ -8,6 +8,7 @@ import 'package:clipshare/app/data/enums/history_content_type.dart';
 import 'package:clipshare/app/data/enums/msg_type.dart';
 import 'package:clipshare/app/data/enums/syncing_file_state.dart';
 import 'package:clipshare/app/data/models/dev_info.dart';
+import 'package:clipshare/app/data/models/pending_file.dart';
 import 'package:clipshare/app/data/models/syncing_file.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
@@ -196,11 +197,11 @@ class FileSyncHandler {
 
   ///给多个设备发送多个文件
   ///[devices] 发送的设备列表
-  ///[paths] 发送的文件列表
+  ///[files] 发送的文件列表
   ///[i] 发送第几个文件
-  static sendFiles({
+  static void sendFiles({
     required List<Device> devices,
-    required List<String> paths,
+    required List<PendingFile> files,
     required BuildContext context,
     int i = 0,
   }) {
@@ -210,12 +211,12 @@ class FileSyncHandler {
     //给每个设备发送文件
     _sendDevFiles(
       device: devices[i],
-      paths: paths,
+      paths: files,
       context: context,
       //发完一个设备后给下一个设备发送
       onDone: () => sendFiles(
         devices: devices,
-        paths: paths,
+        files: files,
         i: i + 1,
         context: context,
       ),
@@ -227,9 +228,9 @@ class FileSyncHandler {
   ///[paths] 发送的文件列表
   ///[onDone] 发送完成事件
   ///[i] 发送第几个文件
-  static _sendDevFiles({
+  static void _sendDevFiles({
     required Device device,
-    required List<String> paths,
+    required List<PendingFile> paths,
     required void Function() onDone,
     required BuildContext context,
     int i = 0,
@@ -240,7 +241,7 @@ class FileSyncHandler {
     }
     _sendFile(
       device: device,
-      path: paths[i],
+      pendingFile: paths[i],
       context: context,
       //发完一个文件后给设备发送下一个文件
       onDone: () => _sendDevFiles(
@@ -255,25 +256,30 @@ class FileSyncHandler {
 
   ///发送文件
   ///[device] 发送的设备
-  ///[path] 发送的文件地址
+  ///[pendingFile] 发送的文件地址
   static void _sendFile({
     required Device device,
-    required String path,
+    required PendingFile pendingFile,
     required void Function() onDone,
     required BuildContext context,
   }) async {
     final sktService = Get.find<SocketService>();
     final useForward = sktService.isUseForward(device.guid);
     FileSyncHandler._private(
-      path: path,
+      path: pendingFile.filePath,
       context: context,
       useForward: useForward,
       targetDevId: useForward ? device.guid : null,
       onReady: (syncer) async {
-        final file = File(path);
+        final file = File(pendingFile.filePath);
         int totalSize = await file.length();
+        var fileName = file.fileName;
+        //如果存在多级文件夹就拼接上文件夹
+        if (pendingFile.directories.isNotEmpty) {
+          fileName = "${pendingFile.directories.join("/")}/$fileName";
+        }
         syncer.sktService.sendData(DevInfo.fromDevice(device), MsgType.file, {
-          "fileName": file.fileName,
+          "fileName": fileName,
           "size": totalSize,
           "port": syncer._server?.port,
           "fileId": syncer._fileId,
@@ -283,7 +289,7 @@ class FileSyncHandler {
     );
   }
 
-  static Future<void> recFile({
+  static Future<void> receiveFile({
     required String ip,
     required int port,
     required int size,
@@ -307,6 +313,12 @@ class FileSyncHandler {
     var socket = await Socket.connect(ip, port);
     String filePath = "${appConfig.fileStorePath}/$fileName";
     File file = File(filePath);
+    print("receive file $filePath");
+    final dir = file.parent;
+    //如果父级文件夹不存在则创建
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
 
     ///文件存在处理策略
     while (file.existsSync()) {
@@ -388,9 +400,7 @@ class FileSyncHandler {
           sync: true,
         );
         final historyController = Get.find<HistoryController>();
-        historyController
-            .addData(history, false)
-            .whenComplete(() => syncingFile.close(true));
+        historyController.addData(history, false).whenComplete(() => syncingFile.close(true));
         if (file.isMediaFile) {
           //媒体文件，刷新媒体库
           if (Platform.isAndroid) {

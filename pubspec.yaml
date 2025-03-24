@@ -80,11 +80,13 @@ dependencies:
   # 提供一种平台无关的方式以一致的方式访问设备的文件位置系统
   path_provider: ^2.1.2
   # 文件打开（解决 Android13 权限问题）
-  open_file_plus: ^3.4.1+1
+  open_file_plus:
+    git: # 解决 flutter 3.29 PluginRegistry.Registrar 不支持的问题
+      url: https://github.com/postflow/open_file_plus
   # markdown 渲染
   flutter_markdown: ^0.6.22+1
   # 文件选择
-  file_picker: ^8.0.0
+  file_picker: ^9.2.1
   # 权限请求
   permission_handler: ^11.3.1
   # 瀑布流布局
@@ -131,6 +133,8 @@ dependencies:
     path: ../github/screenshot_detector
   # easy_cron
   easy_cron : ^0.9.2
+  # 文件拖拽
+  desktop_drop: ^0.5.0
 #    git:
 #      url: https://github.com/aa2013/screenshot_detector.git
 #      ref: main
