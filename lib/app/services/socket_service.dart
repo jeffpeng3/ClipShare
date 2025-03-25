@@ -19,6 +19,7 @@ import 'package:clipshare/app/handlers/sync/file_sync_handler.dart';
 import 'package:clipshare/app/handlers/sync/missing_data_sync_handler.dart';
 import 'package:clipshare/app/handlers/task_runner.dart';
 import 'package:clipshare/app/listeners/screen_opened_listener.dart';
+import 'package:clipshare/app/modules/history_module/history_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
@@ -38,19 +39,19 @@ abstract mixin class DevAliveListener {
     AppVersion minVersion,
     AppVersion version,
     bool isForward,
-  ){}
+  ) {}
 
   //断开连接
-  void onDisconnected(String devId){}
+  void onDisconnected(String devId) {}
 
   //配对成功
-  void onPaired(DevInfo dev, int uid, bool result, String? address){}
+  void onPaired(DevInfo dev, int uid, bool result, String? address) {}
 
   //取消配对
-  void onCancelPairing(DevInfo dev){}
+  void onCancelPairing(DevInfo dev) {}
 
   //忘记设备
-  void onForget(DevInfo dev, int uid){}
+  void onForget(DevInfo dev, int uid) {}
 }
 
 abstract class SyncListener {
@@ -100,11 +101,14 @@ class MissingDataSyncProgress {
   int seq;
   int syncedCount = 1;
   int total;
+  bool? firstHistory;
 
-  MissingDataSyncProgress(this.seq, this.total);
+  MissingDataSyncProgress(this.seq, this.total, [this.firstHistory]);
 
   MissingDataSyncProgress copy() {
-    return MissingDataSyncProgress(seq, total)..syncedCount = syncedCount;
+    return MissingDataSyncProgress(seq, total)
+      ..syncedCount = syncedCount
+      ..firstHistory = firstHistory;
   }
 
   bool get hasCompleted => syncedCount >= total;
@@ -604,14 +608,24 @@ class SocketService extends GetxService with ScreenOpenedObserver {
         final devId = dev.guid;
         final total = msg.data["total"];
         int seq = msg.data["seq"];
+        Module module = Module.getValue(copyMsg.data["module"]);
+        MissingDataSyncProgress? newProgress;
         //如果已经存在同步记录则更新或者移除
         if (missingDataSyncProgress.containsKey(devId)) {
           var progress = missingDataSyncProgress[devId]!;
           progress.seq = seq;
           progress.total = total;
           progress.syncedCount++;
-          missingDataSyncProgress[devId] = progress.copy();
-          if (progress.hasCompleted) {
+          if (module == Module.history) {
+            if (progress.firstHistory == null) {
+              progress.firstHistory = true;
+            } else {
+              progress.firstHistory = false;
+            }
+          }
+          newProgress = progress.copy();
+          missingDataSyncProgress[devId] = newProgress;
+          if (newProgress.hasCompleted) {
             //同步完成，移除
             missingDataSyncProgress.remove(devId);
             if (missingDataSyncProgress.keys.isEmpty) {
@@ -619,14 +633,18 @@ class SocketService extends GetxService with ScreenOpenedObserver {
             }
           }
         } else if (total != 1) {
-          final progress = MissingDataSyncProgress(1, total);
+          newProgress = MissingDataSyncProgress(
+            1,
+            total,
+            module == Module.history ? true : null,
+          );
           //否则新增
-          missingDataSyncProgress[devId] = progress;
+          missingDataSyncProgress[devId] = newProgress;
           if (!appConfig.isHistorySyncing.value) {
             appConfig.isHistorySyncing.value = true;
           }
         }
-        _onSyncMsg(copyMsg);
+        _onSyncMsg(copyMsg, newProgress);
         break;
 
       ///请求批量同步
@@ -751,8 +769,12 @@ class SocketService extends GetxService with ScreenOpenedObserver {
   }
 
   ///数据同步处理
-  void _onSyncMsg(MessageData msg) {
+  void _onSyncMsg(MessageData msg, [MissingDataSyncProgress? progress]) {
     Module module = Module.getValue(msg.data["module"]);
+    if (progress?.firstHistory ?? false) {
+      final historyController = Get.find<HistoryController>();
+      historyController.setMissingDataCopyMsg(MessageData.fromJson(msg.toJson()));
+    }
     //筛选某个模块的同步处理器
     var lst = _syncListeners[module];
     if (lst == null) return;

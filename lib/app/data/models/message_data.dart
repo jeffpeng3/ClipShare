@@ -46,7 +46,7 @@ class MessageData {
       "send": send.toJson(),
       "recv": recv?.toJson(),
       "key": key.name,
-      "data": data,
+      "data": jsonDecode(jsonEncode(data)),
     };
   }
 

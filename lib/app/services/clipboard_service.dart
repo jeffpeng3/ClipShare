@@ -118,6 +118,7 @@ class ClipboardService extends GetxService with ClipboardListener {
   @override
   void onClipboardChanged(ClipboardContentType type, String content) {
     final contentType = HistoryContentType.parse(type.name);
+    Log.debug(tag, "onChange $content");
     HistoryDataListener.inst.onChanged(contentType, content);
   }
 

@@ -36,9 +36,7 @@ import 'package:get/get.dart';
  * GetX Template Generator - fb.com/htngu.99
  * */
 
-class HistoryController extends GetxController
-    with WidgetsBindingObserver
-    implements HistoryDataObserver, SyncListener {
+class HistoryController extends GetxController with WidgetsBindingObserver implements HistoryDataObserver, SyncListener {
   final appConfig = Get.find<ConfigService>();
   final dbService = Get.find<DbService>();
   final sktService = Get.find<SocketService>();
@@ -52,7 +50,11 @@ class HistoryController extends GetxController
 
   ///不要直接操作这个list，请操作 _tempList 并执行 debounceUpdate() 方法以进行防抖更新
   final list = List<ClipData>.empty(growable: true).obs;
-  History? _last;
+
+  ///需要更新并复制的最新的数据 id
+  int? _missingDataCopyMsg;
+
+  History? get last => list.isEmpty ? null : list[0].data;
   bool updating = false;
   final _loading = true.obs;
 
@@ -72,7 +74,6 @@ class HistoryController extends GetxController
     WidgetsBinding.instance.addObserver(this);
     //更新上次复制的记录
     updateLatestLocalClip().then((his) {
-      _last = his;
       //添加同步监听
       sktService.addSyncListener(Module.history, this);
       //刷新列表
@@ -146,12 +147,7 @@ class HistoryController extends GetxController
 
   ///更新上次复制的内容
   Future<History?> updateLatestLocalClip() {
-    return dbService.historyDao
-        .getLatestLocalClip(appConfig.userId)
-        .then((his) {
-      _last = his;
-      return his;
-    });
+    return dbService.historyDao.getLatestLocalClip(appConfig.userId);
   }
 
   ///防抖更新页面
@@ -171,9 +167,7 @@ class HistoryController extends GetxController
   void notifyHistoryWindow() {
     if (PlatformExt.isMobile) return;
     if (appConfig.historyWindow == null) return;
-    multiWindowChannelService
-        .notify(appConfig.historyWindow!.windowId)
-        .catchError((err) {
+    multiWindowChannelService.notify(appConfig.historyWindow!.windowId).catchError((err) {
       if (err.toString().contains("target window not found")) {
         appConfig.historyWindow = null;
       } else {
@@ -188,7 +182,6 @@ class HistoryController extends GetxController
     return dbService.historyDao.add(clip.data).then((cnt) {
       if (cnt <= 0) return cnt;
       notifyHistoryWindow();
-      _last = history;
       _tempList.add(clip);
       sortList();
       if (!shouldSync) return cnt;
@@ -228,6 +221,21 @@ class HistoryController extends GetxController
     });
   }
 
+  ///更新并复制最新的数据
+  ///场景：同步缺失数据时，如果同步到最新（比当前本地的）的数据就自动复制
+  void setMissingDataCopyMsg(MessageData msg) {
+    final syncData = msg.data["data"];
+    Map<dynamic, dynamic> data = {};
+    if (syncData is String) {
+      data = jsonDecode(syncData);
+    }else{
+      data = syncData;
+    }
+    final historyMap = data.cast<String, dynamic>();
+    final history = History.fromJson(historyMap);
+    _missingDataCopyMsg = history.id;
+  }
+
   //endregion
 
   //region 同步与监听
@@ -262,7 +270,7 @@ class HistoryController extends GetxController
       return;
     }
     //和上次复制的内容相同
-    if (_last?.type == type.value && _last?.content == content) {
+    if (last?.type == type.value && last?.content == content) {
       return;
     }
     int size = content.length;
@@ -272,8 +280,8 @@ class HistoryController extends GetxController
         break;
       case HistoryContentType.image:
         //如果上次也是复制的图片/文件，判断其md5与本次比较，若相同则跳过
-        if (_last?.type == HistoryContentType.image.value) {
-          var md51 = await File(_last!.content).md5;
+        if (last?.type == HistoryContentType.image.value) {
+          var md51 = await File(last!.content).md5;
           var md52 = await File(content).md5;
           //两次的图片存在且相同，跳过。
           if (md51 == md52 && md51 != null) {
@@ -283,8 +291,7 @@ class HistoryController extends GetxController
         //移动到设置的路径然后删除临时文件
         var tempFile = File(content);
         size = await tempFile.length();
-        var newPath =
-            "${Platform.isAndroid ? appConfig.androidPrivatePicturesPath : appConfig.fileStorePath}/${tempFile.fileName}";
+        var newPath = "${Platform.isAndroid ? appConfig.androidPrivatePicturesPath : appConfig.fileStorePath}/${tempFile.fileName}";
         var newFile = File(newPath);
         FileUtil.moveFile(content, newPath);
         content = newFile.normalizePath;
@@ -322,13 +329,19 @@ class HistoryController extends GetxController
       type: type.value,
       size: size,
     );
-    addData(history, true);
+    await addData(history, true);
   }
 
   @override
   Future<void> onSync(MessageData msg) async {
     var send = msg.send;
-    Map<dynamic, dynamic> data = msg.data["data"];
+    final syncData = msg.data["data"];
+    Map<dynamic, dynamic> data = {};
+    if (syncData is String) {
+      data = jsonDecode(msg.data["data"]);
+    }else{
+      data = syncData;
+    }
     msg.data["data"] = "";
     var opRecord = OperationRecord.fromJson(msg.data);
     final historyMap = data.cast<String, dynamic>();
@@ -362,8 +375,7 @@ class HistoryController extends GetxController
           var data = historyContent["data"].cast<int>();
           var path = "${appConfig.fileStorePath}/$fileName";
           if (appConfig.saveToPictures) {
-            path =
-                "${Constants.androidPicturesPath}/${Constants.appName}/$fileName";
+            path = "${Constants.androidPicturesPath}/${Constants.appName}/$fileName";
             Log.debug(tag, "newPath $path");
           }
           history.content = path;
@@ -386,8 +398,8 @@ class HistoryController extends GetxController
     switch (opRecord.method) {
       case OpMethod.add:
         f = addData(history, false);
-        //不是缺失数据的同步时放入本地剪贴板
-        if (msg.key != MsgType.missingData) {
+        //不是缺失数据的同步时放入本地剪贴板，如果是缺失数据但是需要豁免的也放行
+        if (msg.key != MsgType.missingData || _missingDataCopyMsg == history.id) {
           appConfig.innerCopy = true;
           var type = ClipboardContentType.parse(history.type);
           if (type != ClipboardContentType.image) {
@@ -395,24 +407,15 @@ class HistoryController extends GetxController
           } else if (appConfig.autoCopyImageAfterSync) {
             clipboardManager.copy(type, history.content);
           }
+          if(_missingDataCopyMsg == history.id) {
+            _missingDataCopyMsg = null;
+          }
         }
         break;
       case OpMethod.delete:
         f = dbService.historyDao.delete(history.id).then((cnt) {
           if (cnt == null || cnt == 0) return 0;
           _tempList.removeWhere((element) => element.data.id == history.id);
-          //删除以后判断是否是最近复制的，如果是，更新_last
-          if (_last?.id == history.id) {
-            if (_tempList.isEmpty) {
-              _last = null;
-            } else {
-              _last = _tempList
-                  .reduce(
-                    (curr, next) => curr.data.id > next.data.id ? curr : next,
-                  )
-                  .data;
-            }
-          }
           debounceUpdate();
           return cnt;
         });
@@ -420,8 +423,7 @@ class HistoryController extends GetxController
       case OpMethod.update:
         f = dbService.historyDao.updateHistory(history).then((cnt) {
           if (cnt == 0) return 0;
-          var i =
-              _tempList.indexWhere((element) => element.data.id == history.id);
+          var i = _tempList.indexWhere((element) => element.data.id == history.id);
           if (i == -1) return cnt;
           _tempList[i] = ClipData(history);
           debounceUpdate();
