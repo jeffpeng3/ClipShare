@@ -5,6 +5,7 @@ import 'package:clipshare/app/modules/views/preview_page.dart';
 import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 ///历史记录中的卡片显示的内容
 class ClipSimpleDataContent extends StatelessWidget {
@@ -12,7 +13,7 @@ class ClipSimpleDataContent extends StatelessWidget {
   final bool imgOnlyView;
   final bool imgSingleView;
 
-  const ClipSimpleDataContent({super.key, required this.clip, this.imgOnlyView=false, this.imgSingleView=false});
+  const ClipSimpleDataContent({super.key, required this.clip, this.imgOnlyView = false, this.imgSingleView = false});
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +25,9 @@ class ClipSimpleDataContent extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
       );
     }
-    if (clip.isImage) {
+    if (clip.isImage || (clip.isFile && clip.data.content.isImageFileName)) {
       return MouseRegion(
-        cursor:
-            PlatformExt.isMobile ? SystemMouseCursors.click : MouseCursor.defer,
+        cursor: PlatformExt.isMobile ? SystemMouseCursors.click : MouseCursor.defer,
         child: InkWell(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(4),
@@ -42,7 +42,7 @@ class ClipSimpleDataContent extends StatelessWidget {
                 builder: (context) => PreviewPage(
                   clip: clip,
                   onlyView: imgOnlyView,
-                  single: imgSingleView,
+                  single: imgSingleView || clip.isFile,
                 ),
               ),
             );
