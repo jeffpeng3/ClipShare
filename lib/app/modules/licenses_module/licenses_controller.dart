@@ -91,9 +91,9 @@ class LicensesController extends GetxController {
       "url": "https://pub.dev/packages/flutter_linkify",
     },
     {
-      "name": "contextmenu",
-      "license": "EUPL-1.2",
-      "url": "https://pub.dev/packages/contextmenu",
+      "name": "flutter_context_menu",
+      "license": "BSD-3-Clause",
+      "url": "https://pub.dev/packages/flutter_context_menu",
     },
     {
       "name": "url_launcher",

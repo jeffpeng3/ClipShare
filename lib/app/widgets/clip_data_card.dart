@@ -13,14 +13,13 @@ import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
-import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/extensions/file_extension.dart';
 import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_content.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_extra_info.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_header.dart';
-import 'package:contextmenu/contextmenu.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:get/get.dart';
 import 'package:open_file_plus/open_file_plus.dart';
 
@@ -127,233 +126,203 @@ class ClipDataCardState extends State<ClipDataCard> {
   @override
   Widget build(BuildContext context) {
     _selected = widget.selected;
-    return ContextMenuArea(
-      child: Card(
-        // color: Colors.white,
-        elevation: 0,
-        child: InkWell(
-          mouseCursor: SystemMouseCursors.basic,
-          onTap: () {
-            if (widget.selectMode) {
-              setState(() {
-                _selected = !_selected;
-              });
-              widget.onTap?.call();
-              return;
-            }
-            if (PlatformExt.isDesktop) {
-              widget.onTap?.call();
-              return;
-            }
-            if (widget.onDoubleTap == null) {
-              //未设置双击，直接执行单击
-              _onTap();
+    final content = Card(
+      // color: Colors.white,
+      elevation: 0,
+      child: InkWell(
+        mouseCursor: SystemMouseCursors.basic,
+        onTap: () {
+          if (widget.selectMode) {
+            setState(() {
+              _selected = !_selected;
+            });
+            widget.onTap?.call();
+            return;
+          }
+          if (PlatformExt.isDesktop) {
+            widget.onTap?.call();
+            return;
+          }
+          if (widget.onDoubleTap == null) {
+            //未设置双击，直接执行单击
+            _onTap();
+          } else {
+            //设置了双击，且已经点击过一次，执行双击逻辑
+            if (_readyDoubleClick) {
+              widget.onDoubleTap!.call();
+              //双击结束，恢复状态
+              _readyDoubleClick = false;
             } else {
-              //设置了双击，且已经点击过一次，执行双击逻辑
-              if (_readyDoubleClick) {
-                widget.onDoubleTap!.call();
-                //双击结束，恢复状态
+              _readyDoubleClick = true;
+              //设置了双击，但仅点击了一次，延迟一段时间
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (_readyDoubleClick) {
+                  //指定时间后仍然没有进行第二次点击，进行单击逻辑
+                  _onTap();
+                }
+                //指定时间后无论是否双击，恢复状态
                 _readyDoubleClick = false;
-              } else {
-                _readyDoubleClick = true;
-                //设置了双击，但仅点击了一次，延迟一段时间
-                Future.delayed(const Duration(milliseconds: 300), () {
-                  if (_readyDoubleClick) {
-                    //指定时间后仍然没有进行第二次点击，进行单击逻辑
-                    _onTap();
-                  }
-                  //指定时间后无论是否双击，恢复状态
-                  _readyDoubleClick = false;
-                });
-              }
+              });
             }
-          },
-          onLongPress: () {
-            widget.onLongPress?.call();
-          },
-          borderRadius: BorderRadius.circular(_borderRadius),
-          child: Container(
-            margin: widget.selectMode && _selected
-                ? null
-                : const EdgeInsets.all(_borderWidth),
-            decoration: widget.selectMode && _selected
-                ? BoxDecoration(
-                    border: Border.all(
-                      color: Colors.blue,
-                      width: _borderWidth,
-                    ),
-                    borderRadius: BorderRadius.circular(_borderRadius),
-                  )
-                : null,
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: ClipSimpleDataHeader(
-                      clip: widget.clip,
-                      routeToSearchOnClickChip: widget.routeToSearchOnClickChip,
-                    ),
+          }
+        },
+        onLongPress: () {
+          widget.onLongPress?.call();
+        },
+        borderRadius: BorderRadius.circular(_borderRadius),
+        child: Container(
+          margin: widget.selectMode && _selected ? null : const EdgeInsets.all(_borderWidth),
+          decoration: widget.selectMode && _selected
+              ? BoxDecoration(
+                  border: Border.all(
+                    color: Colors.blue,
+                    width: _borderWidth,
                   ),
-                  widget.imageMode
-                      ? IntrinsicHeight(
-                          child: GestureDetector(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: Image.file(
-                                File(
-                                  widget.clip.data.content,
-                                ),
-                                fit: BoxFit.fitWidth,
-                                width: 200,
+                  borderRadius: BorderRadius.circular(_borderRadius),
+                )
+              : null,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ClipSimpleDataHeader(
+                    clip: widget.clip,
+                    routeToSearchOnClickChip: widget.routeToSearchOnClickChip,
+                  ),
+                ),
+                widget.imageMode
+                    ? IntrinsicHeight(
+                        child: GestureDetector(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: Image.file(
+                              File(
+                                widget.clip.data.content,
                               ),
+                              fit: BoxFit.fitWidth,
+                              width: 200,
                             ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PreviewPage(
-                                    clip: widget.clip,
-                                  ),
-                                ),
-                              );
-                            },
                           ),
-                        )
-                      : Expanded(
-                          child: Container(
-                            alignment: Alignment.centerLeft,
-                            child: ClipSimpleDataContent(
-                              clip: widget.clip,
-                            ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PreviewPage(
+                                  clip: widget.clip,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    : Expanded(
+                        child: Container(
+                          alignment: Alignment.centerLeft,
+                          child: ClipSimpleDataContent(
+                            clip: widget.clip,
                           ),
                         ),
-                  ClipSimpleDataExtraInfo(clip: widget.clip),
-                ],
-              ),
+                      ),
+                ClipSimpleDataExtraInfo(clip: widget.clip),
+              ],
             ),
           ),
         ),
       ),
-      builder: (context) => [
-        ListTile(
-          leading: Icon(
-            widget.clip.data.top ? Icons.push_pin : Icons.push_pin_outlined,
-            color: Colors.blueGrey,
-          ),
-          title: Text(widget.clip.data.top ? TranslationKey.cancelTopUp.tr : TranslationKey.topUp.tr),
-          onTap: () {
-            var id = widget.clip.data.id;
-            //置顶取反
-            var isTop = !widget.clip.data.top;
-            widget.clip.data.top = isTop;
-            dbService.historyDao.setTop(id, isTop).then((v) {
-              if (v == null || v <= 0) return;
-              var opRecord = OperationRecord.fromSimple(
-                Module.historyTop,
-                OpMethod.update,
-                id,
-              );
-              widget.onUpdate();
-              setState(() {});
-              Navigator.of(context).pop();
-              dbService.opRecordDao.addAndNotify(opRecord);
-            });
-          },
-        ),
-        Visibility(
-          visible: !widget.clip.isFile,
-          child: ListTile(
-            leading: const Icon(
-              Icons.copy,
-              color: Colors.blueGrey,
-            ),
-            title: Text(TranslationKey.copyContent.tr),
-            onTap: () {
-              appConfig.innerCopy = true;
-              var type = ClipboardContentType.parse(widget.clip.data.type);
-              clipboardManager.copy(type, widget.clip.data.content);
-              Navigator.of(context).pop();
-            },
-          ),
-        ),
-        Visibility(
-          visible: !widget.clip.isFile,
-          child: ListTile(
-            title: Text(widget.clip.data.sync ? TranslationKey.resyncRecord.tr : TranslationKey.syncRecord.tr),
-            leading: const Icon(
-              Icons.sync,
-              color: Colors.blueGrey,
-            ),
-            onTap: () {
-              Navigator.of(context).pop();
-              var opRecord = OperationRecord.fromSimple(
-                Module.history,
-                OpMethod.add,
-                widget.clip.data.id.toString(),
-              );
-              dbService.opRecordDao.addAndNotify(opRecord);
-            },
-          ),
-        ),
-        Visibility(
-            visible: widget.clip.isFile,
-            child: ListTile(
-              title: Text(TranslationKey.openFile.tr),
-              leading: const Icon(
-                Icons.file_open,
-                color: Colors.blueGrey,
-              ),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final file = File(widget.clip.data.content);
-                await OpenFile.open(
-                  file.normalizePath,
-                );
+    );
+    return GestureDetector(
+      child: content,
+      onSecondaryTapDown: (details) {
+        var menu = ContextMenu(
+          entries: [
+            MenuItem(
+              label: widget.clip.data.top ? TranslationKey.cancelTopUp.tr : TranslationKey.topUp.tr,
+              icon: widget.clip.data.top ? Icons.push_pin : Icons.push_pin_outlined,
+              onSelected: () {
+                var id = widget.clip.data.id;
+                //置顶取反
+                var isTop = !widget.clip.data.top;
+                widget.clip.data.top = isTop;
+                dbService.historyDao.setTop(id, isTop).then((v) {
+                  if (v == null || v <= 0) return;
+                  var opRecord = OperationRecord.fromSimple(
+                    Module.historyTop,
+                    OpMethod.update,
+                    id,
+                  );
+                  widget.onUpdate();
+                  setState(() {});
+                  dbService.opRecordDao.addAndNotify(opRecord);
+                });
               },
-            )),
-        Visibility(
-          visible: widget.clip.isFile,
-          child: ListTile(
-            title: Text(TranslationKey.openFileFolder.tr),
-            leading: const Icon(
-              Icons.folder,
-              color: Colors.blueGrey,
             ),
-            onTap: () async {
-              Navigator.of(context).pop();
-              final file = File(widget.clip.data.content);
-              await OpenFile.open(
-                file.parent.normalizePath,
-              );
-            },
-          ),
-        ),
-        ListTile(
-          title: Text(TranslationKey.tagsManagement.tr),
-          leading: const Icon(
-            Icons.tag,
-            color: Colors.blueGrey,
-          ),
-          onTap: () {
-            Get.back();
-            TagEditPage.goto(widget.clip.data.id);
-          },
-        ),
-        ListTile(
-          leading: const Icon(
-            Icons.delete,
-            color: Colors.blueGrey,
-          ),
-          title: Text(TranslationKey.delete.tr),
-          onTap: () {
-            Get.back();
-            widget.onRemoveClicked(widget.clip);
-          },
-        ),
-      ],
+            if (!widget.clip.isFile)
+              MenuItem(
+                label: TranslationKey.copyContent.tr,
+                icon: Icons.copy,
+                onSelected: () {
+                  appConfig.innerCopy = true;
+                  var type = ClipboardContentType.parse(widget.clip.data.type);
+                  clipboardManager.copy(type, widget.clip.data.content);
+                },
+              ),
+            if (!widget.clip.isFile)
+              MenuItem(
+                label: widget.clip.data.sync ? TranslationKey.resyncRecord.tr : TranslationKey.syncRecord.tr,
+                icon: Icons.sync,
+                onSelected: () {
+                  var opRecord = OperationRecord.fromSimple(
+                    Module.history,
+                    OpMethod.add,
+                    widget.clip.data.id.toString(),
+                  );
+                  dbService.opRecordDao.addAndNotify(opRecord);
+                },
+              ),
+            if (widget.clip.isFile)
+              MenuItem(
+                label: TranslationKey.openFile.tr,
+                icon: Icons.file_open,
+                onSelected: () async {
+                  final file = File(widget.clip.data.content);
+                  await OpenFile.open(file.normalizePath);
+                },
+              ),
+            if (widget.clip.isFile)
+              MenuItem(
+                label: TranslationKey.openFileFolder.tr,
+                icon: Icons.folder,
+                onSelected: () async {
+                  final file = File(widget.clip.data.content);
+                  await OpenFile.open(
+                    file.parent.normalizePath,
+                  );
+                },
+              ),
+            MenuItem(
+              label: TranslationKey.tagsManagement.tr,
+              icon: Icons.tag,
+              onSelected: () {
+                TagEditPage.goto(widget.clip.data.id);
+              },
+            ),
+            MenuItem(
+              label: TranslationKey.delete.tr,
+              icon: Icons.delete,
+              onSelected: () {
+                widget.onRemoveClicked(widget.clip);
+              },
+            ),
+          ],
+          position: details.globalPosition - const Offset(0, 70),
+          padding: const EdgeInsets.all(8.0),
+          borderRadius: BorderRadius.circular(8),
+        );
+        menu.show(context);
+      },
     );
   }
 

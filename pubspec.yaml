@@ -64,7 +64,7 @@ dependencies:
   # 链接可点击
   flutter_linkify: ^6.0.0
   # 右键菜单
-  contextmenu: ^3.0.0
+  flutter_context_menu: ^0.2.0
   # 打开链接
   url_launcher: ^6.2.5
   # 代码高亮
