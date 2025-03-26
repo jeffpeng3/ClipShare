@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/widgets/loading.dart';
@@ -28,13 +29,35 @@ class Global {
     Color color,
   ) {
     assert(context != null || scaffoldMessengerState != null);
-    final snackbar = SnackBar(
-      content: Text(text),
-      backgroundColor: color,
-    );
     if (context != null) {
-      ScaffoldMessenger.of(context).showSnackBar(snackbar);
+      AnimatedSnackBar(
+        builder: ((context) {
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withAlpha(125),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: MaterialAnimatedSnackBar(
+              messageText: text,
+              backgroundColor: color,
+              type: AnimatedSnackBarType.info,
+            ),
+          );
+        }),
+        desktopSnackBarPosition: DesktopSnackBarPosition.topCenter,
+        mobileSnackBarPosition: MobileSnackBarPosition.bottom,
+        duration: const Duration(seconds: 4),
+      ).show(context);
     } else {
+      final snackbar = SnackBar(
+        content: Text(text),
+        backgroundColor: color,
+      );
       scaffoldMessengerState!.showSnackBar(snackbar);
     }
   }
@@ -44,7 +67,7 @@ class Global {
     ScaffoldMessengerState? scaffoldMessengerState,
     required String text,
   }) {
-    showSnackBar(context, scaffoldMessengerState, text, Colors.lightBlue);
+    showSnackBar(context, scaffoldMessengerState, text, Colors.blue.shade700);
   }
 
   static void showSnackBarErr({
@@ -170,8 +193,7 @@ class Global {
                         height: 80,
                         child: Loading(
                           width: 32,
-                          description:
-                              loadingText != null ? Text(loadingText) : null,
+                          description: loadingText != null ? Text(loadingText) : null,
                         ),
                       ),
                       const SizedBox(

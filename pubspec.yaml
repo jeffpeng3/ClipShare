@@ -65,6 +65,8 @@ dependencies:
   flutter_linkify: ^6.0.0
   # 右键菜单
   flutter_context_menu: ^0.2.0
+  # snackbar
+  animated_snack_bar: ^0.4.0
   # 打开链接
   url_launcher: ^6.2.5
   # 代码高亮
