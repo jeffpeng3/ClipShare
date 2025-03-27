@@ -1,22 +1,20 @@
 import 'dart:convert';
 
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
-import 'package:clipshare/app/modules/views/windows/online_devices/online_devices_page.dart';
+import 'package:clipshare/app/modules/views/windows/file_sender/online_devices_page.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
 import 'package:clipshare/app/services/pending_file_service.dart';
-import 'package:clipshare/app/theme/app_theme.dart';
-import 'package:clipshare/app/utils/constants.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class OnlineDevicesWindow extends StatefulWidget {
+class FileSenderWindow extends StatefulWidget {
   final WindowController windowController;
   final Map args;
 
-  const OnlineDevicesWindow({
+  const FileSenderWindow({
     super.key,
     required this.windowController,
     required this.args,
@@ -24,11 +22,11 @@ class OnlineDevicesWindow extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return _OnlineDevicesWindowState();
+    return _FileSenderWindowState();
   }
 }
 
-class _OnlineDevicesWindowState extends State<OnlineDevicesWindow> with WidgetsBindingObserver {
+class _FileSenderWindowState extends State<FileSenderWindow> with WidgetsBindingObserver {
   List<Device> _devices = [];
   final multiWindowChannelService = Get.find<MultiWindowChannelService>();
   final pendingFileService = Get.find<PendingFileService>();
@@ -80,7 +78,7 @@ class _OnlineDevicesWindowState extends State<OnlineDevicesWindow> with WidgetsB
 
   @override
   Widget build(BuildContext context) {
-    return OnlineDevicesPage(
+    return FileSenderPage(
       devices: _devices,
       onSendClicked: (List<Device> devices, List<DropItem> items) async {
         await multiWindowChannelService.syncFiles(

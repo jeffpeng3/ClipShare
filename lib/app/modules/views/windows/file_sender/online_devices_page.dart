@@ -12,13 +12,13 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class OnlineDevicesPage extends StatelessWidget {
+class FileSenderPage extends StatelessWidget {
   final List<Device> devices;
   final pendingFileService = Get.find<PendingFileService>();
   final void Function(DropItem item) onItemRemove;
   final Function(List<Device> devives, List<DropItem> items) onSendClicked;
 
-  OnlineDevicesPage({
+  FileSenderPage({
     super.key,
     required this.devices,
     required this.onSendClicked,

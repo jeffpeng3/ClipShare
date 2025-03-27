@@ -5,7 +5,7 @@ import 'dart:ui';
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:clipshare/app/data/enums/multi_window_tag.dart';
 import 'package:clipshare/app/data/models/desktop_multi_window_args.dart';
-import 'package:clipshare/app/modules/sync_file_module/sync_file_controller.dart';
+import 'package:clipshare/app/modules/views/windows/file_sender/online_devices_window.dart';
 import 'package:clipshare/app/modules/views/windows/history/history_window.dart';
 import 'package:clipshare/app/modules/views/windows/online_devices/online_devices_window.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
@@ -69,7 +69,7 @@ Future<void> main(List<String> args) async {
         wcs.setResizable(false);
         wcs.setMinimizable(false);
         wcs.setMaximizable(false);
-        home = OnlineDevicesWindow(
+        home = FileSenderWindow(
           windowController: WindowController.fromWindowId(windowId),
           args: multiWindowArgs.otherArgs,
         );

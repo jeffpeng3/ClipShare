@@ -13,7 +13,7 @@ import 'package:clipshare/app/listeners/history_data_listener.dart';
 import 'package:clipshare/app/listeners/screen_opened_listener.dart';
 import 'package:clipshare/app/modules/device_module/device_controller.dart';
 import 'package:clipshare/app/modules/history_module/history_controller.dart';
-import 'package:clipshare/app/modules/views/windows/online_devices/online_devices_page.dart';
+import 'package:clipshare/app/modules/views/windows/file_sender/online_devices_page.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';
@@ -341,7 +341,7 @@ class SplashController extends GetxController {
     Navigator.push(
       Get.context!,
       MaterialPageRoute(
-        builder: (context) => OnlineDevicesPage(
+        builder: (context) => FileSenderPage(
           devices: devices,
           onSendClicked: (List<Device> devices, List<DropItem> items) async {
             final files = await pendingFileService.resolvePendingItems(items);
@@ -352,7 +352,7 @@ class SplashController extends GetxController {
             );
             pendingFileService.clearPendingInfo();
             Navigator.pop(context);
-            Global.showSnackBarSuc(text: TranslationKey.startSendFileToast.tr,context: Get.context!);
+            Global.showSnackBarSuc(text: TranslationKey.startSendFileToast.tr, context: Get.context!);
           },
           onItemRemove: (DropItem item) {
             pendingFileService.removeDropItem(item);
