@@ -7,7 +7,6 @@ import 'package:clipshare/app/data/enums/multi_window_tag.dart';
 import 'package:clipshare/app/data/models/desktop_multi_window_args.dart';
 import 'package:clipshare/app/modules/views/windows/file_sender/online_devices_window.dart';
 import 'package:clipshare/app/modules/views/windows/history/history_window.dart';
-import 'package:clipshare/app/modules/views/windows/online_devices/online_devices_window.dart';
 import 'package:clipshare/app/routes/app_pages.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/channels/clip_channel.dart';

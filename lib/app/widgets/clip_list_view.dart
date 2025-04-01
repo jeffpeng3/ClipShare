@@ -23,6 +23,7 @@ import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/widgets/clip_data_card.dart';
+import 'package:clipshare/app/widgets/clip_detail_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -77,7 +78,7 @@ class ClipListViewState extends State<ClipListView> with WidgetsBindingObserver 
   final _selectedItems = <ClipData>{};
   MenuController codeMenuController = MenuController();
 
-  bool get showLeftBar => MediaQuery.of(context).size.width >= Constants.smallScreenWidth;
+  bool get isBigScreen => MediaQuery.of(context).size.width >= Constants.smallScreenWidth;
 
   bool get showHistoryRight => MediaQuery.of(context).size.width >= Constants.showHistoryRightWidth;
 
@@ -216,6 +217,19 @@ class ClipListViewState extends State<ClipListView> with WidgetsBindingObserver 
   ///渲染列表项
   Widget renderItem(int i) {
     var item = widget.list[i];
+    onRemoveClicked(ClipData item) {
+      Global.showTipsDialog(
+        context: context,
+        text: TranslationKey.deleteRecordAck.tr,
+        title: TranslationKey.deleteTips.tr,
+        showCancel: true,
+        showNeutral: item.isFile || item.isImage,
+        neutralText: TranslationKey.deleteWithFiles.tr,
+        onOk: () => deleteItem(item),
+        onNeutral: () => deleteItem(item, true),
+      );
+    }
+
     return ClipDataCard(
       clip: widget.list[i],
       imageMode: widget.imageMasonryGridViewLayout,
@@ -232,12 +246,29 @@ class ClipListViewState extends State<ClipListView> with WidgetsBindingObserver 
           setState(() {});
         } else {
           var data = widget.list[i];
-          homeCtrl.openEndDrawer(
-            drawer: ClipboardDetailDrawer(
-              clipData: data,
-              detailBorderRadius: widget.detailBorderRadius,
-            ),
-          );
+          if (isBigScreen) {
+            homeCtrl.openEndDrawer(
+              drawer: ClipboardDetailDrawer(
+                clipData: data,
+                detailBorderRadius: widget.detailBorderRadius,
+              ),
+            );
+          } else {
+            showModalBottomSheet(
+              isScrollControlled: true,
+              clipBehavior: Clip.antiAlias,
+              context: context,
+              elevation: 100,
+              builder: (BuildContext context) {
+                return ClipDetailDialog(
+                  dlgContext: context,
+                  clip: data,
+                  onUpdate: widget.onUpdate,
+                  onRemoveClicked: onRemoveClicked,
+                );
+              },
+            );
+          }
         }
       },
       onLongPress: () {
@@ -265,18 +296,7 @@ class ClipListViewState extends State<ClipListView> with WidgetsBindingObserver 
         }
       },
       onUpdate: widget.onUpdate,
-      onRemoveClicked: (ClipData item) {
-        Global.showTipsDialog(
-          context: context,
-          text: TranslationKey.deleteRecordAck.tr,
-          title: TranslationKey.deleteTips.tr,
-          showCancel: true,
-          showNeutral: item.isFile || item.isImage,
-          neutralText: TranslationKey.deleteWithFiles.tr,
-          onOk: () => deleteItem(item),
-          onNeutral: () => deleteItem(item, true),
-        );
-      },
+      onRemoveClicked: onRemoveClicked,
     );
   }
 

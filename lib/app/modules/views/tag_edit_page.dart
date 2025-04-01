@@ -18,9 +18,8 @@ class TagEditPage extends StatefulWidget {
   const TagEditPage(this.hisId, {super.key});
 
   static void goto(int hisId) {
-    var showLeftBar =
-        MediaQuery.of(Get.context!).size.width >= Constants.smallScreenWidth;
-    if (showLeftBar || PlatformExt.isDesktop) {
+    var isBigScreen = MediaQuery.of(Get.context!).size.width >= Constants.smallScreenWidth;
+    if (isBigScreen || PlatformExt.isDesktop) {
       Get.dialog(
         DynamicSizeWidget(
           child: TagEditPage(hisId),
@@ -48,8 +47,7 @@ class _TagEditPageState extends State<TagEditPage> {
   bool saving = false;
   bool exists = false;
 
-  bool get showLeftBar =>
-      MediaQuery.of(Get.context!).size.width >= Constants.smallScreenWidth;
+  bool get isBigScreen => MediaQuery.of(Get.context!).size.width >= Constants.smallScreenWidth;
 
   @override
   void initState() {
@@ -107,10 +105,7 @@ class _TagEditPageState extends State<TagEditPage> {
                 willAddList.add(t);
               }
 
-              link
-                  .then((value) => tagService.removeList(willRmList))
-                  .then((value) => tagService.addList(willAddList))
-                  .then(
+              link.then((value) => tagService.removeList(willRmList)).then((value) => tagService.addList(willAddList)).then(
                     (value) => setState(() {
                       saving = false;
                       Navigator.pop(context);
@@ -184,8 +179,7 @@ class _TagEditPageState extends State<TagEditPage> {
                     });
                   },
                   child: Text(
-                    TranslationKey.tagEditPageCrateTagItem
-                        .trParams({"tag": _textController.text}),
+                    TranslationKey.tagEditPageCrateTagItem.trParams({"tag": _textController.text}),
                   ),
                 )
               : const SizedBox.shrink(),

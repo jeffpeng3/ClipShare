@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:clipshare/app/data/enums/history_content_type.dart';
-import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/clip_data.dart';
+import 'package:clipshare/app/data/models/search_filter.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
@@ -20,7 +20,6 @@ class SearchController extends GetxController with WidgetsBindingObserver {
 
   //region 属性
   static const tag = "SearchController";
-  final TextEditingController textController = TextEditingController();
   final searchFocus = FocusNode();
   final list = List<ClipData>.empty(growable: true).obs;
   List<Device> allDevices = List.empty();
@@ -29,41 +28,27 @@ class SearchController extends GetxController with WidgetsBindingObserver {
   final loading = true.obs;
 
   //region 搜索相关
-  bool get hasCondition =>
-      selectedTags.isNotEmpty ||
-      selectedDevIds.isNotEmpty ||
-      searchStartDate.isNotEmpty ||
-      searchEndDate.isNotEmpty ||
-      searchOnlyNoSync;
-  final selectedTags = <String>{}.obs;
-  final selectedDevIds = <String>{}.obs;
-  final _searchStartDate = "".obs;
+  bool get hasCondition => selectedTags.isNotEmpty || selectedDevIds.isNotEmpty || searchStartDate.isNotEmpty || searchEndDate.isNotEmpty || searchOnlyNoSync;
 
-  String get searchStartDate => _searchStartDate.value;
+  Set<String> get selectedTags => filter.value.tags;
 
-  set searchStartDate(value) => _searchStartDate.value = value;
-  final _searchEndDate = "".obs;
+  Set<String> get selectedDevIds => filter.value.devIds;
 
-  String get searchEndDate => _searchEndDate.value;
+  String get searchStartDate => filter.value.startDate;
 
-  set searchEndDate(value) => _searchEndDate.value = value;
-
+  String get searchEndDate => filter.value.endDate;
   final _searchType = HistoryContentType.all.obs;
 
   HistoryContentType get searchType => _searchType.value;
 
-  set searchType(HistoryContentType value) => _searchType.value = value;
-  final _searchOnlyNoSync = false.obs;
+  set searchType(value) => _searchType.value = value;
 
-  bool get searchOnlyNoSync => _searchOnlyNoSync.value;
-
-  set searchOnlyNoSync(value) => _searchOnlyNoSync.value = value;
+  bool get searchOnlyNoSync => filter.value.onlyNoSync;
+  final filter = SearchFilter().obs;
 
   //endregion
 
-  String get typeValue => HistoryContentType.typeMap.keys.contains(searchType.label)
-      ? HistoryContentType.typeMap[searchType.label]!
-      : "";
+  String get typeValue => HistoryContentType.typeMap.keys.contains(searchType.label) ? HistoryContentType.typeMap[searchType.label]! : "";
 
   final _screenWidth = Get.width.obs;
 
@@ -71,7 +56,7 @@ class SearchController extends GetxController with WidgetsBindingObserver {
 
   double get screenWidth => _screenWidth.value;
 
-  bool get showLeftBar => screenWidth >= Constants.smallScreenWidth;
+  bool get isBigScreen => screenWidth >= Constants.smallScreenWidth;
 
   //endregion
 
@@ -155,7 +140,7 @@ class SearchController extends GetxController with WidgetsBindingObserver {
         .getHistoriesPageByWhere(
       appConfig.userId,
       minId ?? 0,
-      textController.text,
+      filter.value.content,
       typeValue,
       selectedTags.toList(),
       selectedDevIds.toList(),

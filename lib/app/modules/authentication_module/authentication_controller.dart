@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:local_auth_android/local_auth_android.dart';
-import 'package:clipshare/app/widgets/auth_password_input.dart';
 /**
  * GetX Template Generator - fb.com/htngu.99
  * */
@@ -54,7 +53,7 @@ class AuthenticationController extends GetxController {
               children: <Widget>[
                 Text(
                   TranslationKey.authenticationPageTitle.tr,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10),

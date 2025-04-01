@@ -107,7 +107,7 @@ class HomeController extends GetxController with WidgetsBindingObserver, ScreenO
 
   double get screenWidth => _screenWidth.value;
 
-  bool get showLeftBar => screenWidth >= Constants.smallScreenWidth;
+  bool get isBigScreen => screenWidth >= Constants.smallScreenWidth;
 
   final sktService = Get.find<SocketService>();
   final dragging = false.obs;
@@ -301,7 +301,7 @@ class HomeController extends GetxController with WidgetsBindingObserver, ScreenO
     var settingNavBarIdx = _navBarItems.indexWhere((e) => (e.icon as Icon).icon == Icons.settings);
     var hasSearchPage = searchPageIdx != -1;
     var hasSearchNavBar = searchNavBarIdx != -1;
-    if (showLeftBar) {
+    if (isBigScreen) {
       //大屏幕
       //如果没有搜索页则加入
       if (!hasSearchPage) {
@@ -348,7 +348,7 @@ class HomeController extends GetxController with WidgetsBindingObserver, ScreenO
   void gotoSearchPage(String? devId, String? tagName) {
     final searchController = Get.find<search_module.SearchController>();
     searchController.loadFromExternalParams(devId, tagName);
-    if (showLeftBar) {
+    if (isBigScreen) {
       var i = _navBarItems.indexWhere((element) => (element.icon as Icon).icon == Icons.search);
       _index.value = i;
       pages[i] = SearchPage();
@@ -359,7 +359,7 @@ class HomeController extends GetxController with WidgetsBindingObserver, ScreenO
 
   ///导航至文件同步页面
   void gotoFileSyncPage() {
-    if (showLeftBar) {
+    if (isBigScreen) {
       var i = _navBarItems.indexWhere(
         (element) => (element.icon as Icon).icon == Icons.sync_alt_outlined,
       );

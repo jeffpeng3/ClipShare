@@ -148,9 +148,11 @@ class _HistoryPageState extends State<HistoryPage> with WindowListener {
       //这个刷新不知道为什么没效果
       body: RefreshIndicator(
         onRefresh: refresh,
-        child: _list.isEmpty
-            ? EmptyContent()
-            : ListView.builder(
+        child: Visibility(
+          visible: _list.isEmpty,
+          replacement: Column(
+            children: [
+              ListView.builder(
                 itemCount: _list.length,
                 controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -161,6 +163,10 @@ class _HistoryPageState extends State<HistoryPage> with WindowListener {
                   );
                 },
               ),
+            ],
+          ),
+          child: EmptyContent(),
+        ),
       ),
       floatingActionButton: _showBackToTopButton
           ? FloatingActionButton(

@@ -1,0 +1,308 @@
+import 'package:calendar_date_picker2/calendar_date_picker2.dart';
+import 'package:clipshare/app/data/enums/translation_key.dart';
+import 'package:clipshare/app/data/models/search_filter.dart';
+import 'package:clipshare/app/data/repository/entity/tables/device.dart';
+import 'package:clipshare/app/utils/extensions/time_extension.dart';
+import 'package:clipshare/app/widgets/condition_widget.dart';
+import 'package:clipshare/app/widgets/rounded_chip.dart';
+import 'package:flutter/material.dart';
+
+class FilterDetail extends StatefulWidget {
+  final SearchFilter filter;
+  final List<Device> allDevices;
+  final List<String> allTagNames;
+  final bool isBigScreen;
+  final void Function(SearchFilter filter) onConfirm;
+
+  FilterDetail({
+    super.key,
+    required SearchFilter searchFilter,
+    required this.allDevices,
+    required this.allTagNames,
+    required this.onConfirm,
+    required this.isBigScreen,
+  }) : filter = searchFilter.copy();
+
+  @override
+  State<StatefulWidget> createState() => _FilterDetailState();
+}
+
+class _FilterDetailState extends State<FilterDetail> {
+  SearchFilter get filter => widget.filter;
+
+  void onDateRangeClick() async {
+    //显示时间选择器
+    var range = await showCalendarDatePicker2Dialog(
+      context: context,
+      config: CalendarDatePicker2WithActionButtonsConfig(
+        calendarType: CalendarDatePicker2Type.range,
+      ),
+      dialogSize: const Size(325, 400),
+      borderRadius: BorderRadius.circular(15),
+    );
+    if (range != null) {
+      widget.filter.startDate = range[0]!.format("yyyy-MM-dd");
+      widget.filter.endDate = range[1]!.format("yyyy-MM-dd");
+    }
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var start = filter.startDate == "" ? TranslationKey.startDate.tr : filter.startDate;
+    var end = filter.endDate == "" ? TranslationKey.endDate.tr : filter.endDate;
+    var now = DateTime.now();
+    var nowDayStr = now.toString().substring(0, 10);
+    final confirmBtn = TextButton(
+      onPressed: () {
+        widget.onConfirm(filter.copy());
+      },
+      child: Text(TranslationKey.confirm.tr),
+    );
+    final list = ListView(
+      children: [
+        //筛选日期 label
+        Container(
+          margin: const EdgeInsets.only(bottom: 5),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  TranslationKey.filterByDate.tr,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  TextButton.icon(
+                    icon: Icon(
+                      filter.onlyNoSync ? Icons.check_box : Icons.check_box_outline_blank_sharp,
+                    ),
+                    label: Text(
+                      TranslationKey.onlyNotSync.tr,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        filter.onlyNoSync = !filter.onlyNoSync;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              Visibility(
+                visible: !widget.isBigScreen,
+                child: confirmBtn,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 5),
+        Row(
+          children: [
+            RoundedChip(
+              onPressed: onDateRangeClick,
+              label: Text(
+                start,
+                style: TextStyle(
+                  color: filter.startDate == "" && start == TranslationKey.startDate.tr ? Colors.blueGrey : null,
+                ),
+              ),
+              avatar: const Icon(Icons.date_range_outlined),
+              deleteIcon: Icon(
+                start != nowDayStr || start == TranslationKey.startDate.tr ? Icons.location_on : Icons.close,
+                size: 17,
+                color: Colors.blue,
+              ),
+              deleteButtonTooltipMessage: start != nowDayStr || start == TranslationKey.startDate.tr ? TranslationKey.toToday.tr : TranslationKey.clear.tr,
+              onDeleted: start != nowDayStr
+                  ? () {
+                      filter.startDate = DateTime.now().toString().substring(0, 10);
+                      setState(() {});
+                    }
+                  : () {
+                      filter.startDate = TranslationKey.startDate.tr;
+                      setState(() {});
+                    },
+            ),
+            Container(
+              margin: const EdgeInsets.only(right: 10, left: 10),
+              child: const Text("-"),
+            ),
+            RoundedChip(
+              onPressed: onDateRangeClick,
+              label: Text(
+                end,
+                style: TextStyle(
+                  color: filter.endDate == "" && end == TranslationKey.endDate.tr ? Colors.blueGrey : null,
+                ),
+              ),
+              avatar: const Icon(Icons.date_range_outlined),
+              deleteIcon: Icon(
+                end != nowDayStr || end == TranslationKey.endDate.tr ? Icons.location_on : Icons.close,
+                size: 17,
+                color: Colors.blue,
+              ),
+              deleteButtonTooltipMessage: end != nowDayStr || end == TranslationKey.endDate.tr ? TranslationKey.toToday.tr : TranslationKey.clear.tr,
+              onDeleted: end != nowDayStr || end == TranslationKey.endDate.tr
+                  ? () {
+                      filter.endDate = DateTime.now().toString().substring(0, 10);
+                      setState(() {});
+                    }
+                  : () {
+                      filter.endDate = TranslationKey.endDate.tr;
+                      setState(() {});
+                    },
+            ),
+          ],
+        ),
+        //筛选设备
+        Row(
+          children: <Widget>[
+            Container(
+              margin: const EdgeInsets.only(top: 10, bottom: 10),
+              child: Text(
+                TranslationKey.filterByDevice.tr,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(
+              width: 5,
+            ),
+            filter.devIds.isNotEmpty
+                ? SizedBox(
+                    height: 25,
+                    width: 25,
+                    child: IconButton(
+                      padding: const EdgeInsets.all(2),
+                      tooltip: TranslationKey.clear.tr,
+                      iconSize: 13,
+                      color: Colors.blueGrey,
+                      onPressed: () {
+                        filter.devIds.clear();
+                        setState(() {});
+                      },
+                      icon: const Icon(
+                        Icons.cleaning_services_sharp,
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ],
+        ),
+        const SizedBox(height: 5),
+        Wrap(
+          direction: Axis.horizontal,
+          children: [
+            for (var dev in widget.allDevices)
+              Container(
+                margin: const EdgeInsets.only(right: 5, bottom: 5),
+                child: RoundedChip(
+                  onPressed: () {
+                    var guid = dev.guid;
+                    if (filter.devIds.contains(guid)) {
+                      filter.devIds.remove(guid);
+                    } else {
+                      filter.devIds.add(guid);
+                    }
+                    setState(() {});
+                  },
+                  selected: filter.devIds.contains(dev.guid),
+                  label: Text(dev.name),
+                ),
+              ),
+          ],
+        ),
+        //筛选标签
+        Row(
+          children: <Widget>[
+            Container(
+              margin: const EdgeInsets.only(top: 10, bottom: 10),
+              child: Text(
+                TranslationKey.filterByTag.tr,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(
+              width: 5,
+            ),
+            filter.tags.isNotEmpty
+                ? SizedBox(
+                    height: 25,
+                    width: 25,
+                    child: IconButton(
+                      padding: const EdgeInsets.all(2),
+                      tooltip: TranslationKey.clear.tr,
+                      iconSize: 13,
+                      color: Colors.blueGrey,
+                      onPressed: () {
+                        filter.tags.clear();
+                        setState(() {});
+                      },
+                      icon: const Icon(
+                        Icons.cleaning_services_sharp,
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ],
+        ),
+        const SizedBox(height: 5),
+        Wrap(
+          direction: Axis.horizontal,
+          children: [
+            for (var tag in widget.allTagNames)
+              Container(
+                margin: const EdgeInsets.only(right: 5, bottom: 5),
+                child: RoundedChip(
+                  onPressed: () {
+                    if (filter.tags.contains(tag)) {
+                      filter.tags.remove(tag);
+                    } else {
+                      filter.tags.add(tag);
+                    }
+                    setState(() {});
+                  },
+                  selected: filter.tags.contains(tag),
+                  label: Text(tag),
+                ),
+              ),
+          ],
+        ),
+        Visibility(
+          visible: widget.isBigScreen,
+          child: confirmBtn,
+        ),
+      ],
+    );
+    const padding = EdgeInsets.all(8);
+    //这里不能使用visibility，否则会导致 RoundedChip 的背景色失效
+    return ConditionWidget(
+      condition: widget.isBigScreen,
+      visible: Card(
+        color: Theme.of(context).cardTheme.color,
+        elevation: 0,
+        margin: padding,
+        child: Container(
+          padding: padding,
+          child: list,
+        ),
+      ),
+      invisible: Container(
+        padding: padding,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 300),
+          child: list,
+        ),
+      ),
+    );
+  }
+}

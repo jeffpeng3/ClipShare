@@ -73,56 +73,6 @@ class ClipDataCardState extends State<ClipDataCard> {
     super.initState();
   }
 
-  void _showDetail(ClipData chip) {
-    if (PlatformExt.isDesktop) {
-      _showDetailDialog(chip);
-      return;
-    }
-    _showBottomDetailSheet(chip);
-  }
-
-  void _showDetailDialog(ClipData chip) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: null,
-          contentPadding: const EdgeInsets.all(0),
-          content: ClipDetailDialog(
-            dlgContext: context,
-            clip: chip,
-            onUpdate: widget.onUpdate,
-            onRemoveClicked: widget.onRemoveClicked,
-          ),
-        );
-      },
-    );
-  }
-
-  void _showBottomDetailSheet(ClipData chip) {
-    showModalBottomSheet(
-      isScrollControlled: true,
-      clipBehavior: Clip.antiAlias,
-      context: context,
-      elevation: 100,
-      builder: (BuildContext context) {
-        return ClipDetailDialog(
-          dlgContext: context,
-          clip: chip,
-          onUpdate: widget.onUpdate,
-          onRemoveClicked: widget.onRemoveClicked,
-        );
-      },
-    );
-  }
-
-  void _onTap() {
-    if (!PlatformExt.isMobile) {
-      return;
-    }
-    _showDetail(widget.clip);
-  }
-
   @override
   Widget build(BuildContext context) {
     _selected = widget.selected;
@@ -145,7 +95,7 @@ class ClipDataCardState extends State<ClipDataCard> {
           }
           if (widget.onDoubleTap == null) {
             //未设置双击，直接执行单击
-            _onTap();
+            widget.onTap?.call();
           } else {
             //设置了双击，且已经点击过一次，执行双击逻辑
             if (_readyDoubleClick) {
@@ -158,7 +108,7 @@ class ClipDataCardState extends State<ClipDataCard> {
               Future.delayed(const Duration(milliseconds: 300), () {
                 if (_readyDoubleClick) {
                   //指定时间后仍然没有进行第二次点击，进行单击逻辑
-                  _onTap();
+                  widget.onTap?.call();
                 }
                 //指定时间后无论是否双击，恢复状态
                 _readyDoubleClick = false;

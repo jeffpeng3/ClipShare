@@ -20,11 +20,10 @@ class ClipboardDetailDrawer extends StatelessWidget {
     final devService = Get.find<DeviceService>();
     final showFullPage = homeCtl.drawerWidth != null && homeCtl.drawerWidth! > 400;
     final fullPageWidth = MediaQuery.of(context).size.width * 0.9;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: detailBorderRadius,
-        color: Theme.of(context).colorScheme.surface,
-      ),
+    return Card(
+      color: Theme.of(context).cardTheme.color,
+      elevation: 0,
+      margin: const EdgeInsets.all(8),
       child: Padding(
         padding: const EdgeInsets.all(5),
         child: Column(
@@ -79,7 +78,7 @@ class ClipboardDetailDrawer extends StatelessWidget {
                 children: [
                   ///来源设备
                   Obx(
-                    () => RoundedChip(
+                        () => RoundedChip(
                       avatar: const Icon(Icons.devices_rounded),
                       label: Text(
                         devService.getName(clipData.data.devId),

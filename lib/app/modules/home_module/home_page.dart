@@ -58,7 +58,7 @@ class HomePage extends GetView<HomeController> {
                 child: Scaffold(
                   key: controller.homeScaffoldKey,
                   // backgroundColor: appConfig.bgColor,
-                  appBar: !controller.showLeftBar
+                  appBar: !controller.isBigScreen
                       ? AppBar(
                           backgroundColor: currentTheme.colorScheme.inversePrimary,
                           title: Row(
@@ -130,7 +130,7 @@ class HomePage extends GetView<HomeController> {
                       : null,
                   body: Row(
                     children: [
-                      controller.showLeftBar
+                      controller.isBigScreen
                           ? Obx(
                               () => NavigationRail(
                                 leading: controller.leftMenuExtend.value
@@ -181,7 +181,7 @@ class HomePage extends GetView<HomeController> {
                       ),
                     ],
                   ),
-                  bottomNavigationBar: !controller.showLeftBar
+                  bottomNavigationBar: !controller.isBigScreen
                       ? Obx(
                           () => BottomNavigationBar(
                             type: BottomNavigationBarType.fixed,
@@ -192,7 +192,7 @@ class HomePage extends GetView<HomeController> {
                           ),
                         )
                       : null,
-                  endDrawer: controller.drawer != null
+                  endDrawer: controller.drawer != null && controller.isBigScreen
                       ? SizedBox(
                           width: controller.drawerWidth,
                           child: controller.drawer,
