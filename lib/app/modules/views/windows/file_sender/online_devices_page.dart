@@ -8,7 +8,6 @@ import 'package:clipshare/app/utils/file_util.dart';
 import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/widgets/dragAndSendFiles/online_devices.dart';
 import 'package:clipshare/app/widgets/dragAndSendFiles/pending_file_list.dart';
-import 'package:clipshare/app/widgets/rounded_chip.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -77,6 +76,10 @@ class FileSenderPage extends StatelessWidget {
   }
 
   Widget buildOnlineDevices() {
+    //如果只有一个设备，默认选择
+    if (devices.length == 1) {
+      pendingFileService.pendingDevs.add(devices[0]);
+    }
     final selectedDevs = pendingFileService.pendingDevs.toList(growable: false);
     return OnlineDevices(
       direction: Axis.horizontal,

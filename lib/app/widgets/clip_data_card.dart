@@ -15,6 +15,7 @@ import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/db_service.dart';
 import 'package:clipshare/app/utils/extensions/file_extension.dart';
 import 'package:clipshare/app/utils/extensions/platform_extension.dart';
+import 'package:clipshare/app/utils/global.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_content.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_extra_info.dart';
 import 'package:clipshare/app/widgets/clip_simple_data_header.dart';
@@ -22,8 +23,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:get/get.dart';
 import 'package:open_file_plus/open_file_plus.dart';
-
-import 'clip_detail_dialog.dart';
 
 class ClipDataCard extends StatefulWidget {
   final ClipData clip;
@@ -217,6 +216,7 @@ class ClipDataCardState extends State<ClipDataCard> {
                   appConfig.innerCopy = true;
                   var type = ClipboardContentType.parse(widget.clip.data.type);
                   clipboardManager.copy(type, widget.clip.data.content);
+                  Global.showSnackBarSuc(text: TranslationKey.copySuccess.tr, context: context);
                 },
               ),
             if (!widget.clip.isFile)

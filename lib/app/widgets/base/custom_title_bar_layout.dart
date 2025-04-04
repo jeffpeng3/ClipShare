@@ -43,6 +43,13 @@ class _CustomTitleBarLayoutState extends State<CustomTitleBarLayout> {
                     onPanStart: (details) {
                       windowManager.startDragging();
                     },
+                    onDoubleTap: () {
+                      if (windowControlService.maxWindow.value) {
+                        windowControlService.restore();
+                      } else {
+                        windowControlService.maximize();
+                      }
+                    },
                     child: titleLayout,
                   ),
                 ),
