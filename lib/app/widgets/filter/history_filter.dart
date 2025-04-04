@@ -3,6 +3,7 @@ import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/models/search_filter.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
+import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:clipshare/app/widgets/filter/filter_detail.dart';
 import 'package:clipshare/app/widgets/rounded_chip.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ class HistoryFilter extends StatefulWidget {
   Future<void> Function() loadSearchCondition;
   bool isBigScreen;
   bool showContentTypeFilter;
+  SearchFilter? filter;
   void Function(SearchFilter filter) onChanged;
 
   HistoryFilter({
@@ -24,6 +26,7 @@ class HistoryFilter extends StatefulWidget {
     required this.isBigScreen,
     this.showContentTypeFilter = true,
     required this.onChanged,
+    this.filter,
   });
 
   @override
@@ -34,11 +37,26 @@ class _HistoryFilterState extends State<HistoryFilter> {
   bool loading = true;
   TextEditingController textController = TextEditingController();
   FocusNode searchFocus = FocusNode();
-  bool hasCondition = false;
   var filter = SearchFilter();
+
+  bool get hasMoreCondition {
+    return filter.tags.isNotEmpty || filter.devIds.isNotEmpty || filter.onlyNoSync || filter.endDate.isNotEmpty || filter.startDate.isNotEmpty;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.filter != null) {
+      filter = widget.filter!;
+      textController.text = filter.content;
+    }
+  }
 
   void notifyChanged() {
     widget.onChanged(filter.copy());
+    if (PlatformExt.isDesktop) {
+      searchFocus.requestFocus();
+    }
   }
 
   @override
@@ -49,48 +67,51 @@ class _HistoryFilterState extends State<HistoryFilter> {
           Row(
             children: [
               Expanded(
-                child: TextField(
-                  controller: textController,
-                  focusNode: searchFocus,
-                  autofocus: true,
-                  textAlignVertical: TextAlignVertical.center,
-                  decoration: InputDecoration(
-                    isDense: true,
-                    contentPadding: const EdgeInsets.only(
-                      left: 8,
-                      right: 8,
-                    ),
-                    hintText: TranslationKey.search.tr,
-                    border: widget.isBigScreen
-                        ? OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(4), // 边框圆角
-                            borderSide: const BorderSide(
-                              color: Colors.blue,
-                              width: 1.0,
-                            ), // 边框样式
-                          )
-                        : InputBorder.none,
-                    suffixIcon: InkWell(
-                      onTap: () {
-                        filter.content = textController.text;
-                        notifyChanged();
-                      },
-                      splashColor: Colors.black12,
-                      highlightColor: Colors.black12,
-                      borderRadius: BorderRadius.circular(50),
-                      child: Tooltip(
-                        message: TranslationKey.search.tr,
-                        child: const Icon(
-                          Icons.search_rounded,
-                          size: 25,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 5),
+                  child: TextField(
+                    controller: textController,
+                    focusNode: searchFocus,
+                    autofocus: true,
+                    textAlignVertical: TextAlignVertical.center,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.only(
+                        left: 8,
+                        right: 8,
+                      ),
+                      hintText: TranslationKey.search.tr,
+                      border: widget.isBigScreen || PlatformExt.isDesktop
+                          ? OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(4), // 边框圆角
+                              borderSide: const BorderSide(
+                                color: Colors.blue,
+                                width: 1.0,
+                              ), // 边框样式
+                            )
+                          : InputBorder.none,
+                      suffixIcon: InkWell(
+                        onTap: () {
+                          filter.content = textController.text;
+                          notifyChanged();
+                        },
+                        splashColor: Colors.black12,
+                        highlightColor: Colors.black12,
+                        borderRadius: BorderRadius.circular(50),
+                        child: Tooltip(
+                          message: TranslationKey.search.tr,
+                          child: const Icon(
+                            Icons.search_rounded,
+                            size: 25,
+                          ),
                         ),
                       ),
                     ),
+                    onSubmitted: (value) {
+                      filter.content = value;
+                      notifyChanged();
+                    },
                   ),
-                  onSubmitted: (value) {
-                    filter.content = value;
-                    notifyChanged();
-                  },
                 ),
               ),
               Container(
@@ -105,6 +126,7 @@ class _HistoryFilterState extends State<HistoryFilter> {
                       isBigScreen: widget.isBigScreen,
                       onConfirm: (filter) {
                         this.filter = filter;
+                        setState(() {});
                         notifyChanged();
                         Get.back();
                       },
@@ -123,8 +145,8 @@ class _HistoryFilterState extends State<HistoryFilter> {
                   },
                   tooltip: TranslationKey.moreFilter.tr,
                   icon: Icon(
-                    hasCondition ? Icons.playlist_add_check_outlined : Icons.menu_rounded,
-                    color: hasCondition ? Colors.blueAccent : null,
+                    hasMoreCondition ? Icons.playlist_add_check_outlined : Icons.menu_rounded,
+                    color: hasMoreCondition ? Colors.blueAccent : null,
                   ),
                 ),
               ),
@@ -164,9 +186,7 @@ class _HistoryFilterState extends State<HistoryFilter> {
                             selectedColor: filter.type == type ? Theme.of(context).chipTheme.selectedColor : null,
                             label: Text(type.label),
                           ),
-                          const SizedBox(
-                            width: 5,
-                          ),
+                          const SizedBox(width: 5),
                         ],
                       ),
                   ],

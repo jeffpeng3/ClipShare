@@ -1,19 +1,19 @@
 import 'package:flutter/cupertino.dart';
 
 class ConditionWidget extends StatelessWidget {
-  final Widget visible;
-  final Widget? invisible;
-  final bool condition;
+  final Widget child;
+  final Widget? replacement;
+  final bool visible;
 
   const ConditionWidget({
     super.key,
-    required this.condition,
     required this.visible,
-    this.invisible,
+    required this.child,
+    this.replacement,
   });
 
   @override
   Widget build(BuildContext context) {
-    return condition ? visible : invisible ?? const SizedBox.shrink();
+    return visible ? child : replacement ?? const SizedBox.shrink();
   }
 }

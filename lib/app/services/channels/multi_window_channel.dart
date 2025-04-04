@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:clipshare/app/data/models/search_filter.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -10,6 +11,8 @@ class MultiWindowMethod {
   MultiWindowMethod._private();
 
   static const getHistories = "getHistories";
+  static const getAllDevices = "getAllDevices";
+  static const getAllTagNames = "getAllTagNames";
   static const copy = "copy";
   static const notify = "notify";
   static const getCompatibleOnlineDevices = "getCompatibleOnlineDevices";
@@ -21,12 +24,35 @@ class MultiWindowChannelService extends GetxService {
   static const tag = "MultiWindowChannelService";
 
   ///获取历史数据
-  Future getHistories(int targetWindowId, int fromId) {
-    if (!PlatformExt.isDesktop) return Future(() => []);
+  Future getHistories(int targetWindowId, int fromId, SearchFilter filter) {
+    if (!PlatformExt.isDesktop) return Future(() => "[]");
     return DesktopMultiWindow.invokeMethod(
       targetWindowId,
       MultiWindowMethod.getHistories,
-      jsonEncode({"fromId": fromId}),
+      jsonEncode({
+        "fromId": fromId,
+        "filter": filter,
+      }),
+    );
+  }
+
+  ///获取所有设备名称
+  Future getAllDevices(int targetWindowId) {
+    if (!PlatformExt.isDesktop) return Future(() => "[]");
+    return DesktopMultiWindow.invokeMethod(
+      targetWindowId,
+      MultiWindowMethod.getAllDevices,
+      "{}",
+    );
+  }
+
+  ///获取所有标签名
+  Future getAllTagNames(int targetWindowId) {
+    if (!PlatformExt.isDesktop) return Future(() => "[]");
+    return DesktopMultiWindow.invokeMethod(
+      targetWindowId,
+      MultiWindowMethod.getAllTagNames,
+      "{}",
     );
   }
 

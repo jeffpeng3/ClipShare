@@ -1,3 +1,4 @@
+import 'package:clipshare/app/data/models/search_filter.dart';
 import 'package:clipshare/app/data/models/statistics/history_cnt_for_device.dart';
 import 'package:clipshare/app/data/models/statistics/history_type_cnt.dart';
 import 'package:clipshare/app/services/config_service.dart';
@@ -45,6 +46,20 @@ abstract class HistoryDao {
     String endTime,
     bool onlyNoSync,
   );
+
+  Future<List<History>> getHistoriesPageByFilter(int uid, SearchFilter filter, [int fromId = 0]) {
+    return getHistoriesPageByWhere(
+      uid,
+      fromId,
+      filter.content,
+      filter.type.value,
+      filter.tags.toList(),
+      filter.devIds.toList(),
+      filter.startDate,
+      filter.endDate,
+      filter.onlyNoSync,
+    );
+  }
 
   /// 【废弃】获取某设备未同步的记录
   @Query(

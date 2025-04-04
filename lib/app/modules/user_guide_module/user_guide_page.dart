@@ -13,8 +13,8 @@ class UserGuidePage extends GetView<UserGuideController> {
     return Scaffold(
       body: Obx(
         () => ConditionWidget(
-          condition: controller.isInitFinished.value,
-          visible: Padding(
+          visible: controller.isInitFinished.value,
+          child: Padding(
             padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
             child: Column(
               children: [
@@ -142,7 +142,7 @@ class UserGuidePage extends GetView<UserGuideController> {
               ],
             ),
           ),
-          invisible: const Center(
+          replacement: const Center(
             child: SizedBox(
               width: 48,
               height: 48,

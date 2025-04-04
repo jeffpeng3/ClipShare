@@ -19,9 +19,9 @@ class HistoryPage extends GetView<HistoryController> {
     //此处不可以用Visibility组件控制渲染，会导致RoundedClip组件背景色失效
     return Obx(
       () => ConditionWidget(
-        condition: controller.loading,
-        visible: const Loading(),
-        invisible: ClipListView(
+        visible: controller.loading,
+        child: const Loading(),
+        replacement: ClipListView(
           list: controller.list,
           parentController: controller,
           onRefreshData: controller.refreshData,

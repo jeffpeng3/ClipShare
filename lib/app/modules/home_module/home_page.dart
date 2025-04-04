@@ -70,9 +70,9 @@ class HomePage extends GetView<HomeController> {
                                     Obx(
                                       () => ConditionWidget(
                                         //todo 是否会有问题？
-                                        condition: appConfig.isMultiSelectionMode(currentPageController),
-                                        visible: const Icon(Icons.checklist),
-                                        invisible: controller.navBarItems[controller.index].icon,
+                                        visible: appConfig.isMultiSelectionMode(currentPageController),
+                                        child: const Icon(Icons.checklist),
+                                        replacement: controller.navBarItems[controller.index].icon,
                                       ),
                                     ),
                                     const SizedBox(

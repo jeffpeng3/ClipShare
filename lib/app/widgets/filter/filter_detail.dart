@@ -286,20 +286,20 @@ class _FilterDetailState extends State<FilterDetail> {
     const padding = EdgeInsets.all(8);
     //这里不能使用visibility，否则会导致 RoundedChip 的背景色失效
     return ConditionWidget(
-      condition: widget.isBigScreen,
-      visible: Card(
+      visible: widget.isBigScreen,
+      replacement: Container(
+        padding: padding,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 300),
+          child: list,
+        ),
+      ),
+      child: Card(
         color: Theme.of(context).cardTheme.color,
         elevation: 0,
         margin: padding,
         child: Container(
           padding: padding,
-          child: list,
-        ),
-      ),
-      invisible: Container(
-        padding: padding,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 300),
           child: list,
         ),
       ),

@@ -69,7 +69,7 @@ class AppHotKeyHandler {
         }
         //多显示器不知道怎么判断鼠标在哪个显示器中，所以默认主显示器
         Size screenSize = (await screenRetriever.getPrimaryDisplay()).size;
-        final [width, height] = [355.0, 630.0];
+        final [width, height] = [370.0, 630.0];
         final maxX = screenSize.width - width;
         final maxY = screenSize.height - height;
         //限制在屏幕范围内

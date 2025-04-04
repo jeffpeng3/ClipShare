@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:clipboard_listener/clipboard_manager.dart';
 import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/data/enums/history_content_type.dart';
 import 'package:clipshare/app/data/enums/translation_key.dart';
+import 'package:clipshare/app/data/models/search_filter.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/data/repository/entity/tables/history.dart';
 import 'package:clipshare/app/handlers/hot_key_handler.dart';
@@ -158,13 +160,13 @@ class SplashController extends GetxController {
       switch (call.method) {
         case MultiWindowMethod.getHistories:
           int fromId = args["fromId"];
+          final filter = SearchFilter.fromJson(args["filter"]);
           var historyDao = dbService.historyDao;
-          var lst = List<History>.empty();
-          if (fromId == 0) {
-            lst = await historyDao.getHistoriesTop20(appConfig.userId);
-          } else {
-            lst = await historyDao.getHistoriesPage(appConfig.userId, fromId);
-          }
+          final lst = await historyDao.getHistoriesPageByFilter(
+            appConfig.userId,
+            filter,
+            max(fromId, 0),
+          );
           var devMap = devService.toIdNameMap();
           devMap[appConfig.devInfo.guid] = TranslationKey.selfDeviceName.tr;
           var res = {
@@ -172,6 +174,14 @@ class SplashController extends GetxController {
             "devInfos": devMap,
           };
           return jsonEncode(res);
+        case MultiWindowMethod.getAllDevices:
+          //加载所有设备
+          final devices = await dbService.deviceDao.getAllDevices(appConfig.userId);
+          return jsonEncode([appConfig.device, ...devices]);
+        case MultiWindowMethod.getAllTagNames:
+          //加载所有标签名
+          final tagNames = await dbService.historyTagDao.getAllTagNames();
+          return jsonEncode(tagNames);
         case MultiWindowMethod.copy:
           int id = args["id"];
           dbService.historyDao.getById(id).then(

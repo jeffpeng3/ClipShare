@@ -30,17 +30,17 @@ class LogPage extends GetView<LogController> {
         },
         child: Obx(
           () => ConditionWidget(
-            condition: !controller.init.value,
-            visible: const Loading(),
-            invisible: ConditionWidget(
-              condition: controller.logs.isEmpty,
-              visible: Stack(
+            visible: !controller.init.value,
+            child: const Loading(),
+            replacement: ConditionWidget(
+              visible: controller.logs.isEmpty,
+              child: Stack(
                 children: [
                   ListView(),
                   EmptyContent(),
                 ],
               ),
-              invisible: ListView.builder(
+              replacement: ListView.builder(
                 itemCount: controller.logs.length,
                 itemBuilder: (ctx, i) {
                   return Column(

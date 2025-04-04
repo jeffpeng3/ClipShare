@@ -60,14 +60,14 @@ class ClipTagRowView extends StatelessWidget {
                   ),
                 ),
               ConditionWidget(
-                condition: showAddIcon == true,
-                visible: const SizedBox(
+                visible: showAddIcon == true,
+                child: const SizedBox(
                   width: 5,
                 ),
               ),
               ConditionWidget(
-                condition: showAddIcon == true,
-                visible: IconButton(
+                visible: showAddIcon == true,
+                child: IconButton(
                   visualDensity: VisualDensity.compact,
                   onPressed: () {
                     TagEditPage.goto(hisId);

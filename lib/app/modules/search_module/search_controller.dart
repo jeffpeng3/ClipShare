@@ -20,7 +20,6 @@ class SearchController extends GetxController with WidgetsBindingObserver {
 
   //region 属性
   static const tag = "SearchController";
-  final searchFocus = FocusNode();
   final list = List<ClipData>.empty(growable: true).obs;
   List<Device> allDevices = List.empty();
   List<String> allTagNames = List.empty();
@@ -28,8 +27,6 @@ class SearchController extends GetxController with WidgetsBindingObserver {
   final loading = true.obs;
 
   //region 搜索相关
-  bool get hasCondition => selectedTags.isNotEmpty || selectedDevIds.isNotEmpty || searchStartDate.isNotEmpty || searchEndDate.isNotEmpty || searchOnlyNoSync;
-
   Set<String> get selectedTags => filter.value.tags;
 
   Set<String> get selectedDevIds => filter.value.devIds;
@@ -149,9 +146,6 @@ class SearchController extends GetxController with WidgetsBindingObserver {
       searchOnlyNoSync,
     )
         .then((list) {
-      if (PlatformExt.isDesktop) {
-        searchFocus.requestFocus();
-      }
       return ClipData.fromList(list);
     });
   }

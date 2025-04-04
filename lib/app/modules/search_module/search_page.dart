@@ -72,9 +72,7 @@ class SearchPage extends GetView<search_module.SearchController> {
                             selectedColor: controller.searchType == type ? Theme.of(context).chipTheme.selectedColor : null,
                             label: Text(type.label),
                           ),
-                          const SizedBox(
-                            width: 5,
-                          ),
+                          const SizedBox(width: 5),
                         ],
                       ),
                   ],
@@ -85,9 +83,9 @@ class SearchPage extends GetView<search_module.SearchController> {
               ),
               Expanded(
                 child: ConditionWidget(
-                  condition: controller.loading.value,
-                  visible: const Loading(),
-                  invisible: ClipListView(
+                  visible: controller.loading.value,
+                  child: const Loading(),
+                  replacement: ClipListView(
                     list: controller.list,
                     parentController: controller,
                     onRefreshData: controller.refreshData,

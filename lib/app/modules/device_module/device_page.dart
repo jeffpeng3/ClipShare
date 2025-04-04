@@ -179,8 +179,8 @@ class DevicePage extends GetView<DeviceController> {
             //设备发现列表，此处不可以用Visibility组件控制渲染，会导致RoundedClip组件背景色失效
             Obx(
               () => ConditionWidget(
-                condition: controller.discoverList.isEmpty,
-                visible: DeviceCard(
+                visible: controller.discoverList.isEmpty,
+                child: DeviceCard(
                   dev: null,
                   isPaired: false,
                   isConnected: false,
@@ -188,7 +188,7 @@ class DevicePage extends GetView<DeviceController> {
                   minVersion: null,
                   version: null,
                 ),
-                invisible: renderGridView(controller.discoverList),
+                replacement: renderGridView(controller.discoverList),
               ),
             ),
             //查看本机IP
