@@ -237,6 +237,7 @@ class ClipListViewState extends State<ClipListView> with WidgetsBindingObserver 
       selectMode: _selectMode,
       selected: _selectedItems.contains(item),
       onTap: () {
+        print("on clicked");
         if (_selectMode) {
           if (_selectedItems.contains(item)) {
             _selectedItems.remove(item);

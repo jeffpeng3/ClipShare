@@ -43,7 +43,7 @@ class HomeController extends GetxController with WidgetsBindingObserver, ScreenO
   final Set<MultiSelectionPopScopeDisableListener> _multiSelectionPopScopeDisableListeners = {};
 
   //region 属性
-  final _drawer = Rx<Widget?>(null);
+  final _drawer = Rx<Widget>(const SizedBox.shrink());
 
   Widget? get drawer => _drawer.value;
   final _drawerWidth = Rx<double?>(null);
@@ -399,9 +399,7 @@ class HomeController extends GetxController with WidgetsBindingObserver, ScreenO
     double? width = 400,
     Function? onDrawerClosed,
   }) {
-    if (_drawer.value != null) {
-      closeEndDrawer();
-    }
+    closeEndDrawer();
     _drawer.value = drawer;
     _drawerWidth.value = width;
     _onEndDrawerClosed.value = onDrawerClosed;
@@ -410,8 +408,6 @@ class HomeController extends GetxController with WidgetsBindingObserver, ScreenO
 
   void closeEndDrawer() {
     homeScaffoldKey.currentState?.closeEndDrawer();
-    _drawer.value = null;
-    _drawerWidth.value = null;
     _onEndDrawerClosed.value = null;
   }
 
