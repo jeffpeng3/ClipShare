@@ -58,6 +58,7 @@ class AppHotKeyHandler {
           DesktopMultiWindowArgs.init(
             title: title,
             tag: MultiWindowTag.history,
+            themeMode: appConfig.appTheme,
           ).toString(),
         );
         appConfig.historyWindow = window;
@@ -126,6 +127,7 @@ class AppHotKeyHandler {
           DesktopMultiWindowArgs.init(
             title: title,
             tag: MultiWindowTag.devices,
+            themeMode: appConfig.appTheme,
             otherArgs: {
               "files": filePaths,
             },

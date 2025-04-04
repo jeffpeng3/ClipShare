@@ -29,7 +29,6 @@ class ClipDataCardCompact extends StatelessWidget {
       height: 150,
       child: Card(
         elevation: 0,
-        color: Colors.white,
         child: InkWell(
           mouseCursor: SystemMouseCursors.basic,
           onTap: () async {
@@ -40,7 +39,9 @@ class ClipDataCardCompact extends StatelessWidget {
               }
               multiWindowChannelService.copy(0, _clip.data.id).then(
                     (args) => Global.showSnackBarSuc(
-                        context: context, text: TranslationKey.copySuccess.tr),
+                      context: context,
+                      text: TranslationKey.copySuccess.tr,
+                    ),
                   );
               isDouble = false;
             } else {

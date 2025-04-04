@@ -24,6 +24,7 @@ class DesktopMultiWindowArgs {
   factory DesktopMultiWindowArgs.init({
     required String title,
     required MultiWindowTag tag,
+    required ThemeMode? themeMode,
     Map<String, dynamic> otherArgs = const {},
   }) {
     final locale = Get.locale!;
@@ -32,7 +33,7 @@ class DesktopMultiWindowArgs {
       title: title,
       languageCode: locale.languageCode,
       countryCode: locale.countryCode,
-      themeMode: Get.isPlatformDarkMode ? ThemeMode.dark : ThemeMode.light,
+      themeMode: themeMode ?? (Get.isPlatformDarkMode ? ThemeMode.dark : ThemeMode.light),
       otherArgs: otherArgs,
     );
   }
@@ -57,8 +58,7 @@ class DesktopMultiWindowArgs {
   }
 
   factory DesktopMultiWindowArgs.fromJson(Map<String, dynamic> json) {
-    ThemeMode themeMode =
-        json['themeMode'] == "light" ? ThemeMode.light : ThemeMode.dark;
+    ThemeMode themeMode = json['themeMode'] == "light" ? ThemeMode.light : ThemeMode.dark;
     return DesktopMultiWindowArgs(
       tag: MultiWindowTag.getValue(json['tag']!),
       title: json['title']!,
