@@ -32,6 +32,7 @@ import 'package:clipshare/app/utils/log.dart';
 import 'package:clipshare/app/utils/permission_helper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:synchronized/synchronized.dart';
 /**
  * GetX Template Generator - fb.com/htngu.99
  * */
@@ -54,7 +55,22 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
   ///需要更新并复制的最新的数据 id
   int? _missingDataCopyMsg;
 
-  History? get last => list.isEmpty ? null : list[0].data;
+  ///获取最新的一条数据，如果 tmpList和 list都有数据就判断时间，否则返回不为空的
+  History? get last {
+    final tmpLast = _tempList.isEmpty ? null : _tempList[0];
+    final lstLast = list.isEmpty ? null : list[0].data;
+    if (tmpLast == null && lstLast == null) return null;
+    if (tmpLast != null && lstLast != null) {
+      if (DateTime.parse(tmpLast.data.time).isAfter(DateTime.parse(lstLast.time))) {
+        return tmpLast.data;
+      } else {
+        return lstLast;
+      }
+    }
+    if (tmpLast != null) return tmpLast.data;
+    return lstLast;
+  }
+
   bool updating = false;
   final _loading = true.obs;
 
@@ -177,48 +193,47 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
   }
 
   ///添加页面数据
-  Future<int> addData(History history, bool shouldSync) {
+  Future<int> addData(History history, bool shouldSync) async {
     var clip = ClipData(history);
-    return dbService.historyDao.add(clip.data).then((cnt) {
-      if (cnt <= 0) return cnt;
-      notifyHistoryWindow();
-      _tempList.add(clip);
-      sortList();
-      if (!shouldSync) return cnt;
-      //添加历史操作记录
-      var opRecord = OperationRecord.fromSimple(
-        Module.history,
-        OpMethod.add,
-        history.id.toString(),
-      );
-      dbService.opRecordDao.addAndNotify(opRecord);
-      switch (HistoryContentType.parse(history.type)) {
-        case HistoryContentType.text:
-          var rules = jsonDecode(appConfig.tagRules)["data"];
-          for (var rule in rules) {
-            if (history.content.matchRegExp(rule["rule"])) {
-              //添加标签
-              var tag = HistoryTag(
-                rule["name"],
-                history.id,
-              );
-              tagService.add(tag);
-            }
-          }
-          break;
-        case HistoryContentType.sms:
-          //添加标签
-          tagService.add(
-            HistoryTag(
-              TranslationKey.sms.tr,
+    var cnt = await dbService.historyDao.add(clip.data);
+    if (cnt <= 0) return cnt;
+    notifyHistoryWindow();
+    _tempList.add(clip);
+    sortList();
+    if (!shouldSync) return cnt;
+    //添加历史操作记录
+    var opRecord = OperationRecord.fromSimple(
+      Module.history,
+      OpMethod.add,
+      history.id.toString(),
+    );
+    dbService.opRecordDao.addAndNotify(opRecord);
+    switch (HistoryContentType.parse(history.type)) {
+      case HistoryContentType.text:
+        var rules = jsonDecode(appConfig.tagRules)["data"];
+        for (var rule in rules) {
+          if (history.content.matchRegExp(rule["rule"])) {
+            //添加标签
+            var tag = HistoryTag(
+              rule["name"],
               history.id,
-            ),
-          );
-          break;
-        default:
-      }
-      return cnt;
-    });
+            );
+            tagService.add(tag);
+          }
+        }
+        break;
+      case HistoryContentType.sms:
+        //添加标签
+        tagService.add(
+          HistoryTag(
+            TranslationKey.sms.tr,
+            history.id,
+          ),
+        );
+        break;
+      default:
+    }
+    return cnt;
   }
 
   ///更新并复制最新的数据
@@ -228,7 +243,7 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
     Map<dynamic, dynamic> data = {};
     if (syncData is String) {
       data = jsonDecode(syncData);
-    }else{
+    } else {
       data = syncData;
     }
     final historyMap = data.cast<String, dynamic>();
@@ -262,6 +277,8 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
       }
     });
   }
+
+  Future f = Future.value();
 
   @override
   Future<void> onChanged(HistoryContentType type, String content) async {
@@ -339,7 +356,7 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
     Map<dynamic, dynamic> data = {};
     if (syncData is String) {
       data = jsonDecode(msg.data["data"]);
-    }else{
+    } else {
       data = syncData;
     }
     msg.data["data"] = "";
@@ -407,7 +424,7 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
           } else if (appConfig.autoCopyImageAfterSync) {
             clipboardManager.copy(type, history.content);
           }
-          if(_missingDataCopyMsg == history.id) {
+          if (_missingDataCopyMsg == history.id) {
             _missingDataCopyMsg = null;
           }
         }
