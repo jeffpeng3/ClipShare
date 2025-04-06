@@ -468,7 +468,7 @@ enum TranslationKey {
   addFilesFromSystem,
   viewPendingFiles,
   sendFiles,
-  ;
+  unWriteablePathTips;
 
   String get tr => name.tr;
 

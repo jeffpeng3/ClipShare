@@ -1055,6 +1055,10 @@ class SettingsPage extends GetView<SettingsController> {
                             onPressed: () async {
                               String? directory = await FilePicker.platform.getDirectoryPath(lockParentWindow: true);
                               if (directory != null) {
+                                if(!FileUtil.testWriteable(directory)){
+                                  Global.showTipsDialog(context: context, text: TranslationKey.unWriteablePathTips.tr);
+                                  return;
+                                }
                                 appConfig.setFileStorePath(directory);
                               }
                             },

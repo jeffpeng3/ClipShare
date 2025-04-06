@@ -951,6 +951,8 @@ class ZhCNTranslation extends AbstractTranslations {
         return "查看待发送文件";
       case TranslationKey.sendFiles:
         return "发送文件";
+      case TranslationKey.unWriteablePathTips:
+        return "选择的位置无法写入，请重新选择";
     }
   }
 }

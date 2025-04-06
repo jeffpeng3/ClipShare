@@ -951,6 +951,8 @@ class EnUSTranslation extends AbstractTranslations {
         return "View pending files";
       case TranslationKey.sendFiles:
         return "Send files";
+      case TranslationKey.unWriteablePathTips:
+        return "The selected location cannot be written, please select again";
     }
   }
 }
