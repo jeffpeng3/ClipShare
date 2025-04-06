@@ -55,6 +55,9 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
   ///需要更新并复制的最新的数据 id
   int? _missingDataCopyMsg;
 
+  ///onChange事件锁
+  final _onChangeLock = Lock();
+
   ///获取最新的一条数据，如果 tmpList和 list都有数据就判断时间，否则返回不为空的
   History? get last {
     final tmpLast = _tempList.isEmpty ? null : _tempList[0];
@@ -278,14 +281,17 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
     });
   }
 
-  Future f = Future.value();
-
   @override
   Future<void> onChanged(HistoryContentType type, String content) async {
+    _onChangeLock.synchronized(() => _onChanged(type, content));
+  }
+
+  Future<void> _onChanged(HistoryContentType type, String content) async {
     if (appConfig.innerCopy) {
       appConfig.innerCopy = false;
       return;
     }
+    Log.debug(tag, "${DateTime.now()},${last?.content}, $content");
     //和上次复制的内容相同
     if (last?.type == type.value && last?.content == content) {
       return;
