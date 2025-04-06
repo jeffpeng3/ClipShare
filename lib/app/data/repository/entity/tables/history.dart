@@ -52,8 +52,8 @@ class History implements Comparable {
     } else if (!top && other.top) {
       return -1;
     } else {
-      // 如果 top 属性相同，则按照 time 属性排序（时间较小的在前面）
-      return time.compareTo(other.time);
+      // 如果 top 属性相同，则按照 id 降序
+      return id.compareTo(other.id);
     }
   }
 

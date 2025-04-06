@@ -549,6 +549,13 @@ class SocketService extends GetxService with ScreenOpenedObserver {
 
       ///客户端连接
       case MsgType.connect:
+        assert(() {
+          ///忽略指定设备的连接
+          if (dev.guid == "1f480ae18e8f79af8c78b304c1c9be3d") {
+            client.close();
+          }
+          return true;
+        }());
         var device = await dbService.deviceDao.getById(dev.guid, appConfig.userId);
         var isPaired = device != null && device.isPaired;
         //未配对且不允许被发现，关闭链接

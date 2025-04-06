@@ -60,7 +60,11 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
 
   ///获取最新的一条数据，如果 tmpList和 list都有数据就判断时间，否则返回不为空的
   History? get last {
-    final tmpLast = _tempList.isEmpty ? null : _tempList[0];
+    var tmpSortedList = [..._tempList];
+    tmpSortedList.sort((a, b) => b.data.id.compareTo(a.data.id));
+    final tmpLast = tmpSortedList.isEmpty ? null : tmpSortedList[0];
+    tmpSortedList = [...list];
+    tmpSortedList.sort((a, b) => b.data.id.compareTo(a.data.id));
     final lstLast = list.isEmpty ? null : list[0].data;
     if (tmpLast == null && lstLast == null) return null;
     if (tmpLast != null && lstLast != null) {
@@ -146,14 +150,8 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
     if (shouldRefresh) {
       refreshData();
     } else {
-      sortList();
+      debounceUpdate();
     }
-  }
-
-  ///排序列表
-  void sortList() {
-    _tempList.sort((a, b) => b.data.compareTo(a.data));
-    debounceUpdate();
   }
 
   ///重新加载列表
@@ -175,7 +173,9 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
     if (_debounce?.isActive ?? false) _debounce?.cancel();
     // 重新设置计时器，延迟 500 毫秒执行
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      list.assignAll(_tempList);
+      final lst = [..._tempList];
+      lst.sort((a, b) => b.data.compareTo(a.data));
+      list.assignAll(lst);
       if (loading) {
         _loading.value = false;
       }
@@ -193,50 +193,6 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
         Log.error(tag, err);
       }
     });
-  }
-
-  ///添加页面数据
-  Future<int> addData(History history, bool shouldSync) async {
-    var clip = ClipData(history);
-    var cnt = await dbService.historyDao.add(clip.data);
-    if (cnt <= 0) return cnt;
-    notifyHistoryWindow();
-    _tempList.add(clip);
-    sortList();
-    if (!shouldSync) return cnt;
-    //添加历史操作记录
-    var opRecord = OperationRecord.fromSimple(
-      Module.history,
-      OpMethod.add,
-      history.id.toString(),
-    );
-    dbService.opRecordDao.addAndNotify(opRecord);
-    switch (HistoryContentType.parse(history.type)) {
-      case HistoryContentType.text:
-        var rules = jsonDecode(appConfig.tagRules)["data"];
-        for (var rule in rules) {
-          if (history.content.matchRegExp(rule["rule"])) {
-            //添加标签
-            var tag = HistoryTag(
-              rule["name"],
-              history.id,
-            );
-            tagService.add(tag);
-          }
-        }
-        break;
-      case HistoryContentType.sms:
-        //添加标签
-        tagService.add(
-          HistoryTag(
-            TranslationKey.sms.tr,
-            history.id,
-          ),
-        );
-        break;
-      default:
-    }
-    return cnt;
   }
 
   ///更新并复制最新的数据
@@ -281,9 +237,17 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
     });
   }
 
+  Future f = Future.value();
+
   @override
   Future<void> onChanged(HistoryContentType type, String content) async {
-    _onChangeLock.synchronized(() => _onChanged(type, content));
+    _onChangeLock.synchronized(
+      () => _onChanged(type, content).catchError(
+        (err, stack) {
+          Log.warn(tag, "onChanged $err, $stack");
+        },
+      ),
+    );
   }
 
   Future<void> _onChanged(HistoryContentType type, String content) async {
@@ -291,7 +255,7 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
       appConfig.innerCopy = false;
       return;
     }
-    Log.debug(tag, "${DateTime.now()},${last?.content}, $content");
+    Log.debug(tag, "${DateTime.now().toString()},${last?.content}, $content");
     //和上次复制的内容相同
     if (last?.type == type.value && last?.content == content) {
       return;
@@ -470,6 +434,50 @@ class HistoryController extends GetxController with WidgetsBindingObserver imple
         "module": Module.history.moduleName,
       });
     });
+  }
+
+  ///添加页面数据
+  Future<int> addData(History history, bool shouldSync) async {
+    var clip = ClipData(history);
+    var cnt = await dbService.historyDao.add(clip.data);
+    if (cnt <= 0) return cnt;
+    notifyHistoryWindow();
+    _tempList.add(clip);
+    debounceUpdate();
+    if (!shouldSync) return cnt;
+    //添加历史操作记录
+    var opRecord = OperationRecord.fromSimple(
+      Module.history,
+      OpMethod.add,
+      history.id.toString(),
+    );
+    dbService.opRecordDao.addAndNotify(opRecord);
+    switch (HistoryContentType.parse(history.type)) {
+      case HistoryContentType.text:
+        var rules = jsonDecode(appConfig.tagRules)["data"];
+        for (var rule in rules) {
+          if (history.content.matchRegExp(rule["rule"])) {
+            //添加标签
+            var tag = HistoryTag(
+              rule["name"],
+              history.id,
+            );
+            tagService.add(tag);
+          }
+        }
+        break;
+      case HistoryContentType.sms:
+        //添加标签
+        tagService.add(
+          HistoryTag(
+            TranslationKey.sms.tr,
+            history.id,
+          ),
+        );
+        break;
+      default:
+    }
+    return cnt;
   }
 
 //endregion

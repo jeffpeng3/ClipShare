@@ -26,7 +26,7 @@ class HistoryPage extends GetView<HistoryController> {
           onRefreshData: controller.refreshData,
           enableRouteSearch: true,
           onUpdate: () {
-            controller.sortList();
+            controller.debounceUpdate();
             //通知子窗体
             controller.notifyHistoryWindow();
           },
