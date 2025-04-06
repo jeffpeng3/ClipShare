@@ -1,9 +1,26 @@
 import 'dart:io';
 
+import 'package:clipshare/app/utils/extensions/string_extension.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:uuid/uuid.dart';
 
 class FileUtil {
   FileUtil._private();
+
+  ///测试路径是否可写入
+  static bool testWriteable(String dirPath) {
+    final uuid = const Uuid().v4();
+    final filePath = ("$dirPath/").normalizePath + uuid.toString();
+    try {
+      Directory(dirPath).createSync(recursive: true);
+      final file = File(filePath);
+      file.createSync();
+      file.deleteSync();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 
   ///递归获取文件夹大小
   static int getDirectorySize(String directoryPath) {

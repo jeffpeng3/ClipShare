@@ -19,6 +19,7 @@ import 'package:clipshare/app/utils/constants.dart';
 import 'package:clipshare/app/utils/crypto.dart';
 import 'package:clipshare/app/utils/extensions/file_extension.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
+import 'package:clipshare/app/utils/file_util.dart';
 import 'package:clipshare/app/utils/snowflake.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -69,10 +70,15 @@ class ConfigService extends GetxService {
   late final String cachePath;
 
   //文件默认存储路径
-  String get defaultFileStorePath {
+  Future<String> get defaultFileStorePath async {
     var path = "${Directory(Platform.resolvedExecutable).parent.path}/files";
     if (Platform.isAndroid) {
       path = "${Constants.androidDownloadPath}/${Constants.appName}";
+    } else if (Platform.isWindows) {
+      //Windows 下如果没有权限写入默认位置则修改为document文件夹下
+      if (!FileUtil.testWriteable(path)) {
+        path = "${await Constants.documentsPath}/files";
+      }
     }
     var dir = Directory(path);
     if (!dir.existsSync()) {
@@ -82,19 +88,7 @@ class ConfigService extends GetxService {
   }
 
   //日志路径
-  String get logsDirPath {
-    var path = "$cachePath/logs";
-    if (Platform.isWindows) {
-      path = Directory(
-        "${Directory(Platform.resolvedExecutable).parent.path}/logs",
-      ).absolute.normalizePath;
-    }
-    var dir = Directory(path);
-    if (!dir.existsSync()) {
-      dir.createSync();
-    }
-    return Directory(path).normalizePath;
-  }
+  late final String logsDirPath;
 
   //endregion
 
@@ -541,7 +535,7 @@ class ConfigService extends GetxService {
       "showMoreItemsInRow",
       userId,
     );
-    var fileStoreDir = Directory(fileStorePath ?? defaultFileStorePath);
+    var fileStoreDir = Directory(fileStorePath ?? await defaultFileStorePath);
     _port = port?.toInt().obs ?? Constants.port.obs;
     _localName = localName.isNotNullAndEmpty ? localName!.obs : devInfo.name.obs;
     _startMini = startMini?.toBool().obs ?? false.obs;
@@ -619,6 +613,27 @@ class ConfigService extends GetxService {
       documentPath = (await getApplicationDocumentsDirectory()).path;
       cachePath = (await getApplicationCacheDirectory()).path;
     }
+    await initLogsDirPath();
+  }
+
+  ///初始化日志路径
+  Future<void> initLogsDirPath() async {
+    var path = "$cachePath/logs";
+    if (Platform.isWindows) {
+      //Windows 下如果没有权限写入默认位置则修改为document文件夹下
+      path = Directory(
+        "${Directory(Platform.resolvedExecutable).parent.path}/logs",
+      ).absolute.normalizePath;
+      if (!FileUtil.testWriteable(path)) {
+        path = "${await Constants.documentsPath}/logs";
+      }
+    }
+    var dir = Directory(path);
+    if (!dir.existsSync()) {
+      dir.createSync();
+    }
+    path = Directory(path).normalizePath;
+    logsDirPath = path;
   }
 
   ///初始化设备信息

@@ -51,7 +51,7 @@ class Log {
     writeLog("[error] | $log");
   }
 
-  static void writeLog(String content) {
+  static Future<void> writeLog(String content) async {
     final appConfig = Get.find<ConfigService>();
     try {
       if (!appConfig.enableLogsRecord) {
@@ -60,9 +60,10 @@ class Log {
     } catch (e) {
       return;
     }
+    final logDirPath = appConfig.logsDirPath;
     var dateStr = DateTime.now().toString().substring(0, 10);
-    var filePath = "${appConfig.logsDirPath}/$dateStr.txt";
-    Directory(appConfig.logsDirPath).createSync();
+    var filePath = "$logDirPath/$dateStr.txt";
+    Directory(logDirPath).createSync();
     var file = File(filePath);
     _writeFuture = _writeFuture.then(
       (v) => file.writeAsString("$content\n", mode: FileMode.writeOnlyAppend),

@@ -76,9 +76,7 @@ class HomePage extends GetView<HomeController> {
                                           replacement: controller.navBarItems[controller.index].icon,
                                         ),
                                       ),
-                                      const SizedBox(
-                                        width: 5,
-                                      ),
+                                      const SizedBox(width: 5),
                                       Obx(
                                         () {
                                           final selectionMode = appConfig.isMultiSelectionMode(currentPageController);

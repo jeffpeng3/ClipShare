@@ -20,7 +20,6 @@ class HistoryPage extends GetView<HistoryController> {
     return Obx(
       () => ConditionWidget(
         visible: controller.loading,
-        child: const Loading(),
         replacement: ClipListView(
           list: controller.list,
           parentController: controller,
@@ -37,6 +36,7 @@ class HistoryPage extends GetView<HistoryController> {
             controller.updateLatestLocalClip();
           },
         ),
+        child: const Loading(),
       ),
     );
   }

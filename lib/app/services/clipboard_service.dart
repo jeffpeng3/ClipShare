@@ -10,6 +10,7 @@ import 'package:clipshare/app/modules/settings_module/settings_controller.dart';
 import 'package:clipshare/app/services/channels/android_channel.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
+import 'package:clipshare/app/utils/file_util.dart';
 import 'package:clipshare/app/utils/log.dart';
 import 'package:flutter_screenshot_detect/flutter_screenshot_detect.dart';
 import 'package:get/get.dart';
@@ -39,6 +40,12 @@ class ClipboardService extends GetxService with ClipboardListener {
     clipboardManager.addListener(this);
     if (appConfig.autoCopyImageAfterScreenShot) {
       startListenScreenshot();
+    }
+    if (Platform.isWindows) {
+      final execDir = Directory(Platform.resolvedExecutable).parent.path;
+      if (!FileUtil.testWriteable(execDir)) {
+        clipboardManager.setTempFileDir(await Constants.documentsPath);
+      }
     }
     return this;
   }

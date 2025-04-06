@@ -6,6 +6,7 @@ import 'package:clipshare/app/widgets/radio_group.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 
 class Constants {
   Constants._private();
@@ -32,12 +33,10 @@ class Constants {
   static const heartbeatInterval = 30;
 
   //中转程序下载地址
-  static const forwardDownloadUrl =
-      "https://clipshare.coclyun.top/usages/forward.html";
+  static const forwardDownloadUrl = "https://clipshare.coclyun.top/usages/forward.html";
 
   //更新信息地址
-  static const appUpdateInfoUtl =
-      "https://clipshare.coclyun.top/version-info.json";
+  static const appUpdateInfoUtl = "https://clipshare.coclyun.top/version-info.json";
 
   //默认标签规则
   static String get defaultTagRules => jsonEncode(
@@ -67,8 +66,7 @@ class Constants {
   static const githubRepo = "https://github.com/aa2013/ClipShare";
 
   //QQ group
-  static const qqGroup =
-      "http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=HQGbGZ-eYPNGLiawtVRuTk21RJyh87vp&authKey=mm0grlVTMpUJriGac5qBe8X50wShxlKILoeF9K6F2%2FmOpMPv60cBxZBZKs%2BSYmFI&noverify=0&group_code=622786394";
+  static const qqGroup = "http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=HQGbGZ-eYPNGLiawtVRuTk21RJyh87vp&authKey=mm0grlVTMpUJriGac5qBe8X50wShxlKILoeF9K6F2%2FmOpMPv60cBxZBZKs%2BSYmFI&noverify=0&group_code=622786394";
 
   //ClipShare 官网
   static const clipshareSite = "https://clipshare.coclyun.top";
@@ -82,15 +80,19 @@ class Constants {
   static const androidRootStoragePath = "/storage/emulated/0";
   static const androidDownloadPath = "$androidRootStoragePath/Download";
   static const androidPicturesPath = "$androidRootStoragePath/Pictures";
-  static const windowsStartUpPath =
-      r'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup';
+
+  static Future<String> get documentsPath async {
+    final dir = "${(await getApplicationDocumentsDirectory()).path}/ClipShare/";
+    Directory(dir).createSync(recursive: true);
+    return dir;
+  }
+
+  static const windowsStartUpPath = r'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup';
 
   static String? get windowsUserStartUpPath {
     final username = Platform.environment['USERNAME'];
     if (username == null) return null;
-    return r'C:\Users\' +
-        username +
-        r'\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup';
+    return r'C:\Users\' + username + r'\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup';
   }
 
   //配对时限（秒）
