@@ -4,6 +4,7 @@ import 'package:clipshare/app/data/models/search_filter.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/utils/extensions/time_extension.dart';
 import 'package:clipshare/app/widgets/condition_widget.dart';
+import 'package:clipshare/app/widgets/empty_content.dart';
 import 'package:clipshare/app/widgets/rounded_chip.dart';
 import 'package:flutter/material.dart';
 
@@ -195,6 +196,7 @@ class _FilterDetailState extends State<FilterDetail> {
                 : const SizedBox.shrink(),
           ],
         ),
+        if (widget.allDevices.isEmpty) EmptyContent(size: 40),
         const SizedBox(height: 5),
         Wrap(
           direction: Axis.horizontal,
@@ -231,9 +233,7 @@ class _FilterDetailState extends State<FilterDetail> {
                 ),
               ),
             ),
-            const SizedBox(
-              width: 5,
-            ),
+            const SizedBox(width: 5),
             filter.tags.isNotEmpty
                 ? SizedBox(
                     height: 25,
@@ -255,6 +255,7 @@ class _FilterDetailState extends State<FilterDetail> {
                 : const SizedBox.shrink(),
           ],
         ),
+        if (widget.allTagNames.isEmpty) EmptyContent(size: 40),
         const SizedBox(height: 5),
         Wrap(
           direction: Axis.horizontal,

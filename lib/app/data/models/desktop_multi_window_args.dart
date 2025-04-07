@@ -12,7 +12,7 @@ class DesktopMultiWindowArgs {
   final ThemeMode themeMode;
   final Map<String, dynamic> otherArgs;
 
-  DesktopMultiWindowArgs({
+  DesktopMultiWindowArgs._private({
     required this.tag,
     required this.title,
     required this.languageCode,
@@ -28,12 +28,17 @@ class DesktopMultiWindowArgs {
     Map<String, dynamic> otherArgs = const {},
   }) {
     final locale = Get.locale!;
-    return DesktopMultiWindowArgs(
+    themeMode = themeMode == ThemeMode.system || themeMode == null
+        ? Get.isPlatformDarkMode
+            ? ThemeMode.dark
+            : ThemeMode.light
+        : themeMode;
+    return DesktopMultiWindowArgs._private(
       tag: tag,
       title: title,
       languageCode: locale.languageCode,
       countryCode: locale.countryCode,
-      themeMode: themeMode ?? (Get.isPlatformDarkMode ? ThemeMode.dark : ThemeMode.light),
+      themeMode: themeMode,
       otherArgs: otherArgs,
     );
   }
@@ -58,8 +63,14 @@ class DesktopMultiWindowArgs {
   }
 
   factory DesktopMultiWindowArgs.fromJson(Map<String, dynamic> json) {
-    ThemeMode themeMode = json['themeMode'] == "light" ? ThemeMode.light : ThemeMode.dark;
-    return DesktopMultiWindowArgs(
+    ThemeMode themeMode = !json.containsKey('themeMode') || json['themeMode'] == "system"
+        ? Get.isPlatformDarkMode
+            ? ThemeMode.dark
+            : ThemeMode.light
+        : json['themeMode'] == "light"
+            ? ThemeMode.light
+            : ThemeMode.dark;
+    return DesktopMultiWindowArgs._private(
       tag: MultiWindowTag.getValue(json['tag']!),
       title: json['title']!,
       languageCode: json['languageCode']!,

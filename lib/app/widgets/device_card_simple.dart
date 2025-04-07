@@ -22,9 +22,7 @@ class DeviceCardSimple extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const chipColor = Color.fromARGB(255, 213, 222, 232);
     return Card(
-      color: Colors.white,
       elevation: 0,
       margin: const EdgeInsets.all(8),
       child: InkWell(
@@ -80,10 +78,7 @@ class DeviceCardSimple extends StatelessWidget {
                             ),
                             Row(
                               children: [
-                                RoundedChip(
-                                  label: Text(dev.type),
-                                  backgroundColor: chipColor,
-                                ),
+                                RoundedChip(label: Text(dev.type)),
                               ],
                             ),
                           ],

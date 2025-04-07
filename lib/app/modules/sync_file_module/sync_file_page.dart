@@ -222,7 +222,9 @@ class SyncFilePage extends GetView<SyncFileController> {
               child: FloatingActionButton(
                 onPressed: () async {
                   final result = await FileUtil.pickFiles();
-                  print("result $result");
+                  if (result.isEmpty) {
+                    return;
+                  }
                   final files = result.map((f) => DropItemFile(f.path!)).toList();
                   pendingFileService.addDropItems(files);
                   final homeController = Get.find<HomeController>();
