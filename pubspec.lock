@@ -498,9 +498,11 @@ packages:
   flutter_screenshot_detect:
     dependency: "direct main"
     description:
-      path: "../github/screenshot_detector"
-      relative: true
-    source: path
+      path: "."
+      ref: main
+      resolved-ref: f3550d14737cd01ad4d2190f0229c79593189010
+      url: "https://github.com/aa2013/screenshot_detector"
+    source: git
     version: "0.1.6"
   flutter_staggered_grid_view:
     dependency: "direct main"

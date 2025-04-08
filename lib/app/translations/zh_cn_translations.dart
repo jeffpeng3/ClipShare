@@ -736,7 +736,7 @@ class ZhCNTranslation extends AbstractTranslations {
       case TranslationKey.publicForwardServer:
         return "公开服务器";
       case TranslationKey.forwardServerSyncFileRateLimit:
-        return "文件同步限速：";
+        return "文件同步限速";
       case TranslationKey.forwardServerCannotSyncFile:
         return "该中转服务器不可进行文件同步";
       case TranslationKey.forwardServerNoLimits:

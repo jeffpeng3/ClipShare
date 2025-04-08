@@ -1,5 +1,4 @@
 import 'package:clipshare/app/modules/device_module/device_controller.dart';
-import 'package:clipshare/app/modules/sync_file_module/sync_file_controller.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/pending_file_service.dart';
 import 'package:clipshare/app/utils/file_util.dart';
@@ -58,9 +57,13 @@ class _DragAndSendFilePageState extends State<DragAndSendFilePage> {
   }
 
   Widget buildOnlineDevices() {
+    final onlineList = devController.onlineList;
+    if (onlineList.length == 1) {
+      pendingFileService.pendingDevs.add(onlineList[0]);
+    }
     return OnlineDevices(
       direction: Axis.vertical,
-      onlineList: devController.onlineList,
+      onlineList: onlineList,
       selectedList: pendingFileService.pendingDevs.toList(),
       onTap: (dev) {
         final selected = pendingFileService.pendingDevs.contains(dev);
@@ -82,7 +85,7 @@ class _DragAndSendFilePageState extends State<DragAndSendFilePage> {
         final files = result.map((f) => DropItemFile(f.path!)).toList();
         pendingFileService.addDropItems(files);
       },
-      onClearAllClicked: (){
+      onClearAllClicked: () {
         pendingFileService.clearPendingInfo();
       },
     );

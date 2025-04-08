@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/data/repository/entity/tables/device.dart';
 import 'package:clipshare/app/modules/views/windows/file_sender/online_devices_page.dart';
 import 'package:clipshare/app/services/channels/multi_window_channel.dart';
 import 'package:clipshare/app/services/pending_file_service.dart';
+import 'package:clipshare/app/utils/global.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
@@ -86,7 +88,11 @@ class _FileSenderWindowState extends State<FileSenderWindow> with WidgetsBinding
           devices,
           items.map((item) => item.path).toList(growable: false),
         );
-        widget.windowController.close();
+        Global.showSnackBarSuc(
+          text: TranslationKey.startSendFileToast.tr,
+          context: context,
+        );
+        pendingFileService.clearPendingInfo();
       },
       onItemRemove: (DropItem item) {
         pendingFileService.removeDropItem(item);

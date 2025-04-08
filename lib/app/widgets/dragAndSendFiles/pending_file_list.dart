@@ -3,7 +3,6 @@ import 'package:clipshare/app/widgets/drag_pending_file_list_item.dart';
 import 'package:clipshare/app/widgets/empty_content.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class PendingFileList extends StatelessWidget {
   final List<DropItem> pendingItems;
@@ -70,11 +69,12 @@ class PendingFileList extends StatelessWidget {
             child: ListView(
               children: pendingItems
                   .map(
-                    (item) => DragPendingFileListItem(
+                    (item) =>
+                    DragPendingFileListItem(
                       item: item,
                       onRemove: onItemRemove,
                     ),
-                  )
+              )
                   .toList(),
             ),
           ),
@@ -85,9 +85,14 @@ class PendingFileList extends StatelessWidget {
             IconButton(
               onPressed: onAddClicked,
               tooltip: TranslationKey.addFilesFromSystem.tr,
-              icon: const Icon(
-                Icons.add,
-                color: Colors.blueGrey,
+              icon: Row(
+                children: [
+                  const Icon(
+                    Icons.add,
+                    color: Colors.blueGrey,
+                  ),
+                  Text(TranslationKey.add.tr),
+                ],
               ),
             ),
           ],

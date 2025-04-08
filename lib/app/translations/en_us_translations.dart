@@ -784,7 +784,7 @@ class EnUSTranslation extends AbstractTranslations {
       case TranslationKey.publicForwardServer:
         return "Public Server";
       case TranslationKey.forwardServerSyncFileRateLimit:
-        return "File Sync Rate Limit:";
+        return "File Sync Rate Limit";
       case TranslationKey.forwardServerCannotSyncFile:
         return "This forward server cannot sync files";
       case TranslationKey.forwardServerNoLimits:
