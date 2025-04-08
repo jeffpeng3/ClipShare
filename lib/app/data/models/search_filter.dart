@@ -3,15 +3,26 @@ import 'dart:convert';
 import 'package:clipshare/app/data/enums/history_content_type.dart';
 
 class SearchFilter {
-  String content = "";
-  String startDate = "";
-  String endDate = "";
+  String content;
+  String startDate;
+  String endDate;
   Set<String> tags = {};
   Set<String> devIds = {};
-  bool onlyNoSync = false;
-  HistoryContentType type = HistoryContentType.all;
+  bool onlyNoSync;
+  HistoryContentType type;
 
-  SearchFilter();
+  SearchFilter({
+    this.content = "",
+    this.startDate = "",
+    this.endDate = "",
+    Set<String>? tags,
+    Set<String>? devIds,
+    this.onlyNoSync = false,
+    this.type = HistoryContentType.all,
+  }) {
+    this.tags = tags ?? {};
+    this.devIds = devIds ?? {};
+  }
 
   factory SearchFilter.fromJson(Map<String, dynamic> json) {
     return SearchFilter()

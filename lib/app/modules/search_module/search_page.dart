@@ -1,4 +1,5 @@
 import 'package:clipshare/app/data/enums/history_content_type.dart';
+import 'package:clipshare/app/data/models/search_filter.dart';
 import 'package:clipshare/app/modules/search_module/search_controller.dart' as search_module;
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/widgets/clip_list_view.dart';
@@ -30,6 +31,7 @@ class SearchPage extends GetView<search_module.SearchController> {
             loadSearchCondition: controller.loadSearchCondition,
             isBigScreen: controller.isBigScreen,
             showContentTypeFilter: false,
+            filter: controller.filter.value,
             onChanged: (filter) {
               controller.filter.value = filter;
               controller.refreshData();
