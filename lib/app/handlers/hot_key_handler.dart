@@ -8,11 +8,13 @@ import 'package:clipshare/app/data/models/desktop_multi_window_args.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/utils/extensions/keyboard_key_extension.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
+import 'package:clipshare/app/utils/windows_dpi.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
+import 'package:window_manager/window_manager.dart';
 
 class AppHotKeyHandler {
   static const tag = "AppHotKeyHandler";
@@ -63,6 +65,7 @@ class AppHotKeyHandler {
         );
         appConfig.historyWindow = window;
         var posCfg = appConfig.historyDialogPosition;
+        var radio = windowManager.getDevicePixelRatio();
         var offset = await screenRetriever.getCursorScreenPoint();
         //存储的位置配置不为空则按配置显示
         if (posCfg != Offset.zero && appConfig.recordHistoryDialogPosition) {
@@ -70,9 +73,9 @@ class AppHotKeyHandler {
         }
         //多显示器不知道怎么判断鼠标在哪个显示器中，所以默认主显示器
         Size screenSize = (await screenRetriever.getPrimaryDisplay()).size;
-        final [width, height] = [370.0, 630.0];
-        final maxX = screenSize.width - width;
-        final maxY = screenSize.height - height;
+        final [width, height] = [370.0 * radio, 630.0  * radio];
+        final maxX = max(screenSize.width - width, 0.0);
+        final maxY = max(screenSize.height - height, 0.0);
         //限制在屏幕范围内
         final [x, y] = [min(maxX, offset.dx), min(maxY, offset.dy)];
         window
@@ -134,12 +137,13 @@ class AppHotKeyHandler {
           ).toString(),
         );
         appConfig.onlineDevicesWindow = window;
+        var radio = windowManager.getDevicePixelRatio();
         var offset = await screenRetriever.getCursorScreenPoint();
         //多显示器不知道怎么判断鼠标在哪个显示器中，所以默认主显示器
         Size screenSize = (await screenRetriever.getPrimaryDisplay()).size;
-        final [width, height] = [355.0, 630.0];
-        final maxX = screenSize.width - width;
-        final maxY = screenSize.height - height;
+        final [width, height] = [355.0 * radio, 630.0 * radio];
+        final maxX = max(screenSize.width - width, 0.0);
+        final maxY = max(screenSize.height - height, 0.0);
         //限制在屏幕范围内
         final [x, y] = [min(maxX, offset.dx), min(maxY, offset.dy)];
         window

@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0-beta+10
+version: 1.0.0-beta+11
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -39,7 +39,7 @@ dependencies:
   # 托盘插件
   tray_manager: ^0.2.0
   # 窗体管理
-  window_manager: ^0.3.7
+  window_manager: ^0.4.3
   # 开机启动
   launch_at_startup: ^0.2.2
   # The following adds the Cupertino Icons font to your application.
@@ -78,7 +78,7 @@ dependencies:
   # 快捷键
   hotkey_manager: ^0.2.2
   # 允许 Flutter 桌面应用检索关于屏幕大小，显示，光标位置等信息。
-  screen_retriever: ^0.1.9
+  screen_retriever: ^0.2.0
   # 提供一种平台无关的方式以一致的方式访问设备的文件位置系统
   path_provider: ^2.1.2
   # 文件打开（解决 Android13 权限问题）

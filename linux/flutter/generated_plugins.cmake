@@ -7,7 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   desktop_multi_window
   hotkey_manager_linux
-  screen_retriever
+  screen_retriever_linux
   smart_auth
   tray_manager
   url_launcher_linux

@@ -38,6 +38,10 @@ class _FileSenderWindowState extends State<FileSenderWindow> with WidgetsBinding
     super.initState();
     //监听生命周期
     WidgetsBinding.instance.addObserver(this);
+    if(widget.args.containsKey("files")){
+      var files = widget.args["files"] as List<dynamic>;
+      pendingFileService.addDropItems(files.cast<String>().map((path)=>DropItemFile(path)).toList());
+    }
     //处理弹窗事件
     DesktopMultiWindow.setMethodHandler((
       MethodCall call,
