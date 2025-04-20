@@ -802,7 +802,7 @@ class ZhCNTranslation extends AbstractTranslations {
       case TranslationKey.showOnRecentTasks:
         return "在最近任务中显示";
       case TranslationKey.showOnRecentTasksDesc:
-        return "在部分系统上隐藏后台后可能导致切换应用后会被杀掉后台，当前原因未知";
+        return "在部分系统上隐藏后台后可能导致切换应用后会被杀掉后台（如小米），当前原因未知";
       case TranslationKey.showLocalIpAddress:
         return "查看本机IP";
       case TranslationKey.localIpAddress:
@@ -953,6 +953,18 @@ class ZhCNTranslation extends AbstractTranslations {
         return "发送文件";
       case TranslationKey.unWriteablePathTips:
         return "选择的位置无法写入，请重新选择";
+      case TranslationKey.clipboardListeningWay:
+        return "剪贴板监听方式";
+      case TranslationKey.clipboardListeningWithSystemHiddenApi:
+        return "系统隐藏API";
+      case TranslationKey.clipboardListeningWithSystemLogs:
+        return "系统日志";
+      case TranslationKey.clipboardListeningWayTips:
+        return "说明";
+      case TranslationKey.clipboardListeningWayTipsDetail:
+        return "提供两种监听模式，但可能不是都适用与您的设备，默认使用系统日志监听，但并不都适用，在某些设备上面发现可能无效。\n\n如：隐藏API在小米手机上可能不生效，系统日志监听则在 OriginOS 上无效，请根据实际情况启用";
+      case TranslationKey.clipboardListeningWayToggleConfirmContent:
+        return "你确认切换监听模式吗？\n\n将切换到 @way";
     }
   }
 }

@@ -468,7 +468,13 @@ enum TranslationKey {
   addFilesFromSystem,
   viewPendingFiles,
   sendFiles,
-  unWriteablePathTips;
+  unWriteablePathTips,
+  clipboardListeningWay,
+  clipboardListeningWayToggleConfirmContent,
+  clipboardListeningWayTips,
+  clipboardListeningWayTipsDetail,
+  clipboardListeningWithSystemHiddenApi,
+  clipboardListeningWithSystemLogs;
 
   String get tr => name.tr;
 

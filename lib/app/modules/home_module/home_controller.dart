@@ -140,13 +140,12 @@ class HomeController extends GetxController with WidgetsBindingObserver, ScreenO
     }
     _initSearchPageShow();
     if (Platform.isWindows) {
-      clipboardManager.startListening(
-        notificationContentConfig: ClipboardService.defaultNotificationContentConfig,
-      );
+      clipboardManager.startListening();
     } else {
       clipboardManager
           .startListening(
         startEnv: appConfig.workingMode,
+        way: appConfig.clipboardListeningWay,
         notificationContentConfig: ClipboardService.defaultNotificationContentConfig,
       )
           .then((started) {

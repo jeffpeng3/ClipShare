@@ -110,6 +110,7 @@ class ConfigService extends GetxService {
     });
   }
 
+  final selectingWorkingMode = false.obs;
   final _isMultiSelectionMode = false.obs;
 
   bool get isEnableMultiSelectionMode => _isMultiSelectionMode.value;
@@ -354,6 +355,7 @@ class ConfigService extends GetxService {
 
   EnvironmentType? get workingMode => _workingMode.value;
 
+  //仅中转模式（Debug）
   late final RxBool _onlyForwardMode;
 
   bool get onlyForwardMode {
@@ -363,9 +365,15 @@ class ConfigService extends GetxService {
     return _onlyForwardMode.value;
   }
 
+  //忽略更新的版本
   final Rx<String?> _ignoreUpdateVersion = Rx<String?>(null);
 
   String? get ignoreUpdateVersion => _ignoreUpdateVersion.value;
+
+  //剪贴板监听方式
+  final Rx<ClipboardListeningWay?> _clipboardListeningWay = Rx<ClipboardListeningWay?>(null);
+
+  ClipboardListeningWay get clipboardListeningWay => _clipboardListeningWay.value ?? ClipboardListeningWay.hiddenApi;
 
   //endregion
 
@@ -535,6 +543,10 @@ class ConfigService extends GetxService {
       "showMoreItemsInRow",
       userId,
     );
+    var clipboardListeningWay = await cfg.getConfig(
+      "clipboardListeningWay",
+      userId,
+    );
     var fileStoreDir = Directory(fileStorePath ?? await defaultFileStorePath);
     _port = port?.toInt().obs ?? Constants.port.obs;
     _localName = localName.isNotNullAndEmpty ? localName!.obs : devInfo.name.obs;
@@ -586,6 +598,7 @@ class ConfigService extends GetxService {
     _autoCopyImageAfterSync = autoCopyImageAfterSync?.toBool().obs ?? false.obs;
     _autoCopyImageAfterScreenShot = autoCopyImageAfterScreenShot?.toBool().obs ?? true.obs;
     _ignoreUpdateVersion.value = ignoreUpdateVersion;
+    _clipboardListeningWay.value = clipboardListeningWay == null ? ClipboardListeningWay.logs : ClipboardListeningWay.parse(clipboardListeningWay);
     try {
       var cleanCfg = CleanDataConfig.fromJson(cleanDataConfig.toString());
       _cleanDataConfig.value = cleanCfg;
@@ -942,6 +955,11 @@ class ConfigService extends GetxService {
   Future<void> setShowMoreItemsInRow(bool showMoreItemsInRow) async {
     await _addOrUpdateDbConfig("showMoreItemsInRow", showMoreItemsInRow.toString());
     _showMoreItemsInRow.value = showMoreItemsInRow;
+  }
+
+  Future<void> setClipboardListeningWay(ClipboardListeningWay way) async {
+    await _addOrUpdateDbConfig("clipboardListeningWay", way.name.toString());
+    _clipboardListeningWay.value = way;
   }
 
 //endregion

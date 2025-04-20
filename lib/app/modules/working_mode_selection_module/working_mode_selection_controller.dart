@@ -12,6 +12,16 @@ class WorkingModeSelectionController extends GetxController {
   final appConfig = Get.find<ConfigService>();
   final settingController = Get.find<SettingsController>();
 
+  @override
+  void onReady() {
+    appConfig.selectingWorkingMode.value = true;
+  }
+
+  @override
+  void onClose() {
+    appConfig.selectingWorkingMode.value = false;
+  }
+
   void onSelected(EnvironmentType? env) {
     selected.value = env;
   }

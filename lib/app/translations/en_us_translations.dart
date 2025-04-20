@@ -850,7 +850,7 @@ class EnUSTranslation extends AbstractTranslations {
       case TranslationKey.showOnRecentTasks:
         return "Show on recent tasks";
       case TranslationKey.showOnRecentTasksDesc:
-        return "Hiding the backend on some systems may result in the backend being killed after switching applications, and the current reason is unknown";
+        return "Hiding the backend on some systems may result in the backend being killed after switching applications（e.g. Xiaomi）, and the current reason is unknown";
       case TranslationKey.showLocalIpAddress:
         return "Show Local IP Address";
       case TranslationKey.localIpAddress:
@@ -953,6 +953,18 @@ class EnUSTranslation extends AbstractTranslations {
         return "Send files";
       case TranslationKey.unWriteablePathTips:
         return "The selected location cannot be written, please select again";
+      case TranslationKey.clipboardListeningWay:
+        return "Clipboard Listening Way";
+      case TranslationKey.clipboardListeningWayTips:
+        return "Tips";
+      case TranslationKey.clipboardListeningWithSystemHiddenApi:
+        return "Hidden API";
+      case TranslationKey.clipboardListeningWithSystemLogs:
+        return "System Logs";
+      case TranslationKey.clipboardListeningWayTipsDetail:
+        return "Provide two listening modes, but not both are compatible with your device. The default is to use the system's logs for listening, but not all are applicable. It may be found to be invalid on some devices. \n\nFor example, hiding APIs may not work on Xiaomi phones, and system log monitoring may not work on OriginOS. Please enable it according to the actual situation";
+      case TranslationKey.clipboardListeningWayToggleConfirmContent:
+        return "Are you sure to switch to monitoring mode? \n\nWill switch to @way";
     }
   }
 }

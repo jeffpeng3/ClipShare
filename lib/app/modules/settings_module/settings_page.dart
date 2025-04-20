@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
+import 'package:clipboard_listener/clipboard_manager.dart';
+import 'package:clipboard_listener/enums.dart';
 import 'package:clipshare/app/data/enums/translation_key.dart';
 import 'package:clipshare/app/handlers/hot_key_handler.dart';
 import 'package:clipshare/app/modules/home_module/home_controller.dart';
@@ -15,6 +17,7 @@ import 'package:clipshare/app/services/clipboard_service.dart';
 import 'package:clipshare/app/services/config_service.dart';
 import 'package:clipshare/app/services/socket_service.dart';
 import 'package:clipshare/app/utils/constants.dart';
+import 'package:clipshare/app/utils/extensions/clipboard_listener_way_extension.dart';
 import 'package:clipshare/app/utils/extensions/number_extension.dart';
 import 'package:clipshare/app/utils/extensions/platform_extension.dart';
 import 'package:clipshare/app/utils/extensions/string_extension.dart';
@@ -27,8 +30,10 @@ import 'package:clipshare/app/widgets/dot.dart';
 import 'package:clipshare/app/widgets/dynamic_size_widget.dart';
 import 'package:clipshare/app/widgets/environment_status_card.dart';
 import 'package:clipshare/app/widgets/hot_key_editor.dart';
+import 'package:clipshare/app/widgets/settings/card/clipboard_listening_way_setting_card.dart';
 import 'package:clipshare/app/widgets/settings/card/setting_card.dart';
 import 'package:clipshare/app/widgets/settings/card/setting_card_group.dart';
+import 'package:clipshare/app/widgets/settings/card/setting_header.dart';
 import 'package:clipshare/app/widgets/settings/forward_server_edit_dialog.dart';
 import 'package:clipshare/app/widgets/settings/text_edit_dialog.dart';
 import 'package:clipshare/app/widgets/single_select_dialog.dart';
@@ -74,6 +79,108 @@ class SettingsPage extends GetView<SettingsController> {
                       onTap: controller.onEnvironmentStatusCardClick,
                     );
                   }),
+                if (Platform.isAndroid)
+                  Obx(
+                    () => Visibility(
+                      visible: appConfig.workingMode == EnvironmentType.shizuku || appConfig.workingMode == EnvironmentType.root,
+                      child: SettingHeader(
+                        icon: const Icon(
+                          Icons.developer_mode,
+                          size: 17,
+                        ),
+                        title: TranslationKey.clipboardListeningWay.tr,
+                        tips: Tooltip(
+                          message: TranslationKey.clipboardListeningWayTips.tr,
+                          child: GestureDetector(
+                            child: const MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: Icon(
+                                Icons.info_outline,
+                                color: Colors.blueGrey,
+                                size: 15,
+                              ),
+                            ),
+                            onTap: () async {
+                              Global.showTipsDialog(
+                                context: context,
+                                text: TranslationKey.clipboardListeningWayTipsDetail.tr,
+                              );
+                            },
+                          ),
+                        ),
+                        padding: const EdgeInsets.only(bottom: 8, left: 8),
+                      ),
+                    ),
+                  ),
+                if (Platform.isAndroid)
+                  Obx(
+                    () => Visibility(
+                      visible: appConfig.workingMode == EnvironmentType.shizuku || appConfig.workingMode == EnvironmentType.root,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Obx(
+                              () => ClipboardListeningWaySettingCard(
+                                cardMargin: const EdgeInsets.only(left: 0, right: 3),
+                                icon: Icons.visibility_off,
+                                name: ClipboardListeningWay.hiddenApi.tr,
+                                selected: appConfig.clipboardListeningWay == ClipboardListeningWay.hiddenApi,
+                                onTap: () {
+                                  if (appConfig.clipboardListeningWay == ClipboardListeningWay.hiddenApi) {
+                                    return;
+                                  }
+                                  Global.showTipsDialog(
+                                    context: context,
+                                    text: TranslationKey.clipboardListeningWayToggleConfirmContent.trParams({"way": ClipboardListeningWay.hiddenApi.tr}),
+                                    showCancel: true,
+                                    onOk: () async {
+                                      appConfig.setClipboardListeningWay(ClipboardListeningWay.hiddenApi);
+                                      await clipboardManager.stopListening();
+                                      clipboardManager.startListening(
+                                        startEnv: appConfig.workingMode,
+                                        way: ClipboardListeningWay.hiddenApi,
+                                        notificationContentConfig: ClipboardService.defaultNotificationContentConfig,
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Obx(
+                              () => ClipboardListeningWaySettingCard(
+                                cardMargin: const EdgeInsets.only(right: 0, left: 3),
+                                icon: Icons.list_alt,
+                                name: ClipboardListeningWay.logs.tr,
+                                selected: appConfig.clipboardListeningWay == ClipboardListeningWay.logs,
+                                onTap: () {
+                                  if (appConfig.clipboardListeningWay == ClipboardListeningWay.logs) {
+                                    return;
+                                  }
+                                  Global.showTipsDialog(
+                                    context: context,
+                                    text: TranslationKey.clipboardListeningWayToggleConfirmContent.trParams({"way": ClipboardListeningWay.logs.tr}),
+                                    showCancel: true,
+                                    onOk: () async {
+                                      appConfig.setClipboardListeningWay(ClipboardListeningWay.logs);
+                                      await clipboardManager.stopListening();
+                                      clipboardManager.startListening(
+                                        startEnv: appConfig.workingMode,
+                                        way: ClipboardListeningWay.logs,
+                                        notificationContentConfig: ClipboardService.defaultNotificationContentConfig,
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                 //endregion
 
                 ///region 常规
@@ -1055,7 +1162,7 @@ class SettingsPage extends GetView<SettingsController> {
                             onPressed: () async {
                               String? directory = await FilePicker.platform.getDirectoryPath(lockParentWindow: true);
                               if (directory != null) {
-                                if(!FileUtil.testWriteable(directory)){
+                                if (!FileUtil.testWriteable(directory)) {
                                   Global.showTipsDialog(context: context, text: TranslationKey.unWriteablePathTips.tr);
                                   return;
                                 }
