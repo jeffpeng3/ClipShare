@@ -1,6 +1,6 @@
 import 'dart:core';
 import 'dart:math';
-
+///雪花算法，生成 id 用
 class Snowflake {
   static const int _defaultTwepoch = 1288834974657;
   static const int _defaultTimeOffset = 2000;
