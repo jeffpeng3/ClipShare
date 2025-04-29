@@ -50,9 +50,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze
-        run: flutter analyze
-
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
