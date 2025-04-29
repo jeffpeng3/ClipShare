@@ -17,10 +17,23 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.19.3"
-          channel: "stable"
-          cache: true
+          flutter-version: '3.19.3'
+          channel: 'stable'
+          cache: false
 
+      - name: Force Flutter upgrade
+        run: |
+          flutter upgrade
+          flutter --version
+      
+      - name: Check Flutter and Dart versions
+        run: |
+          flutter --version
+          dart --version
+      
+      - name: Verify Flutter installation
+        run: flutter doctor -v
+      
       - name: Cache pub dependencies
         uses: actions/cache@v3
         with:
@@ -29,8 +42,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pub-
 
-      - name: Download pub dependencies
-        run: flutter pub get
+      - name: Get dependencies
+        run: |
+          flutter clean
+          flutter pub get --no-offline
 
       - name: Check format
         run: flutter format --set-exit-if-changed .
@@ -76,18 +91,33 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.19.3"
-          channel: "stable"
-          cache: true
+          flutter-version: '3.19.3'
+          channel: 'stable'
+          cache: false
 
+      - name: Force Flutter upgrade
+        run: |
+          flutter upgrade
+          flutter --version
+      
+      - name: Check Flutter and Dart versions
+        run: |
+          flutter --version
+          dart --version
+      
+      - name: Verify Flutter installation
+        run: flutter doctor -v
+      
       - name: Install Visual Studio build tools
         uses: microsoft/setup-msbuild@v1.3.1
 
       - name: Enable Windows Desktop Support
         run: flutter config --enable-windows-desktop
 
-      - name: Download pub dependencies
-        run: flutter pub get
+      - name: Get dependencies
+        run: |
+          flutter clean
+          flutter pub get --no-offline
 
       - name: Build Windows App
         run: flutter build windows --release
